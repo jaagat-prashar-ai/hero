@@ -27,7 +27,14 @@ from __future__ import annotations
 import logging
 import os
 import sys
+import typing
 from typing import Any
+
+# physical_ai_av uses typing.Self (Python 3.11+). Backport it on 3.10 workers
+# via typing_extensions, which ships with pandas / huggingface_hub already.
+if sys.version_info < (3, 11) and not hasattr(typing, "Self"):
+    from typing_extensions import Self
+    typing.Self = Self  # type: ignore[attr-defined]
 
 logger = logging.getLogger(__name__)
 
