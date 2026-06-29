@@ -80,6 +80,7 @@ if not os.environ.get("AWS_ACCESS_KEY_ID"):
 # OCI S3 does not support AWS chunked encoding. payload_signing_enabled=True
 # disables chunked encoding and uses standard payload signing instead.
 _OCI_BOTO_CONFIG = BotocoreConfig(
+    signature_version="s3v4",
     request_checksum_calculation="when_required",
     response_checksum_validation="when_required",
     s3={
@@ -407,7 +408,9 @@ def upload_metadata_parquets(bucket: str, prefix: str, hf_token: str | None) -> 
         local = hf_hub_download(filename=hf_filename, **kwargs)
         key = f"{prefix.rstrip('/')}/{s3_suffix}"
         logger.info("Uploading metadata → s3://%s/%s", bucket, key)
-        s3.upload_file(local, bucket, key, Config=_OCI_TRANSFER_CONFIG)
+        # Use put_object with bytes in memory to avoid s3transfer's chunked encoding,
+        # which OCI S3 rejects. Metadata parquets are small enough to buffer.
+        s3.put_object(Bucket=bucket, Key=key, Body=Path(local).read_bytes())
 
 
 # ---------------------------------------------------------------------------

@@ -5,6 +5,7 @@
 # Masking inference
 webdataset>=0.2.86
 einops>=0.7
+s3transfer>=0.10.0       # ensure virtualenv version takes priority over older system s3transfer
 
 # WDS build pipeline (build_webdataset.py)
 # physical_ai_av and its deps (PIP_IGNORE_REQUIRES_PYTHON=1 set in cluster YAML)
