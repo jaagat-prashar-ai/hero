@@ -30,11 +30,20 @@ import sys
 import typing
 from typing import Any
 
-# physical_ai_av uses typing.Self (Python 3.11+). Backport it on 3.10 workers
-# via typing_extensions, which ships with pandas / huggingface_hub already.
-if sys.version_info < (3, 11) and not hasattr(typing, "Self"):
-    from typing_extensions import Self
-    typing.Self = Self  # type: ignore[attr-defined]
+# Backport Python 3.11 additions used by physical_ai_av on Python 3.10 workers.
+if sys.version_info < (3, 11):
+    import enum
+
+    # typing.Self
+    if not hasattr(typing, "Self"):
+        from typing_extensions import Self
+        typing.Self = Self  # type: ignore[attr-defined]
+
+    # enum.StrEnum
+    if not hasattr(enum, "StrEnum"):
+        class _StrEnum(str, enum.Enum):
+            __str__ = str.__str__
+        enum.StrEnum = _StrEnum  # type: ignore[attr-defined]
 
 # physical_ai_av uses scipy.spatial.transform.RigidTransform, which does not
 # exist in any released scipy version. Provide a minimal stub so imports succeed.
