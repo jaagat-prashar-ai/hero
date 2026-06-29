@@ -1,0 +1,59 @@
+[project]
+name = "mnist-template"
+version = "0.1.0"
+description = "Template for research experiments built on research-core"
+requires-python = "~=3.10.0"
+dependencies = [
+    # The generated lockfile is the *union* of research-core's deps and the
+    # project-specific additions below. research-core itself is excluded from
+    # the lockfile (Bazel supplies its source via local_repository, not pip);
+    # only its dependency closure is emitted. See lockfiles/generate_lockfiles.py.
+
+    # --- Project-specific dependencies ---
+    # Add deps your experiment needs *beyond* what research-core provides.
+    # matplotlib is used by ConfusionMatrixCallback and is not a research-core dep.
+    "matplotlib>=3.8",
+
+    # --- masking experiment dependencies ---
+    # WebDataset for reading WDS shards; boto3 for S3 download.
+    "webdataset>=0.2.86",
+    "boto3>=1.34",
+    "einops>=0.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
+
+[tool.uv.sources]
+# research-core lives at ./research-core (a git submodule). Declared as an
+# editable path dependency so uv reads its dependency closure directly from
+# research-core/pyproject.toml. generate_lockfiles.py passes
+# --no-emit-package research-core so the package entry is omitted while its
+# transitive deps are unioned into the lockfile.
+research-core = { path = "research-core", editable = true }
+
+[tool.uv]
+# Index configuration is resolver config (not dependency declarations), and uv
+# does not inherit it from path dependencies, so it must be repeated here for
+# resolution to find research-core's transitive deps (e.g. lilypad-py on Ursa).
+index = [
+    # lilypad-py is on the internal Ursa PyPI index
+    { url = "https://neuron:sVUzaCednqx4czMKTbQfVJqLZBRABCDj@ursa.pypi.applied.dev/simple" },
+    # torch CUDA 12.8 wheels
+    { url = "https://download.pytorch.org/whl/cu128" },
+    # nvidia wheels
+    { url = "https://pypi.nvidia.com" },
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# The template has no importable top-level package of its own to build; the
+# experiment code lives under mnist/ and is consumed via Bazel, not pip.
+packages = ["mnist", "masking"]
+
+[tool.pytest.ini_options]
+addopts = "--tb=short -q"
+asyncio_mode = "auto"

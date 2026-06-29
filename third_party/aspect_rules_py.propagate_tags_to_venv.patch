@@ -1,0 +1,18 @@
+diff --git py/defs.bzl py/defs.bzl
+--- py/defs.bzl
++++ py/defs.bzl
+@@ -42,12 +42,13 @@
+         **kwargs
+     )
+ 
++    venv_tags = ["manual"] + [t for t in kwargs.get("tags", []) if t != "manual"]
+     _py_venv(
+         name = "{}.venv".format(name),
+         deps = deps,
+         imports = kwargs.get("imports"),
+         resolutions = resolutions,
+         package_collisions = package_collisions,
+-        tags = ["manual"],
++        tags = venv_tags,
+         testonly = kwargs.get("testonly", False),
+     )

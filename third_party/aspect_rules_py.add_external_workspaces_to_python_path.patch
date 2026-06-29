@@ -1,0 +1,141 @@
+diff --git py/private/py_binary.bzl py/private/py_binary.bzl
+index 8fa8e74..d022e3a 100644
+--- py/private/py_binary.bzl
++++ py/private/py_binary.bzl
+@@ -7,6 +7,17 @@ load("//py/private:py_library.bzl", _py_library = "py_library_utils")
+ load("//py/private:py_semantics.bzl", _py_semantics = "semantics")
+ load("//py/private/toolchain:types.bzl", "PY_TOOLCHAIN", "VENV_TOOLCHAIN")
+ 
++
++def _runfiles_to_list_of_dependencies(runfiles):
++     
++    deps = []
++    for file in runfiles.files.to_list():
++        if file.short_path.startswith(".."):
++            external_dep = file.short_path.split("/")[1]
++            if external_dep not in deps:
++                deps.append(external_dep)
++    return depset(deps)
++
+ def _dict_to_exports(env):
+     return [
+         "export %s=\"%s\"" % (k, v)
+@@ -21,6 +32,36 @@ def _py_binary_rule_impl(ctx):
+     virtual_resolution = _py_library.resolve_virtuals(ctx)
+     imports_depset = _py_library.make_imports_depset(ctx, extra_imports_depsets = virtual_resolution.imports)
+ 
++
++
++    env = dict({
++        "BAZEL_TARGET": str(ctx.label).lstrip("@"),
++        "BAZEL_WORKSPACE": ctx.workspace_name,
++        "BAZEL_TARGET_NAME": ctx.attr.name,
++    }, **ctx.attr.env)
++
++    for k, v in env.items():
++        env[k] = expand_variables(
++            ctx,
++            expand_locations(ctx, v, ctx.attr.data),
++            attribute_name = "env",
++        )
++
++    srcs_depset = _py_library.make_srcs_depset(ctx)
++
++    runfiles = _py_library.make_merged_runfiles(
++        ctx,
++        extra_depsets = [
++            py_toolchain.files,
++            srcs_depset,
++        ] + virtual_resolution.srcs + virtual_resolution.runfiles,
++        extra_runfiles = [
++        ] + ctx.files._runfiles_lib,
++        extra_runfiles_depsets = [
++            venv_toolchain.default_info.default_runfiles,
++        ],
++    )
++
+     pth_lines = ctx.actions.args()
+     pth_lines.use_param_file("%s", use_always = True)
+     pth_lines.set_param_file_format("multiline")
+@@ -42,25 +83,23 @@ def _py_binary_rule_impl(ctx):
+     pth_lines.add(escape)
+ 
+     pth_lines.add_all(imports_depset, format_each = "{}/%s".format(escape))
++    deps_depset = _runfiles_to_list_of_dependencies(runfiles)
++    pth_lines.add_all(deps_depset, format_each = "{}/%s".format(escape))
+ 
+     site_packages_pth_file = ctx.actions.declare_file("{}.venv.pth".format(ctx.attr.name))
+     ctx.actions.write(
+         output = site_packages_pth_file,
+         content = pth_lines,
+     )
++    
++    runfiles=runfiles.merge(
++        ctx.runfiles([site_packages_pth_file]),
++    )
+ 
+-    env = dict({
+-        "BAZEL_TARGET": str(ctx.label).lstrip("@"),
+-        "BAZEL_WORKSPACE": ctx.workspace_name,
+-        "BAZEL_TARGET_NAME": ctx.attr.name,
+-    }, **ctx.attr.env)
+-
+-    for k, v in env.items():
+-        env[k] = expand_variables(
+-            ctx,
+-            expand_locations(ctx, v, ctx.attr.data),
+-            attribute_name = "env",
+-        )
++    instrumented_files_info = _py_library.make_instrumented_files_info(
++        ctx,
++        extra_source_attributes = ["main"],
++    )
+ 
+     executable_launcher = ctx.actions.declare_file(ctx.attr.name)
+     ctx.actions.expand_template(
+@@ -89,27 +128,6 @@ def _py_binary_rule_impl(ctx):
+         is_executable = True,
+     )
+ 
+-    srcs_depset = _py_library.make_srcs_depset(ctx)
+-
+-    runfiles = _py_library.make_merged_runfiles(
+-        ctx,
+-        extra_depsets = [
+-            py_toolchain.files,
+-            srcs_depset,
+-        ] + virtual_resolution.srcs + virtual_resolution.runfiles,
+-        extra_runfiles = [
+-            site_packages_pth_file,
+-        ] + ctx.files._runfiles_lib,
+-        extra_runfiles_depsets = [
+-            venv_toolchain.default_info.default_runfiles,
+-        ],
+-    )
+-
+-    instrumented_files_info = _py_library.make_instrumented_files_info(
+-        ctx,
+-        extra_source_attributes = ["main"],
+-    )
+-
+     return [
+         DefaultInfo(
+             files = depset([
+diff --git py/private/py_library.bzl py/private/py_library.bzl
+index 2b52bc8..7cc9ad7 100644
+--- py/private/py_library.bzl
++++ py/private/py_library.bzl
+@@ -141,7 +141,12 @@ def _make_imports_depset(ctx, imports = [], extra_imports_depsets = []):
+     # Handle the case where its a target from an external workspace that uses repo-relative imports
+     if ctx.label.workspace_name:
+         import_paths.append(ctx.label.workspace_name)
+-
++    transitive = [
++        (target[PyInfo].imports, target)
++        for target in getattr(ctx.attr, "deps", [])
++        if PyInfo in target
++    ]
++    
+     return depset(
+         direct = import_paths,
+         transitive = [

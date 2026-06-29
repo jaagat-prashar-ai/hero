@@ -1,0 +1,33 @@
+name: mnist-template-cluster
+workload_variant_config:
+  training_fn: mnist.training.train.training_loop
+  training_fn_config:
+    batch_size: 128
+    max_steps: 5000
+    learning_rate: 0.0003
+    label_smoothing: 0.1
+    val_check_interval: 500
+    checkpoint_interval: 500
+    log_interval: 20
+    image_log_interval: 100
+    accelerator: gpu
+    devices: 1
+    num_workers: 8
+    wandb_project: mnist-template
+    wandb_entity: research
+    # resume_run_id: null  # Set to resume a specific preempted run by W&B run ID
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: mnist-template
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+runtime_environment:
+  code_assets:
+    bazel_target: //mnist/training:lilypad_mnist_training

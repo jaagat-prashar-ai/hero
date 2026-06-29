@@ -1,0 +1,50 @@
+name: masking-cot-cluster
+workload_variant_config:
+  workload_type: "training"
+  training_fn: masking.training.run.masking_loop
+  training_fn_config:
+    # ── S3 data source ────────────────────────────────────────────────────────
+    # Replace PLACEHOLDER_BUCKET and PLACEHOLDER_PREFIX with your actual bucket
+    # and prefix where the WDS shards were written by build_webdataset.py.
+    # Example: s3://my-research-bucket/projects/masking/wds
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+    local_data_dir: "/mnt/work/tmp/wds_cache"
+
+    # Set to an integer to download only the first N shards (smoke test / debug).
+    # Omit or set to null to download all shards.
+    max_shards: null
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Experiment ────────────────────────────────────────────────────────────
+    # "a" — masked vs unmasked trajectory ADE across all clips
+    # "b" — per-word steering salience + concept-set ablation
+    experiment: "a"
+    seed: 0
+
+    # Comma-separated concept words for experiment B ablation
+    concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+
+    # Resume from an interrupted run (skips already-written JSONL rows)
+    resume: true
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/mnt/work/tmp/masking_results"
+
+  experiment_tracker: {}  # add wandb: {entity: research, project: masking-cot} once W&B is reachable
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: masking/requirements.txt

@@ -1,0 +1,15 @@
+diff --git lilypad/bazel/resolve.bzl lilypad/bazel/resolve.bzl
+index 13335dd..9b74167 100755
+--- lilypad/bazel/resolve.bzl
++++ lilypad/bazel/resolve.bzl
+@@ -8,8 +8,8 @@ def resolve():
+
+     oci_pull(
+         name = "ubuntu_2404",
+-        digest = "sha256:3afff29dffbc200d202546dc6c4f614edc3b109691e7ab4aa23d02b42ba86790",
+-        image = "ubuntu",
++        digest = "sha256:104f82606ea66da00e6cfecbcccdb53ba4238a7057bed809f004107ad8e90c97",
++        image = "933102013064.dkr.ecr.us-west-2.amazonaws.com/ubuntu",
+         platforms = [
+             "linux/amd64",
+         ],

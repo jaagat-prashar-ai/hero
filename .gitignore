@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Bazel (convenience symlinks + caches)
+bazel-*
+
+# uv
+.python-version
+
+# Local bazel overrides
+user.bazelrc
+
+# Experiment tracking / data (created at runtime)
+wandb/
+/tmp/mnist_data/
+
+# IDE
+.idea/
+.vscode/
+*.swp

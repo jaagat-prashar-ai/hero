@@ -1,0 +1,28 @@
+# Python: generate __init__.py to delimit Python packages
+build --incompatible_default_to_explicit_init_py
+
+# Disable bzlmod (use classic WORKSPACE)
+common --enable_bzlmod=false
+
+# C++ 17
+build --cxxopt=-std=c++17
+build --host_cxxopt=-std=c++17
+
+# Increase hermeticity
+build --action_env=PATH=/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+build --action_env=LD_LIBRARY_PATH=/usr/local/cuda/lib64:/lib
+build --host_action_env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+build --incompatible_strict_action_env
+
+# Don't stamp by default
+build --nostamp
+
+# Test output
+test --test_output=errors
+
+# Local disk cache
+build --disk_cache=~/.cache/bazel_cache_mnist_template
+build --experimental_disk_cache_gc_max_size=100G
+build --experimental_disk_cache_gc_max_age=14d
+
+try-import %workspace%/user.bazelrc

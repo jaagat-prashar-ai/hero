@@ -1,0 +1,37 @@
+name: masking-cot-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: masking.training.run.masking_loop
+  training_fn_config:
+    # ── Data source ───────────────────────────────────────────────────────────
+    # Shard already built locally — skip S3 download entirely.
+    local_data_dir: "/mnt/work/tmp/jaagat-prashar/wds"
+    skip_download: true
+
+    # S3 fields unused when skip_download=true (kept for reference)
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Experiment ────────────────────────────────────────────────────────────
+    experiment: "a"
+    seed: 0
+    concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+    resume: false
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/tmp/masking_results"
+
+  experiment_tracker: {}  # no W&B tracking for local runs
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: masking/requirements.txt

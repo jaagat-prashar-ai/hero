@@ -1,0 +1,29 @@
+name: mnist-template-local
+workload_variant_config:
+  training_fn: mnist.training.train.training_loop
+  training_fn_config:
+    batch_size: 64
+    max_steps: 500
+    learning_rate: 0.0001
+    label_smoothing: 0.0
+    val_check_interval: 100
+    checkpoint_interval: 250
+    log_interval: 10
+    image_log_interval: 50
+    accelerator: gpu
+    devices: 1
+    num_workers: 4
+    wandb_project: mnist-template
+    wandb_entity: research
+    # resume_run_id: null  # Uncomment to resume a specific run by ID
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: mnist-template
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+runtime_environment:
+  code_assets:
+    bazel_target: //mnist/training:lilypad_mnist_training

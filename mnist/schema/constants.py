@@ -1,0 +1,5 @@
+NUM_CLASSES = 10
+IMAGE_H = IMAGE_W = 28
+MNIST_MEAN = 0.1307
+MNIST_STD = 0.3081
+FEATURE_DIM = 128  # default encoder output dim

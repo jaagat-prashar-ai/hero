@@ -1,0 +1,53 @@
+name: build-physicalai-wds
+workload_variant_config:
+  workload_type: "training"
+  training_fn: masking.data.build_wds_worker.build_wds_loop
+  training_fn_config:
+    # ── S3 destination ────────────────────────────────────────────────────────
+    bucket: "research-datasets-chicago"
+    prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+
+    # ── HuggingFace token ─────────────────────────────────────────────────────
+    # Set the HF_TOKEN env var in your Lilypad secrets instead of hardcoding here.
+    # hf_token: "hf_xxxx"
+
+    # ── Local threading per node ──────────────────────────────────────────────
+    # Each Lilypad worker runs this many download threads concurrently.
+    workers: 8
+
+    clips_per_shard: 50
+
+    splits:
+      - train
+      - val
+      - test
+
+    # Set to an integer to limit clips per split per worker (smoke test).
+    # max_clips: 5
+
+    # Path to a file of already-completed clip IDs on the worker node.
+    # Omit to start fresh; set to a shared NFS/EFS path for global resumption.
+    # resume_file: "/mnt/work/tmp/build_done_clips.txt"
+
+    # Rank-0 uploads the three metadata parquets automatically; set true to skip.
+    skip_metadata_upload: false
+
+# ── Number of parallel Lilypad workers ────────────────────────────────────────
+# Each worker processes 1/num_replicas of all clips.
+# Lilypad injects RANK (0..num_replicas-1) and WORLD_SIZE automatically.
+num_replicas: 32
+
+cluster_resources:
+  # Dataset building is CPU/network-bound — use a high-CPU node, no GPU needed.
+  cpu_machine_type: cpu.32
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    bazel_target: //masking/data:lilypad_build_wds
+    pip_requirements_path: masking/requirements.txt

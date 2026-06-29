@@ -1,0 +1,13 @@
+# Dependencies for the masking experiment and WDS build pipeline.
+# Installed by Lilypad before the workload runs (pip_requirements_path).
+# torch/transformers/einops are expected to be present in the cluster image.
+
+# Masking inference
+boto3>=1.34
+webdataset>=0.2.86
+einops>=0.7
+
+# WDS build pipeline (build_webdataset.py) — requires Python >= 3.11
+physical_ai_av           # NVIDIA PhysicalAI-AV devkit (HuggingFace download API)
+huggingface_hub>=0.23    # hf_hub_download, login
+pandas>=2.0              # parquet loading for metadata / splits
