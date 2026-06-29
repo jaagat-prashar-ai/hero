@@ -69,6 +69,9 @@ import pandas as pd
 import webdataset as wds
 from huggingface_hub import hf_hub_download, login
 
+# Default to the OCI Chicago profile so boto3 never falls back to the empty default profile.
+os.environ.setdefault("AWS_PROFILE", "oci.chi")
+
 import physical_ai_av
 from physical_ai_av import PhysicalAIAVDatasetInterface
 
