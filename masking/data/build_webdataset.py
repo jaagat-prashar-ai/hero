@@ -60,8 +60,28 @@ import logging
 import os
 import tempfile
 import threading
+import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
+
+_T = TypeVar("_T")
+
+
+def _hf_retry(fn: Callable[[], _T], max_attempts: int = 5) -> _T:
+    """Retry a HuggingFace Hub call on transient 5xx / 429 errors."""
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except Exception as exc:
+            msg = str(exc)
+            transient = any(code in msg for code in ("502", "503", "504", "429", "Gateway Time-out"))
+            if transient and attempt < max_attempts - 1:
+                wait = 30 * (2 ** attempt)  # 30s, 60s, 120s, 240s
+                logger.warning("HF transient error (attempt %d/%d), retrying in %ds: %s",
+                               attempt + 1, max_attempts, wait, exc)
+                time.sleep(wait)
+            else:
+                raise
 
 import boto3
 from boto3.s3.transfer import TransferConfig
@@ -140,15 +160,15 @@ def load_splits_and_metadata(
     kwargs = dict(repo_id=HF_REPO, repo_type="dataset", token=hf_token)
 
     logger.info("Downloading feature_presence.parquet …")
-    fp_path = hf_hub_download(filename="metadata/feature_presence.parquet", **kwargs)
+    fp_path = _hf_retry(lambda: hf_hub_download(filename="metadata/feature_presence.parquet", **kwargs))
     feature_df = pd.read_parquet(fp_path)
 
     logger.info("Downloading data_collection.parquet …")
-    dc_path = hf_hub_download(filename="metadata/data_collection.parquet", **kwargs)
+    dc_path = _hf_retry(lambda: hf_hub_download(filename="metadata/data_collection.parquet", **kwargs))
     collection_df = pd.read_parquet(dc_path)
 
     logger.info("Downloading ood_reasoning.parquet …")
-    ood_path = hf_hub_download(filename="reasoning/ood_reasoning.parquet", **kwargs)
+    ood_path = _hf_retry(lambda: hf_hub_download(filename="reasoning/ood_reasoning.parquet", **kwargs))
     ood_df = pd.read_parquet(ood_path)
 
     # Build OOD split map and per-clip event list
@@ -405,7 +425,7 @@ def upload_metadata_parquets(bucket: str, prefix: str, hf_token: str | None) -> 
         "reasoning/ood_reasoning.parquet":   "metadata/ood_reasoning.parquet",
     }
     for hf_filename, s3_suffix in files.items():
-        local = hf_hub_download(filename=hf_filename, **kwargs)
+        local = _hf_retry(lambda fn=hf_filename: hf_hub_download(filename=fn, **kwargs))
         key = f"{prefix.rstrip('/')}/{s3_suffix}"
         logger.info("Uploading metadata → s3://%s/%s", bucket, key)
         # Use put_object with bytes in memory to avoid s3transfer's chunked encoding,
@@ -506,7 +526,7 @@ def main() -> None:
                     split, len(work[split]), args.rank, args.world_size)
 
     # ── Initialize model interface and S3 writers ─────────────────────────────
-    avdi = PhysicalAIAVDatasetInterface()
+    avdi = _hf_retry(PhysicalAIAVDatasetInterface)
 
     writers = {
         split: S3ShardWriter(args.bucket, args.prefix, split, args.clips_per_shard,
