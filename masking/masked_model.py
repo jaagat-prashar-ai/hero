@@ -2,24 +2,16 @@
 """
 masked_model.py — CoT-masked Alpamayo 1.5 for open-loop semantic-action alignment.
 
-PROVENANCE (read me — keeps the science honest)
-------------------------------------------------
-This file does NOT copy anything out of Shubh's workspace. It IMPORTS the
-installed packages from his venv (read+execute only) and subclasses them:
-
-  IMPORTED LIVE (unmodified, from .../alpasim/.venv/.../site-packages):
+- Imported:
     - alpamayo1_5.models.alpamayo1_5.Alpamayo1_5, ExpertLogitsProcessor
     - alpamayo1_5.models.token_utils.{to_special_token, StopAfterEOS,
           replace_padding_after_eos, extract_text_tokens}
 
-  REPRODUCED (forked) UPSTREAM LOGIC — NVIDIA open source (NVlabs/alpamayo1.5),
-  not Shubh's own code:
-    - The body of `sample_trajectories_from_data_with_vlm_rollout` is re-typed
-      below (split into `_rollout_prefix` + `_denoise_with_mask`) so a mask can
-      be injected into the expert's cross-attention. If NVIDIA changes the
-      upstream rollout, RE-SYNC these two methods.
+ 
+    - We split the "sample_trajectories_from_data_with_vlm_rollout_ into "_rollout_prefix" and "_denoise_with_mask"
+    - A mask can be injected into the expert's cross-attention
 
-  NEW (authored here — the parts to review):
+    # Other changes (have to review this later)
     - whole-WORD masking of the reasoning span (fixes the per-subword-token
       substring bug in the original draft)
     - returns the raw [accel, curvature] action so steering/throttle deltas are
@@ -29,18 +21,14 @@ installed packages from his venv (read+execute only) and subclasses them:
       not in sampled reasoning text (clean controlled comparison)
     - `salience_leave_one_word_out` for per-word steering salience (experiment b)
 
-VALIDATION BEFORE TRUSTING RESULTS
-----------------------------------
+review this before we actually state results:
 `mask_spec="none"` is a fork of upstream, not upstream itself. Confirm it
 reproduces the stock `Alpamayo1_5.sample_trajectories_from_data_with_vlm_rollout`
 numerically (same seed -> same trajectory) before reporting any deltas. See
 run_masked_openloop.py --validate.
 
-ASSUMPTIONS
------------
-Analysis paths assume num_traj_samples == 1 and B == 1 so that token positions in
-`sequences` align 1:1 with KV-cache columns (no left-padding offset). The class
-asserts this where it matters.
+# Analysis paths assuem that num_traj_samples == 1 and B == 1 so that the token positions in 
+# "sequences" align 1:1 with KV-cache columns (we prevent the left-adding offset). asserts this where it matters.
 """
 
 from __future__ import annotations
@@ -398,3 +386,88 @@ class MaskedAlpamayo1_5(Alpamayo1_5):
             })
         ranked.sort(key=lambda r: r["d_curvature_mean_abs"], reverse=True)
         return {"cot": prefix["cot"], "baseline_curvature": base_curv, "words": ranked}
+
+
+    # ------------------------------------------------------------------ #
+    # Prefix / suffix threshold masking                                   #
+    # ------------------------------------------------------------------ #
+    def _prefix_mask_columns(
+        self, seq: torch.Tensor, n: int, unit: str = "tokens"
+    ) -> torch.Tensor:
+        """Columns to MASK so the expert sees only the first n tokens/words of reasoning.
+
+        Returns reasoning columns AFTER position n. With n==0 the full reasoning span
+        is masked; with n >= span length nothing is masked (returns empty tensor).
+
+        unit: "tokens" — n counts sub-word tokens within the reasoning span
+              "words"  — n counts whole words; all tokens of words[n:] are masked
+        """
+        # Locate the inclusive [start, end) column range of the reasoning span in `seq`.
+        # `start` is the column right after <|cot_start|>; `end` is the column of
+        # <|cot_end|> (or <|traj_future_start|> if the end marker is absent).
+        start, end = self._reasoning_span(seq)
+
+        if unit == "tokens":
+            # The cutoff column is start + n sub-word tokens into the reasoning span.
+            # `min(..., end)` clamps so we never go past the end of the reasoning span,
+            # which would silently mask tokens outside the CoT section.
+            cutoff = min(start + n, end)
+            # Return every column from `cutoff` to `end` — these are the tokens AFTER
+            # the n-token prefix that we want to hide from the expert's attention.
+            return torch.arange(cutoff, end, device=seq.device)
+
+        if unit == "words":
+            # Re-group reasoning sub-word tokens into whole words so the cutoff falls
+            # on a clean word boundary rather than mid-word.
+            words = self._word_groups(seq)
+            # If n is at least as large as the total number of words, the entire
+            # prefix is "visible" and there is nothing left to mask — return empty.
+            if n >= len(words):
+                return torch.tensor([], device=seq.device, dtype=torch.long)
+            # Collect every sub-word token column belonging to words[n:] (the suffix
+            # that comes after the n-word prefix we want to keep visible).
+            cols: list[int] = []
+            for w in words[n:]:                          # iterate over the suffix words
+                cols.extend(int(c) for c in w["cols"])  # flatten their token columns
+            # Sort to keep columns in ascending order (required by the attention mask
+            # indexing in _denoise_with_mask) and return as a LongTensor.
+            return torch.tensor(sorted(cols), device=seq.device, dtype=torch.long)
+
+        raise ValueError(f"unknown unit: {unit!r}")
+
+    def _suffix_mask_columns(
+        self, seq: torch.Tensor, n: int, unit: str = "tokens"
+    ) -> torch.Tensor:
+        """Columns to MASK so the expert sees only reasoning tokens/words from n onward.
+
+        Returns reasoning columns BEFORE position n. Complement of _prefix_mask_columns.
+        """
+        # Locate the [start, end) column range of the reasoning span — same as above.
+        start, end = self._reasoning_span(seq)
+
+        if unit == "tokens":
+            # The cutoff column is start + n tokens into the reasoning span.
+            # `min(..., end)` prevents going past the reasoning span boundary.
+            cutoff = min(start + n, end)
+            # Return columns from `start` up to (not including) `cutoff` — i.e., the
+            # first n tokens of the reasoning span that we want the expert NOT to see.
+            return torch.arange(start, cutoff, device=seq.device)
+
+        if unit == "words":
+            # Re-group into whole words so the cutoff lands on a word boundary.
+            words = self._word_groups(seq)
+            # Clamp n to the actual number of words so slicing words[:n_clamp] is safe
+            # even when n exceeds the reasoning length.
+            n_clamp = min(n, len(words))
+            # If n_clamp is 0, there is no prefix to mask — return empty tensor.
+            if n_clamp == 0:
+                return torch.tensor([], device=seq.device, dtype=torch.long)
+            # Collect every sub-word token column belonging to words[:n_clamp] (the
+            # prefix we want to hide so only the suffix is visible to the expert).
+            cols: list[int] = []
+            for w in words[:n_clamp]:                    # iterate over the prefix words
+                cols.extend(int(c) for c in w["cols"])  # flatten their token columns
+            # Return sorted so attention-mask indexing works correctly.
+            return torch.tensor(sorted(cols), device=seq.device, dtype=torch.long)
+
+        raise ValueError(f"unknown unit: {unit!r}")
