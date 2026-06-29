@@ -16,9 +16,11 @@ workload_variant_config:
     checkpoint: "nvidia/Alpamayo-1.5-10B"
 
     # ── Experiment ────────────────────────────────────────────────────────────
+    # "a" — masked vs unmasked ADE, "b" — salience, "c" — threshold sweep
     experiment: "a"
     seed: 0
     concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+    threshold_words: [0, 5, 10, 20, 30, 50]
     resume: false
 
     # ── Output ────────────────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ Experiments
 -----------
 experiment=a  Masked vs unmasked ADE across all clips (batch experiment A).
 experiment=b  Per-word steering salience, top-20 ranked words (batch experiment B).
+experiment=c  Prefix/suffix threshold sweep: ADE vs. CoT word position (batch experiment C).
 
 Resuming
 --------
@@ -57,10 +58,11 @@ _DEFAULTS: dict[str, Any] = {
     "experiment":     "a",
     "seed":           0,
     "concepts":       "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light",
-    "resume":         False,
-    "outdir":         "/tmp/masking_results",
-    "wandb_project":  "masking-cot",
-    "wandb_entity":   "research",
+    "resume":              False,
+    "outdir":              "/tmp/masking_results",
+    "wandb_project":       "masking-cot",
+    "wandb_entity":        "research",
+    "threshold_words":     [0, 5, 10, 20, 30, 50],  # prefix/suffix sweep thresholds (exp c)
 }
 
 
@@ -171,6 +173,73 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
     }
 
 
+def _run_experiment_c(
+    model, model_inputs: dict, seed: int, threshold_words: list[int]
+) -> dict:
+    """Prefix/suffix threshold sweep: ADE vs. CoT word position.
+
+    For each threshold n, we run two conditions:
+      prefix n  — expert sees only the first n words; words[n:] are masked
+      suffix n  — expert sees only words from position n onward; words[:n] are masked
+
+    A baseline (no masking) is included at key "baseline". All conditions share
+    a single VLM rollout so the CoT text is identical across thresholds.
+
+    Output fields:
+      cot            — generated reasoning text
+      n_words_total  — total whole-word count in the reasoning span
+      prefix_sweep   — list of {n, n_masked_cols, ade_m} sorted by n
+      suffix_sweep   — list of {n, n_masked_cols, ade_m} sorted by n
+    """
+    conditions: dict[str, dict] = {"baseline": {"mode": "none"}}
+    for n in threshold_words:
+        conditions[f"prefix_{n}w"] = {"mode": "prefix", "n": n, "unit": "words"}
+        conditions[f"suffix_{n}w"] = {"mode": "suffix", "n": n, "unit": "words"}
+
+    with torch.autocast("cuda", dtype=torch.bfloat16):
+        res = model.compare_conditions(model_inputs, conditions, seed=seed)
+
+    cot_raw = res["cot"]
+    if isinstance(cot_raw, dict):
+        seqs = cot_raw.get("cot", [])
+        cot = seqs[0].strip() if seqs else "<no cot>"
+    else:
+        cot = str(cot_raw).strip()
+
+    n_words_total = len(res.get("words", []))
+
+    baseline_xyz = res["conditions"]["baseline"]["pred_xyz"][0, 0, 0].numpy()  # (T, 3)
+
+    def ade_vs_baseline(cond_name: str) -> float:
+        xyz = res["conditions"][cond_name]["pred_xyz"][0, 0, 0].numpy()
+        T = min(len(xyz), len(baseline_xyz))
+        return float(np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1).mean())
+
+    prefix_sweep = [
+        {
+            "n": n,
+            "n_masked_cols": int(res["conditions"][f"prefix_{n}w"]["n_masked_cols"]),
+            "ade_m": ade_vs_baseline(f"prefix_{n}w"),
+        }
+        for n in sorted(threshold_words)
+    ]
+    suffix_sweep = [
+        {
+            "n": n,
+            "n_masked_cols": int(res["conditions"][f"suffix_{n}w"]["n_masked_cols"]),
+            "ade_m": ade_vs_baseline(f"suffix_{n}w"),
+        }
+        for n in sorted(threshold_words)
+    ]
+
+    return {
+        "cot":           cot,
+        "n_words_total": n_words_total,
+        "prefix_sweep":  prefix_sweep,
+        "suffix_sweep":  suffix_sweep,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Lilypad entrypoint
 # ---------------------------------------------------------------------------
@@ -191,9 +260,10 @@ def masking_loop(
     outdir.mkdir(parents=True, exist_ok=True)
     local_data.mkdir(parents=True, exist_ok=True)
 
-    experiment = str(cfg["experiment"]).lower()
-    seed       = int(cfg["seed"])
-    concepts   = [c.strip() for c in str(cfg["concepts"]).split(",") if c.strip()]
+    experiment       = str(cfg["experiment"]).lower()
+    seed             = int(cfg["seed"])
+    concepts         = [c.strip() for c in str(cfg["concepts"]).split(",") if c.strip()]
+    threshold_words  = list(cfg["threshold_words"])
 
     results_path = outdir / f"batch_experiment_{experiment}.jsonl"
 
@@ -268,6 +338,8 @@ def masking_loop(
                     result = _run_experiment_a(model, model_inputs, seed)
                 elif experiment == "b":
                     result = _run_experiment_b(model, model_inputs, seed, concepts)
+                elif experiment == "c":
+                    result = _run_experiment_c(model, model_inputs, seed, threshold_words)
                 else:
                     raise ValueError(f"Unknown experiment: {experiment!r}")
 
@@ -285,9 +357,15 @@ def masking_loop(
                 out_f.flush()
                 n_success += 1
 
-                logger.info("  ade_m=%.4f  n_masked=%d",
-                            result.get("ade_m", 0.0),
-                            result.get("n_masked_cols", result.get("n_concept_cols_masked", 0)))
+                if experiment == "c":
+                    sweep_adel = [r["ade_m"] for r in result.get("prefix_sweep", [])]
+                    logger.info("  n_words=%d  prefix_ade_range=[%.4f, %.4f]",
+                                result.get("n_words_total", 0),
+                                min(sweep_adel, default=0.0), max(sweep_adel, default=0.0))
+                else:
+                    logger.info("  ade_m=%.4f  n_masked=%d",
+                                result.get("ade_m", 0.0),
+                                result.get("n_masked_cols", result.get("n_concept_cols_masked", 0)))
 
             except Exception as exc:
                 logger.error("clip %s t0=%d: %s", clip_id, t0_us, exc)

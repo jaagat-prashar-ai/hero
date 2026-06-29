@@ -21,11 +21,15 @@ workload_variant_config:
     # ── Experiment ────────────────────────────────────────────────────────────
     # "a" — masked vs unmasked trajectory ADE across all clips
     # "b" — per-word steering salience + concept-set ablation
+    # "c" — prefix/suffix threshold sweep (ADE vs. CoT word position)
     experiment: "a"
     seed: 0
 
     # Comma-separated concept words for experiment B ablation
     concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+
+    # Word-count thresholds for experiment C prefix/suffix sweep
+    threshold_words: [0, 5, 10, 20, 30, 50]
 
     # Resume from an interrupted run (skips already-written JSONL rows)
     resume: true
