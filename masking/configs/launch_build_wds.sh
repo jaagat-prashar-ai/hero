@@ -15,6 +15,7 @@ for rank in $(seq 0 $((WORLD_SIZE - 1))); do
     lilypad workload launch "$CONFIG" \
         -o workload_variant_config.entrypoint_fn_config.rank "$rank" \
         -o workload_variant_config.entrypoint_fn_config.world_size "$WORLD_SIZE" \
+        -o workload_variant_config.entrypoint_fn_config.hf_token "${HF_TOKEN:?HF_TOKEN env var is required}" \
         -n "build-physicalai-wds-r${rank}" \
         2>&1 | grep -E "workload_id|Launched|error|Error" | head -2
 done
