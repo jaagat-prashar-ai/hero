@@ -26,6 +26,8 @@ cluster_resources:
   requeue_if_preempted: true
 
 runtime_environment:
+  constant_environment_variables:
+    PIP_IGNORE_REQUIRES_PYTHON: "1"  # allows physical_ai_av to install on Python 3.10 workers
   code_assets:
     root_directory: ../..
     pip_requirements_path: masking/requirements.txt

@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import logging
 import os
-import subprocess
 import sys
 from typing import Any
 
@@ -86,31 +85,6 @@ def build_wds_loop(
 
     logger.info("build_wds_worker: rank=%d world_size=%d  argv=%s",
                 rank, world_size, " ".join(argv))
-
-    if sys.version_info < (3, 11):
-        # physical_ai_av requires Python 3.11+; delegate to the system python3.11.
-        subprocess.run(
-            [
-                "python3.11", "-m", "pip", "install", "--quiet", "--user",
-                "physical_ai_av",
-                "huggingface_hub>=0.23",
-                "pandas>=2.0",
-                "webdataset>=0.2.86",
-                "boto3>=1.34",
-                "numpy",
-            ],
-            check=True,
-        )
-
-        env = os.environ.copy()
-        env["PYTHONPATH"] = f"{os.getcwd()}:{env.get('PYTHONPATH', '')}"
-
-        subprocess.run(
-            ["python3.11", "-m", "masking.data.build_webdataset"] + argv,
-            check=True,
-            env=env,
-        )
-        return
 
     sys.argv = ["build_webdataset"] + argv
     from masking.data.build_webdataset import main
