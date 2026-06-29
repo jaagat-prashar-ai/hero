@@ -26,27 +26,16 @@ from __future__ import annotations
 
 import logging
 import os
+import subprocess
 import sys
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def build_wds_loop(
-    training_fn_config: dict[str, Any],
-    experiment_tracker: Any,
-) -> None:
-    """Lilypad-compatible entrypoint for distributed WDS sharding."""
-    cfg = training_fn_config
-
-    # Rank is injected by Lilypad when num_replicas > 1; fall back to config.
-    rank       = int(os.environ.get("RANK",       cfg.get("rank",       0)))
-    world_size = int(os.environ.get("WORLD_SIZE", cfg.get("world_size", 1)))
-
-    bucket = cfg.get("bucket")
-    if not bucket:
-        raise ValueError("training_fn_config.bucket is required")
-
+def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
+    """Build the flags list for build_webdataset (no argv[0] program name)."""
+    bucket          = cfg.get("bucket")
     prefix          = cfg.get("prefix", "physicalai-av/wds")
     hf_token        = cfg.get("hf_token") or os.environ.get("HF_TOKEN", "")
     workers         = int(cfg.get("workers", 8))
@@ -57,7 +46,6 @@ def build_wds_loop(
     skip_meta       = bool(cfg.get("skip_metadata_upload", False))
 
     argv = [
-        "build_webdataset",
         "--bucket",          bucket,
         "--prefix",          prefix,
         "--workers",         str(workers),
@@ -76,9 +64,54 @@ def build_wds_loop(
     if skip_meta:
         argv.append("--skip_metadata_upload")
 
-    logger.info("build_wds_worker: rank=%d world_size=%d  argv=%s",
-                rank, world_size, " ".join(argv[1:]))
+    return argv
 
-    sys.argv = argv
+
+def build_wds_loop(
+    training_fn_config: dict[str, Any],
+    experiment_tracker: Any = None,
+) -> None:
+    """Lilypad-compatible entrypoint for distributed WDS sharding."""
+    cfg = training_fn_config
+
+    # Rank is injected by Lilypad when num_replicas > 1; fall back to config.
+    rank       = int(os.environ.get("RANK",       cfg.get("rank",       0)))
+    world_size = int(os.environ.get("WORLD_SIZE", cfg.get("world_size", 1)))
+
+    bucket = cfg.get("bucket")
+    if not bucket:
+        raise ValueError("training_fn_config.bucket is required")
+
+    argv = _build_argv(cfg, rank, world_size)
+
+    logger.info("build_wds_worker: rank=%d world_size=%d  argv=%s",
+                rank, world_size, " ".join(argv))
+
+    if sys.version_info < (3, 11):
+        # physical_ai_av requires Python 3.11+; delegate to the system python3.11.
+        subprocess.run(
+            [
+                "python3.11", "-m", "pip", "install", "--quiet", "--user",
+                "physical_ai_av",
+                "huggingface_hub>=0.23",
+                "pandas>=2.0",
+                "webdataset>=0.2.86",
+                "boto3>=1.34",
+                "numpy",
+            ],
+            check=True,
+        )
+
+        env = os.environ.copy()
+        env["PYTHONPATH"] = f"{os.getcwd()}:{env.get('PYTHONPATH', '')}"
+
+        subprocess.run(
+            ["python3.11", "-m", "masking.data.build_webdataset"] + argv,
+            check=True,
+            env=env,
+        )
+        return
+
+    sys.argv = ["build_webdataset"] + argv
     from masking.data.build_webdataset import main
     main()
