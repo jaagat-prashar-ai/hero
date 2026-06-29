@@ -36,6 +36,31 @@ if sys.version_info < (3, 11) and not hasattr(typing, "Self"):
     from typing_extensions import Self
     typing.Self = Self  # type: ignore[attr-defined]
 
+# physical_ai_av uses scipy.spatial.transform.RigidTransform, which does not
+# exist in any released scipy version. Provide a minimal stub so imports succeed.
+# Calibration/egomotion features still serialize their rotation/translation data;
+# they will work correctly once NVIDIA ships against a released scipy.
+import scipy.spatial.transform as _sst
+if not hasattr(_sst, "RigidTransform"):
+    class _RigidTransform:
+        def __init__(self, rotation=None, translation=None):
+            self.rotation = rotation
+            self.translation = translation
+            self.pose = self
+
+        @classmethod
+        def identity(cls) -> "_RigidTransform":
+            return cls()
+
+        @classmethod
+        def from_components(cls, rotation=None, translation=None) -> "_RigidTransform":
+            return cls(rotation=rotation, translation=translation)
+
+        def __repr__(self) -> str:
+            return f"RigidTransform(rotation={self.rotation!r}, translation={self.translation!r})"
+
+    _sst.RigidTransform = _RigidTransform  # type: ignore[attr-defined]
+
 logger = logging.getLogger(__name__)
 
 
