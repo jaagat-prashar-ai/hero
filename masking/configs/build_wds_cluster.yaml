@@ -28,6 +28,10 @@ cluster_resources:
 runtime_environment:
   constant_environment_variables:
     PIP_IGNORE_REQUIRES_PYTHON: "1"  # allows physical_ai_av to install on Python 3.10 workers
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+  required_environment_variables:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
   code_assets:
     root_directory: ../..
     pip_requirements_path: masking/requirements.txt

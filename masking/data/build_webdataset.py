@@ -69,8 +69,11 @@ import pandas as pd
 import webdataset as wds
 from huggingface_hub import hf_hub_download, login
 
-# Default to the OCI Chicago profile so boto3 never falls back to the empty default profile.
-os.environ.setdefault("AWS_PROFILE", "oci.chi")
+# On Lilypad workers, credentials come from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+# env vars and the endpoint from AWS_ENDPOINT_URL_S3. For local dev, fall back to the
+# oci.chi profile which has all of this configured in ~/.aws.
+if not os.environ.get("AWS_ACCESS_KEY_ID"):
+    os.environ.setdefault("AWS_PROFILE", "oci.chi")
 
 import physical_ai_av
 from physical_ai_av import PhysicalAIAVDatasetInterface
@@ -319,7 +322,7 @@ class S3ShardWriter:
         self.split = split
         self.clips_per_shard = clips_per_shard
         self.worker_rank = worker_rank
-        self._s3 = boto3.client("s3")
+        self._s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
         self._shard_idx = 0
         self._count = 0
         self._tmpfile: Any = None
@@ -375,7 +378,7 @@ class S3ShardWriter:
 
 def upload_metadata_parquets(bucket: str, prefix: str, hf_token: str | None) -> None:
     """Copy the three metadata parquets from HuggingFace straight to S3."""
-    s3 = boto3.client("s3")
+    s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
     kwargs = dict(repo_id=HF_REPO, repo_type="dataset", token=hf_token)
     files = {
         "metadata/feature_presence.parquet": "metadata/feature_presence.parquet",
