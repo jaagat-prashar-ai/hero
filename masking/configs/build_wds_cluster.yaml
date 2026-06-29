@@ -26,6 +26,7 @@ cluster_resources:
   requeue_if_preempted: true
 
 runtime_environment:
+  setup_timeout_seconds: -1  # pip aiobotocore backtracking can take 8+ min; no timeout
   constant_environment_variables:
     PIP_IGNORE_REQUIRES_PYTHON: "1"  # allows physical_ai_av to install on Python 3.10 workers
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
