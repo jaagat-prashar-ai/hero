@@ -64,6 +64,8 @@ from pathlib import Path
 from typing import Any
 
 import boto3
+from boto3.s3.transfer import TransferConfig
+from botocore.config import Config as BotocoreConfig
 import numpy as np
 import pandas as pd
 import webdataset as wds
@@ -74,6 +76,20 @@ from huggingface_hub import hf_hub_download, login
 # oci.chi profile which has all of this configured in ~/.aws.
 if not os.environ.get("AWS_ACCESS_KEY_ID"):
     os.environ.setdefault("AWS_PROFILE", "oci.chi")
+
+# OCI S3 does not support AWS chunked encoding. payload_signing_enabled=True
+# disables chunked encoding and uses standard payload signing instead.
+_OCI_BOTO_CONFIG = BotocoreConfig(
+    s3={
+        "payload_signing_enabled": True,
+        "multipart_threshold": 16 * 1024 * 1024,
+        "multipart_chunksize": 16 * 1024 * 1024,
+    }
+)
+_OCI_TRANSFER_CONFIG = TransferConfig(
+    multipart_threshold=16 * 1024 * 1024,
+    multipart_chunksize=16 * 1024 * 1024,
+)
 
 import physical_ai_av
 from physical_ai_av import PhysicalAIAVDatasetInterface
@@ -322,7 +338,7 @@ class S3ShardWriter:
         self.split = split
         self.clips_per_shard = clips_per_shard
         self.worker_rank = worker_rank
-        self._s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
+        self._s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"), config=_OCI_BOTO_CONFIG)
         self._shard_idx = 0
         self._count = 0
         self._tmpfile: Any = None
@@ -347,7 +363,7 @@ class S3ShardWriter:
             "Uploading s3://%s/%s  (%.0f MB, %d clips)",
             self.bucket, key, size_mb, self._count,
         )
-        self._s3.upload_file(self._tmpfile.name, self.bucket, key)
+        self._s3.upload_file(self._tmpfile.name, self.bucket, key, Config=_OCI_TRANSFER_CONFIG)
         os.unlink(self._tmpfile.name)
         self._shard_idx += 1
         self._count = 0
@@ -378,7 +394,7 @@ class S3ShardWriter:
 
 def upload_metadata_parquets(bucket: str, prefix: str, hf_token: str | None) -> None:
     """Copy the three metadata parquets from HuggingFace straight to S3."""
-    s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
+    s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"), config=_OCI_BOTO_CONFIG)
     kwargs = dict(repo_id=HF_REPO, repo_type="dataset", token=hf_token)
     files = {
         "metadata/feature_presence.parquet": "metadata/feature_presence.parquet",
@@ -389,7 +405,7 @@ def upload_metadata_parquets(bucket: str, prefix: str, hf_token: str | None) -> 
         local = hf_hub_download(filename=hf_filename, **kwargs)
         key = f"{prefix.rstrip('/')}/{s3_suffix}"
         logger.info("Uploading metadata → s3://%s/%s", bucket, key)
-        s3.upload_file(local, bucket, key)
+        s3.upload_file(local, bucket, key, Config=_OCI_TRANSFER_CONFIG)
 
 
 # ---------------------------------------------------------------------------
