@@ -80,11 +80,13 @@ if not os.environ.get("AWS_ACCESS_KEY_ID"):
 # OCI S3 does not support AWS chunked encoding. payload_signing_enabled=True
 # disables chunked encoding and uses standard payload signing instead.
 _OCI_BOTO_CONFIG = BotocoreConfig(
+    request_checksum_calculation="when_required",
+    response_checksum_validation="when_required",
     s3={
         "payload_signing_enabled": True,
         "multipart_threshold": 16 * 1024 * 1024,
         "multipart_chunksize": 16 * 1024 * 1024,
-    }
+    },
 )
 _OCI_TRANSFER_CONFIG = TransferConfig(
     multipart_threshold=16 * 1024 * 1024,
