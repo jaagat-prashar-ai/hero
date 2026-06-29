@@ -133,10 +133,6 @@ class MaskedAlpamayo1_5(Alpamayo1_5):
             return self._concept_columns(seq, spec.get("concepts", []))
         if mode == "explicit":  # caller supplies columns directly (leave-one-out)
             return spec["cols"]
-        if mode == "prefix":
-            return self._prefix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
-        if mode == "suffix":
-            return self._suffix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
         raise ValueError(f"unknown mask mode: {mode}")
 
     # ------------------------------------------------------------------ #
@@ -391,87 +387,84 @@ class MaskedAlpamayo1_5(Alpamayo1_5):
         ranked.sort(key=lambda r: r["d_curvature_mean_abs"], reverse=True)
         return {"cot": prefix["cot"], "baseline_curvature": base_curv, "words": ranked}
 
+# Prefix / suffix threshold masking approach:
 
-    # ------------------------------------------------------------------ #
-    # Prefix / suffix threshold masking                                   #
-    # ------------------------------------------------------------------ #
     def _prefix_mask_columns(
         self, seq: torch.Tensor, n: int, unit: str = "tokens"
     ) -> torch.Tensor:
-        """Columns to MASK so the expert sees only the first n tokens/words of reasoning.
+        """Columns to MASK so that the expert sees only the first n tokens/words of reasoning
 
-        Returns reasoning columns AFTER position n. With n==0 the full reasoning span
-        is masked; with n >= span length nothing is masked (returns empty tensor).
+        The function returns reasoning columns after position n. With n==0, the full reasoning span is 
+        masked; with n >= span length, nothing is masked (returns empty tensor).
 
-        unit: "tokens" — n counts sub-word tokens within the reasoning span
-              "words"  — n counts whole words; all tokens of words[n:] are masked
+        unit: "tokens" - n counts sub-word tokens within the reasoning span
+               "words" - n counts whole words (as we did with initial masking approach), all tokens of words[n:] are masked
+
+        # Locate the inclusive [start, end) column range of the reasoning span in 'seq'
+        # 'start' is the column right after <|cot_start|>; "end" is the column of <|cot_end|> (or <|traj_future_start|> if the end marker is absent).
+
+        
         """
-        # Locate the inclusive [start, end) column range of the reasoning span in `seq`.
-        # `start` is the column right after <|cot_start|>; `end` is the column of
-        # <|cot_end|> (or <|traj_future_start|> if the end marker is absent).
+
         start, end = self._reasoning_span(seq)
 
         if unit == "tokens":
-            # The cutoff column is start + n sub-word tokens into the reasoning span.
-            # `min(..., end)` clamps so we never go past the end of the reasoning span,
-            # which would silently mask tokens outside the CoT section.
-            cutoff = min(start + n, end)
-            # Return every column from `cutoff` to `end` — these are the tokens AFTER
-            # the n-token prefix that we want to hide from the expert's attention.
+            # The cutoff colimn is start + n sub-word tokens into the reasoning span 
+            # 'min(..., end)' clamps so we never go past the end of the reasoning span
+            # which could silently mask tokens outside the CoT section
+            cutoff = min(start+n, end)
+            # Return every column from "cutoff" to "end," these are the tokens after 
+            # the n-prefix token that we want to hide from the expert's attention
             return torch.arange(cutoff, end, device=seq.device)
 
         if unit == "words":
-            # Re-group reasoning sub-word tokens into whole words so the cutoff falls
-            # on a clean word boundary rather than mid-word.
+            # Re-group the reasoning sub-word tokens into whole words so that the cutoff falls 
+            # on a clean word boundary rather than mid-word
             words = self._word_groups(seq)
-            # If n is at least as large as the total number of words, the entire
-            # prefix is "visible" and there is nothing left to mask — return empty.
+            # If n is at least as large as the total number of words, entire prefix is "visible" and nothing is left to mask 
+            # i.e., base case
             if n >= len(words):
                 return torch.tensor([], device=seq.device, dtype=torch.long)
-            # Collect every sub-word token column belonging to words[n:] (the suffix
-            # that comes after the n-word prefix we want to keep visible).
-            cols: list[int] = []
-            for w in words[n:]:                          # iterate over the suffix words
-                cols.extend(int(c) for c in w["cols"])  # flatten their token columns
-            # Sort to keep columns in ascending order (required by the attention mask
-            # indexing in _denoise_with_mask) and return as a LongTensor.
-            return torch.tensor(sorted(cols), device=seq.device, dtype=torch.long)
+            # Collect every sub-word token column belonging to words[n:], the suffix that comes after the n-word prefix we want to keep visible
 
+            cols: list[int] = []
+            for w in words[n:]: # iterate over the suffix words 
+                cols.extend(int(c) for c in w["cols"]) # flatten their token columns
+
+            # Sort to keep columns in ascending order (requried by attention mask indexing in _denoise_with_mask) and return as a LongTensor.
+
+            return torch.tensor(sorted(cols), device=seq.device, dtype=torch.long)  
         raise ValueError(f"unknown unit: {unit!r}")
 
     def _suffix_mask_columns(
         self, seq: torch.Tensor, n: int, unit: str = "tokens"
     ) -> torch.Tensor:
-        """Columns to MASK so the expert sees only reasoning tokens/words from n onward.
+        """ Coilumns to MASK so that the expert sees only reasoning tokens/words from n onward
 
-        Returns reasoning columns BEFORE position n. Complement of _prefix_mask_columns.
+        Returns reasoning columns BEFORE position n. Complement of "_prefix_mask_columns".
         """
-        # Locate the [start, end) column range of the reasoning span — same as above.
+
+        # Locate the [start, end) column range of the reasoning span, same as above. 
+
         start, end = self._reasoning_span(seq)
 
         if unit == "tokens":
-            # The cutoff column is start + n tokens into the reasoning span.
-            # `min(..., end)` prevents going past the reasoning span boundary.
-            cutoff = min(start + n, end)
-            # Return columns from `start` up to (not including) `cutoff` — i.e., the
-            # first n tokens of the reasoning span that we want the expert NOT to see.
+            # The cutoff column is the start + n tokens into the reasoning span 
+            # min(..., end) prevents going past the reasoning span boundary
+            cutoff = min(start+n, end)
+            # Return columns from "start" up to (not including) "cutoff" - i.e., the 
+            # first n tokens of the reasoning span that we want the expert to not see 
+            # returns a 1D tensor
             return torch.arange(start, cutoff, device=seq.device)
 
         if unit == "words":
-            # Re-group into whole words so the cutoff lands on a word boundary.
             words = self._word_groups(seq)
-            # Clamp n to the actual number of words so slicing words[:n_clamp] is safe
-            # even when n exceeds the reasoning length.
             n_clamp = min(n, len(words))
-            # If n_clamp is 0, there is no prefix to mask — return empty tensor.
             if n_clamp == 0:
                 return torch.tensor([], device=seq.device, dtype=torch.long)
-            # Collect every sub-word token column belonging to words[:n_clamp] (the
-            # prefix we want to hide so only the suffix is visible to the expert).
             cols: list[int] = []
-            for w in words[:n_clamp]:                    # iterate over the prefix words
-                cols.extend(int(c) for c in w["cols"])  # flatten their token columns
-            # Return sorted so attention-mask indexing works correctly.
+            for w in words[:n_clamp]:
+                cols.extend(int(c) for c in w["cols"])
             return torch.tensor(sorted(cols), device=seq.device, dtype=torch.long)
 
         raise ValueError(f"unknown unit: {unit!r}")
