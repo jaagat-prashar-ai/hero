@@ -154,6 +154,18 @@ def _expand_clip_to_snapshots(sample: dict) -> list[dict]:
     return items
 
 
+def _no_node_split(src, group=None):
+    """No-op nodesplitter: every rank sees every shard.
+
+    wds.WebDataset defaults to wds.single_node_only, which *raises* under
+    multi-node (world_size > 1) training unless an explicit nodesplitter is
+    given. We must pass one, but it must NOT slice the shard list by rank —
+    run.py's masking_loop already partitions at the sample level via
+    _shard_owner() across the FULL shard list given to every rank.
+    """
+    yield from src
+
+
 def iter_snapshots(
     shard_paths: Iterable[str | Path],
     *,
@@ -177,17 +189,24 @@ def iter_snapshots(
         logger.warning("iter_snapshots: no shard paths provided")
         return
 
+    # nodesplitter=_no_node_split (not wds.split_by_node): callers (run.py's
+    # masking_loop) already give every rank the FULL shard list and partition
+    # at the sample level via _shard_owner() hashing. wds.split_by_node would
+    # additionally slice the shard list itself by torch.distributed
+    # rank/world_size, which silently drops every shard for any rank >=
+    # len(shards) (e.g. 2 shards, 8 ranks -> "No samples found in dataset;
+    # perhaps you have fewer shards than workers.").
     if resampled:
         dataset = wds.WebDataset(
             wds.ResampledShards(str_paths),
             shardshuffle=shuffle_shards,
-            nodesplitter=wds.split_by_node,
+            nodesplitter=_no_node_split,
         )
     else:
         dataset = wds.WebDataset(
             str_paths,
             shardshuffle=shuffle_shards,
-            nodesplitter=wds.split_by_node,
+            nodesplitter=_no_node_split,
         )
 
     # Decode the fields we need; leave mp4 out (not used for inference)
