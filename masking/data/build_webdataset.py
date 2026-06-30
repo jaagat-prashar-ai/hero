@@ -411,10 +411,19 @@ class S3ShardWriter:
             "Uploading s3://%s/%s  (%.0f MB, %d clips)",
             self.bucket, key, size_mb, self._count,
         )
-        self._s3.upload_file(self._tmpfile.name, self.bucket, key, Config=_OCI_TRANSFER_CONFIG)
-        os.unlink(self._tmpfile.name)
-        self._shard_idx += 1
-        self._count = 0
+        try:
+            _s3_retry(lambda: self._s3.upload_file(
+                self._tmpfile.name, self.bucket, key, Config=_OCI_TRANSFER_CONFIG
+            ))
+        finally:
+            # Always clean up the tempfile and reset counters so the writer
+            # remains usable even when the upload ultimately fails.
+            try:
+                os.unlink(self._tmpfile.name)
+            except OSError:
+                pass
+            self._shard_idx += 1
+            self._count = 0
 
     def write(self, clip_id: str, sample: dict[str, bytes]) -> None:
         wds_sample: dict[str, Any] = {"__key__": clip_id}
@@ -423,8 +432,12 @@ class S3ShardWriter:
             self._writer.write(wds_sample)
             self._count += 1
             if self._count >= self.clips_per_shard:
-                self._flush()
-                self._open_shard()
+                try:
+                    self._flush()
+                finally:
+                    # Open the next shard regardless of whether the upload
+                    # succeeded so the writer stays usable after a failure.
+                    self._open_shard()
 
     def close(self) -> None:
         with self._lock:
