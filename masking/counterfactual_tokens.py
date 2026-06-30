@@ -217,3 +217,82 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             "logits": logits_tensor,   # (n_gen_steps, vocab_size) or None
             "prompt_len": prompt_len,
         }
+
+    # ------------------------------------------------------------------ #
+    # Logit-analysis helpers                                               #
+    # ------------------------------------------------------------------ #
+
+    def _reasoning_positions_with_logits(
+        self,
+        prefix: dict[str, Any],
+        top_k: int = 5,
+    ) -> list[ReasoningPosition]:
+        """Build a ReasoningPosition for every token inside the CoT span.
+
+        Maps absolute sequence columns to generation-step indices via:
+            gen_step = col - prompt_len
+        Columns that fall inside the prompt (gen_step < 0) are skipped —
+        guards against off-by-one bugs if the reasoning span marker sits
+        at the boundary of prompt vs. generated tokens.
+        """
+        seq0 = prefix["sequences"][0]   # (seq_len,)
+        logits = prefix["logits"]       # (n_gen_steps, V)
+        prompt_len = prefix["prompt_len"]
+
+        if logits is None:
+            raise RuntimeError(
+                "logits not available — use _extended_rollout_prefix, not _rollout_prefix"
+            )
+
+        rs, re = self._reasoning_span(seq0)
+        positions: list[ReasoningPosition] = []
+
+        for col in range(rs, re):
+            gen_step = col - prompt_len
+            if gen_step < 0 or gen_step >= logits.shape[0]:
+                continue
+
+            step_logits = logits[gen_step]                              # (V,)
+            probs = F.softmax(step_logits, dim=-1)
+            entropy = float(-torch.sum(probs * torch.log(probs.clamp(min=1e-12))))
+
+            top_probs, top_ids = probs.topk(min(top_k, probs.shape[-1]))
+            top_tokens = [
+                AlternativeToken(
+                    token_id=int(tid),
+                    text=self.tokenizer.decode([int(tid)], skip_special_tokens=False),
+                    prob=float(p),
+                )
+                for tid, p in zip(top_ids.tolist(), top_probs.tolist())
+            ]
+
+            sampled_id = int(seq0[col])
+            positions.append(ReasoningPosition(
+                step=gen_step,
+                col=col,
+                sampled_id=sampled_id,
+                sampled_text=self.tokenizer.decode([sampled_id], skip_special_tokens=False),
+                sampled_prob=float(probs[sampled_id]),
+                entropy=entropy,
+                top_k=top_tokens,
+            ))
+
+        return positions
+
+    @staticmethod
+    def _select_positions(
+        positions: list[ReasoningPosition],
+        max_positions: int,
+        method: str,
+    ) -> list[ReasoningPosition]:
+        """Return up to max_positions entries ranked by the given heuristic."""
+        if method == "entropy":
+            key = lambda p: p.entropy
+        elif method == "prob_gap":
+            # Runner-up (rank-1) probability: high → model nearly chose something else.
+            key = lambda p: p.top_k[1].prob if len(p.top_k) > 1 else 0.0
+        elif method == "all":
+            return positions[:max_positions]
+        else:
+            raise ValueError(f"unknown position_selection: {method!r}")
+        return sorted(positions, key=key, reverse=True)[:max_positions]
