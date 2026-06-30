@@ -48,3 +48,39 @@ class ForcedTokenAtStep(LogitsProcessor):
             scores[:, self.token_id] = 0.0
         self._counter += 1
         return scores
+
+
+# --------------------------------------------------------------------------- #
+# Output data classes                                                           #
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class AlternativeToken:
+    token_id: int
+    text: str
+    prob: float   # softmax probability in the original (unforced) distribution
+
+
+@dataclass
+class ReasoningPosition:
+    """Logit statistics for one generated reasoning token."""
+
+    step: int            # 0-indexed generation step (= col - prompt_len)
+    col: int             # absolute column in vlm_outputs.sequences
+    sampled_id: int
+    sampled_text: str
+    sampled_prob: float  # rank-0 probability in the original distribution
+    entropy: float       # Shannon entropy in nats
+    top_k: list[AlternativeToken]  # sorted by prob descending; rank-0 = sampled token
+
+
+@dataclass
+class CounterfactualResult:
+    """Trajectory delta from forcing one alternative token at one reasoning step."""
+
+    forced_token: AlternativeToken
+    forced_cot: str          # full CoT text when this token was forced
+    d_curvature_mean: float  # mean |Δcurvature| over waypoints vs. baseline
+    d_curvature_max: float
+    endpoint_shift_m: float  # L2 distance of final waypoint vs. baseline (metres)
+    traj_ade_m: float        # average displacement error over full trajectory (metres)
