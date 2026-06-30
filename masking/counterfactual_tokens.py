@@ -471,3 +471,62 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             },
             "positions": out_positions,
         }
+
+
+# --------------------------------------------------------------------------- #
+# Display helpers                                                               #
+# --------------------------------------------------------------------------- #
+
+def print_alternative_map(result: dict[str, Any], top_n: int = 10) -> None:
+    """Pretty-print the output of token_alternative_map."""
+    print(f"\n=== CoT ===\n{result['cot']}\n")
+    s = result["summary"]
+    print(
+        f"Reasoning tokens : {s['n_reasoning_tokens']}\n"
+        f"Mean entropy     : {s['mean_entropy']:.3f} nats"
+    )
+    if (p := s["highest_entropy_position"]):
+        print(f"Highest entropy  : step {p.step}  '{p.sampled_text.strip()}'  H={p.entropy:.3f}")
+    if (p := s["strongest_runner_up_position"]) and len(p.top_k) > 1:
+        ru = p.top_k[1]
+        print(
+            f"Strongest runner-up: step {p.step}  "
+            f"'{ru.text.strip()}' p={ru.prob:.3f}  "
+            f"(sampled '{p.sampled_text.strip()}' p={p.sampled_prob:.3f})"
+        )
+
+    header = f"{'step':>5}  {'col':>5}  {'H':>6}  {'sampled':>22}  {'p_s':>6}  alternatives"
+    print(f"\n{header}")
+    print("-" * len(header))
+    by_entropy = sorted(result["positions"], key=lambda p: p.entropy, reverse=True)[:top_n]
+    for pos in by_entropy:
+        alts = "  ".join(
+            f"'{t.text.strip()}'({t.prob:.3f})"
+            for t in pos.top_k
+            if t.token_id != pos.sampled_id
+        )
+        print(
+            f"{pos.step:>5}  {pos.col:>5}  {pos.entropy:>6.3f}  "
+            f"{pos.sampled_text.strip():>22}  {pos.sampled_prob:>6.3f}  {alts}"
+        )
+
+
+def print_counterfactual_sweep(result: dict[str, Any]) -> None:
+    """Pretty-print the output of counterfactual_sweep."""
+    print(f"\n=== Baseline CoT ===\n{result['baseline']['cot']}\n")
+    for pos in result["positions"]:
+        print(
+            f"\n── step {pos['step']}  col {pos['col']}  "
+            f"sampled: '{pos['sampled_token'].strip()}'  "
+            f"p={pos['sampled_prob']:.3f}  H={pos['entropy']:.3f}"
+        )
+        for cf in pos["alternatives"]:
+            print(
+                f"   → '{cf.forced_token.text.strip()}' (p={cf.forced_token.prob:.3f}) | "
+                f"Δκ_mean={cf.d_curvature_mean:.4f}  "
+                f"Δκ_max={cf.d_curvature_max:.4f}  "
+                f"endpoint={cf.endpoint_shift_m:.3f} m  "
+                f"ADE={cf.traj_ade_m:.3f} m"
+            )
+            preview = cf.forced_cot.replace("\n", " ")[:120]
+            print(f"     CoT: {preview}...")
