@@ -105,14 +105,26 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         num_traj_sets: int = 1,
         max_generation_length: int | None = None,
     ) -> dict[str, Any]:
-        """Like _rollout_prefix but also captures `logits` and `prompt_len`.
+        """Like _rollout_prefix but also captures extra state needed for analysis.
 
         extra_logits_processors are appended AFTER ExpertLogitsProcessor so
         they take final precedence over the logit distribution.
 
         Extra keys in the returned dict vs. _rollout_prefix:
-          logits     — tensor (n_gen_steps, vocab_size), post-processor, B=1 squeezed
-          prompt_len — number of prompt tokens before generation started
+          logits          — tensor (n_gen_steps, vocab_size), post-processor, B=1 squeezed.
+                            Indexed by generation step: logits[i] corresponds to
+                            sequences[:, prompt_len + i].
+          prompt_len      — number of prompt tokens before generation started. Used to
+                            convert an absolute sequence column to a generation step index
+                            via: gen_step = col - prompt_len.
+          fused_input_ids — the prompt token IDs AFTER fuse_traj_tokens has been applied
+                            (shape: 1 × prompt_len). Stored so Option-A single-token-swap
+                            can reconstruct the full modified sequence for a VLM re-forward
+                            without needing to re-fuse trajectory tokens.
+          generate_kwargs — a snapshot of tokenized_data (minus input_ids, which was
+                            popped) at the moment generate() was called. Contains the
+                            attention mask, pixel values, and any other modality inputs
+                            that must be passed again during a VLM re-forward in Option A.
         """
         data = copy.deepcopy(data)
         n_samples_total = num_traj_samples * num_traj_sets
@@ -133,6 +145,12 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             {"ego_history_xyz": ego_history_xyz, "ego_history_rot": ego_history_rot},
         )
         device = input_ids.device
+
+        # Snapshot the fused prompt ids and the remaining generate inputs now,
+        # before vlm.generate() consumes them. Both are needed by Option-A's
+        # _reforward_with_single_swap to reconstruct the full modified sequence.
+        fused_input_ids = input_ids.clone()          # (1, prompt_len) — prompt after trajectory fusion
+        generate_kwargs = dict(tokenized_data)       # attention_mask, pixel_values, etc.
 
         if max_generation_length is None:
             max_generation_length = self.config.tokens_per_future_traj
@@ -214,8 +232,13 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             "num_traj_samples": num_traj_samples,
             "device": device,
             "cot": extract_text_tokens(self.tokenizer, vlm_outputs.sequences),
-            "logits": logits_tensor,   # (n_gen_steps, vocab_size) or None
+            "logits": logits_tensor,        # (n_gen_steps, vocab_size) or None
             "prompt_len": prompt_len,
+            # --- Option-A re-forward state ---
+            # These two fields are only used by _reforward_with_single_swap.
+            # They are not needed for masking-style experiments.
+            "fused_input_ids": fused_input_ids,   # (1, prompt_len)
+            "generate_kwargs": generate_kwargs,   # attention_mask + vision inputs
         }
 
     # ------------------------------------------------------------------ #
