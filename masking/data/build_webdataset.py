@@ -481,6 +481,9 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s  %(message)s",
         datefmt="%H:%M:%S",
     )
+    # physical_ai_av streams via httpx, which logs every chunk request at INFO.
+    # Suppress to WARNING so application logs remain readable in OCI Log Analytics.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
     ap = argparse.ArgumentParser(
         description="Build WebDataset shards from nvidia/PhysicalAI-Autonomous-Vehicles → S3"
