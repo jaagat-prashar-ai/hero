@@ -51,6 +51,12 @@ workload_variant_config:
     # on reruns where metadata is already present.
     skip_metadata_upload: false
 
+    # Skip downloading/writing LiDAR for this run. The per-clip LiDAR reader
+    # isn't implemented in physical_ai_av yet, so fetching the chunk ZIPs only
+    # adds to HF rate-limit pressure with no payoff. Backfill in a separate
+    # job once physical_ai_av supports it.
+    skip_lidar: true
+
     # ── Distributed sharding ────────────────────────────────────────────────
     # This worker's shard index (0-indexed). Lilypad would override via the
     # RANK env var when running replicas, but generic workloads run only on the

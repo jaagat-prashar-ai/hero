@@ -261,6 +261,7 @@ def build_clip_sample(
     collection_row: dict | None,
     ood_events: list[dict],
     feature_row: dict,
+    skip_lidar: bool = False,
 ) -> dict[str, bytes]:
     """Download every available sensor modality for one clip.
 
@@ -341,13 +342,17 @@ def build_clip_sample(
             logger.debug("clip %s: camera %s unavailable: %s", clip_id, cam_key, exc)
 
     # ── LiDAR ────────────────────────────────────────────────────────────────
-    try:
-        lidar = avdi.get_clip_feature(
-            clip_id, feature=avdi.features.LIDAR.LIDAR_TOP_360FOV, maybe_stream=True
-        )
-        sample["lidar_top_360fov.parquet"] = _to_bytes(lidar)
-    except Exception as exc:
-        logger.debug("clip %s: lidar unavailable: %s", clip_id, exc)
+    # Skippable: the per-clip LiDAR reader isn't implemented in physical_ai_av
+    # yet, so downloading the (large) lidar chunk ZIPs only adds to HF rate-limit
+    # pressure for no payoff. Run a separate backfill job once it's supported.
+    if not skip_lidar:
+        try:
+            lidar = avdi.get_clip_feature(
+                clip_id, feature=avdi.features.LIDAR.LIDAR_TOP_360FOV, maybe_stream=True
+            )
+            sample["lidar_top_360fov.parquet"] = _to_bytes(lidar)
+        except Exception as exc:
+            logger.debug("clip %s: lidar unavailable: %s", clip_id, exc)
 
     # ── Radar (all units present on this clip) ────────────────────────────────
     radar_ns = getattr(avdi.features, "RADAR", None)
@@ -503,6 +508,9 @@ def main() -> None:
                     help="Path to a text file of already-completed clip IDs (one per line)")
     ap.add_argument("--skip_metadata_upload", action="store_true",
                     help="Skip uploading the three metadata parquets to S3")
+    ap.add_argument("--skip_lidar", action="store_true",
+                    help="Skip downloading/writing the LiDAR feature for this run "
+                         "(reduces HF download load; backfill in a separate job later)")
     # Distributed sharding: Lilypad injects RANK / WORLD_SIZE; can also be set explicitly.
     ap.add_argument("--rank",       type=int,
                     default=int(os.environ.get(_ENV_RANK, "0")),
@@ -590,6 +598,7 @@ def main() -> None:
                 collection_by_clip.get(clip_id),
                 ood_by_clip.get(clip_id, []),
                 feature_by_clip.get(clip_id, {}),
+                skip_lidar=args.skip_lidar,
             )
             writers[split].write(clip_id, sample)
             with counter_lock:

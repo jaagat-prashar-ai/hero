@@ -20,6 +20,7 @@ Optional training_fn_config keys:
     max_clips       Cap clips per split — for smoke tests
     resume_file     Path to file of already-completed clip IDs
     skip_metadata_upload  If true, skip uploading metadata parquets (default false)
+    skip_lidar      If true, skip downloading/writing LiDAR for this run (default false)
 """
 
 from __future__ import annotations
@@ -84,6 +85,7 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
     max_clips       = cfg.get("max_clips")
     resume_file     = cfg.get("resume_file")
     skip_meta       = bool(cfg.get("skip_metadata_upload", False))
+    skip_lidar      = bool(cfg.get("skip_lidar", False))
 
     argv = [
         "--bucket",          bucket,
@@ -103,6 +105,8 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
         argv += ["--resume_file", resume_file]
     if skip_meta:
         argv.append("--skip_metadata_upload")
+    if skip_lidar:
+        argv.append("--skip_lidar")
 
     return argv
 
