@@ -51,17 +51,12 @@ from alpamayo1_5.models.token_utils import (
 )
 
 logger = logging.getLogger(__name__)
-logger = logging.getLogger(__name__)
-
-
 
 
 class MaskedAlpamayo1_5(Alpamayo1_5):
     """Alpamayo 1.5 with reasoning/word knockout in the diffusion expert's attention."""
 
-    # ------------------------------------------------------------------ #
     # Reasoning-span / word bookkeeping (operate on generated token ids)  #
-    # ------------------------------------------------------------------ #
     def _cot_special_ids(self) -> dict[str, int]:
         return {
             name: self.tokenizer.convert_tokens_to_ids(to_special_token(name))
