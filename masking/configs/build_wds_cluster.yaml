@@ -14,11 +14,11 @@ workload_variant_config:
       - test
     skip_metadata_upload: false
     rank: 0
-    world_size: 64
+    world_size: 4
     max_clips: null  # set via -o for smoke tests; null = process all clips
 
 cluster_resources:
-  num_cpu_nodes: 64
+  num_cpu_nodes: 4
   customer_resource: research
   preemptible: always
   allowed_regions:
