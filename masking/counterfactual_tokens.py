@@ -242,6 +242,117 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         }
 
     # ------------------------------------------------------------------ #
+    # Option-A: single-token swap + VLM re-forward                        #
+    #                                                                      #
+    # Rather than re-running generation (Option B / counterfactual_sweep), #
+    # we swap exactly one token in the existing reasoning sequence and     #
+    # re-run the VLM as a plain forward pass to get a new KV-cache.       #
+    # The rest of the reasoning trace is kept byte-for-byte identical, so #
+    # any trajectory change is attributable to that single token alone.   #
+    # ------------------------------------------------------------------ #
+
+    @torch.no_grad()
+    def _reforward_with_single_swap(
+        self,
+        prefix: dict[str, Any],
+        col: int,
+        alt_token_id: int,
+    ) -> dict[str, Any]:
+        """Swap one reasoning token and re-run the VLM forward to refresh the KV-cache.
+
+        Unlike counterfactual_sweep (Option B), this does NOT re-run generation.
+        The token at absolute sequence column `col` is replaced with `alt_token_id`;
+        every other token in the sequence stays unchanged. The VLM is then run as a
+        single forward pass over the full modified sequence to produce a new KV-cache
+        that the diffusion expert will attend to.
+
+        Why a re-forward instead of reusing the old cache?
+          The KV-cache is built autoregressively: every position's key/value was
+          computed from all tokens up to that point. Swapping token at position `col`
+          invalidates the KV entries at `col` and every position after it, so the old
+          cache cannot be reused — we must re-run the full forward pass.
+
+        Why can we reuse position_ids, attention_mask_base, and prefill_seq_len?
+          All three depend only on the STRUCTURE of the sequence (its length and where
+          the EOS marker sits), not on the token values. Because a single-token swap
+          does not change sequence length or EOS position, these fields remain valid.
+
+        Args:
+            prefix:       Output of _extended_rollout_prefix (must contain
+                          fused_input_ids and generate_kwargs).
+            col:          Absolute column in sequences to swap (must be inside the
+                          reasoning span, i.e. prompt_len <= col < seq_len).
+            alt_token_id: Token id to place at position col.
+
+        Returns:
+            A shallow copy of prefix with three fields updated:
+              prompt_cache — new KV-cache reflecting the swapped token
+              sequences    — the modified token id sequence
+              cot          — re-decoded reasoning text
+            All other fields (position_ids, attention_mask_base, logits, etc.)
+            are carried over unchanged from the original prefix.
+        """
+        device = prefix["device"]
+        prompt_len = prefix["prompt_len"]
+
+        # --- Step 1: build the modified token sequence ---
+        # Clone so we never mutate the original prefix (it may be reused across
+        # multiple alternative tokens at the same position).
+        sequences = prefix["sequences"].clone()          # (1, full_seq_len)
+        sequences[0, col] = alt_token_id                # single token swap
+
+        # Split into prompt portion and generated portion.
+        # fused_input_ids is the prompt AFTER fuse_traj_tokens was applied —
+        # using it here avoids having to re-run the trajectory fusion step.
+        fused_prompt = prefix["fused_input_ids"]        # (1, prompt_len)
+        modified_gen = sequences[:, prompt_len:]        # (1, n_generated_tokens)
+
+        # Concatenate into the full sequence the VLM will see.
+        full_seq = torch.cat([fused_prompt, modified_gen], dim=1)  # (1, full_seq_len)
+
+        # --- Step 2: build the attention mask for the full sequence ---
+        # generate_kwargs["attention_mask"] covers only the prompt (shape: 1 × prompt_len).
+        # We extend it with ones for all generated tokens so the VLM attends to everything.
+        prompt_mask = prefix["generate_kwargs"].get("attention_mask")  # (1, prompt_len) or None
+        if prompt_mask is not None:
+            n_generated = modified_gen.shape[1]
+            gen_mask = torch.ones(1, n_generated, dtype=prompt_mask.dtype, device=device)
+            full_mask = torch.cat([prompt_mask, gen_mask], dim=1)      # (1, full_seq_len)
+        else:
+            full_mask = None
+
+        # --- Step 3: collect any extra modality inputs (vision features, etc.) ---
+        # generate_kwargs holds everything that was passed to vlm.generate() besides
+        # input_ids (which was already handled above). Pass them through unchanged so
+        # the VLM receives the same visual context as during the original generation.
+        extra_inputs = {
+            k: v for k, v in prefix["generate_kwargs"].items()
+            if k != "attention_mask"    # already rebuilt above
+        }
+
+        # --- Step 4: VLM forward pass on the full modified sequence ---
+        # use_cache=True so HuggingFace builds and returns past_key_values —
+        # the same format the diffusion expert expects in _denoise_with_mask.
+        vlm_out = self.vlm(
+            input_ids=full_seq,
+            attention_mask=full_mask,
+            use_cache=True,
+            return_dict=True,
+            **extra_inputs,
+        )
+
+        # --- Step 5: assemble the modified prefix ---
+        # Shallow-copy the original prefix so callers can safely compare the two.
+        # Only the three fields that actually changed are overwritten.
+        modified_prefix = dict(prefix)
+        modified_prefix["prompt_cache"] = vlm_out.past_key_values   # new KV-cache
+        modified_prefix["sequences"] = sequences                     # swapped token ids
+        modified_prefix["cot"] = extract_text_tokens(self.tokenizer, sequences)  # re-decoded text
+        # prefill_seq_len, position_ids, attention_mask_base are intentionally
+        # NOT updated — see docstring for why they remain valid after a single swap.
+        return modified_prefix
+
+    # ------------------------------------------------------------------ #
     # Logit-analysis helpers                                               #
     # ------------------------------------------------------------------ #
 
