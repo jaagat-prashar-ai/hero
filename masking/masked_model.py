@@ -51,6 +51,9 @@ from alpamayo1_5.models.token_utils import (
 )
 
 logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
 
 
 class MaskedAlpamayo1_5(Alpamayo1_5):
