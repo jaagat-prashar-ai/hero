@@ -296,3 +296,55 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         else:
             raise ValueError(f"unknown position_selection: {method!r}")
         return sorted(positions, key=key, reverse=True)[:max_positions]
+
+    # ------------------------------------------------------------------ #
+    # Public API                                                           #
+    # ------------------------------------------------------------------ #
+
+    @torch.no_grad()
+    def token_alternative_map(
+        self,
+        data: dict[str, Any],
+        top_k: int = 5,
+        **rollout_kwargs: Any,
+    ) -> dict[str, Any]:
+        """Pure logit analysis — runs generation once, no counterfactual re-runs.
+
+        For every generated reasoning token, returns the top-K candidate tokens
+        and their softmax probabilities, plus per-step Shannon entropy. Use this
+        first to survey which positions are "close calls" before committing to
+        the more expensive counterfactual_sweep.
+
+        Returns:
+            {
+              "cot": str,
+              "positions": list[ReasoningPosition],
+              "summary": {
+                "n_reasoning_tokens": int,
+                "mean_entropy": float,
+                "highest_entropy_position": ReasoningPosition | None,
+                "strongest_runner_up_position": ReasoningPosition | None,
+              },
+            }
+        """
+        prefix = self._extended_rollout_prefix(data, **rollout_kwargs)
+        positions = self._reasoning_positions_with_logits(prefix, top_k=top_k)
+
+        summary: dict[str, Any] = {
+            "n_reasoning_tokens": len(positions),
+            "mean_entropy": (
+                float(sum(p.entropy for p in positions) / len(positions))
+                if positions else 0.0
+            ),
+            "highest_entropy_position": (
+                max(positions, key=lambda p: p.entropy) if positions else None
+            ),
+            "strongest_runner_up_position": (
+                max(
+                    positions,
+                    key=lambda p: p.top_k[1].prob if len(p.top_k) > 1 else 0.0,
+                )
+                if positions else None
+            ),
+        }
+        return {"cot": prefix["cot"], "positions": positions, "summary": summary}
