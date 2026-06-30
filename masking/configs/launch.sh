@@ -5,9 +5,9 @@
 #
 #   bash masking/configs/launch.sh masking [--dry-run] [--watch] [-n NAME] [-o KEY VALUE ...]
 #   bash masking/configs/launch.sh local
-#   HF_TOKEN=hf_... bash masking/configs/launch.sh build-wds
-#   HF_TOKEN=hf_... bash masking/configs/launch.sh build-wds-parallel [WORLD_SIZE] [WORKERS]
-#   HF_TOKEN=hf_... bash masking/configs/launch.sh build-wds-staggered [START] [END] [SLEEP_SEC]
+#   bash masking/configs/launch.sh build-wds-parallel [WORLD_SIZE] [WORKERS]
+#
+# HF_TOKEN is loaded from ~/.creds/lilypad.env automatically.
 #
 # Examples:
 #   bash masking/configs/launch.sh masking -o workload_variant_config.training_fn_config.experiment b
@@ -42,7 +42,7 @@ Common flags (passed through to launch.py):
   -o KEY VALUE         Dot-path override (repeatable)
 
 Environment:
-  HF_TOKEN             Required for build-wds* commands
+  HF_TOKEN             Loaded from ~/.creds/lilypad.env
   AWS creds            Pulled from oci.chi profile for build-wds* commands
 EOF
 }
@@ -55,14 +55,24 @@ export_aws_creds() {
 }
 
 source_lilypad_creds() {
-    if [[ -f "${HOME}/.creds/lilypad.env" ]]; then
-        # shellcheck disable=SC1091
-        source "${HOME}/.creds/lilypad.env"
+    if [[ ! -f "${HOME}/.creds/lilypad.env" ]]; then
+        echo "warning: ~/.creds/lilypad.env not found" >&2
+        return 1
+    fi
+    # shellcheck disable=SC1091
+    source "${HOME}/.creds/lilypad.env"
+}
+
+require_hf_token() {
+    source_lilypad_creds || true
+    if [[ -z "${HF_TOKEN:-}" ]]; then
+        echo "HF_TOKEN is not set — add it to ~/.creds/lilypad.env" >&2
+        exit 1
     fi
 }
 
 launch_py() {
-    source_lilypad_creds
+    source_lilypad_creds || true
     if [[ -x "${LILYPAD_PYTHON}" ]]; then
         "${LILYPAD_PYTHON}" "${LAUNCH_PY}" "$@"
     else
@@ -88,7 +98,7 @@ case "${cmd}" in
 
     build-wds)
         export_aws_creds
-        HF_TOKEN="${HF_TOKEN:?HF_TOKEN env var is required}"
+        require_hf_token
         launch_py "${SCRIPT_DIR}/build_wds_cluster.yaml" \
             -o workload_variant_config.entrypoint_fn_config.hf_token "${HF_TOKEN}" \
             -n build-physicalai-wds \
@@ -97,7 +107,7 @@ case "${cmd}" in
 
     build-wds-parallel)
         export_aws_creds
-        HF_TOKEN="${HF_TOKEN:?HF_TOKEN env var is required}"
+        require_hf_token
         WORLD_SIZE="${1:-50}"
         WORKERS="${2:-2}"
         shift $(( $# >= 2 ? 2 : $# ))
@@ -119,7 +129,7 @@ case "${cmd}" in
 
     build-wds-staggered)
         export_aws_creds
-        HF_TOKEN="${HF_TOKEN:?HF_TOKEN env var is required}"
+        require_hf_token
         START_RANK="${1:-31}"
         END_RANK="${2:-49}"
         SLEEP_BETWEEN="${3:-15}"

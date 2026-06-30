@@ -19,6 +19,7 @@ import pathlib
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -27,6 +28,9 @@ CONFIG_DIR = pathlib.Path(__file__).resolve().parent
 REPO_ROOT = CONFIG_DIR.parents[1]
 DEFAULT_CONFIG = CONFIG_DIR / "cluster.yaml"
 ALPAMAYO1_5_PKG = REPO_ROOT / "third_party" / "alpamayo1.5" / "src" / "alpamayo1_5"
+
+_LILYPAD_CRED_FILE = Path.home() / ".creds" / "lilypad.env"
+_EXPORT_RE = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)="(.*)"$')
 
 # Lilypad workers pre-install these; pinning them in pip overlay causes conflicts.
 _FORBIDDEN_REQUIREMENT_PREFIXES = ("numpy==", "ray==", "wandb==")
@@ -37,6 +41,33 @@ _BUILD_WDS_REQUIREMENTS_NAME = "requirements_build_wds.txt"
 def _load_config(path: pathlib.Path) -> dict[str, Any]:
     with open(path) as f:
         return yaml.safe_load(f)
+
+
+def _load_lilypad_creds() -> None:
+    """Load HF_TOKEN and WANDB_API_KEY from ~/.creds/lilypad.env if unset."""
+    import os
+
+    if not _LILYPAD_CRED_FILE.is_file():
+        return
+
+    wanted = {"HF_TOKEN", "WANDB_API_KEY"}
+    missing = {k for k in wanted if not os.environ.get(k)}
+    if not missing:
+        return
+
+    for line in _LILYPAD_CRED_FILE.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        match = _EXPORT_RE.match(stripped)
+        if not match:
+            continue
+        key, value = match.group(1), match.group(2)
+        if key in missing and not os.environ.get(key):
+            os.environ[key] = value
+            missing.discard(key)
+        if not missing:
+            return
 
 
 def _coerce_value(raw: str) -> Any:
@@ -254,7 +285,7 @@ def _validate_hf_token(cfg: dict[str, Any], *, dry_run: bool) -> list[str]:
     if isinstance(req_env, list) and "HF_TOKEN" in req_env and not os.environ.get("HF_TOKEN"):
         msg = (
             "HF_TOKEN is not set — required for HuggingFace model/dataset access. "
-            "Source ~/.creds/lilypad.env before launching."
+            "Add it to ~/.creds/lilypad.env before launching."
         )
         if dry_run:
             print(f"  [warn] {msg}")
@@ -389,6 +420,8 @@ def main() -> None:
         sys.exit(1)
 
     cfg = _load_config(config_path)
+
+    _load_lilypad_creds()
 
     if args.run_name:
         cfg["name"] = args.run_name
