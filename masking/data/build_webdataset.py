@@ -83,6 +83,31 @@ def _hf_retry(fn: Callable[[], _T], max_attempts: int = 5) -> _T:
             else:
                 raise
 
+
+def _s3_retry(fn: Callable[[], _T], max_attempts: int = 5) -> _T:
+    """Retry a boto3 S3 call on transient OCI / network errors.
+
+    OCI Object Storage can return 503 SlowDown, 503 ServiceUnavailable, and
+    occasional 502s under load.  Mirror the backoff pattern used for HF calls.
+    """
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except Exception as exc:
+            msg = str(exc)
+            transient = any(code in msg for code in (
+                "503", "502", "429", "SlowDown", "ServiceUnavailable",
+                "RequestTimeout", "InternalError", "ConnectTimeout", "ReadTimeoutError",
+            ))
+            if transient and attempt < max_attempts - 1:
+                wait = 30 * (2 ** attempt)  # 30s, 60s, 120s, 240s
+                logger.warning("S3 transient error (attempt %d/%d), retrying in %ds: %s",
+                               attempt + 1, max_attempts, wait, exc)
+                time.sleep(wait)
+            else:
+                raise
+
+
 import boto3
 from boto3.s3.transfer import TransferConfig
 from botocore.config import Config as BotocoreConfig
