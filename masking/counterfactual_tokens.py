@@ -348,3 +348,126 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             ),
         }
         return {"cot": prefix["cot"], "positions": positions, "summary": summary}
+
+    @torch.no_grad()
+    def counterfactual_sweep(
+        self,
+        data: dict[str, Any],
+        top_k_alternatives: int = 3,
+        max_positions: int = 5,
+        position_selection: str = "entropy",
+        seed: int = 0,
+        **rollout_kwargs: Any,
+    ) -> dict[str, Any]:
+        """For selected reasoning positions, force each top-K alternative and
+        measure the trajectory delta vs. the baseline.
+
+        For each (position, alternative) pair:
+          1. Re-run VLM generation with ForcedTokenAtStep at that step.
+             All subsequent reasoning tokens are re-sampled conditioned on the
+             forced choice, so the counterfactual CoT is coherent rather than
+             a splice.
+          2. Run the diffusion expert with `seed` (common-random-numbers), so
+             trajectory deltas are purely from the changed VLM KV-cache, not
+             diffusion noise.
+
+        Args:
+            top_k_alternatives:  Runner-up tokens to test per position.
+                                  The sampled token (rank 0) is always excluded.
+            max_positions:       How many reasoning positions to analyse.
+            position_selection:  "entropy" | "prob_gap" | "all"
+            seed:                Diffusion seed shared across baseline and all CFs.
+
+        Returns:
+            {
+              "baseline": {
+                "cot": str,
+                "controls": {"accel": Tensor, "curvature": Tensor},
+                "pred_xyz": Tensor,
+              },
+              "positions": [
+                {
+                  "step": int,
+                  "col": int,
+                  "sampled_token": str,
+                  "sampled_prob": float,
+                  "entropy": float,
+                  "alternatives": list[CounterfactualResult],
+                },
+                ...
+              ],
+            }
+        """
+        # --- baseline ---
+        logger.info("counterfactual_sweep: running baseline generation...")
+        prefix = self._extended_rollout_prefix(data, **rollout_kwargs)
+        base_xyz, _, base_act = self._denoise_with_mask(prefix, mask_cols=None, seed=seed)
+        base_controls = {k: v.float().cpu() for k, v in self.denorm_action(base_act).items()}
+        base_xy = base_xyz[..., :2].float().cpu()
+
+        # --- select positions ---
+        # Request top_k_alternatives + 1 so the sampled token occupies rank 0
+        # and we still have top_k_alternatives runner-ups available.
+        all_positions = self._reasoning_positions_with_logits(
+            prefix, top_k=top_k_alternatives + 1
+        )
+        selected = self._select_positions(all_positions, max_positions, position_selection)
+        logger.info(
+            "Selected %d/%d reasoning positions via '%s'",
+            len(selected), len(all_positions), position_selection,
+        )
+
+        # --- per-position counterfactuals ---
+        out_positions: list[dict[str, Any]] = []
+        for pos in selected:
+            alts = [t for t in pos.top_k if t.token_id != pos.sampled_id][:top_k_alternatives]
+            cf_results: list[CounterfactualResult] = []
+
+            for alt in alts:
+                logger.info(
+                    "  step=%d col=%d | forcing '%s' (p=%.3f) instead of '%s' (p=%.3f)",
+                    pos.step, pos.col,
+                    alt.text.strip(), alt.prob,
+                    pos.sampled_text.strip(), pos.sampled_prob,
+                )
+                forcer = ForcedTokenAtStep(step=pos.step, token_id=alt.token_id)
+                cf_prefix = self._extended_rollout_prefix(
+                    data, extra_logits_processors=[forcer], **rollout_kwargs
+                )
+                cf_xyz, _, cf_act = self._denoise_with_mask(
+                    cf_prefix, mask_cols=None, seed=seed
+                )
+                cf_controls = {
+                    k: v.float().cpu() for k, v in self.denorm_action(cf_act).items()
+                }
+                cf_xy = cf_xyz[..., :2].float().cpu()
+
+                d_curv = (cf_controls["curvature"] - base_controls["curvature"]).abs()
+                cf_results.append(CounterfactualResult(
+                    forced_token=alt,
+                    forced_cot=cf_prefix["cot"],
+                    d_curvature_mean=float(d_curv.mean()),
+                    d_curvature_max=float(d_curv.max()),
+                    endpoint_shift_m=float(
+                        (cf_xy[..., -1, :] - base_xy[..., -1, :]).norm(dim=-1).mean()
+                    ),
+                    traj_ade_m=float((cf_xy - base_xy).norm(dim=-1).mean()),
+                ))
+
+            out_positions.append({
+                "step": pos.step,
+                "col": pos.col,
+                "sampled_token": pos.sampled_text,
+                "sampled_prob": pos.sampled_prob,
+                "entropy": pos.entropy,
+                "alternatives": cf_results,
+            })
+
+        return {
+            "baseline": {
+                "cot": prefix["cot"],
+                "controls": base_controls,
+                "pred_xyz": base_xyz.float().cpu(),
+            },
+            "positions": out_positions,
+        }
