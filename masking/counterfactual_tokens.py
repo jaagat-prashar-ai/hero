@@ -484,6 +484,147 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         return {"cot": prefix["cot"], "positions": positions, "summary": summary}
 
     @torch.no_grad()
+    def single_token_swap_sweep(
+        self,
+        data: dict[str, Any],
+        top_k_alternatives: int = 3,
+        max_positions: int = 5,
+        position_selection: str = "entropy",
+        seed: int = 0,
+        **rollout_kwargs: Any,
+    ) -> dict[str, Any]:
+        """Option-A counterfactual: swap one token, keep the rest of the trace fixed.
+
+        For each selected reasoning position, replaces the sampled token with each
+        top-K alternative (one at a time) and re-runs the VLM as a forward pass to
+        get a new KV-cache. The diffusion expert then runs on that new cache with a
+        shared seed (common-random-numbers). Because only one token changes and the
+        rest of the reasoning trace is byte-for-byte identical, any trajectory delta
+        is attributable to that single token choice alone.
+
+        Compare with counterfactual_sweep (Option B), where the token is forced
+        during generation and all subsequent reasoning tokens are re-sampled — a
+        more realistic but less controlled experiment.
+
+        The return structure is intentionally identical to counterfactual_sweep so
+        results from both options can be compared side-by-side.
+
+        Args:
+            top_k_alternatives:  Number of runner-up tokens to test per position.
+                                  The originally sampled token is always excluded.
+            max_positions:       Maximum number of reasoning positions to analyse.
+            position_selection:  How to rank positions — "entropy" (most uncertain
+                                  steps first) or "prob_gap" (steps where the runner-up
+                                  had the highest probability).
+            seed:                Diffusion seed shared across baseline and all swaps
+                                  so that noise is not a confound.
+
+        Returns:
+            {
+              "baseline": {
+                "cot": str,                          # original reasoning text
+                "controls": {"accel": Tensor,        # physical units, per waypoint
+                             "curvature": Tensor},
+                "pred_xyz": Tensor,                  # (1,1,1,T,3)
+              },
+              "positions": [
+                {
+                  "step": int,           # generation step index (0-indexed)
+                  "col": int,            # absolute column in the token sequence
+                  "sampled_token": str,
+                  "sampled_prob": float,
+                  "entropy": float,
+                  "alternatives": list[CounterfactualResult],
+                },
+                ...
+              ],
+            }
+        """
+        # --- Step 1: run the baseline generation and diffusion once ---
+        # This is the unmodified rollout — reasoning is generated normally and
+        # the diffusion expert produces the reference trajectory.
+        logger.info("single_token_swap_sweep: running baseline generation...")
+        prefix = self._extended_rollout_prefix(data, **rollout_kwargs)
+        base_xyz, _, base_act = self._denoise_with_mask(prefix, mask_cols=None, seed=seed)
+        base_controls = {k: v.float().cpu() for k, v in self.denorm_action(base_act).items()}
+        base_xy = base_xyz[..., :2].float().cpu()   # (1,1,1,T,2) — x/y only for ADE
+
+        # --- Step 2: identify reasoning positions to analyse ---
+        # Request top_k_alternatives + 1 so rank-0 (the sampled token) is captured
+        # and we still have top_k_alternatives true runner-ups to test.
+        all_positions = self._reasoning_positions_with_logits(
+            prefix, top_k=top_k_alternatives + 1
+        )
+        selected = self._select_positions(all_positions, max_positions, position_selection)
+        logger.info(
+            "Selected %d/%d reasoning positions via '%s'",
+            len(selected), len(all_positions), position_selection,
+        )
+
+        # --- Step 3: per-position Option-A swaps ---
+        out_positions: list[dict[str, Any]] = []
+        for pos in selected:
+            # Exclude the token that was actually sampled so we only test true alternatives.
+            alts = [t for t in pos.top_k if t.token_id != pos.sampled_id][:top_k_alternatives]
+            cf_results: list[CounterfactualResult] = []
+
+            for alt in alts:
+                logger.info(
+                    "  step=%d col=%d | swapping '%s' (p=%.3f) → '%s' (p=%.3f)",
+                    pos.step, pos.col,
+                    pos.sampled_text.strip(), pos.sampled_prob,
+                    alt.text.strip(), alt.prob,
+                )
+                # Swap the single token and re-run the VLM forward pass.
+                # All other tokens in the sequence are untouched.
+                modified_prefix = self._reforward_with_single_swap(
+                    prefix, col=pos.col, alt_token_id=alt.token_id
+                )
+
+                # Run the diffusion expert on the new KV-cache.
+                # seed is shared with the baseline for common-random-numbers.
+                cf_xyz, _, cf_act = self._denoise_with_mask(
+                    modified_prefix, mask_cols=None, seed=seed
+                )
+                cf_controls = {
+                    k: v.float().cpu() for k, v in self.denorm_action(cf_act).items()
+                }
+                cf_xy = cf_xyz[..., :2].float().cpu()
+
+                # Compute trajectory deltas vs. the baseline.
+                d_curv = (cf_controls["curvature"] - base_controls["curvature"]).abs()
+                cf_results.append(CounterfactualResult(
+                    forced_token=alt,
+                    # For Option A the rest of the CoT is unchanged, but we store
+                    # the modified text so callers can verify only one word differs.
+                    forced_cot=modified_prefix["cot"],
+                    d_curvature_mean=float(d_curv.mean()),
+                    d_curvature_max=float(d_curv.max()),
+                    endpoint_shift_m=float(
+                        (cf_xy[..., -1, :] - base_xy[..., -1, :]).norm(dim=-1).mean()
+                    ),
+                    traj_ade_m=float((cf_xy - base_xy).norm(dim=-1).mean()),
+                ))
+
+            out_positions.append({
+                "step": pos.step,
+                "col": pos.col,
+                "sampled_token": pos.sampled_text,
+                "sampled_prob": pos.sampled_prob,
+                "entropy": pos.entropy,
+                "alternatives": cf_results,
+            })
+
+        return {
+            "baseline": {
+                "cot": prefix["cot"],
+                "controls": base_controls,
+                "pred_xyz": base_xyz.float().cpu(),
+            },
+            "positions": out_positions,
+        }
+
+    @torch.no_grad()
     def counterfactual_sweep(
         self,
         data: dict[str, Any],
