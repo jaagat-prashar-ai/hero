@@ -84,3 +84,136 @@ class CounterfactualResult:
     d_curvature_max: float
     endpoint_shift_m: float  # L2 distance of final waypoint vs. baseline (metres)
     traj_ade_m: float        # average displacement error over full trajectory (metres)
+
+
+# --------------------------------------------------------------------------- #
+# Analyzer                                                                      #
+# --------------------------------------------------------------------------- #
+
+class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
+    """Extends MaskedAlpamayo1_5 with logit-based counterfactual token analysis."""
+
+    @torch.no_grad()
+    def _extended_rollout_prefix(
+        self,
+        data: dict[str, Any],
+        extra_logits_processors: list[LogitsProcessor] | None = None,
+        top_p: float = 0.98,
+        top_k: int | None = None,
+        temperature: float = 0.6,
+        num_traj_samples: int = 1,
+        num_traj_sets: int = 1,
+        max_generation_length: int | None = None,
+    ) -> dict[str, Any]:
+        """Like _rollout_prefix but also captures `logits` and `prompt_len`.
+
+        extra_logits_processors are appended AFTER ExpertLogitsProcessor so
+        they take final precedence over the logit distribution.
+
+        Extra keys in the returned dict vs. _rollout_prefix:
+          logits     — tensor (n_gen_steps, vocab_size), post-processor, B=1 squeezed
+          prompt_len — number of prompt tokens before generation started
+        """
+        data = copy.deepcopy(data)
+        n_samples_total = num_traj_samples * num_traj_sets
+        ego_history_xyz = data["ego_history_xyz"]
+        ego_history_rot = data["ego_history_rot"]
+        B, n_traj_group, _, _ = ego_history_xyz.shape
+        assert n_traj_group == 1, "Only one trajectory group supported."
+        assert B == 1 and n_samples_total == 1, (
+            "Analysis path assumes B==1 and num_traj_samples==1. "
+            "Got B=%d n_samples=%d" % (B, n_samples_total)
+        )
+
+        tokenized_data = data["tokenized_data"]
+        input_ids = tokenized_data.pop("input_ids")
+        prompt_len = int(input_ids.shape[1])
+        input_ids = self.fuse_traj_tokens(
+            input_ids,
+            {"ego_history_xyz": ego_history_xyz, "ego_history_rot": ego_history_rot},
+        )
+        device = input_ids.device
+
+        if max_generation_length is None:
+            max_generation_length = self.config.tokens_per_future_traj
+        gen = self.vlm.generation_config
+        gen.top_p, gen.temperature, gen.top_k = top_p, temperature, top_k
+        gen.do_sample = True
+        gen.num_return_sequences = num_traj_samples
+        gen.max_new_tokens = max_generation_length
+        gen.output_logits = True
+        gen.return_dict_in_generate = True
+        gen.pad_token_id = self.tokenizer.pad_token_id
+
+        eos_token_id = self.tokenizer.convert_tokens_to_ids(to_special_token("traj_future_start"))
+        stopping = StoppingCriteriaList([StopAfterEOS(eos_token_id=eos_token_id)])
+        processors: list[LogitsProcessor] = [
+            ExpertLogitsProcessor(
+                traj_token_offset=self.config.traj_token_start_idx,
+                traj_vocab_size=self.config.traj_vocab_size,
+            )
+        ]
+        if extra_logits_processors:
+            processors.extend(extra_logits_processors)
+        logits_proc = LogitsProcessorList(processors)
+
+        vlm_outputs = self.vlm.generate(
+            input_ids=input_ids,
+            generation_config=gen,
+            stopping_criteria=stopping,
+            logits_processor=logits_proc,
+            **tokenized_data,
+        )
+        vlm_outputs.rope_deltas = self.vlm.model.rope_deltas
+        vlm_outputs.sequences = replace_padding_after_eos(
+            token_ids=vlm_outputs.sequences,
+            eos_token_id=eos_token_id,
+            pad_token_id=self.tokenizer.pad_token_id,
+        )
+
+        prompt_cache = vlm_outputs.past_key_values
+        prefill_seq_len = prompt_cache.get_seq_length()
+        b_star = vlm_outputs.sequences.shape[0]
+        n_diffusion_tokens = self.action_space.get_action_space_dims()[0]
+
+        offset = self._find_eos_offset(
+            sequences=vlm_outputs.sequences, eos_token_id=eos_token_id, device=device
+        )
+        prefix_mask = tokenized_data.get("attention_mask")
+        if prefix_mask is not None:
+            prefix_mask = torch.repeat_interleave(prefix_mask, n_samples_total, dim=0)
+        position_ids, attention_mask = self._build_expert_pos_ids_and_attn_mask(
+            offset=offset,
+            rope_deltas=vlm_outputs.rope_deltas,
+            kv_cache_seq_len=prefill_seq_len,
+            n_diffusion_tokens=n_diffusion_tokens,
+            b_star=b_star,
+            device=device,
+            prefix_mask=prefix_mask,
+        )
+
+        # Stack logits tuple of (B, V) → (n_gen_steps, V) for B==1.
+        logits_tensor: torch.Tensor | None = None
+        if vlm_outputs.logits:
+            logits_tensor = torch.stack(vlm_outputs.logits, dim=0)  # (T, B, V)
+            if logits_tensor.dim() == 3:
+                logits_tensor = logits_tensor[:, 0, :]              # (T, V)
+
+        return {
+            "sequences": vlm_outputs.sequences,
+            "prompt_cache": prompt_cache,
+            "prefill_seq_len": prefill_seq_len,
+            "n_diffusion_tokens": n_diffusion_tokens,
+            "position_ids": position_ids,
+            "attention_mask_base": attention_mask,
+            "ego_history_xyz": ego_history_xyz,
+            "ego_history_rot": ego_history_rot,
+            "B": B,
+            "n_samples_total": n_samples_total,
+            "num_traj_sets": num_traj_sets,
+            "num_traj_samples": num_traj_samples,
+            "device": device,
+            "cot": extract_text_tokens(self.tokenizer, vlm_outputs.sequences),
+            "logits": logits_tensor,   # (n_gen_steps, vocab_size) or None
+            "prompt_len": prompt_len,
+        }
