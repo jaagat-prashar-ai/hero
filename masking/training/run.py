@@ -16,7 +16,14 @@ experiment=c  Prefix/suffix threshold sweep: ADE vs. CoT word position (batch ex
 Resuming
 --------
 The JSONL output is append-only. Pass resume=true to skip (clip_id, t0_us) pairs
-already present in the file.
+already present in this rank's output file.
+
+Distributed (num_gpus > 1)
+--------------------------
+Lilypad sets RANK / WORLD_SIZE / LOCAL_RANK. Each GPU loads its own model copy,
+processes snapshots where hash(clip_id, t0_us) % world_size == rank, and writes
+batch_experiment_{experiment}_rank{RR}.jsonl. Rank 0 downloads WDS shards from S3;
+other ranks poll until shards appear in local_data_dir.
 
 Full config reference (all keys optional, defaults shown):
     local_data_dir:   "/tmp/wds_cache"   # directory containing shard_*.tar files
@@ -36,8 +43,11 @@ Full config reference (all keys optional, defaults shown):
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
+import time
 import traceback
 from pathlib import Path
 from typing import Any
@@ -63,7 +73,79 @@ _DEFAULTS: dict[str, Any] = {
     "wandb_project":       "masking-cot",
     "wandb_entity":        "research",
     "threshold_words":     [0, 5, 10, 20, 30, 50],  # prefix/suffix sweep thresholds (exp c)
+    "rank":                0,
+    "world_size":          1,
+    "download_wait_seconds": 3600,
 }
+
+
+def _distributed_context(cfg: dict[str, Any]) -> tuple[int, int, int]:
+    """Return (rank, world_size, local_rank) from Lilypad env vars or config."""
+    rank = int(os.environ.get("RANK", cfg.get("rank", 0)))
+    world_size = int(os.environ.get("WORLD_SIZE", cfg.get("world_size", 1)))
+    local_rank = int(os.environ.get("LOCAL_RANK", rank))
+    return rank, world_size, local_rank
+
+
+def _shard_owner(clip_id: str, t0_us: int, world_size: int) -> int:
+    """Stable shard assignment so resume/requeue always maps a snapshot to one rank."""
+    digest = hashlib.md5(f"{clip_id}:{t0_us}".encode()).hexdigest()
+    return int(digest, 16) % world_size
+
+
+def _results_path(outdir: Path, experiment: str, rank: int, world_size: int) -> Path:
+    if world_size <= 1:
+        return outdir / f"batch_experiment_{experiment}.jsonl"
+    return outdir / f"batch_experiment_{experiment}_rank{rank:02d}.jsonl"
+
+
+def _load_done_rows(path: Path) -> set[tuple[str, int]]:
+    done: set[tuple[str, int]] = set()
+    if not path.exists():
+        return done
+    with open(path) as fh:
+        for line in fh:
+            try:
+                row = json.loads(line)
+                done.add((row["clip_id"], row["t0_us"]))
+            except Exception:
+                pass
+    return done
+
+
+def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Path]:
+    from masking.data.s3_download import download_shards, shard_paths
+
+    if cfg["skip_download"]:
+        shards = shard_paths(local_data)
+        logger.info("skip_download=true: using %d existing shards in %s",
+                    len(shards), local_data)
+        return shards
+
+    if rank == 0:
+        logger.info("Downloading WDS shards from s3://%s/%s -> %s",
+                    cfg["s3_bucket"], cfg["s3_prefix"], local_data)
+        download_shards(
+            bucket=cfg["s3_bucket"],
+            prefix=cfg["s3_prefix"],
+            local_dir=local_data,
+            max_shards=cfg["max_shards"],
+        )
+        return shard_paths(local_data)
+
+    wait_seconds = int(cfg["download_wait_seconds"])
+    logger.info("rank %d waiting for rank 0 to download shards into %s", rank, local_data)
+    deadline = time.monotonic() + wait_seconds
+    while time.monotonic() < deadline:
+        shards = shard_paths(local_data)
+        if shards:
+            logger.info("rank %d found %d shards in %s", rank, len(shards), local_data)
+            return shards
+        time.sleep(10)
+
+    raise RuntimeError(
+        f"Timed out after {wait_seconds}s waiting for rank 0 to download shards into {local_data}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +154,9 @@ _DEFAULTS: dict[str, Any] = {
 
 def _load_model(checkpoint: str, device: str = "cuda"):
     """Load MaskedAlpamayo1_5 from a HuggingFace checkpoint."""
+    from masking.bootstrap import ensure_alpamayo1_5
+
+    ensure_alpamayo1_5()
     from masking.masked_model import MaskedAlpamayo1_5
     model = MaskedAlpamayo1_5.from_pretrained(
         checkpoint, dtype=torch.bfloat16, attn_implementation="sdpa",
@@ -80,8 +165,17 @@ def _load_model(checkpoint: str, device: str = "cuda"):
     return model
 
 
+def _resolve_device(local_rank: int) -> str:
+    if torch.cuda.is_available():
+        return f"cuda:{local_rank}"
+    return "cpu"
+
+
 def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
     """Convert a WDS snapshot item to model inputs on the specified device."""
+    from masking.bootstrap import ensure_alpamayo1_5
+
+    ensure_alpamayo1_5()
     from alpamayo1_5 import helper
 
     data = item["model_inputs"]
@@ -255,6 +349,9 @@ def masking_loop(
     """
     cfg = {**_DEFAULTS, **training_fn_config}
 
+    rank, world_size, local_rank = _distributed_context(cfg)
+    device = _resolve_device(local_rank)
+
     outdir     = Path(cfg["outdir"])
     local_data = Path(cfg["local_data_dir"])
     outdir.mkdir(parents=True, exist_ok=True)
@@ -265,27 +362,13 @@ def masking_loop(
     concepts         = [c.strip() for c in str(cfg["concepts"]).split(",") if c.strip()]
     threshold_words  = list(cfg["threshold_words"])
 
-    results_path = outdir / f"batch_experiment_{experiment}.jsonl"
+    results_path = _results_path(outdir, experiment, rank, world_size)
+    logger.info("Distributed context: rank=%d world_size=%d local_rank=%d device=%s",
+                rank, world_size, local_rank, device)
+    logger.info("Writing results to %s", results_path)
 
-    # ── 1. Acquire shards (local or S3) ──────────────────────────────────────
-    from masking.data.s3_download import download_shards, shard_paths
-
-    if cfg["skip_download"]:
-        # Data already present locally — use local_data_dir as-is
-        shards = shard_paths(local_data)
-        logger.info("skip_download=true: using %d existing shards in %s",
-                    len(shards), local_data)
-    else:
-        logger.info("Downloading WDS shards from s3://%s/%s -> %s",
-                    cfg["s3_bucket"], cfg["s3_prefix"], local_data)
-        download_shards(
-            bucket    = cfg["s3_bucket"],
-            prefix    = cfg["s3_prefix"],
-            local_dir = local_data,
-            max_shards= cfg["max_shards"],
-        )
-        shards = shard_paths(local_data)
-        logger.info("Downloaded %d shards", len(shards))
+    # ── 1. Acquire shards (rank 0 downloads; other ranks wait) ───────────────
+    shards = _acquire_shards(cfg, local_data, rank)
 
     if cfg["max_shards"] is not None:
         shards = shards[:int(cfg["max_shards"])]
@@ -299,40 +382,39 @@ def masking_loop(
 
     # ── 2. Load already-done rows if resuming ────────────────────────────────
     done: set[tuple[str, int]] = set()
-    if cfg["resume"] and results_path.exists():
-        with open(results_path) as fh:
-            for line in fh:
-                try:
-                    r = json.loads(line)
-                    done.add((r["clip_id"], r["t0_us"]))
-                except Exception:
-                    pass
-        logger.info("Resuming: %d events already done", len(done))
+    if cfg["resume"]:
+        done = _load_done_rows(results_path)
+        logger.info("Resuming: %d events already done on rank %d", len(done), rank)
 
-    # ── 3. Load model once ────────────────────────────────────────────────────
-    logger.info("Loading model %s …", cfg["checkpoint"])
-    model = _load_model(cfg["checkpoint"])
+    # ── 3. Load model once on this GPU ───────────────────────────────────────
+    logger.info("Loading model %s on %s …", cfg["checkpoint"], device)
+    model = _load_model(cfg["checkpoint"], device=device)
 
-    # ── 4. Iterate WDS snapshots ──────────────────────────────────────────────
+    # ── 4. Iterate WDS snapshots assigned to this rank ───────────────────────
     from masking.data.wds_dataset import iter_snapshots
 
     n_success = 0
     n_skipped = 0
     n_error   = 0
+    n_other_rank = 0
 
     with open(results_path, "a") as out_f:
         for item in iter_snapshots(shards):
             clip_id = item["clip_id"]
             t0_us   = item["t0_us"]
 
+            if _shard_owner(clip_id, t0_us, world_size) != rank:
+                n_other_rank += 1
+                continue
+
             if (clip_id, t0_us) in done:
                 n_skipped += 1
                 continue
 
-            logger.info("clip=%.8s t0=%.2fs  cluster=%s",
-                        clip_id, t0_us / 1e6, item["event_cluster"])
+            logger.info("[rank %d] clip=%.8s t0=%.2fs  cluster=%s",
+                        rank, clip_id, t0_us / 1e6, item["event_cluster"])
             try:
-                model_inputs = _build_inputs(model, item)
+                model_inputs = _build_inputs(model, item, device=device)
 
                 if experiment == "a":
                     result = _run_experiment_a(model, model_inputs, seed)
@@ -346,6 +428,8 @@ def masking_loop(
                 result.update({
                     "clip_id":       clip_id,
                     "t0_us":         t0_us,
+                    "rank":          rank,
+                    "world_size":    world_size,
                     "event_cluster": item["event_cluster"],
                     "group":         item["group"],
                     "event_idx":     item["event_idx"],
@@ -372,6 +456,8 @@ def masking_loop(
                 traceback.print_exc()
                 n_error += 1
 
-    logger.info("Done: %d succeeded  %d skipped  %d failed",
-                n_success, n_skipped, n_error)
+    logger.info(
+        "Done rank %d/%d: %d succeeded  %d skipped  %d failed  %d owned by other ranks",
+        rank, world_size, n_success, n_skipped, n_error, n_other_rank,
+    )
     logger.info("Results: %s", results_path)

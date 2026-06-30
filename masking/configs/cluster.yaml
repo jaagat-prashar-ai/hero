@@ -34,14 +34,21 @@ workload_variant_config:
     # Resume from an interrupted run (skips already-written JSONL rows)
     resume: true
 
+    # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ─────
+    # With num_gpus: 8 each replica owns snapshots where hash(clip_id,t0_us) % 8 == rank.
+    # Outputs: batch_experiment_{experiment}_rank{RR}.jsonl (one file per GPU).
+
     # ── Output ────────────────────────────────────────────────────────────────
     outdir: "/mnt/work/tmp/masking_results"
 
-  experiment_tracker: {}  # add wandb: {entity: research, project: masking-cot} once W&B is reachable
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: masking-cot
 
 cluster_resources:
   gpu_machine_type: a100.8
-  num_gpus: 1
+  num_gpus: 8
   customer_resource: research
   preemptible: always
   allowed_regions:
@@ -49,6 +56,12 @@ cluster_resources:
   requeue_if_preempted: true
 
 runtime_environment:
+  # torch==2.7.1 pip install is ~3 GB per worker; allow ample setup time.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
   code_assets:
     root_directory: .
     pip_requirements_path: masking/requirements.txt

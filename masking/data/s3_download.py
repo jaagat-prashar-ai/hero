@@ -93,10 +93,13 @@ def download_shards(
             logger.debug("No index.json found at s3://%s/%s", bucket, index_key)
 
     def _download_one(key: str) -> Path:
-        name = key.split("/")[-1]
-        dest = local_dir / name
+        # Preserve split subdirs (train/, val/, test/) so shard_00000.tar keys
+        # from different splits do not overwrite each other locally.
+        rel = key[len(prefix.rstrip("/") + "/") :]
+        dest = local_dir / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists():
-            logger.debug("Skipping %s (already present)", name)
+            logger.debug("Skipping %s (already present)", rel)
             return dest
         logger.info("Downloading s3://%s/%s -> %s", bucket, key, dest)
         s3.download_file(bucket, key, str(dest))
@@ -118,8 +121,8 @@ def download_shards(
 
 
 def shard_paths(local_dir: str | Path) -> list[Path]:
-    """Return sorted list of shard_*.tar files already present in local_dir."""
-    return sorted(Path(local_dir).glob("shard_*.tar"))
+    """Return sorted shard_*.tar files under local_dir (including split subdirs)."""
+    return sorted(Path(local_dir).rglob("shard_*.tar"))
 
 
 def main() -> None:

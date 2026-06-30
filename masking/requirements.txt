@@ -1,19 +1,16 @@
-# Dependencies for the masking experiment and WDS build pipeline.
-# Installed by Lilypad before the workload runs (pip_requirements_path).
-# torch/transformers/einops are expected to be present in the cluster image.
+# Lilypad pip overlay for masking *inference* (masking_loop on GPU workers).
+# Validated by launch.py (uv pip compile against lilypad-py on Python 3.10).
+#
+# alpamayo1_5 model code is vendored at third_party/alpamayo1.5 (git submodule).
+# torch MUST be pinned — base image ships 2.1.1; transformers>=4.57 needs >=2.4.
+# See ~/knowledge/gotchas/clac-lilypad-torch-nccl.md and lead_sft_lilypad/requirements.txt.
 
-# Masking inference
-webdataset>=0.2.86
+torch==2.7.1
+transformers==4.57.1
+accelerate>=1.12.0
+hydra-core>=1.3.2
+huggingface_hub>=0.36.0
 einops>=0.7
-s3transfer>=0.10.0       # ensure virtualenv version takes priority over older system s3transfer
-
-# WDS build pipeline (build_webdataset.py)
-# physical_ai_av and its deps (PIP_IGNORE_REQUIRES_PYTHON=1 set in cluster YAML)
-physical_ai_av           # NVIDIA PhysicalAI-AV devkit
-av>=14.4.0               # PyAV video decode (required by physical_ai_av)
-huggingface_hub>=0.36.0  # physical_ai_av requires >=0.36.0
-pandas>=2.0
-pyarrow                  # parquet support for physical_ai_av
-scipy>=1.15.0            # stub RigidTransform in build_wds_worker.py covers the missing API
-tqdm
-numpy
+webdataset>=0.2.86
+s3transfer>=0.10.0
+boto3>=1.34
