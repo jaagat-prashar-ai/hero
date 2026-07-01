@@ -666,6 +666,9 @@ def main() -> None:
             done = {line.strip() for line in fh if line.strip()}
         logger.info("Resuming — %d clips already completed", len(done))
 
+    # ── Initialize model interface (moved up: needed for partitioning below) ──
+    avdi = _hf_retry(PhysicalAIAVDatasetInterface)
+
     # ── Build per-split work lists, partitioned by rank ──────────────────────
     # Sort clip IDs for a deterministic, stable partition across restarts.
     work: dict[str, list[str]] = {s: [] for s in args.splits}
@@ -685,9 +688,7 @@ def main() -> None:
         logger.info("  %s: %d clips queued (rank %d/%d)",
                     split, len(work[split]), args.rank, args.world_size)
 
-    # ── Initialize model interface and S3 writers ─────────────────────────────
-    avdi = _hf_retry(PhysicalAIAVDatasetInterface)
-
+    # ── Initialize S3 writers ──────────────────────────────────────────────────
     writers = {
         split: S3ShardWriter(args.bucket, args.prefix, split, args.clips_per_shard,
                              worker_rank=args.rank)
