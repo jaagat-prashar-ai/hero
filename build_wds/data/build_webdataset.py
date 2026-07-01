@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import dataclasses
 import hashlib
 import io
 import json
@@ -113,6 +114,7 @@ import boto3
 from botocore.config import Config as BotocoreConfig
 import numpy as np
 import pandas as pd
+import scipy.spatial.transform as spt
 import webdataset as wds
 from huggingface_hub import hf_hub_download, login
 
