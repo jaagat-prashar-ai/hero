@@ -262,6 +262,35 @@ def _egomotion_to_bytes(egomotion: Any) -> bytes:
     return buf.getvalue()
 
 
+def _serialize_calibration_value(obj: Any) -> Any:
+    """Recursively convert a calibration feature into JSON-safe primitives.
+
+    `json.dumps(..., default=str)` is not enough on its own: for objects like
+    `scipy.spatial.transform.Rotation` (no data-revealing `__repr__`/`__str__`),
+    `default=str` calls `str(obj)` which falls back to `object.__repr__` — a bare
+    memory address, not the actual rotation. Convert known rotation/transform types
+    explicitly via `.as_quat()`/`.translation` before any `str()` fallback is hit.
+    """
+    if isinstance(obj, dict):
+        return {k: _serialize_calibration_value(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_serialize_calibration_value(v) for v in obj]
+    if isinstance(obj, spt.Rotation):
+        return obj.as_quat().tolist()
+    if isinstance(obj, spt.RigidTransform):
+        return {
+            "rotation_quat_xyzw": np.asarray(obj.rotation.as_quat()).tolist(),
+            "translation": np.asarray(obj.translation).tolist(),
+        }
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
+        return {f.name: _serialize_calibration_value(getattr(obj, f.name)) for f in dataclasses.fields(obj)}
+    if hasattr(obj, "to_dict"):
+        return _serialize_calibration_value(obj.to_dict())
+    return obj
+
+
 def _read_camera_mp4_bytes(
     avdi: PhysicalAIAVDatasetInterface,
     clip_id: str,
@@ -354,17 +383,10 @@ def build_clip_sample(
             clip_id, feature=avdi.features.CALIBRATION.VEHICLE_DIMENSIONS, maybe_stream=True
         )
 
-        def _serialize(obj: Any) -> Any:
-            if hasattr(obj, "to_dict"):
-                return obj.to_dict()
-            if hasattr(obj, "__dict__"):
-                return obj.__dict__
-            return str(obj)
-
         cal = {
-            "sensor_extrinsics":  _serialize(ext),
-            "camera_intrinsics":  _serialize(intr),
-            "vehicle_dimensions": _serialize(dims),
+            "sensor_extrinsics":  _serialize_calibration_value(ext),
+            "camera_intrinsics":  _serialize_calibration_value(intr),
+            "vehicle_dimensions": _serialize_calibration_value(dims),
         }
         sample["calibration.json"] = json.dumps(cal, default=str, ensure_ascii=False).encode()
     except Exception as exc:
