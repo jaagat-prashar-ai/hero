@@ -181,3 +181,15 @@ actual code change lands as its own separate, reviewable commit.
 There are three concrete ways (infer which one is the best from the diagonistic run). We can enable UBunutu's jammy-backports pocket, then apt-get install ffmpeg, sometims backportws carries a newer ffmpeg build with more codecs. This is a one-line change in ensure_ffmpeg_av1(): add the backports source, get apt-get update, reinstall ffmpeg, re-check for lbsvtav1. What is the jammy backports pocket? 
 Proposed solution: the job's pip installs (from PyPI) and HF downloads worked fine in thes esame logs,s o general HTTPs egress to the public internet is allowed. It's specifically apt that'st restricted to the internal mirror. This means we could download a prebuilt static ffmpeg binary with libstav1 baked in over HTTPS (bypassing apt) instead of relying on the system package manager. 6.3x faster, quality within noise (PSNR 45.83 dB vs 45.49 dB). NOw implementing this as an automatic runtime fallback. Now, the order is: check system ffmpeg own encoder list (if libstav1 is already there, use it immediately and no download). If not, try downlaoding the static ffmpeg build with libsvtav1 (this ios what fires on the cluster every tuime). If that download fails for any reason, the fall ack is to whartver the system has (libaom-av1). Last resport is genertic apt-get installf fmpeg attempt, then raise. 
 
+// Clips to chunking?
+
+The dataset: 306,152 clips packed into 3,146 chunks (~97 clips/chunk average). Each chunk is a shared file per feature (egomotion, 3 calibration files, 7 camera files ≈ 11 files/chunk) — HF's client caches these to local disk, so once a chunk is downloaded, every other clip in that chunk is free (local disk read, zero more HF requests).
+
+The problem: build_webdataset.py's partitioning (work[split][rank::world_size], line 678) assigns clips round-robin by sorted clip ID — with no relationship to chunk. Once world_size gets anywhere near the average chunk size (~97), every chunk's clips get scattered across a different node for almost every clip, and since each node has its own separate local disk cache, the same chunk file gets re-downloaded independently by dozens of nodes instead of once.
+
+The math:
+- Ideal (grouped by chunk): ~11 files/chunk × 3,146 chunks ≈ 34,600 total HF file downloads for the entire dataset, ever — trivial against the 5000-req/5-min budget.
+- Current scheme at world_size≈100: effectively back to ~11 files/clip × 306,152 clips ≈ 3.37 million downloads — ~97x more traffic than necessary. That's roughly 56+ hours of HF traffic alone at the rate limit, which lines up with the 429 failures already seen in the earlier 100-way run.
+
+So before tuning worker counts, the actual fix is: partition by chunk, not by clip. Want me to implement that (group clip IDs by chunk from avdi.clip_index, assign whole chunks round-robin to ranks instead of individual clips)? That's the change that actually makes worker-count tuning meaningful — right now almost any large world_size blows the HF budget regardless of what number we pick.
+
