@@ -1,0 +1,50 @@
+# Smoke test: download 1 clip, pack 1 tar shard, upload to S3.
+# Submit: bash build_wds/configs/launch.sh build-wds-smoke [--watch]
+name: build-wds-smoke-1shard
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: build_wds.data.build_wds_worker.build_wds_loop
+  entrypoint_fn_config:
+    bucket: "research-datasets-chicago"
+    # Isolated prefix — does not touch production wds/ shards.
+    prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds-smoke"
+    hf_token: ""
+    workers: 1
+    clips_per_shard: 1
+    splits:
+      - train
+    skip_metadata_upload: true
+    skip_lidar: true
+    rank: 0
+    world_size: 1
+    max_clips: 1
+
+cluster_resources:
+  num_cpu_nodes: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: false
+
+runtime_environment:
+  setup_timeout_seconds: -1
+  constant_environment_variables:
+    PIP_IGNORE_REQUIRES_PYTHON: "1"
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  required_environment_variables:
+    - HF_TOKEN
+  code_assets:
+    root_directory: .
+    pip_requirements_path: build_wds/requirements.txt
+    regex_excludes:
+      - "^masking/"
+      - "^mnist/"
+      - "^third_party/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

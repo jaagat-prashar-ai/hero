@@ -16,7 +16,7 @@ showed **zero** rank-prefixed shard tars (`shard_XXX_YYYYY.tar`) from any of
 them — only pre-existing, unrelated test artifacts. Every clip processed by
 every partition was silently discarded; none of it ever reached S3.
 
-**Root cause (two compounding bugs, both in `masking/data/build_webdataset.py`):**
+**Root cause (two compounding bugs, both in `build_wds/data/build_webdataset.py`):**
 
 1. `S3ShardWriter._flush()` uploaded shard tars with `boto3`'s `upload_file()`,
    which routes through `s3transfer`'s multipart `TransferManager`. That path

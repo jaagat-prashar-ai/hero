@@ -8,14 +8,14 @@ Requires Python >= 3.11 (physical_ai_av constraint).
 Run inside the dev container or a cluster node with sufficient disk for temp files.
 
 Usage (smoke test — 10 clips):
-    python masking/data/build_webdataset.py \
+    python build_wds/data/build_webdataset.py \
         --bucket my-research-bucket \
         --prefix physicalai-av/wds \
         --hf_token hf_xxxx \
         --max_clips 10
 
 Usage (full dataset):
-    python masking/data/build_webdataset.py \
+    python build_wds/data/build_webdataset.py \
         --bucket my-research-bucket \
         --prefix physicalai-av/wds \
         --hf_token hf_xxxx \

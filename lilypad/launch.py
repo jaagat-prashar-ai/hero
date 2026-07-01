@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Launch hero/masking Lilypad workloads via the Python SDK.
+"""Launch hero Lilypad workloads via the Python SDK.
 
-Reads a workload YAML (cluster.yaml by default), patches repo paths, applies
-optional overrides, and submits with ``LaunchWorkload(WorkloadConfig(...))``.
+Reads a workload YAML, patches repo paths, applies optional overrides, and
+submits with ``LaunchWorkload(WorkloadConfig(...))``.
 
 Usage:
-    python masking/configs/launch.py
-    python masking/configs/launch.py masking/configs/cluster.yaml --dry-run
-    python masking/configs/launch.py masking/configs/cluster.yaml -n my-run \\
-        -o workload_variant_config.training_fn_config.experiment b
+    python lilypad/launch.py masking/configs/cluster.yaml --dry-run
+    python lilypad/launch.py build_wds/configs/cluster.yaml -n my-run \\
+        -o workload_variant_config.entrypoint_fn_config.max_clips 10
     bash masking/configs/launch.sh masking --watch
+    bash build_wds/configs/launch.sh build-wds --watch
 """
 from __future__ import annotations
 
@@ -25,17 +25,18 @@ from typing import Any
 import yaml
 
 CONFIG_DIR = pathlib.Path(__file__).resolve().parent
-REPO_ROOT = CONFIG_DIR.parents[1]
-DEFAULT_CONFIG = CONFIG_DIR / "cluster.yaml"
+REPO_ROOT = CONFIG_DIR.parent
 ALPAMAYO1_5_PKG = REPO_ROOT / "third_party" / "alpamayo1.5" / "src" / "alpamayo1_5"
 
 _LILYPAD_CRED_FILE = Path.home() / ".creds" / "lilypad.env"
 _EXPORT_RE = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)="(.*)"$')
+_OCI_CHECKSUM_ENV = (
+    "AWS_REQUEST_CHECKSUM_CALCULATION",
+    "AWS_RESPONSE_CHECKSUM_VALIDATION",
+)
 
 # Lilypad workers pre-install these; pinning them in pip overlay causes conflicts.
 _FORBIDDEN_REQUIREMENT_PREFIXES = ("numpy==", "ray==", "wandb==")
-# physical_ai_av needs Python >=3.11; masking inference runs on Lilypad Python 3.10.
-_BUILD_WDS_REQUIREMENTS_NAME = "requirements_build_wds.txt"
 
 
 def _load_config(path: pathlib.Path) -> dict[str, Any]:
@@ -44,13 +45,13 @@ def _load_config(path: pathlib.Path) -> dict[str, Any]:
 
 
 def _load_lilypad_creds() -> None:
-    """Load HF_TOKEN and WANDB_API_KEY from ~/.creds/lilypad.env if unset."""
+    """Load Lilypad creds from ~/.creds/lilypad.env if unset."""
     import os
 
     if not _LILYPAD_CRED_FILE.is_file():
         return
 
-    wanted = {"HF_TOKEN", "WANDB_API_KEY"}
+    wanted = {"HF_TOKEN", "WANDB_API_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}
     missing = {k for k in wanted if not os.environ.get(k)}
     if not missing:
         return
@@ -148,10 +149,14 @@ def _is_build_wds_config(cfg: dict[str, Any]) -> bool:
     if not isinstance(wvc, dict):
         return False
     entrypoint = str(wvc.get("entrypoint_fn", ""))
-    if "build_wds" in entrypoint:
+    if entrypoint.startswith("build_wds."):
         return True
     req = _requirements_path(cfg)
-    return req is not None and req.name == _BUILD_WDS_REQUIREMENTS_NAME
+    return req is not None and "build_wds" in req.parts
+
+
+def _is_build_wds_requirements(req_path: pathlib.Path) -> bool:
+    return "build_wds" in req_path.parts
 
 
 def _validate_requirements_static(req_path: pathlib.Path) -> tuple[list[str], list[str]]:
@@ -182,13 +187,13 @@ def _validate_requirements_static(req_path: pathlib.Path) -> tuple[list[str], li
                 f"{req_path.name}:{lineno}: pin torch as torch==2.7.1, not {stripped!r}"
             )
         if re.match(r"^physical[_-]?ai[_-]?av\b", stripped, re.IGNORECASE):
-            if req_path.name != _BUILD_WDS_REQUIREMENTS_NAME:
+            if not _is_build_wds_requirements(req_path):
                 errors.append(
                     f"{req_path.name}:{lineno}: physical_ai_av belongs in "
-                    f"{_BUILD_WDS_REQUIREMENTS_NAME} only (requires Python >=3.11)"
+                    "build_wds/requirements.txt only (requires Python >=3.11)"
                 )
 
-    if req_path.name != _BUILD_WDS_REQUIREMENTS_NAME and not has_torch_pin:
+    if not _is_build_wds_requirements(req_path) and not has_torch_pin:
         errors.append(
             f"{req_path.name} must pin torch==2.7.1 for Lilypad inference workloads"
         )
@@ -271,6 +276,38 @@ def _validate_alpamayo_vendor() -> list[str]:
     return errors
 
 
+def _validate_oci_checksum_env(cfg: dict[str, Any]) -> list[str]:
+    """Warn when OCI S3 upload/download checksum env vars are missing."""
+    warnings: list[str] = []
+    if not _is_build_wds_config(cfg):
+        return warnings
+
+    runtime = cfg.get("runtime_environment", {})
+    const_env = runtime.get("constant_environment_variables", {}) if isinstance(runtime, dict) else {}
+    for key in _OCI_CHECKSUM_ENV:
+        if const_env.get(key) != "when_required":
+            warnings.append(
+                f"build_wds config should set runtime_environment.constant_environment_variables."
+                f"{key}=when_required (required for OCI S3 uploads; see ~/knowledge/gotchas/s3-oci-advanced.md)"
+            )
+    return warnings
+
+
+def _validate_aws_required_env(cfg: dict[str, Any]) -> list[str]:
+    """Warn when AWS keys are listed as submitter-required (Lilypad injects on cluster)."""
+    warnings: list[str] = []
+    req_env = cfg.get("runtime_environment", {}).get("required_environment_variables", [])
+    if not isinstance(req_env, list):
+        return warnings
+    for var in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
+        if var in req_env:
+            warnings.append(
+                f"Remove {var} from required_environment_variables — Lilypad injects S3 "
+                "credentials on cluster workers; submitter creds come from ~/.creds/lilypad.env"
+            )
+    return warnings
+
+
 def _validate_hf_token(cfg: dict[str, Any], *, dry_run: bool) -> list[str]:
     import os
 
@@ -334,6 +371,8 @@ def _preflight(
         errors.extend(_validate_alpamayo_vendor())
 
     errors.extend(_validate_hf_token(cfg, dry_run=dry_run))
+    warnings.extend(_validate_oci_checksum_env(cfg))
+    warnings.extend(_validate_aws_required_env(cfg))
 
     wvc = cfg.get("workload_variant_config", {})
     if isinstance(wvc, dict):
@@ -388,12 +427,10 @@ def _watch(workload_id: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Launch a hero/masking Lilypad workload")
+    parser = argparse.ArgumentParser(description="Launch a hero Lilypad workload")
     parser.add_argument(
         "config",
-        nargs="?",
-        default=str(DEFAULT_CONFIG),
-        help=f"Workload YAML (default: {DEFAULT_CONFIG.relative_to(REPO_ROOT)})",
+        help="Workload YAML (e.g. masking/configs/cluster.yaml or build_wds/configs/cluster.yaml)",
     )
     parser.add_argument("-n", "--run-name", help="Override workload name")
     parser.add_argument(

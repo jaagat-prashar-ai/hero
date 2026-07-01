@@ -5,8 +5,8 @@ build_wds_worker.py — Lilypad training_fn entrypoint for distributed WDS shard
 Each Lilypad replica reads its RANK / WORLD_SIZE from the environment, then
 delegates to build_webdataset.main() to process its assigned slice of clips.
 
-Lilypad cluster config key (masking/configs/build_wds_cluster.yaml):
-    training_fn: masking.data.build_wds_worker.build_wds_loop
+Lilypad cluster config key (build_wds/configs/cluster.yaml):
+    entrypoint_fn: build_wds.data.build_wds_worker.build_wds_loop
 
 Required training_fn_config keys:
     bucket          S3 bucket name
@@ -132,5 +132,5 @@ def build_wds_loop(
                 rank, world_size, " ".join(argv))
 
     sys.argv = ["build_webdataset"] + argv
-    from masking.data.build_webdataset import main
+    from build_wds.data.build_webdataset import main
     main()
