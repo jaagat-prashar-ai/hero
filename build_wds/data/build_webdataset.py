@@ -366,22 +366,24 @@ def build_clip_sample(
 
     # ── Egomotion ────────────────────────────────────────────────────────────
     try:
-        egomotion = avdi.get_clip_feature(clip_id, feature=avdi.features.LABELS.EGOMOTION, maybe_stream=True)
+        egomotion = _hf_retry(
+            lambda: avdi.get_clip_feature(clip_id, feature=avdi.features.LABELS.EGOMOTION, maybe_stream=True)
+        )
         sample["egomotion.parquet"] = _egomotion_to_bytes(egomotion)
     except Exception as exc:
         logger.warning("clip %s: egomotion error: %s", clip_id, exc)
 
     # ── Calibration ──────────────────────────────────────────────────────────
     try:
-        ext = avdi.get_clip_feature(
+        ext = _hf_retry(lambda: avdi.get_clip_feature(
             clip_id, feature=avdi.features.CALIBRATION.SENSOR_EXTRINSICS, maybe_stream=True
-        )
-        intr = avdi.get_clip_feature(
+        ))
+        intr = _hf_retry(lambda: avdi.get_clip_feature(
             clip_id, feature=avdi.features.CALIBRATION.CAMERA_INTRINSICS, maybe_stream=True
-        )
-        dims = avdi.get_clip_feature(
+        ))
+        dims = _hf_retry(lambda: avdi.get_clip_feature(
             clip_id, feature=avdi.features.CALIBRATION.VEHICLE_DIMENSIONS, maybe_stream=True
-        )
+        ))
 
         cal = {
             "sensor_extrinsics":  _serialize_calibration_value(ext),
@@ -398,7 +400,7 @@ def build_clip_sample(
         if feat_attr is None:
             raise RuntimeError(f"physical_ai_av missing camera feature constant {feat_name}")
 
-        raw = _read_camera_mp4_bytes(avdi, clip_id, feat_attr)
+        raw = _hf_retry(lambda: _read_camera_mp4_bytes(avdi, clip_id, feat_attr))
         if video_codec == "copy":
             sample[f"{cam_key}.mp4"] = raw
         else:
@@ -416,9 +418,9 @@ def build_clip_sample(
     # pressure for no payoff. Run a separate backfill job once it's supported.
     if not skip_lidar:
         try:
-            lidar = avdi.get_clip_feature(
+            lidar = _hf_retry(lambda: avdi.get_clip_feature(
                 clip_id, feature=avdi.features.LIDAR.LIDAR_TOP_360FOV, maybe_stream=True
-            )
+            ))
             sample["lidar_top_360fov.parquet"] = _to_bytes(lidar)
         except Exception as exc:
             logger.debug("clip %s: lidar unavailable: %s", clip_id, exc)
@@ -431,7 +433,7 @@ def build_clip_sample(
                 continue
             try:
                 feat = getattr(radar_ns, radar_attr)
-                radar_data = avdi.get_clip_feature(clip_id, feature=feat)
+                radar_data = _hf_retry(lambda: avdi.get_clip_feature(clip_id, feature=feat))
                 key = f"radar_{radar_attr.lower()}.parquet"
                 sample[key] = _to_bytes(radar_data)
             except Exception:
