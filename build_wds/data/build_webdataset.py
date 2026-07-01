@@ -693,8 +693,9 @@ def main() -> None:
             work[split] = work[split][: args.max_clips]
 
     for split in args.splits:
-        logger.info("  %s: %d clips queued (rank %d/%d)",
-                    split, len(work[split]), args.rank, args.world_size)
+        n_chunks = len({chunk_of[cid] for cid in work[split]})
+        logger.info("  %s: %d clips queued across %d chunks (rank %d/%d)",
+                    split, len(work[split]), n_chunks, args.rank, args.world_size)
 
     # ── Initialize S3 writers ──────────────────────────────────────────────────
     writers = {
