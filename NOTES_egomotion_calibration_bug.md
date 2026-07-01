@@ -175,3 +175,7 @@ from it, and ran both functions above against them:
 
 Not yet applied to `build_webdataset.py` — deliberately holding off so the
 actual code change lands as its own separate, reviewable commit.
+
+// We also want to exploer howe can build off ffmpeg with libsvtav1 compiled in, since the cluster's current ffmpeg (UBunut 22.04's stock page) only has libaom-av1. 
+
+There are three concrete ways (infer which one is the best from the diagonistic run). We can enable UBunutu's jammy-backports pocket, then apt-get install ffmpeg, sometims backportws carries a newer ffmpeg build with more codecs. This is a one-line change in ensure_ffmpeg_av1(): add the backports source, get apt-get update, reinstall ffmpeg, re-check for lbsvtav1. What is the jammy backports pocket?
