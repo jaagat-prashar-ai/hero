@@ -109,7 +109,6 @@ def _s3_retry(fn: Callable[[], _T], max_attempts: int = 5) -> _T:
 
 
 import boto3
-from boto3.s3.transfer import TransferConfig
 from botocore.config import Config as BotocoreConfig
 import numpy as np
 import pandas as pd
@@ -123,20 +122,15 @@ if not os.environ.get("AWS_ACCESS_KEY_ID"):
     os.environ.setdefault("AWS_PROFILE", "oci.chi")
 
 # OCI S3 does not support AWS chunked encoding. payload_signing_enabled=True
-# disables chunked encoding and uses standard payload signing instead.
+# disables chunked encoding and uses standard payload signing instead. Only
+# effective for single-shot requests (put_object) — multipart upload_file
+# via s3transfer ignores this and always chunks, so all uploads in this
+# module go through put_object instead.
 _OCI_BOTO_CONFIG = BotocoreConfig(
     signature_version="s3v4",
     request_checksum_calculation="when_required",
     response_checksum_validation="when_required",
-    s3={
-        "payload_signing_enabled": True,
-        "multipart_threshold": 16 * 1024 * 1024,
-        "multipart_chunksize": 16 * 1024 * 1024,
-    },
-)
-_OCI_TRANSFER_CONFIG = TransferConfig(
-    multipart_threshold=16 * 1024 * 1024,
-    multipart_chunksize=16 * 1024 * 1024,
+    s3={"payload_signing_enabled": True},
 )
 
 import physical_ai_av
@@ -411,15 +405,28 @@ class S3ShardWriter:
     def _flush(self) -> None:
         self._writer.close()
         key = self._key(self._shard_idx)
-        size_mb = Path(self._tmpfile.name).stat().st_size / 1e6
+        body = Path(self._tmpfile.name).read_bytes()
+        size_mb = len(body) / 1e6
         logger.info(
             "Uploading s3://%s/%s  (%.0f MB, %d clips)",
             self.bucket, key, size_mb, self._count,
         )
         try:
-            _s3_retry(lambda: self._s3.upload_file(
-                self._tmpfile.name, self.bucket, key, Config=_OCI_TRANSFER_CONFIG
-            ))
+            # Use put_object with the tar buffered in memory rather than
+            # upload_file/s3transfer: s3transfer always issues multipart
+            # UploadPart requests with AWS chunked transfer-encoding, which
+            # OCI S3 rejects with "NotImplemented" regardless of the
+            # payload_signing_enabled / checksum settings on the client
+            # (those only affect single-shot PutObject). Shard tars are a
+            # bounded size (clips_per_shard clips), so buffering in memory
+            # is fine — see upload_metadata_parquets for the same pattern.
+            _s3_retry(lambda: self._s3.put_object(Bucket=self.bucket, Key=key, Body=body))
+        except Exception:
+            logger.error(
+                "Shard upload failed permanently — %d clips in this shard are LOST: s3://%s/%s",
+                self._count, self.bucket, key,
+            )
+            raise
         finally:
             # Always clean up the tempfile and reset counters so the writer
             # remains usable even when the upload ultimately fails.
