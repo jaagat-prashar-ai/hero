@@ -11,7 +11,10 @@ Lilypad cluster config key (build_wds/configs/cluster.yaml):
 Required training_fn_config keys:
     bucket          S3 bucket name
     prefix          S3 key prefix (default: "physicalai-av/wds")
-    hf_token        HuggingFace token (or set HF_TOKEN env var)
+
+HF_TOKEN must be set in the environment (required_environment_variables in
+cluster.yaml) — it is never read from training_fn_config, so it can't leak
+into the logged argv line.
 
 Optional training_fn_config keys:
     workers         Local threads per node (default 8)
@@ -81,7 +84,6 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
     """Build the flags list for build_webdataset (no argv[0] program name)."""
     bucket          = cfg.get("bucket")
     prefix          = cfg.get("prefix", "physicalai-av/wds")
-    hf_token        = cfg.get("hf_token") or os.environ.get("HF_TOKEN", "")
     workers         = int(cfg.get("workers", 8))
     clips_per_shard = int(cfg.get("clips_per_shard", 50))
     splits          = cfg.get("splits", ["train", "val", "test"])
@@ -103,8 +105,6 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
         "--world_size",      str(world_size),
     ]
 
-    if hf_token:
-        argv += ["--hf_token", hf_token]
     if max_clips is not None:
         argv += ["--max_clips", str(max_clips)]
     if resume_file:
