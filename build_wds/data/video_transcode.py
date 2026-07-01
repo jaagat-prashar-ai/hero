@@ -6,7 +6,9 @@ from __future__ import annotations
 import logging
 import shutil
 import subprocess
+import tarfile
 import tempfile
+import urllib.request
 from pathlib import Path
 from typing import Literal
 
@@ -18,8 +20,28 @@ VideoCodec = Literal["copy", "av1"]
 _AV1_ENCODERS = ("libsvtav1", "libaom-av1")
 _CODEC_ALIASES = frozenset({"av1", "av01", "libaom-av1", "libsvtav1"})
 
+# The cluster's system ffmpeg comes from an internal apt mirror pinned to an old
+# snapshot with no libsvtav1 support (confirmed via _log_av1_encoder_diagnostics:
+# Ubuntu 22.04 jammy, ffmpeg 4.4.2, libsvtav1 package doesn't exist in that mirror
+# at all). PyPI/HF downloads work fine from cluster jobs though, so fetching a
+# static ffmpeg build over HTTPS sidesteps the apt restriction entirely. Pinned to
+# the n7.1 release branch (not "master") for stability; confirmed to include
+# libsvtav1 and to encode ~6x faster than libaom-av1 at equivalent quality.
+_STATIC_FFMPEG_URL = (
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+    "ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz"
+)
+_STATIC_FFMPEG_DIR = Path(tempfile.gettempdir()) / "build_wds_static_ffmpeg"
+
+# Set by ensure_ffmpeg_av1() when a downloaded static ffmpeg (with libsvtav1) is
+# used in place of the system one. None means "use system ffmpeg/ffprobe".
+_resolved_ffmpeg_path: str | None = None
+_resolved_ffprobe_path: str | None = None
+
 
 def ffmpeg_path() -> str:
+    if _resolved_ffmpeg_path:
+        return _resolved_ffmpeg_path
     path = shutil.which("ffmpeg")
     if not path:
         raise RuntimeError("ffmpeg not found on PATH — required for video transcoding")
@@ -27,10 +49,61 @@ def ffmpeg_path() -> str:
 
 
 def ffprobe_path() -> str:
+    if _resolved_ffprobe_path:
+        return _resolved_ffprobe_path
     path = shutil.which("ffprobe")
     if not path:
         raise RuntimeError("ffprobe not found on PATH — required for video transcoding")
     return path
+
+
+def _find_extracted_static_ffmpeg() -> tuple[Path, Path] | None:
+    for ffmpeg_bin in sorted(_STATIC_FFMPEG_DIR.glob("*/bin/ffmpeg")):
+        ffprobe_bin = ffmpeg_bin.parent / "ffprobe"
+        if ffmpeg_bin.is_file() and ffprobe_bin.is_file():
+            return ffmpeg_bin, ffprobe_bin
+    return None
+
+
+def _try_download_static_ffmpeg_with_svtav1() -> tuple[str, str] | None:
+    """Best-effort: fetch a static ffmpeg build with libsvtav1 baked in over
+    HTTPS. Never raises — returns None on any failure (network, extraction,
+    missing encoder), so callers fall back to system ffmpeg + libaom-av1."""
+    try:
+        found = _find_extracted_static_ffmpeg()
+        if not found:
+            _STATIC_FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
+            archive_path = _STATIC_FFMPEG_DIR / "ffmpeg.tar.xz"
+            logger.info("Downloading static ffmpeg with libsvtav1 from %s", _STATIC_FFMPEG_URL)
+            urllib.request.urlretrieve(_STATIC_FFMPEG_URL, archive_path)
+            with tarfile.open(archive_path, "r:xz") as tf:
+                tf.extractall(_STATIC_FFMPEG_DIR)
+            archive_path.unlink(missing_ok=True)
+            found = _find_extracted_static_ffmpeg()
+            if not found:
+                logger.warning("Static ffmpeg archive extracted but bin/ffmpeg not found")
+                return None
+
+        ffmpeg_bin, ffprobe_bin = found
+        ffmpeg_bin.chmod(0o755)
+        ffprobe_bin.chmod(0o755)
+
+        proc = subprocess.run(
+            [str(ffmpeg_bin), "-hide_banner", "-encoders"],
+            capture_output=True, text=True, check=True,
+        )
+        if "libsvtav1" not in proc.stdout:
+            logger.warning("Downloaded static ffmpeg lacks libsvtav1 — ignoring it")
+            return None
+
+        logger.info("Static ffmpeg with libsvtav1 ready at %s", ffmpeg_bin)
+        return str(ffmpeg_bin), str(ffprobe_bin)
+    except Exception as exc:
+        logger.warning(
+            "Failed to fetch static ffmpeg with libsvtav1 (%s) — falling back to system ffmpeg",
+            exc,
+        )
+        return None
 
 
 def list_ffmpeg_encoders() -> list[str]:
@@ -87,9 +160,19 @@ def _log_av1_encoder_diagnostics() -> None:
 
 def ensure_ffmpeg_av1() -> str:
     """Return an AV1 encoder name, installing ffmpeg via apt on cluster if needed."""
+    global _resolved_ffmpeg_path, _resolved_ffprobe_path
+
     _log_av1_encoder_diagnostics()
 
     encoder = pick_av1_encoder()
+    if encoder == "libsvtav1":
+        return encoder
+
+    static = _try_download_static_ffmpeg_with_svtav1()
+    if static:
+        _resolved_ffmpeg_path, _resolved_ffprobe_path = static
+        return "libsvtav1"
+
     if encoder:
         return encoder
 
