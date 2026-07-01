@@ -66,8 +66,29 @@ def check_ffmpeg_av1_available() -> tuple[bool, str | None]:
     return encoder is not None, encoder
 
 
+def _log_av1_encoder_diagnostics() -> None:
+    """Log OS release and ffmpeg apt package info to help diagnose why libsvtav1
+    (fast) isn't available and we're stuck on libaom-av1 (slow). Best-effort —
+    never raises, since this is diagnostic-only and must not break the job."""
+    try:
+        os_release = Path("/etc/os-release").read_text(encoding="utf-8")
+        logger.info("os-release:\n%s", os_release.strip())
+    except OSError as exc:
+        logger.info("could not read /etc/os-release: %s", exc)
+
+    apt_cache = shutil.which("apt-cache")
+    if apt_cache:
+        for pkg in ("ffmpeg", "svt-av1", "libsvtav1"):
+            proc = subprocess.run(
+                [apt_cache, "policy", pkg], capture_output=True, text=True, check=False,
+            )
+            logger.info("apt-cache policy %s:\n%s", pkg, (proc.stdout or proc.stderr).strip())
+
+
 def ensure_ffmpeg_av1() -> str:
     """Return an AV1 encoder name, installing ffmpeg via apt on cluster if needed."""
+    _log_av1_encoder_diagnostics()
+
     encoder = pick_av1_encoder()
     if encoder:
         return encoder
