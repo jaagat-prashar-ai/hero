@@ -668,6 +668,7 @@ def main() -> None:
 
     # ── Initialize model interface (moved up: needed for partitioning below) ──
     avdi = _hf_retry(PhysicalAIAVDatasetInterface)
+    chunk_of: dict[str, int] = avdi.clip_index["chunk"].to_dict()
 
     # ── Build per-split work lists, partitioned by rank ──────────────────────
     # Sort clip IDs for a deterministic, stable partition across restarts.
@@ -676,9 +677,16 @@ def main() -> None:
         if split in args.splits and clip_id not in done:
             work[split].append(clip_id)
 
-    # Slice this worker's share: every world_size-th clip starting at rank.
+    # Partition by HF dataset chunk, not by individual clip. HF packs ~97-100
+    # clips per chunk (one shared multi-hundred-MB file per feature/camera per
+    # chunk); the old `[rank::world_size]` clip-round-robin scattered every
+    # chunk's clips across nearly every rank, so each rank independently
+    # re-downloaded the same chunk files instead of one rank downloading them
+    # once (measured: ~62x redundant chunk downloads at world_size=100).
+    # Assigning whole chunks to ranks means each chunk is only ever fetched by
+    # the one rank that owns it, regardless of which split its clips fall in.
     for split in args.splits:
-        work[split] = work[split][args.rank :: args.world_size]
+        work[split] = [cid for cid in work[split] if chunk_of[cid] % args.world_size == args.rank]
 
     if args.max_clips:
         for split in args.splits:
