@@ -234,6 +234,34 @@ def _to_bytes(obj: Any) -> bytes:
     return json.dumps(obj, default=str).encode()
 
 
+def _egomotion_to_bytes(egomotion: Any) -> bytes:
+    """Serialize an `Interpolator[EgomotionState]` to a real parquet of raw samples.
+
+    `egomotion` has no `.to_parquet()` (it's an Interpolator, not a DataFrame), so
+    `_to_bytes()` would fall through to json-encoding its `repr()` — a string like
+    "Interpolator[EgomotionState](time_range=[...])" with no actual trajectory data.
+    Pull the raw per-timestamp samples out directly instead, using the same column
+    schema `EgomotionState.from_egomotion_df()` expects, so this parquet round-trips.
+    """
+    values = egomotion.values
+    xyz = np.asarray(values.pose.translation)
+    quat = np.asarray(values.pose.rotation.as_quat())
+    vel = np.asarray(values.velocity)
+    acc = np.asarray(values.acceleration)
+    curv = np.asarray(values.curvature).reshape(-1)
+    df = pd.DataFrame({
+        "timestamp_us": np.asarray(egomotion.timestamps),
+        "x": xyz[:, 0], "y": xyz[:, 1], "z": xyz[:, 2],
+        "qx": quat[:, 0], "qy": quat[:, 1], "qz": quat[:, 2], "qw": quat[:, 3],
+        "vx": vel[:, 0], "vy": vel[:, 1], "vz": vel[:, 2],
+        "ax": acc[:, 0], "ay": acc[:, 1], "az": acc[:, 2],
+        "curvature": curv,
+    })
+    buf = io.BytesIO()
+    df.to_parquet(buf, index=False)
+    return buf.getvalue()
+
+
 def _read_camera_mp4_bytes(
     avdi: PhysicalAIAVDatasetInterface,
     clip_id: str,
@@ -310,7 +338,7 @@ def build_clip_sample(
     # ── Egomotion ────────────────────────────────────────────────────────────
     try:
         egomotion = avdi.get_clip_feature(clip_id, feature=avdi.features.LABELS.EGOMOTION, maybe_stream=True)
-        sample["egomotion.parquet"] = _to_bytes(egomotion)
+        sample["egomotion.parquet"] = _egomotion_to_bytes(egomotion)
     except Exception as exc:
         logger.warning("clip %s: egomotion error: %s", clip_id, exc)
 
