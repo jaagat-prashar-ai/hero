@@ -2,6 +2,8 @@
 # physical_ai_av requires Python >=3.11; cluster workers are 3.10. build_wds/configs/cluster.yaml
 # sets PIP_IGNORE_REQUIRES_PYTHON=1 so pip installs anyway. Full resolution against
 # lilypad-py on 3.10 is skipped in launch.py — only static checks run for this file.
+#
+# AV1 camera transcoding uses system ffmpeg (libsvtav1 or libaom-av1), not a pip package.
 
 webdataset>=0.2.86
 boto3>=1.34

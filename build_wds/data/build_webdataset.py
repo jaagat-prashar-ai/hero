@@ -61,6 +61,7 @@ import os
 import tempfile
 import threading
 import time
+import zipfile
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -135,6 +136,8 @@ _OCI_BOTO_CONFIG = BotocoreConfig(
 
 import physical_ai_av
 from physical_ai_av import PhysicalAIAVDatasetInterface
+
+from build_wds.data.video_transcode import ensure_ffmpeg_av1, transcode_mp4
 
 logger = logging.getLogger(__name__)
 
@@ -229,24 +232,41 @@ def _to_bytes(obj: Any) -> bytes:
     return json.dumps(obj, default=str).encode()
 
 
-def _camera_bytes(video_obj: Any) -> bytes | None:
-    """Extract raw MP4 bytes from a video feature object.
+def _read_camera_mp4_bytes(
+    avdi: PhysicalAIAVDatasetInterface,
+    clip_id: str,
+    feature: str,
+) -> bytes:
+    """Read raw MP4 bytes from the HF chunk zip (same bytes SeekVideoReader decodes).
 
-    Tries multiple access patterns since the physical_ai_av API may
-    expose raw bytes in different ways across versions.
+    physical_ai_av.get_clip_feature() returns a SeekVideoReader that wraps an
+    io.BytesIO internally but does not expose the MP4 payload. Read the zip
+    entry directly instead of probing the reader object.
     """
-    # Pattern 1: explicit raw bytes method
-    if hasattr(video_obj, "get_raw_bytes"):
-        return video_obj.get_raw_bytes()
-    # Pattern 2: local cached file path
-    for attr in ("path", "local_path", "_path", "filepath"):
-        p = getattr(video_obj, attr, None)
-        if p and Path(p).exists():
-            return Path(p).read_bytes()
-    # Pattern 3: file-like object
-    if hasattr(video_obj, "read"):
-        return video_obj.read()
-    return None
+    chunk_filename = avdi.features.get_chunk_feature_filename(
+        avdi.get_clip_chunk(clip_id), feature
+    )
+    clip_files = avdi.features.get_clip_files_in_zip(clip_id, feature)
+    video_key = clip_files.get("video")
+    if not video_key:
+        raise RuntimeError(
+            f"clip {clip_id} feature {feature}: zip layout missing 'video' — {clip_files}"
+        )
+
+    with avdi.open_file(chunk_filename, maybe_stream=True) as f:
+        with zipfile.ZipFile(f, "r") as zf:
+            if video_key not in zf.namelist():
+                raise RuntimeError(
+                    f"clip {clip_id} feature {feature}: {video_key!r} not in "
+                    f"{chunk_filename} (have {len(zf.namelist())} entries)"
+                )
+            data = zf.read(video_key)
+
+    if not data:
+        raise RuntimeError(
+            f"clip {clip_id} feature {feature}: empty MP4 at {video_key} in {chunk_filename}"
+        )
+    return data
 
 
 def build_clip_sample(
@@ -256,6 +276,9 @@ def build_clip_sample(
     ood_events: list[dict],
     feature_row: dict,
     skip_lidar: bool = False,
+    video_codec: str = "av1",
+    video_crf: int = 32,
+    video_preset: int = 6,
 ) -> dict[str, bytes]:
     """Download every available sensor modality for one clip.
 
@@ -274,6 +297,12 @@ def build_clip_sample(
             for ev in ood_events
         ],
     }
+    if video_codec != "copy":
+        meta["video"] = {
+            "codec": video_codec,
+            "crf": video_crf,
+            "preset": video_preset,
+        }
     sample["json"] = json.dumps(meta, ensure_ascii=False).encode()
 
     # ── Egomotion ────────────────────────────────────────────────────────────
@@ -315,25 +344,19 @@ def build_clip_sample(
     for cam_key, feat_name in CAMERA_FEATURES.items():
         feat_attr = getattr(avdi.features.CAMERA, feat_name, None)
         if feat_attr is None:
-            continue
-        try:
-            video = avdi.get_clip_feature(clip_id, feature=feat_attr, maybe_stream=True)
-            raw = _camera_bytes(video)
-            if raw is not None:
-                sample[f"{cam_key}.mp4"] = raw
-            else:
-                # Fallback: store frames as numpy array (10 fps, full 20 s clip)
-                timestamps_us = np.arange(0, 20_000_000, 100_000, dtype=np.int64)
-                frames, actual_ts = video.decode_images_from_timestamps(timestamps_us)
-                buf = io.BytesIO()
-                np.savez_compressed(
-                    buf,
-                    frames=np.array(frames, dtype=np.uint8),
-                    timestamps_us=actual_ts,
-                )
-                sample[f"{cam_key}.npz"] = buf.getvalue()
-        except Exception as exc:
-            logger.debug("clip %s: camera %s unavailable: %s", clip_id, cam_key, exc)
+            raise RuntimeError(f"physical_ai_av missing camera feature constant {feat_name}")
+
+        raw = _read_camera_mp4_bytes(avdi, clip_id, feat_attr)
+        if video_codec == "copy":
+            sample[f"{cam_key}.mp4"] = raw
+        else:
+            sample[f"{cam_key}.mp4"] = transcode_mp4(
+                raw,
+                codec=video_codec,  # type: ignore[arg-type]
+                crf=video_crf,
+                preset=video_preset,
+                camera_label=f"{clip_id}/{cam_key}",
+            )
 
     # ── LiDAR ────────────────────────────────────────────────────────────────
     # Skippable: the per-clip LiDAR reader isn't implemented in physical_ai_av
@@ -531,6 +554,12 @@ def main() -> None:
     ap.add_argument("--skip_lidar", action="store_true",
                     help="Skip downloading/writing the LiDAR feature for this run "
                          "(reduces HF download load; backfill in a separate job later)")
+    ap.add_argument("--video_codec", choices=("copy", "av1"), default="av1",
+                    help="Camera MP4 encoding: copy (passthrough H.264) or av1 (re-encode)")
+    ap.add_argument("--video_crf", type=int, default=32,
+                    help="AV1 CRF quality (lower = better quality, larger files)")
+    ap.add_argument("--video_preset", type=int, default=6,
+                    help="AV1 encoder preset (libsvtav1 0-13; higher = faster encode)")
     # Distributed sharding: Lilypad injects RANK / WORLD_SIZE; can also be set explicitly.
     ap.add_argument("--rank",       type=int,
                     default=int(os.environ.get(_ENV_RANK, "0")),
@@ -547,6 +576,14 @@ def main() -> None:
         ap.error(f"--rank ({args.rank}) must be < --world_size ({args.world_size})")
 
     logger.info("Distributed sharding: rank=%d / world_size=%d", args.rank, args.world_size)
+    logger.info(
+        "Video encoding: codec=%s crf=%d preset=%d",
+        args.video_codec, args.video_crf, args.video_preset,
+    )
+
+    if args.video_codec != "copy":
+        encoder = ensure_ffmpeg_av1()
+        logger.info("Using AV1 encoder: %s", encoder)
 
     login(token=args.hf_token, add_to_git_credential=False)
 
@@ -619,6 +656,9 @@ def main() -> None:
                 ood_by_clip.get(clip_id, []),
                 feature_by_clip.get(clip_id, {}),
                 skip_lidar=args.skip_lidar,
+                video_codec=args.video_codec,
+                video_crf=args.video_crf,
+                video_preset=args.video_preset,
             )
             writers[split].write(clip_id, sample)
             with counter_lock:

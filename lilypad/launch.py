@@ -17,6 +17,7 @@ import argparse
 import importlib.metadata
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -308,6 +309,61 @@ def _validate_aws_required_env(cfg: dict[str, Any]) -> list[str]:
     return warnings
 
 
+def _entrypoint_fn_config(cfg: dict[str, Any]) -> dict[str, Any]:
+    wvc = cfg.get("workload_variant_config", {})
+    if not isinstance(wvc, dict):
+        return {}
+    fn_cfg = wvc.get("entrypoint_fn_config") or wvc.get("training_fn_config") or {}
+    return fn_cfg if isinstance(fn_cfg, dict) else {}
+
+
+def _validate_ffmpeg_av1(cfg: dict[str, Any]) -> list[str]:
+    """Warn when build_wds AV1 transcoding is enabled but ffmpeg lacks an AV1 encoder."""
+    warnings: list[str] = []
+    if not _is_build_wds_config(cfg):
+        return warnings
+
+    fn_cfg = _entrypoint_fn_config(cfg)
+    if str(fn_cfg.get("video_codec", "av1")) == "copy":
+        return warnings
+
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        warnings.append(
+            "ffmpeg not on PATH locally — cluster head must provide ffmpeg with "
+            "libsvtav1 or libaom-av1 for video_codec=av1"
+        )
+        return warnings
+
+    try:
+        proc = subprocess.run(
+            [ffmpeg, "-hide_banner", "-encoders"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        warnings.append(f"ffmpeg -encoders failed locally: {exc.stderr.strip()}")
+        return warnings
+
+    encoders = set()
+    for line in proc.stdout.splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and parts[0].endswith("."):
+            encoders.add(parts[1])
+
+    if "libsvtav1" in encoders:
+        print("  [ffmpeg] libsvtav1 available locally")
+    elif "libaom-av1" in encoders:
+        print("  [ffmpeg] libaom-av1 available locally (libsvtav1 not found)")
+    else:
+        warnings.append(
+            "ffmpeg found locally but no AV1 encoder (libsvtav1/libaom-av1) — "
+            "cluster head must provide one for video_codec=av1"
+        )
+    return warnings
+
+
 def _validate_hf_token(cfg: dict[str, Any], *, dry_run: bool) -> list[str]:
     import os
 
@@ -373,6 +429,7 @@ def _preflight(
     errors.extend(_validate_hf_token(cfg, dry_run=dry_run))
     warnings.extend(_validate_oci_checksum_env(cfg))
     warnings.extend(_validate_aws_required_env(cfg))
+    warnings.extend(_validate_ffmpeg_av1(cfg))
 
     wvc = cfg.get("workload_variant_config", {})
     if isinstance(wvc, dict):

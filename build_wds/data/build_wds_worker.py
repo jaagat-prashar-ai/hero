@@ -21,6 +21,9 @@ Optional training_fn_config keys:
     resume_file     Path to file of already-completed clip IDs
     skip_metadata_upload  If true, skip uploading metadata parquets (default false)
     skip_lidar      If true, skip downloading/writing LiDAR for this run (default false)
+    video_codec     Camera MP4 encoding: copy or av1 (default av1)
+    video_crf       AV1 CRF quality (default 32)
+    video_preset    AV1 encoder preset (default 6)
 """
 
 from __future__ import annotations
@@ -86,6 +89,9 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
     resume_file     = cfg.get("resume_file")
     skip_meta       = bool(cfg.get("skip_metadata_upload", False))
     skip_lidar      = bool(cfg.get("skip_lidar", False))
+    video_codec     = str(cfg.get("video_codec", "av1"))
+    video_crf       = int(cfg.get("video_crf", 32))
+    video_preset    = int(cfg.get("video_preset", 6))
 
     argv = [
         "--bucket",          bucket,
@@ -107,6 +113,11 @@ def _build_argv(cfg: dict[str, Any], rank: int, world_size: int) -> list[str]:
         argv.append("--skip_metadata_upload")
     if skip_lidar:
         argv.append("--skip_lidar")
+    argv += [
+        "--video_codec", video_codec,
+        "--video_crf", str(video_crf),
+        "--video_preset", str(video_preset),
+    ]
 
     return argv
 

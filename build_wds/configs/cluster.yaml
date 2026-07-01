@@ -57,6 +57,12 @@ workload_variant_config:
     # job once physical_ai_av supports it.
     skip_lidar: true
 
+    # Re-encode camera MP4s to AV1 (libsvtav1/libaom-av1 via system ffmpeg).
+    # Requires ffmpeg with an AV1 encoder on the cluster head node.
+    video_codec: av1
+    video_crf: 32
+    video_preset: 6
+
     # ── Distributed sharding ────────────────────────────────────────────────
     # This worker's shard index (0-indexed). Lilypad would override via the
     # RANK env var when running replicas, but generic workloads run only on the
