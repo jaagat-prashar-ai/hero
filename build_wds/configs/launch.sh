@@ -4,11 +4,13 @@
 # Run from repo root:
 #   bash build_wds/configs/launch.sh build-wds [--dry-run] [--watch]
 #   bash build_wds/configs/launch.sh build-wds-parallel [WORLD_SIZE] [WORKERS]
+#   bash build_wds/configs/launch.sh build-wds-smoke-parallel [WORLD_SIZE] [MAX_CLIPS]
 #
 # HF_TOKEN and AWS creds are loaded from ~/.creds/lilypad.env automatically.
 #
 # Examples:
 #   bash build_wds/configs/launch.sh build-wds-parallel 50 2
+#   bash build_wds/configs/launch.sh build-wds-smoke-parallel 8 2
 
 set -euo pipefail
 
@@ -24,10 +26,12 @@ usage() {
 Usage: bash build_wds/configs/launch.sh <command> [args...]
 
 Commands:
-  build-wds            Single-node WDS build (cluster.yaml)
-  build-wds-smoke      Smoke test: 1 clip → 1 shard upload (smoke.yaml)
-  build-wds-parallel   Launch WORLD_SIZE parallel WDS shard jobs
-  build-wds-staggered  Relaunch a rank range with stagger (HF rate limits)
+  build-wds               Single-node WDS build (cluster.yaml)
+  build-wds-smoke         Smoke test: 1 clip → 1 shard upload (smoke.yaml)
+  build-wds-parallel      Launch WORLD_SIZE parallel WDS shard jobs
+  build-wds-smoke-parallel  Launch WORLD_SIZE parallel smoke jobs (verify
+                            chunk-aware partitioning before a full launch)
+  build-wds-staggered     Relaunch a rank range with stagger (HF rate limits)
 
 Common flags (passed through to launch.py):
   --dry-run            Validate config before submit
@@ -111,6 +115,31 @@ case "${cmd}" in
             echo "  Submitted rank ${rank}/${WORLD_SIZE}"
         done
         echo "All ${WORLD_SIZE} jobs submitted."
+        ;;
+
+    build-wds-smoke-parallel)
+        require_hf_token
+        WORLD_SIZE="${1:-8}"
+        MAX_CLIPS="${2:-2}"
+        shift $(( $# >= 2 ? 2 : $# ))
+
+        # workers=1 always: AV1 transcoding is CPU-bound, so multiple threads
+        # on one node just contend for the same limited cores. Parallelism
+        # comes from launching more separate jobs (more nodes), not more
+        # threads per node.
+        echo "Launching ${WORLD_SIZE} parallel smoke jobs (workers=1 each, max_clips=${MAX_CLIPS})..."
+        for rank in $(seq 0 $((WORLD_SIZE - 1))); do
+            launch_py "${SCRIPT_DIR}/smoke.yaml" \
+                -o workload_variant_config.entrypoint_fn_config.hf_token "${HF_TOKEN}" \
+                -o workload_variant_config.entrypoint_fn_config.rank "${rank}" \
+                -o workload_variant_config.entrypoint_fn_config.world_size "${WORLD_SIZE}" \
+                -o workload_variant_config.entrypoint_fn_config.workers 1 \
+                -o workload_variant_config.entrypoint_fn_config.max_clips "${MAX_CLIPS}" \
+                -n "build-wds-smoke-p${rank}" \
+                "$@"
+            echo "  Submitted rank ${rank}/${WORLD_SIZE}"
+        done
+        echo "All ${WORLD_SIZE} smoke jobs submitted."
         ;;
 
     build-wds-staggered)
