@@ -369,6 +369,19 @@ def build_clip_sample(
 # S3 shard writer
 # ---------------------------------------------------------------------------
 
+class ShardUploadFailed(RuntimeError):
+    """A shard's S3 upload failed after all its clips were already buffered.
+
+    ``clips_lost`` is the full clip count of the shard, not just the one
+    clip whose write() call triggered the flush — the caller must reconcile
+    any of those clips it had already counted as succeeded.
+    """
+
+    def __init__(self, clips_lost: int, *args: object) -> None:
+        super().__init__(*args)
+        self.clips_lost = clips_lost
+
+
 class S3ShardWriter:
     """Pack WDS samples into tar shards and stream each one to S3."""
 
@@ -421,12 +434,12 @@ class S3ShardWriter:
             # bounded size (clips_per_shard clips), so buffering in memory
             # is fine — see upload_metadata_parquets for the same pattern.
             _s3_retry(lambda: self._s3.put_object(Bucket=self.bucket, Key=key, Body=body))
-        except Exception:
+        except Exception as exc:
             logger.error(
                 "Shard upload failed permanently — %d clips in this shard are LOST: s3://%s/%s",
                 self._count, self.bucket, key,
             )
-            raise
+            raise ShardUploadFailed(self._count) from exc
         finally:
             # Always clean up the tempfile and reset counters so the writer
             # remains usable even when the upload ultimately fails.
@@ -616,6 +629,18 @@ def main() -> None:
                 with resume_lock:
                     resume_fh.write(clip_id + "\n")
                     resume_fh.flush()
+        except ShardUploadFailed as exc:
+            logger.error(
+                "FAIL %s (%s): shard upload failed, %d clips in it are lost",
+                clip_id, split, exc.clips_lost,
+            )
+            with counter_lock:
+                # exc.clips_lost includes this clip plus earlier clips in the
+                # same shard that were already counted into n_ok when their
+                # own write() calls returned successfully — move all of them
+                # into n_err so the progress counters reflect real data loss.
+                n_ok -= exc.clips_lost - 1
+                n_err += exc.clips_lost
         except Exception as exc:
             import traceback
             logger.error("FAIL %s (%s): %s", clip_id, split, exc)
