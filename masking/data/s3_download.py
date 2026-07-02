@@ -57,6 +57,7 @@ def download_shards(
     *,
     max_shards: int | None = None,
     num_threads: int = 4,
+    only_keys: set[str] | None = None,
 ) -> list[Path]:
     """Download WDS shards from S3 to local_dir, skipping already-present files.
 
@@ -66,6 +67,10 @@ def download_shards(
         local_dir: Local directory to write shards into.
         max_shards: Cap the number of shards downloaded (useful for smoke tests).
         num_threads: Concurrent download threads (boto3 TransferConfig).
+        only_keys: If given, restrict to these exact S3 keys instead of listing
+            and downloading everything under prefix -- e.g. the shard_key values
+            from a sample_clips.json manifest, so a curated-sample run doesn't
+            pull the whole (possibly still-growing) dataset.
 
     Returns:
         List of local shard paths in sorted order.
@@ -76,7 +81,11 @@ def download_shards(
     local_dir.mkdir(parents=True, exist_ok=True)
 
     s3 = boto3.client("s3")
-    shard_keys = list_shards(s3, bucket, prefix)
+    if only_keys is not None:
+        shard_keys = sorted(only_keys)
+        logger.info("Restricting to %d explicit shard keys", len(shard_keys))
+    else:
+        shard_keys = list_shards(s3, bucket, prefix)
 
     if max_shards is not None:
         shard_keys = shard_keys[:max_shards]
