@@ -193,3 +193,15 @@ The math:
 
 So before tuning worker counts, the actual fix is: partition by chunk, not by clip. Want me to implement that (group clip IDs by chunk from avdi.clip_index, assign whole chunks round-robin to ranks instead of individual clips)? That's the change that actually makes worker-count tuning meaningful — right now almost any large world_size blows the HF budget regardless of what number we pick.
 
+//
+# staggering
+# exp backoff
+
+# progress metrics, bar
+# how much time is left
+
+# parallelize
+# workers to launch subprocesses from one given node
+
+# what is lilypad's cpu's rate limit?
+
