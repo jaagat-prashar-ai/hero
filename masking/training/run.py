@@ -302,6 +302,14 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
     ba = none_ctrl["accel"][0].numpy()
     ca = conc_ctrl["accel"][0].numpy()
 
+    # Concept-ablation positional ADE (none vs concept), same shape as
+    # experiment a's masked-vs-unmasked comparison -- this is the "overall"
+    # ADE for experiment b (per-word deltas live in per_word_salience_top20).
+    none_xyz = conc["conditions"]["none"]["pred_xyz"][0, 0, 0].numpy()
+    concept_xyz = conc["conditions"]["concept"]["pred_xyz"][0, 0, 0].numpy()
+    T = min(len(none_xyz), len(concept_xyz))
+    concept_delta_xy = np.linalg.norm(concept_xyz[:T, :2] - none_xyz[:T, :2], axis=-1)
+
     cot_raw = sal.get("cot", "")
     if isinstance(cot_raw, dict):
         seqs = cot_raw.get("cot", [])
@@ -316,6 +324,11 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
         "concept_d_curvature_mean": float(np.abs(cc - bc).mean()),
         "concept_d_curvature_max":  float(np.abs(cc - bc).max()),
         "concept_d_accel_mean":     float(np.abs(ca - ba).mean()),
+        # Overall/final ADE for the none-vs-concept comparison, plus the
+        # per-waypoint array they're computed from (mirrors experiment a).
+        "ade_m":                    float(concept_delta_xy.mean()),
+        "endpoint_m":               float(concept_delta_xy[-1]),
+        "delta_xy_per_waypoint":    concept_delta_xy.round(4).tolist(),
         # Baseline path + per-word masked path (traj_xy) so a caller can
         # render "click a word, see the trajectory shift" instead of only
         # the scalar salience metrics.
@@ -362,29 +375,35 @@ def _run_experiment_c(
 
     baseline_xyz = res["conditions"]["baseline"]["pred_xyz"][0, 0, 0].numpy()  # (T, 3)
 
-    def branch_vs_baseline(cond_name: str) -> tuple[float, list[list[float]]]:
+    def branch_vs_baseline(cond_name: str) -> tuple[float, list[list[float]], list[float]]:
         xyz = res["conditions"][cond_name]["pred_xyz"][0, 0, 0].numpy()
         T = min(len(xyz), len(baseline_xyz))
-        ade = float(np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1).mean())
-        return ade, xyz[:T, :2].round(4).tolist()
+        delta_xy = np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1)
+        return float(delta_xy.mean()), xyz[:T, :2].round(4).tolist(), delta_xy.round(4).tolist()
 
     prefix_sweep = []
     for n in sorted(threshold_words):
-        ade, traj_xy = branch_vs_baseline(f"prefix_{n}w")
+        ade, traj_xy, delta_xy = branch_vs_baseline(f"prefix_{n}w")
         prefix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"prefix_{n}w"]["n_masked_cols"]),
             "ade_m": ade,
+            "endpoint_m": delta_xy[-1],
             "traj_xy": traj_xy,
+            # Per-waypoint distance to the root/baseline (length T) -- ade_m/
+            # endpoint_m are just this array's mean and last value.
+            "delta_xy_per_waypoint": delta_xy,
         })
     suffix_sweep = []
     for n in sorted(threshold_words):
-        ade, traj_xy = branch_vs_baseline(f"suffix_{n}w")
+        ade, traj_xy, delta_xy = branch_vs_baseline(f"suffix_{n}w")
         suffix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"suffix_{n}w"]["n_masked_cols"]),
             "ade_m": ade,
+            "endpoint_m": delta_xy[-1],
             "traj_xy": traj_xy,
+            "delta_xy_per_waypoint": delta_xy,
         })
 
     return {
