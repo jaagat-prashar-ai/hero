@@ -35,6 +35,10 @@ Full config reference (all keys optional, defaults shown):
                                           # manifest -- restricts download to just
                                           # that manifest's shard_key set instead of
                                           # everything under s3_prefix
+    results_s3_prefix: null              # if set, upload the results JSONL to
+                                          # s3://{s3_bucket}/{this}/ after every write --
+                                          # outdir is local-node storage, NOT shared across
+                                          # nodes or persisted after the pod is torn down
     checkpoint:       "nvidia/Alpamayo-1.5-10B"
     experiment:       "a"              # "a" or "b"
     seed:             0
@@ -69,6 +73,7 @@ _DEFAULTS: dict[str, Any] = {
     "s3_prefix":      "PLACEHOLDER_PREFIX/wds",
     "max_shards":     None,
     "sample_clips_manifest": None,  # path to a masking.data.sample_clips.py manifest
+    "results_s3_prefix": None,  # if set, upload results JSONL to s3://{s3_bucket}/{this}/
     "checkpoint":     "nvidia/Alpamayo-1.5-10B",
     "experiment":     "a",
     "seed":           0,
@@ -116,6 +121,17 @@ def _load_done_rows(path: Path) -> set[tuple[str, int]]:
             except Exception:
                 pass
     return done
+
+
+def _upload_results(local_path: Path, bucket: str, s3_prefix: str) -> None:
+    """Upload the results JSONL to S3. outdir is node-local storage -- it is
+    NOT shared across nodes and does not survive the pod being torn down
+    after the job finishes, so this is the only durable copy."""
+    import boto3
+
+    s3 = boto3.client("s3")
+    key = f"{s3_prefix.rstrip('/')}/{local_path.name}"
+    s3.upload_file(str(local_path), bucket, key)
 
 
 def _sample_manifest_shard_keys(manifest_path: str) -> set[str]:
@@ -486,6 +502,12 @@ def masking_loop(
                 out_f.write(json.dumps(result) + "\n")
                 out_f.flush()
                 n_success += 1
+
+                if cfg.get("results_s3_prefix"):
+                    try:
+                        _upload_results(results_path, cfg["s3_bucket"], cfg["results_s3_prefix"])
+                    except Exception as exc:
+                        logger.warning("Failed to upload results to S3: %s", exc)
 
                 if experiment == "c":
                     sweep_adel = [r["ade_m"] for r in result.get("prefix_sweep", [])]
