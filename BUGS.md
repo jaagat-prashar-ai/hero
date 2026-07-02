@@ -6,6 +6,36 @@ now, not routine typos.
 
 ---
 
+## 2026-07-02 — masking experiment C failed on every clip: `unknown mask mode: prefix`
+
+**Symptom:** `masking_loop` with `experiment=c` produced zero successful rows —
+every single event logged `ERROR:masking.training.run:clip <id> t0=<t>: unknown
+mask mode: prefix` and was counted as a failure, while experiments A and B ran
+correctly against the same code/data.
+
+**Root cause:** `run.py::_run_experiment_c()` builds conditions like
+`{"mode": "prefix", "n": n, "unit": "words"}` and passes them to
+`MaskedAlpamayo1_5.compare_conditions()`, which resolves each condition's mask
+columns via `_cols_for_spec()`. That dispatcher only handled
+`"none"/"reasoning"/"concept"/"explicit"` and raised `ValueError` for anything
+else. `masked_model.py` already had fully-implemented
+`_prefix_mask_columns()`/`_suffix_mask_columns()` methods (matching signature:
+`(seq, n, unit)`) sitting unused right below `compare_conditions` — they were
+just never wired into the dispatch. This looks like the two pieces were
+written in the same pass but the connecting `if` branches were never added;
+nothing about it depended on data or environment, so it would have failed
+identically the very first time experiment C was ever run.
+
+**Fix:** added the two missing branches to `_cols_for_spec()`:
+```python
+if mode == "prefix":
+    return self._prefix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
+if mode == "suffix":
+    return self._suffix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
+```
+Verification pending re-launch (an unrelated results-storage bug found at the
+same time required stopping the first post-fix run before it finished).
+
 ## 2026-07-01 — 34/100 build-physicalai-wds ranks failed with HF `/whoami-v2` 429 at launch
 
 **Symptom:** Relaunching the WDS build at `world_size=100` (`build-wds-parallel
