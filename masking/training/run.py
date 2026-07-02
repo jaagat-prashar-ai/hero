@@ -276,6 +276,11 @@ def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
         # the scalar ADE/endpoint summary.
         "traj_none_xy":   none_xyz[:T, :2].round(4).tolist(),
         "traj_masked_xy": masked_xyz[:T, :2].round(4).tolist(),
+        # Per-waypoint distance between the two trajectories (length T) --
+        # ade_m/endpoint_m are just this array's mean and last value, saved
+        # separately so a caller doesn't have to recompute it from the two
+        # raw trajectories to see how the divergence evolves over the horizon.
+        "delta_xy_per_waypoint": delta_xy.round(4).tolist(),
     }
 
 
