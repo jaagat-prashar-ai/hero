@@ -14,7 +14,10 @@ einops>=0.7
 webdataset>=0.2.86
 s3transfer>=0.10.0
 boto3>=1.34
-pandas>=2.0
+# pandas/av floors match third_party/alpamayo1.5/pyproject.toml's own minimums --
+# that package isn't pip-installed here (sys.path-injected by bootstrap.py since
+# it declares Python ==3.12.* and we run 3.10), so nothing else enforces them.
+pandas>=2.3.3
 pyarrow
 scipy>=1.15.0
-av>=14.4.0
+av>=16.0.1
