@@ -268,6 +268,10 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
         "concept_d_curvature_mean": float(np.abs(cc - bc).mean()),
         "concept_d_curvature_max":  float(np.abs(cc - bc).max()),
         "concept_d_accel_mean":     float(np.abs(ca - ba).mean()),
+        # Baseline path + per-word masked path (traj_xy) so a caller can
+        # render "click a word, see the trajectory shift" instead of only
+        # the scalar salience metrics.
+        "traj_baseline_xy":         sal["baseline_xy"],
         "per_word_salience_top20":  sal["words"][:20],
     }
 
