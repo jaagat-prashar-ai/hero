@@ -5,12 +5,14 @@
 #   bash build_wds/configs/launch.sh build-wds [--dry-run] [--watch]
 #   bash build_wds/configs/launch.sh build-wds-parallel [WORLD_SIZE] [WORKERS]
 #   bash build_wds/configs/launch.sh build-wds-smoke-parallel [WORLD_SIZE] [MAX_CLIPS]
+#   bash build_wds/configs/launch.sh build-wds-staggered [START_RANK] [END_RANK] [SLEEP_BETWEEN] [WORLD_SIZE] [WORKERS]
 #
 # HF_TOKEN and AWS creds are loaded from ~/.creds/lilypad.env automatically.
 #
 # Examples:
-#   bash build_wds/configs/launch.sh build-wds-parallel 50 2
+#   bash build_wds/configs/launch.sh build-wds-parallel 50 1
 #   bash build_wds/configs/launch.sh build-wds-smoke-parallel 8 2
+#   bash build_wds/configs/launch.sh build-wds-staggered 0 33 15 100 1
 
 set -euo pipefail
 
@@ -99,7 +101,15 @@ case "${cmd}" in
     build-wds-parallel)
         require_hf_token
         WORLD_SIZE="${1:-50}"
-        WORKERS="${2:-2}"
+        # BEFORE: WORKERS="${2:-2}"
+        # cluster.yaml's own `workers: 1` comment warns to keep this at 1 —
+        # physical_ai_av downloads each camera as a large chunk ZIP, and
+        # concurrent downloads on one node exhaust its ~30GB RAM and OOM-kill
+        # the job. This default of 2 contradicted that warning ever since
+        # both files were added together in 839cc2b.
+        # AFTER: default matches the documented-safe value; override
+        # explicitly (accepting the OOM risk) only if you know what you're doing.
+        WORKERS="${2:-1}"
         shift $(( $# >= 2 ? 2 : $# ))
 
         echo "Launching ${WORLD_SIZE} parallel WDS build jobs (workers=${WORKERS} each)..."
@@ -147,15 +157,28 @@ case "${cmd}" in
         START_RANK="${1:-31}"
         END_RANK="${2:-49}"
         SLEEP_BETWEEN="${3:-15}"
-        shift $(( $# >= 3 ? 3 : $# ))
+        # BEFORE: world_size was hardcoded to 50 below (baked in for a
+        # one-off incident at that scale) and workers was hardcoded to 2.
+        # Reusing this command at a different WORLD_SIZE (e.g. relaunching
+        # ranks from a world_size=100 run) silently broke
+        # chunk_id % world_size == rank partitioning — any rank >= 50 also
+        # tripped build_webdataset.py's own `--rank must be < --world_size`
+        # guard. workers=2 also contradicted cluster.yaml's `workers: 1`
+        # OOM-safety comment, same issue as build-wds-parallel above.
+        # AFTER: WORLD_SIZE is a 4th explicit argument (must match the
+        # original launch's world_size — this only relaunches specific
+        # ranks, it doesn't repartition), and workers defaults to 1.
+        WORLD_SIZE="${4:-100}"
+        WORKERS="${5:-1}"
+        shift $(( $# >= 5 ? 5 : $# ))
 
-        echo "Relaunching ranks ${START_RANK}-${END_RANK} with ${SLEEP_BETWEEN}s stagger..."
+        echo "Relaunching ranks ${START_RANK}-${END_RANK} of world_size=${WORLD_SIZE} with ${SLEEP_BETWEEN}s stagger (workers=${WORKERS})..."
         for rank in $(seq "${START_RANK}" "${END_RANK}"); do
             launch_py "${SCRIPT_DIR}/cluster.yaml" \
                 -o workload_variant_config.entrypoint_fn_config.hf_token "${HF_TOKEN}" \
                 -o workload_variant_config.entrypoint_fn_config.rank "${rank}" \
-                -o workload_variant_config.entrypoint_fn_config.world_size 50 \
-                -o workload_variant_config.entrypoint_fn_config.workers 2 \
+                -o workload_variant_config.entrypoint_fn_config.world_size "${WORLD_SIZE}" \
+                -o workload_variant_config.entrypoint_fn_config.workers "${WORKERS}" \
                 -o workload_variant_config.entrypoint_fn_config.skip_metadata_upload true \
                 -n "build-physicalai-wds-p${rank}" \
                 "$@"

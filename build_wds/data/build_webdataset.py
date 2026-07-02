@@ -116,7 +116,7 @@ import numpy as np
 import pandas as pd
 import scipy.spatial.transform as spt
 import webdataset as wds
-from huggingface_hub import hf_hub_download, login
+from huggingface_hub import hf_hub_download
 
 # On Lilypad workers, credentials come from AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
 # env vars and the endpoint from AWS_ENDPOINT_URL_S3. For local dev, fall back to the
@@ -639,7 +639,17 @@ def main() -> None:
         encoder = ensure_ffmpeg_av1()
         logger.info("Using AV1 encoder: %s", encoder)
 
-    login(token=args.hf_token, add_to_git_credential=False)
+    # BEFORE: login(token=args.hf_token, add_to_git_credential=False)
+    # login() calls HF's /whoami-v2 endpoint to validate the token before
+    # caching it, but that endpoint enforces a much stricter rate limit than
+    # the general resolver endpoints (5000 req/5min). At world_size=100, all
+    # ranks called login() within the same ~4min launch window and 34/100
+    # ranks failed with `429 Too Many Requests` on /whoami-v2.
+    # AFTER: every downstream HF call resolves its token via get_token(),
+    # which checks HF_TOKEN before the login-cache file — so just make sure
+    # the env var is set (a no-op whenever hf_token itself came from
+    # HF_TOKEN) and skip the network round-trip entirely.
+    os.environ.setdefault("HF_TOKEN", args.hf_token)
 
     # ── Upload raw metadata parquets once (rank 0 only) ──────────────────────
     if not args.skip_metadata_upload and args.rank == 0:

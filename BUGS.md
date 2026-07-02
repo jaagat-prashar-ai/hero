@@ -6,6 +6,56 @@ now, not routine typos.
 
 ---
 
+## 2026-07-01 — 34/100 build-physicalai-wds ranks failed with HF `/whoami-v2` 429 at launch
+
+**Symptom:** Relaunching the WDS build at `world_size=100` (`build-wds-parallel
+100 1`) produced 34 `EXPERIMENT_FAILED` ranks (scattered across the full
+0-99 range, e.g. `p0`, `p50`, `p90`), each within ~4-8 minutes of submission.
+All had the same traceback:
+```
+huggingface_hub.errors.HfHubHTTPError: You've hit the rate limit for the
+/whoami-v2 endpoint, which is intentionally strict for security reasons.
+httpx.HTTPStatusError: Client error '429 Too Many Requests' for url
+'https://huggingface.co/api/whoami-v2'
+```
+The 8-way smoke test at the same code version did not trigger this — 8
+simultaneous logins didn't trip the throttle, 100 did.
+
+**Root cause:** `build_webdataset.py:main()` called
+`huggingface_hub.login(token=args.hf_token, add_to_git_credential=False)`
+unconditionally on every rank. `login()` validates the token via a call to
+`/whoami-v2` before caching it — an endpoint with a much stricter rate limit
+than the general resolver endpoints (the already-known 5000 req/5min limit
+in [[reference_lilypad_cluster_ops]] does not apply here). `build-wds-parallel`
+launches all `WORLD_SIZE` jobs back-to-back (~2s apart), so at world_size=100
+all 100 `login()` calls landed within the same few-minute window.
+
+**Fix:** [ff4eebe](../../commit/ff4eebe) removed the explicit `--hf_token`
+argv plumbing first (unrelated cleanup, done same session); this fix replaces
+the `login()` call with `os.environ.setdefault("HF_TOKEN", args.hf_token)`.
+Every downstream HF call (including `PhysicalAIAVDatasetInterface()`, which
+takes no explicit token) resolves its token via `huggingface_hub.get_token()`,
+which checks `HF_TOKEN` before the login-cache file — so setting the env var
+is sufficient and skips the `/whoami-v2` network round-trip entirely, rather
+than just staggering it.
+
+Also fixed two related launcher bugs found while diagnosing this, both in
+`build_wds/configs/launch.sh`:
+- `build-wds-parallel`'s default `WORKERS` was `2`, contradicting
+  `cluster.yaml`'s own `workers: 1` comment (concurrent chunk-ZIP downloads
+  OOM the ~30GB head node). Default changed to `1`.
+- `build-wds-staggered` hardcoded `world_size=50` regardless of the actual
+  run's world_size — reusing it to relaunch ranks from a `world_size=100` run
+  would have silently broken `chunk_id % world_size == rank` partitioning
+  (and outright errored for any rank ≥ 50). `world_size` is now an explicit
+  argument.
+
+**How this was found:** user asked why some of the 100 relaunched jobs
+failed; `lilypad workload logs` on 3 sample failed ranks (`p0`, `p90`, `p26`)
+showed the identical `/whoami-v2` 429 traceback in each.
+
+---
+
 ## 2026-07-01 — S3 shard uploads silently failing on OCI (100% failure rate, 17h+ undetected)
 
 **Symptom:** All 8 parallel `build-physicalai-wds-p0..p7` Lilypad jobs ran for
