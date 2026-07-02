@@ -36,7 +36,7 @@ workload_variant_config:
     resume: true
 
     # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ─────
-    # With num_gpus: 8 each replica owns snapshots where hash(clip_id,t0_us) % 8 == rank.
+    # With num_gpus: 8 each replica owns events where hash(clip_id,t0_us) % 8 == rank.
     # Outputs: batch_experiment_{experiment}_rank{RR}.jsonl (one file per GPU).
 
     # ── Output ────────────────────────────────────────────────────────────────
