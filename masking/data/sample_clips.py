@@ -72,11 +72,24 @@ def scan_shard_for_clips(
     bucket: str, key: str, ood_ids: set[str]
 ) -> list[tuple[str, str, dict, int]]:
     """Walk one shard's tar headers, returning (clip_id, shard_key, json_meta,
-    offset) for every clip in ood_ids found in this shard."""
+    group_start_offset) for every clip in ood_ids found in this shard.
+
+    group_start_offset is the offset of the FIRST tar member belonging to
+    that clip, not the ".json" member's own offset -- webdataset.TarWriter
+    writes each clip's files in alphabetical order by extension
+    (calibration.json, camera_*.mp4, egomotion.parquet, json), so "json" is
+    always the LAST member in a clip's group. Recording its own position and
+    later trying to walk forward from there (see s3_clip_extract.py) would
+    only ever re-find that same json and then hit the next clip's first
+    header -- this tracks the true group start by watching for the clip_id
+    prefix to change instead.
+    """
     s3 = boto3.client("s3")
     pos = 0
     zero_blocks = 0
     found: list[tuple[str, str, dict, int]] = []
+    current_clip_id: str | None = None
+    current_clip_start = 0
     while True:
         hdr = _range_get(s3, bucket, key, pos, TAR_BLOCK)
         if len(hdr) < TAR_BLOCK or hdr == b"\x00" * TAR_BLOCK:
@@ -90,19 +103,20 @@ def scan_shard_for_clips(
         size_field = hdr[124:136].split(b"\x00")[0].strip()
         size = int(size_field, 8) if size_field else 0
         data_start = pos + TAR_BLOCK
+        is_pax = "@PaxHeader" in name
 
-        if name.endswith(".json") and "@PaxHeader" not in name and not name.endswith(
-            "calibration.json"
-        ):
+        if not is_pax:
+            this_clip_id = name.split(".", 1)[0] if "." in name else name
+            if this_clip_id != current_clip_id:
+                current_clip_id = this_clip_id
+                current_clip_start = pos
+
+        if name.endswith(".json") and not is_pax and not name.endswith("calibration.json"):
             clip_id = name[: -len(".json")]
             if clip_id in ood_ids:
                 data = _range_get(s3, bucket, key, data_start, size)
                 try:
-                    # Record pos (the byte offset of this clip's own first tar
-                    # header) so a later reader can jump straight here instead
-                    # of re-walking the shard from byte 0 -- see
-                    # s3_clip_extract.extract_clip_members(start_offset=...).
-                    found.append((clip_id, key, json.loads(data.decode()), pos))
+                    found.append((clip_id, key, json.loads(data.decode()), current_clip_start))
                 except Exception:
                     logger.warning("shard %s: failed to parse json for %s", key, clip_id)
 
