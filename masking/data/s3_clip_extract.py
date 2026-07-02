@@ -32,16 +32,24 @@ def _range_get(s3, bucket: str, key: str, start: int, length: int) -> bytes:
     return s3.get_object(Bucket=bucket, Key=key, Range=f"bytes={start}-{end}")["Body"].read()
 
 
-def extract_clip_members(bucket: str, shard_key: str, clip_id: str) -> dict[str, bytes]:
+def extract_clip_members(
+    bucket: str, shard_key: str, clip_id: str, start_offset: int = 0
+) -> dict[str, bytes]:
     """Range-read just one clip's tar members out of a shard, skipping past
     every other clip's payload instead of downloading it.
+
+    start_offset, if known (see masking.data.sample_clips.py, which records
+    each clip's own header offset while scanning), lets this jump straight to
+    the clip instead of walking every preceding clip's headers to reach it --
+    the difference between ~10 range reads and up to ~500 for a clip near the
+    end of a 50-clip shard.
 
     Returns {extension: bytes}, e.g. {"json": b"...", "egomotion.parquet": b"...",
     "camera_front_wide_120fov.mp4": b"..."} -- the same shape build_webdataset.py
     writes and wds_dataset.py expects to read.
     """
     s3 = boto3.client("s3")
-    pos = 0
+    pos = start_offset
     zero_blocks = 0
     members: dict[str, bytes] = {}
     prefix = f"{clip_id}."
