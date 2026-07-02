@@ -26,6 +26,7 @@ import os
 from pathlib import Path
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,10 @@ def download_shards(
     local_dir = Path(local_dir)
     local_dir.mkdir(parents=True, exist_ok=True)
 
-    s3 = boto3.client("s3")
+    # Default urllib3 pool size (10) is smaller than num_threads concurrent
+    # multi-GB shard downloads can hold open at once, which was logging
+    # "Connection pool is full, discarding connection" warnings.
+    s3 = boto3.client("s3", config=Config(max_pool_connections=max(10, num_threads * 2)))
     if only_keys is not None:
         shard_keys = sorted(only_keys)
         logger.info("Restricting to %d explicit shard keys", len(shard_keys))
