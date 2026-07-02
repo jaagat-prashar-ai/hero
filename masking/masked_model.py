@@ -131,6 +131,10 @@ class MaskedAlpamayo1_5(Alpamayo1_5):
             return self._concept_columns(seq, spec.get("concepts", []))
         if mode == "explicit":  # caller supplies columns directly (leave-one-out)
             return spec["cols"]
+        if mode == "prefix":
+            return self._prefix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
+        if mode == "suffix":
+            return self._suffix_mask_columns(seq, spec["n"], spec.get("unit", "tokens"))
         raise ValueError(f"unknown mask mode: {mode}")
 
     # ------------------------------------------------------------------ #
