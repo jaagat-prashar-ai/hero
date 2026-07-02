@@ -100,7 +100,7 @@ def _no_node_split(src, group=None):
     yield from src
 
 
-def iter_snapshots(
+def iter_clip_events(
     shard_paths: Iterable[str | Path],
     *,
     shuffle_shards: bool = False,
@@ -120,7 +120,7 @@ def iter_snapshots(
     """
     str_paths = [str(p) for p in shard_paths]
     if not str_paths:
-        logger.warning("iter_snapshots: no shard paths provided")
+        logger.warning("iter_clip_events: no shard paths provided")
         return
 
     # nodesplitter=_no_node_split (not wds.split_by_node): callers (run.py's
@@ -148,6 +148,34 @@ def iter_snapshots(
             items = _expand_clip_to_events(raw_sample)
         except Exception as exc:
             logger.warning("Error expanding clip %s: %s", raw_sample.get("__key__"), exc)
+            continue
+        yield from items
+
+
+def iter_clip_events_from_manifest(
+    manifest_path: str | Path, bucket: str
+) -> Generator[dict, None, None]:
+    """Like iter_clip_events(), but for a masking.data.sample_clips.py manifest:
+    pulls each clip's files directly from S3 via range reads (see
+    masking.data.s3_clip_extract) and feeds the bytes straight into
+    _expand_clip_to_events() -- no shard download, no local tar, no
+    intermediate file of any kind. Yields identically-shaped items.
+    """
+    from masking.data.s3_clip_extract import extract_clip_members
+
+    with open(manifest_path) as fh:
+        manifest = json.load(fh)
+
+    for row in manifest:
+        clip_id, shard_key = row["clip_id"], row["shard_key"]
+        members = extract_clip_members(bucket, shard_key, clip_id)
+        if not members:
+            logger.warning("clip %s: no members found in %s", clip_id, shard_key)
+            continue
+        try:
+            items = _expand_clip_to_events({"__key__": clip_id, **members})
+        except Exception as exc:
+            logger.warning("Error expanding clip %s: %s", clip_id, exc)
             continue
         yield from items
 
@@ -258,7 +286,7 @@ def _expand_clip_to_events(sample: dict) -> list[dict]:
             t0_us_raw = int(ev.get("event_start_timestamp", 0))
             t0_us, was_clamped = _clamp_t0(t_min, t_max, t0_us_raw)
             if t0_us is None:
-                logger.warning("clip %s: too short for a full snapshot window, skipping", clip_id)
+                logger.warning("clip %s: too short for a full event window, skipping", clip_id)
                 continue
 
             history_us = t0_us + np.arange(-(NUM_HISTORY_STEPS - 1), 1) * TIME_STEP_S * 1e6

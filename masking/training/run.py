@@ -3,7 +3,7 @@
 run.py — Lilypad entrypoint for the CoT-masking experiment.
 
 Reads WebDataset shards from S3 (downloading to a local cache dir first),
-processes each clip's snapshots through the masked Alpamayo 1.5 model, and
+processes each clip's OOD events through the masked Alpamayo 1.5 model, and
 writes results to a JSONL file.  Compatible with the Lilypad training_fn
 contract: accepts a flat config dict and an ExperimentTracker.
 
@@ -21,7 +21,7 @@ already present in this rank's output file.
 Distributed (num_gpus > 1)
 --------------------------
 Lilypad sets RANK / WORLD_SIZE / LOCAL_RANK. Each GPU loads its own model copy,
-processes snapshots where hash(clip_id, t0_us) % world_size == rank, and writes
+processes events where hash(clip_id, t0_us) % world_size == rank, and writes
 batch_experiment_{experiment}_rank{RR}.jsonl. Rank 0 downloads WDS shards from S3;
 other ranks poll until shards appear in local_data_dir.
 
@@ -93,7 +93,7 @@ def _distributed_context(cfg: dict[str, Any]) -> tuple[int, int, int]:
 
 
 def _shard_owner(clip_id: str, t0_us: int, world_size: int) -> int:
-    """Stable shard assignment so resume/requeue always maps a snapshot to one rank."""
+    """Stable shard assignment so resume/requeue always maps an event to one rank."""
     digest = hashlib.md5(f"{clip_id}:{t0_us}".encode()).hexdigest()
     return int(digest, 16) % world_size
 
@@ -191,7 +191,7 @@ def _resolve_device(local_rank: int) -> str:
 
 
 def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
-    """Convert a WDS snapshot item to model inputs on the specified device."""
+    """Convert a WDS event item to model inputs on the specified device."""
     from masking.bootstrap import ensure_alpamayo1_5
 
     ensure_alpamayo1_5()
@@ -217,11 +217,11 @@ def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Per-snapshot inference
+# Per-event inference
 # ---------------------------------------------------------------------------
 
 def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
-    """Masked vs unmasked trajectory ADE for one snapshot."""
+    """Masked vs unmasked trajectory ADE for one event."""
     with torch.autocast("cuda", dtype=torch.bfloat16):
         res = model.compare_conditions(
             model_inputs,
@@ -256,7 +256,7 @@ def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
 
 
 def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str]) -> dict:
-    """Per-word steering salience + concept-set ablation for one snapshot."""
+    """Per-word steering salience + concept-set ablation for one event."""
     with torch.autocast("cuda", dtype=torch.bfloat16):
         sal  = model.salience_leave_one_word_out(model_inputs, seed=seed)
         conc = model.compare_conditions(
@@ -379,7 +379,7 @@ def masking_loop(
 ) -> None:
     """Lilypad-compatible entrypoint.
 
-    Downloads WDS shards from S3, iterates over all snapshots, runs the
+    Downloads WDS shards from S3, iterates over all events, runs the
     chosen masking experiment, and writes results to a JSONL file.
     """
     cfg = {**_DEFAULTS, **training_fn_config}
@@ -403,17 +403,23 @@ def masking_loop(
     logger.info("Writing results to %s", results_path)
 
     # ── 1. Acquire shards (rank 0 downloads; other ranks wait) ───────────────
-    shards = _acquire_shards(cfg, local_data, rank)
+    # sample_clips_manifest skips shard acquisition entirely: clips are pulled
+    # directly from S3 via range reads at iteration time (step 4) instead of
+    # downloading whole shards up front -- see iter_clip_events_from_manifest().
+    using_manifest = bool(cfg.get("sample_clips_manifest"))
+    shards: list[Path] = []
+    if not using_manifest:
+        shards = _acquire_shards(cfg, local_data, rank)
 
-    if cfg["max_shards"] is not None:
-        shards = shards[:int(cfg["max_shards"])]
-        logger.info("max_shards=%d: using %d shards", cfg["max_shards"], len(shards))
+        if cfg["max_shards"] is not None:
+            shards = shards[:int(cfg["max_shards"])]
+            logger.info("max_shards=%d: using %d shards", cfg["max_shards"], len(shards))
 
-    if not shards:
-        raise RuntimeError(
-            f"No shards found in {local_data}. "
-            f"Check s3_bucket={cfg['s3_bucket']} and s3_prefix={cfg['s3_prefix']}."
-        )
+        if not shards:
+            raise RuntimeError(
+                f"No shards found in {local_data}. "
+                f"Check s3_bucket={cfg['s3_bucket']} and s3_prefix={cfg['s3_prefix']}."
+            )
 
     # ── 2. Load already-done rows if resuming ────────────────────────────────
     done: set[tuple[str, int]] = set()
@@ -425,8 +431,13 @@ def masking_loop(
     logger.info("Loading model %s on %s …", cfg["checkpoint"], device)
     model = _load_model(cfg["checkpoint"], device=device)
 
-    # ── 4. Iterate WDS snapshots assigned to this rank ───────────────────────
-    from masking.data.wds_dataset import iter_snapshots
+    # ── 4. Iterate WDS events assigned to this rank ───────────────────────
+    from masking.data.wds_dataset import iter_clip_events, iter_clip_events_from_manifest
+
+    if using_manifest:
+        event_iter = iter_clip_events_from_manifest(cfg["sample_clips_manifest"], cfg["s3_bucket"])
+    else:
+        event_iter = iter_clip_events(shards)
 
     n_success = 0
     n_skipped = 0
@@ -434,7 +445,7 @@ def masking_loop(
     n_other_rank = 0
 
     with open(results_path, "a") as out_f:
-        for item in iter_snapshots(shards):
+        for item in event_iter:
             clip_id = item["clip_id"]
             t0_us   = item["t0_us"]
 
