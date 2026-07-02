@@ -31,6 +31,10 @@ Full config reference (all keys optional, defaults shown):
     s3_bucket:        "PLACEHOLDER_BUCKET"
     s3_prefix:        "PLACEHOLDER_PREFIX/wds"
     max_shards:       null              # limit number of shards (for smoke tests)
+    sample_clips_manifest: null          # path to a masking.data.sample_clips.py
+                                          # manifest -- restricts download to just
+                                          # that manifest's shard_key set instead of
+                                          # everything under s3_prefix
     checkpoint:       "nvidia/Alpamayo-1.5-10B"
     experiment:       "a"              # "a" or "b"
     seed:             0
@@ -64,6 +68,7 @@ _DEFAULTS: dict[str, Any] = {
     "s3_bucket":      "PLACEHOLDER_BUCKET",
     "s3_prefix":      "PLACEHOLDER_PREFIX/wds",
     "max_shards":     None,
+    "sample_clips_manifest": None,  # path to a masking.data.sample_clips.py manifest
     "checkpoint":     "nvidia/Alpamayo-1.5-10B",
     "experiment":     "a",
     "seed":           0,
@@ -113,6 +118,13 @@ def _load_done_rows(path: Path) -> set[tuple[str, int]]:
     return done
 
 
+def _sample_manifest_shard_keys(manifest_path: str) -> set[str]:
+    """Read a masking.data.sample_clips.py manifest and return its shard_key set."""
+    with open(manifest_path) as fh:
+        rows = json.load(fh)
+    return {row["shard_key"] for row in rows}
+
+
 def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Path]:
     from masking.data.s3_download import download_shards, shard_paths
 
@@ -122,6 +134,12 @@ def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Pa
                     len(shards), local_data)
         return shards
 
+    only_keys = None
+    if cfg.get("sample_clips_manifest"):
+        only_keys = _sample_manifest_shard_keys(cfg["sample_clips_manifest"])
+        logger.info("sample_clips_manifest=%s: restricting download to %d shard(s)",
+                    cfg["sample_clips_manifest"], len(only_keys))
+
     if rank == 0:
         logger.info("Downloading WDS shards from s3://%s/%s -> %s",
                     cfg["s3_bucket"], cfg["s3_prefix"], local_data)
@@ -130,6 +148,7 @@ def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Pa
             prefix=cfg["s3_prefix"],
             local_dir=local_data,
             max_shards=cfg["max_shards"],
+            only_keys=only_keys,
         )
         return shard_paths(local_data)
 
