@@ -126,12 +126,20 @@ def _load_done_rows(path: Path) -> set[tuple[str, int]]:
 def _upload_results(local_path: Path, bucket: str, s3_prefix: str) -> None:
     """Upload the results JSONL to S3. outdir is node-local storage -- it is
     NOT shared across nodes and does not survive the pod being torn down
-    after the job finishes, so this is the only durable copy."""
+    after the job finishes, so this is the only durable copy.
+
+    put_object with the file buffered in memory, NOT upload_file: s3transfer's
+    upload_file always issues chunked-transfer-encoded UploadPart requests,
+    which OCI's S3-compat endpoint rejects with "NotImplemented" -- same
+    issue and same fix as build_wds/data/build_webdataset.py's S3ShardWriter.
+    Results files here are tiny (a JSONL of run outputs), so buffering the
+    whole thing in memory is fine.
+    """
     import boto3
 
     s3 = boto3.client("s3")
     key = f"{s3_prefix.rstrip('/')}/{local_path.name}"
-    s3.upload_file(str(local_path), bucket, key)
+    s3.put_object(Bucket=bucket, Key=key, Body=local_path.read_bytes())
 
 
 def _sample_manifest_shard_keys(manifest_path: str) -> set[str]:
