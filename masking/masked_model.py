@@ -378,17 +378,21 @@ class MaskedAlpamayo1_5(Alpamayo1_5):
             pxyz, _, act = self._denoise_with_mask(prefix, w["cols"], seed=seed)
             c = self.denorm_action(act)["curvature"].float().cpu()
             xy = pxyz[..., :2].float().cpu()
+            delta_xy = (xy - base_xy).norm(dim=-1)  # (1,1,1,T)
             ranked.append({
                 "word": w["text"].strip(),
                 "n_tokens": int(len(w["cols"])),
                 "d_curvature_mean_abs": float((c - base_curv).abs().mean()),
                 "d_curvature_max_abs": float((c - base_curv).abs().max()),
                 "endpoint_shift_m": float((xy[..., -1, :] - base_xy[..., -1, :]).norm(dim=-1).mean()),
-                "traj_ade_m": float((xy - base_xy).norm(dim=-1).mean()),
+                "traj_ade_m": float(delta_xy.mean()),
                 # (T, 2) waypoint path with this word masked out, so a caller
                 # can render it against baseline_xy instead of only the
                 # scalar deltas above.
                 "traj_xy": xy[0, 0, 0].tolist(),
+                # Per-waypoint distance to baseline (length T) -- traj_ade_m/
+                # endpoint_shift_m are just this array's mean and last value.
+                "delta_xy_per_waypoint": delta_xy[0, 0, 0].tolist(),
             })
         ranked.sort(key=lambda r: r["d_curvature_mean_abs"], reverse=True)
         return {
