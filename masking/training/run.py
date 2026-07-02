@@ -228,6 +228,11 @@ def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
         "ade_m":         float(delta_xy.mean()),
         "endpoint_m":    float(delta_xy[-1]),
         "cot_len_chars": len(cot),
+        # Raw action-chunk waypoints (rounded to keep JSONL small) so a
+        # dashboard can render the actual masked-vs-unmasked path, not just
+        # the scalar ADE/endpoint summary.
+        "traj_none_xy":   none_xyz[:T, :2].round(4).tolist(),
+        "traj_masked_xy": masked_xyz[:T, :2].round(4).tolist(),
     }
 
 
@@ -280,10 +285,11 @@ def _run_experiment_c(
     a single VLM rollout so the CoT text is identical across thresholds.
 
     Output fields:
-      cot            — generated reasoning text
-      n_words_total  — total whole-word count in the reasoning span
-      prefix_sweep   — list of {n, n_masked_cols, ade_m} sorted by n
-      suffix_sweep   — list of {n, n_masked_cols, ade_m} sorted by n
+      cot              — generated reasoning text
+      n_words_total    — total whole-word count in the reasoning span
+      traj_baseline_xy — (T, 2) unmasked waypoint path every branch is compared against
+      prefix_sweep     — list of {n, n_masked_cols, ade_m, traj_xy} sorted by n
+      suffix_sweep     — list of {n, n_masked_cols, ade_m, traj_xy} sorted by n
     """
     conditions: dict[str, dict] = {"baseline": {"mode": "none"}}
     for n in threshold_words:
@@ -304,33 +310,39 @@ def _run_experiment_c(
 
     baseline_xyz = res["conditions"]["baseline"]["pred_xyz"][0, 0, 0].numpy()  # (T, 3)
 
-    def ade_vs_baseline(cond_name: str) -> float:
+    def branch_vs_baseline(cond_name: str) -> tuple[float, list[list[float]]]:
         xyz = res["conditions"][cond_name]["pred_xyz"][0, 0, 0].numpy()
         T = min(len(xyz), len(baseline_xyz))
-        return float(np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1).mean())
+        ade = float(np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1).mean())
+        return ade, xyz[:T, :2].round(4).tolist()
 
-    prefix_sweep = [
-        {
+    prefix_sweep = []
+    for n in sorted(threshold_words):
+        ade, traj_xy = branch_vs_baseline(f"prefix_{n}w")
+        prefix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"prefix_{n}w"]["n_masked_cols"]),
-            "ade_m": ade_vs_baseline(f"prefix_{n}w"),
-        }
-        for n in sorted(threshold_words)
-    ]
-    suffix_sweep = [
-        {
+            "ade_m": ade,
+            "traj_xy": traj_xy,
+        })
+    suffix_sweep = []
+    for n in sorted(threshold_words):
+        ade, traj_xy = branch_vs_baseline(f"suffix_{n}w")
+        suffix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"suffix_{n}w"]["n_masked_cols"]),
-            "ade_m": ade_vs_baseline(f"suffix_{n}w"),
-        }
-        for n in sorted(threshold_words)
-    ]
+            "ade_m": ade,
+            "traj_xy": traj_xy,
+        })
 
     return {
-        "cot":           cot,
-        "n_words_total": n_words_total,
-        "prefix_sweep":  prefix_sweep,
-        "suffix_sweep":  suffix_sweep,
+        "cot":            cot,
+        "n_words_total":  n_words_total,
+        # Root of the tree: the unmasked full-reasoning trajectory every
+        # prefix/suffix branch's traj_xy is compared against.
+        "traj_baseline_xy": baseline_xyz[:, :2].round(4).tolist(),
+        "prefix_sweep":   prefix_sweep,
+        "suffix_sweep":   suffix_sweep,
     }
 
 
