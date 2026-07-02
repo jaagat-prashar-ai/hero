@@ -108,41 +108,64 @@ def scan_shard_for_clips(
 
 
 def find_available_ood_clips(
-    bucket: str, prefix: str, ood_ids: set[str], max_workers: int = 40
-) -> list[tuple[str, str, dict]]:
-    """Scan every shard under prefix, returning all OOD clips already uploaded."""
+    bucket: str, prefix: str, ood_df: pd.DataFrame, n_per_type: int, max_workers: int = 40
+) -> dict[str, list[tuple[str, str, dict]]]:
+    """Scan shards under prefix, grouping found OOD clips by event_cluster.
+
+    Stops as soon as every event_cluster has >= n_per_type candidates, rather
+    than scanning every shard unconditionally — for common categories this
+    resolves after a small fraction of shards. Categories too rare to reach
+    n_per_type in what's uploaded so far will still require a full scan (there's
+    no way to know a rare category is exhausted without looking everywhere),
+    but that's inherent to how little of the rare clips exist yet, not scanner
+    overhead.
+    """
+    ood_ids = set(ood_df.index.astype(str))
+    cluster_of = ood_df["event_cluster"].to_dict()
+    all_clusters = sorted(set(cluster_of.values()))
+
     keys = list_shards(bucket, prefix)
-    logger.info("Scanning %d shards under s3://%s/%s for %d target OOD clips",
-                len(keys), bucket, prefix, len(ood_ids))
-    all_found: list[tuple[str, str, dict]] = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(scan_shard_for_clips, bucket, k, ood_ids): k for k in keys}
+    logger.info(
+        "Scanning up to %d shards under s3://%s/%s for %d target OOD clips "
+        "(stopping early once all %d categories have >= %d candidates)",
+        len(keys), bucket, prefix, len(ood_ids), len(all_clusters), n_per_type,
+    )
+
+    by_cluster: dict[str, list[tuple[str, str, dict]]] = defaultdict(list)
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+    futures = {pool.submit(scan_shard_for_clips, bucket, k, ood_ids): k for k in keys}
+    try:
         done = 0
         for fut in concurrent.futures.as_completed(futures):
             key = futures[fut]
             try:
-                all_found.extend(fut.result())
+                for clip_id, shard_key, meta in fut.result():
+                    by_cluster[cluster_of.get(clip_id, "UNKNOWN")].append((clip_id, shard_key, meta))
             except Exception as exc:
                 logger.error("Failed to scan %s: %s", key, exc)
             done += 1
-            if done % 50 == 0:
-                logger.info("  %d/%d shards scanned, %d OOD clips found so far",
-                            done, len(keys), len(all_found))
-    return all_found
+
+            n_satisfied = sum(1 for c in all_clusters if len(by_cluster.get(c, [])) >= n_per_type)
+            if done % 20 == 0 or n_satisfied == len(all_clusters):
+                logger.info(
+                    "  %d/%d shards scanned, %d/%d categories have >= %d candidates",
+                    done, len(keys), n_satisfied, len(all_clusters), n_per_type,
+                )
+            if n_satisfied == len(all_clusters):
+                logger.info("All categories satisfied after %d/%d shards -- stopping early",
+                            done, len(keys))
+                break
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+    return by_cluster
 
 
 def sample_per_type(
-    found: list[tuple[str, str, dict]],
-    ood_df: pd.DataFrame,
+    by_cluster: dict[str, list[tuple[str, str, dict]]],
     n_per_type: int,
     seed: int,
 ) -> list[dict]:
-    """Group found clips by event_cluster and sample up to n_per_type each."""
-    by_cluster: dict[str, list[tuple[str, str, dict]]] = defaultdict(list)
-    cluster_of = ood_df["event_cluster"].to_dict()
-    for clip_id, shard_key, meta in found:
-        by_cluster[cluster_of.get(clip_id, "UNKNOWN")].append((clip_id, shard_key, meta))
-
+    """Sample up to n_per_type clips per event_cluster from what was found."""
     rng = np.random.default_rng(seed)
     manifest: list[dict] = []
     for cluster in sorted(by_cluster):
@@ -175,10 +198,9 @@ def main() -> None:
     args = ap.parse_args()
 
     ood_df = load_ood_clips(args.hf_token)
-    ood_ids = set(ood_df.index.astype(str))
 
-    found = find_available_ood_clips(args.bucket, args.prefix, ood_ids)
-    manifest = sample_per_type(found, ood_df, args.n_per_type, args.seed)
+    by_cluster = find_available_ood_clips(args.bucket, args.prefix, ood_df, args.n_per_type)
+    manifest = sample_per_type(by_cluster, args.n_per_type, args.seed)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
