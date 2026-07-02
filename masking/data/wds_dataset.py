@@ -168,7 +168,7 @@ def iter_clip_events_from_manifest(
 
     for row in manifest:
         clip_id, shard_key = row["clip_id"], row["shard_key"]
-        members = extract_clip_members(bucket, shard_key, clip_id)
+        members = extract_clip_members(bucket, shard_key, clip_id, row.get("offset", 0))
         if not members:
             logger.warning("clip %s: no members found in %s", clip_id, shard_key)
             continue

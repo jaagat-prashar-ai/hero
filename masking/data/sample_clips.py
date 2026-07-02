@@ -70,13 +70,13 @@ def _range_get(s3, bucket: str, key: str, start: int, length: int) -> bytes:
 
 def scan_shard_for_clips(
     bucket: str, key: str, ood_ids: set[str]
-) -> list[tuple[str, str, dict]]:
-    """Walk one shard's tar headers, returning (clip_id, shard_key, json_meta)
-    for every clip in ood_ids found in this shard."""
+) -> list[tuple[str, str, dict, int]]:
+    """Walk one shard's tar headers, returning (clip_id, shard_key, json_meta,
+    offset) for every clip in ood_ids found in this shard."""
     s3 = boto3.client("s3")
     pos = 0
     zero_blocks = 0
-    found: list[tuple[str, str, dict]] = []
+    found: list[tuple[str, str, dict, int]] = []
     while True:
         hdr = _range_get(s3, bucket, key, pos, TAR_BLOCK)
         if len(hdr) < TAR_BLOCK or hdr == b"\x00" * TAR_BLOCK:
@@ -98,7 +98,11 @@ def scan_shard_for_clips(
             if clip_id in ood_ids:
                 data = _range_get(s3, bucket, key, data_start, size)
                 try:
-                    found.append((clip_id, key, json.loads(data.decode())))
+                    # Record pos (the byte offset of this clip's own first tar
+                    # header) so a later reader can jump straight here instead
+                    # of re-walking the shard from byte 0 -- see
+                    # s3_clip_extract.extract_clip_members(start_offset=...).
+                    found.append((clip_id, key, json.loads(data.decode()), pos))
                 except Exception:
                     logger.warning("shard %s: failed to parse json for %s", key, clip_id)
 
@@ -109,7 +113,7 @@ def scan_shard_for_clips(
 
 def find_available_ood_clips(
     bucket: str, prefix: str, ood_df: pd.DataFrame, n_per_type: int, max_workers: int = 40
-) -> dict[str, list[tuple[str, str, dict]]]:
+) -> dict[str, list[tuple[str, str, dict, int]]]:
     """Scan shards under prefix, grouping found OOD clips by event_cluster.
 
     Stops as soon as every event_cluster has >= n_per_type candidates, rather
@@ -131,7 +135,7 @@ def find_available_ood_clips(
         len(keys), bucket, prefix, len(ood_ids), len(all_clusters), n_per_type,
     )
 
-    by_cluster: dict[str, list[tuple[str, str, dict]]] = defaultdict(list)
+    by_cluster: dict[str, list[tuple[str, str, dict, int]]] = defaultdict(list)
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
     futures = {pool.submit(scan_shard_for_clips, bucket, k, ood_ids): k for k in keys}
     try:
@@ -139,8 +143,8 @@ def find_available_ood_clips(
         for fut in concurrent.futures.as_completed(futures):
             key = futures[fut]
             try:
-                for clip_id, shard_key, meta in fut.result():
-                    by_cluster[cluster_of.get(clip_id, "UNKNOWN")].append((clip_id, shard_key, meta))
+                for clip_id, shard_key, meta, offset in fut.result():
+                    by_cluster[cluster_of.get(clip_id, "UNKNOWN")].append((clip_id, shard_key, meta, offset))
             except Exception as exc:
                 logger.error("Failed to scan %s: %s", key, exc)
             done += 1
@@ -161,7 +165,7 @@ def find_available_ood_clips(
 
 
 def sample_per_type(
-    by_cluster: dict[str, list[tuple[str, str, dict]]],
+    by_cluster: dict[str, list[tuple[str, str, dict, int]]],
     n_per_type: int,
     seed: int,
 ) -> list[dict]:
@@ -178,8 +182,11 @@ def sample_per_type(
             )
         idxs = rng.choice(len(candidates), size=n_take, replace=False)
         for i in idxs:
-            clip_id, shard_key, meta = candidates[i]
-            manifest.append({"clip_id": clip_id, "event_cluster": cluster, "shard_key": shard_key})
+            clip_id, shard_key, meta, offset = candidates[i]
+            manifest.append({
+                "clip_id": clip_id, "event_cluster": cluster, "shard_key": shard_key,
+                "offset": offset,
+            })
     return manifest
 
 
