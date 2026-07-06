@@ -188,6 +188,12 @@ def classify_directory(
                 scene_id=record["scene_id"],
                 rollout_id=record["rollout_id"],
                 config=feature_config,
+                # Use the model's own captured acceleration when Task 1
+                # managed to record it (see trajectory_features.py's
+                # "Native acceleration" docstring note); .get() so this
+                # still works against older rollout JSON written before
+                # this field existed.
+                native_accel_mps2=record.get("native_accel_mps2"),
             )
             result = classify(features, maneuver_config)
 

@@ -31,6 +31,22 @@ Design notes (why this file looks the way it does):
     diffusion.sample() itself, to give each of the K rollouts-within-a-batch
     its own independent seed. Flagging this explicitly per the project brief:
     "If not exposed, note where in the code it could be patched."
+  * NATIVE ACTION CAPTURE: Alpamayo's diffusion decoder does not predict xyz
+    directly -- it predicts a normalized (accel, curvature) action per
+    waypoint, and `action_space.action_to_traj` deterministically integrates
+    that into the xyz waypoints we actually want. But
+    `sample_trajectories_from_data_with_vlm_rollout` computes that action
+    tensor internally and discards it once `action_to_traj` has consumed it
+    -- only the resulting xyz comes back out. Re-deriving accel from xyz via
+    finite differences downstream (trajectory_features.py used to do this
+    unconditionally) is strictly worse than the exact value the model itself
+    already computed one step earlier. `_sample_with_captured_action` below
+    recovers it by temporarily wrapping `action_space.action_to_traj` --
+    the one place that tensor is consumed -- rather than duplicating the
+    ~80 lines of generate()+diffusion-sampling logic that produce it, and
+    rather than reusing `MaskedAlpamayo1_5._denoise_with_mask` (which *does*
+    return this tensor), since that would reintroduce the masking-code
+    dependency this module deliberately avoids (see the first bullet above).
 """
 
 from __future__ import annotations
@@ -74,11 +90,71 @@ class RolloutRecord:
     model_version: str
     ground_truth_coc: str | None  # NVIDIA's verified CoC label, if the scene has one
 
+    # The model's own EXACT per-waypoint action, in physical units, if we
+    # managed to capture it (see module docstring's "NATIVE ACTION CAPTURE"
+    # note) -- None if capture failed for some reason (e.g. a future
+    # alpamayo1_5 version restructures this internal call), in which case
+    # trajectory_features.py falls back to deriving accel from xyz via
+    # finite differences instead. curvature isn't consumed downstream yet,
+    # but costs nothing extra to store now that we're capturing the tensor
+    # anyway, and later tasks (claim verification) may want it directly.
+    native_accel_mps2: list[float] | None = None
+    native_curvature_per_m: list[float] | None = None
+
     def to_json_dict(self) -> dict[str, Any]:
         # dataclasses.asdict() would already give us plain dicts/lists here,
         # but spelling it out keeps the on-disk schema explicit and stable
         # even if we later add non-JSON-serializable fields to the dataclass.
         return dataclasses.asdict(self)
+
+
+def _denorm_accel_curvature(action_space: Any, action_raw: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    """Physical-unit (accel, curvature) from the model's raw normalized
+    action tensor. Same formula as masking/masked_model.py's denorm_action,
+    reimplemented here (4 lines, not imported) rather than pulling in that
+    module -- see the "INDEPENDENT OF masking.masked_model" design note at
+    the top of this file. action_raw: (..., T, 2) normalized [accel, kappa].
+    Returns (accel, curvature), each (..., T), in physical units.
+    """
+    accel = action_raw[..., 0] * action_space.accel_std.to(action_raw) + action_space.accel_mean.to(action_raw)
+    kappa = action_raw[..., 1] * action_space.curvature_std.to(action_raw) + action_space.curvature_mean.to(action_raw)
+    return accel, kappa
+
+
+def _sample_with_captured_action(
+    model: Alpamayo1_5, data: dict[str, Any], **kwargs: Any
+) -> tuple[tuple[Any, ...], torch.Tensor | None]:
+    """Call sample_trajectories_from_data_with_vlm_rollout, but also recover
+    the native normalized (accel, curvature) action tensor it computes
+    internally and would otherwise discard -- see the "NATIVE ACTION
+    CAPTURE" design note at the top of this file for why this exists and
+    why it's implemented this way (spying on action_to_traj) rather than
+    duplicating the surrounding generate()+diffusion-sampling logic or
+    reusing MaskedAlpamayo1_5.
+
+    Returns (upstream_return_value, action_raw_or_None). action_raw is None
+    if action_to_traj was never called (e.g. generation failed before
+    reaching the diffusion step) -- callers must handle that gracefully,
+    not assume capture always succeeds.
+
+    The original method is ALWAYS restored, even if sampling raises, so a
+    failure here can't leave the model's action_space permanently patched.
+    """
+    action_space = model.action_space
+    original_action_to_traj = action_space.action_to_traj
+    captured: dict[str, torch.Tensor] = {}
+
+    def _spy_action_to_traj(action: torch.Tensor, *args: Any, **kw: Any) -> Any:
+        captured["action_raw"] = action
+        return original_action_to_traj(action, *args, **kw)
+
+    action_space.action_to_traj = _spy_action_to_traj
+    try:
+        result = model.sample_trajectories_from_data_with_vlm_rollout(data=data, **kwargs)
+    finally:
+        action_space.action_to_traj = original_action_to_traj
+
+    return result, captured.get("action_raw")
 
 
 class RolloutHarvester:
@@ -161,9 +237,13 @@ class RolloutHarvester:
         # sample_trajectories_from_data_with_vlm_rollout resamples the CoT
         # text independently per rollout (k separate reasoning traces), and
         # the diffusion expert is then run once, batched, over all k.
+        # _sample_with_captured_action also recovers the model's native
+        # (accel, curvature) action tensor -- see "NATIVE ACTION CAPTURE" in
+        # the module docstring.
         with torch.autocast(self.device, dtype=torch.bfloat16):
-            pred_xyz, _pred_rot, extra = self.model.sample_trajectories_from_data_with_vlm_rollout(
-                data=tokenized_inputs,
+            (pred_xyz, _pred_rot, extra), action_raw = _sample_with_captured_action(
+                self.model,
+                tokenized_inputs,
                 top_p=top_p,
                 top_k=top_k,
                 temperature=temperature,
@@ -176,6 +256,16 @@ class RolloutHarvester:
         # extra["cot"] shape (after upstream's own reshape): (B=1, ns=1, k) of str.
         waypoints_per_rollout = pred_xyz[0, 0].float().cpu()  # (k, T, 3)
         cot_per_rollout = extra["cot"][0, 0]  # (k,) array of str
+
+        # action_raw shape (if captured): (k, T, 2) normalized [accel, kappa]
+        # -- see sample_trajectories_from_data_with_vlm_rollout's internal
+        # `total_batch = B * n_samples_total` batching; B=1 here so the
+        # leading dim is exactly k, no further indexing needed.
+        native_accel_per_rollout = native_curvature_per_rollout = None
+        if action_raw is not None:
+            accel_t, kappa_t = _denorm_accel_curvature(self.model.action_space, action_raw)
+            native_accel_per_rollout = accel_t.float().cpu()  # (k, T)
+            native_curvature_per_rollout = kappa_t.float().cpu()  # (k, T)
 
         # Read the ACTUAL trajectory length off the sampled tensor instead of
         # trusting the brief's guessed "16" -- see RolloutRecord docstring.
@@ -206,6 +296,14 @@ class RolloutHarvester:
                     sampling_params=sampling_params,
                     model_version=model_version,
                     ground_truth_coc=ground_truth_coc,
+                    native_accel_mps2=(
+                        native_accel_per_rollout[rollout_id].tolist()
+                        if native_accel_per_rollout is not None else None
+                    ),
+                    native_curvature_per_m=(
+                        native_curvature_per_rollout[rollout_id].tolist()
+                        if native_curvature_per_rollout is not None else None
+                    ),
                 )
             )
         return records

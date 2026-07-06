@@ -40,6 +40,29 @@ Frame convention -- why we do NOT rotate:
   that ever comes out large for real data, it's a sign the input isn't in
   the expected ego-frame-at-t0 convention and should be investigated, but
   it is intentionally never applied as a rotation.
+
+Native acceleration -- why we prefer it, and why only for acceleration:
+  Alpamayo's diffusion decoder predicts a normalized (accel, curvature)
+  action per waypoint natively, THEN a deterministic integration step
+  (action_to_traj) turns that into the xyz waypoints we receive.
+  rollout_harvester.py now captures that native action and denormalizes it
+  to physical units (see its "NATIVE ACTION CAPTURE" docstring note) before
+  the value is thrown away. When it's available, extract_features uses it
+  directly for accel/decel features instead of re-deriving an
+  approximation via np.gradient(speed, dt) -- the model's own value is
+  exact, ours is a finite-difference estimate with a smoothing-window
+  judgment call baked in. `accel_source` on TrajectoryFeatures records
+  which path was actually used, so this is auditable rather than a silent
+  swap.
+  We do NOT similarly substitute native curvature for the heading/lateral-
+  offset features. Curvature alone doesn't give heading directly -- getting
+  from kappa to heading requires theta = integral(kappa * v dt), the same
+  integration action_to_traj already performs to produce xyz in the first
+  place. Re-deriving heading from xyz via finite differences (as we already
+  do) is simpler and no less correct than re-implementing that integration
+  a second time just to avoid one derivative step; the accel case is
+  different because there ISN'T a simpler way to get "the model's exact
+  acceleration" other than capturing the value the model already computed.
 """
 
 from __future__ import annotations
@@ -120,6 +143,12 @@ class TrajectoryFeatures:
     # something upstream isn't in the expected ego-frame-at-t0 convention.
     initial_heading_correction_deg: float
 
+    # "native" if mean/mean_deceleration/max_deceleration came from the
+    # model's own captured (accel, curvature) action tensor, "finite_difference"
+    # if they were derived from xyz via np.gradient instead (native wasn't
+    # available -- see module docstring's "Native acceleration" note).
+    accel_source: str = "finite_difference"
+
     def to_row_dict(self) -> dict[str, Any]:
         """Flat dict for the maneuver_labels table -- time series omitted
         (they don't belong in a one-row-per-rollout parquet table), scalar
@@ -140,6 +169,7 @@ class TrajectoryFeatures:
             "stop_event": self.stop_event,
             "yield_event": self.yield_event,
             "initial_heading_correction_deg": self.initial_heading_correction_deg,
+            "accel_source": self.accel_source,
         }
 
 
@@ -182,14 +212,21 @@ def extract_features(
     scene_id: str,
     rollout_id: int,
     config: FeatureConfig | None = None,
+    native_accel_mps2: list[float] | np.ndarray | None = None,
 ) -> TrajectoryFeatures:
     """Compute kinematic features for one rollout's (T, 3) xyz waypoints.
 
     Only x, y are used (z is held constant by Alpamayo's action space -- see
     unicycle_accel_curvature.py -- so it carries no maneuver information).
     Heading/velocity are NOT present on disk (RolloutRecord only stores
-    waypoints), so both are derived here by finite differences, per the
-    task's "use them if present, otherwise derive by finite differences."
+    waypoints), so both are always derived here by finite differences, per
+    the task's "use them if present, otherwise derive by finite differences."
+
+    `native_accel_mps2`, if given (rollout_harvester.py's captured
+    RolloutRecord.native_accel_mps2), is the model's OWN exact per-waypoint
+    acceleration and is used directly for the accel/decel features instead
+    of re-deriving an approximation -- see module docstring's "Native
+    acceleration" note for why this is accel-only, not also curvature.
     """
     config = config or FeatureConfig()
     xy = np.asarray(waypoints, dtype=np.float64)[:, :2]
@@ -214,9 +251,20 @@ def extract_features(
     speed = _moving_average(speed_raw, config.smoothing_window)
     heading = _moving_average(heading_raw, config.smoothing_window)
 
-    # --- Longitudinal acceleration: d(speed)/dt of the SMOOTHED speed, so a
-    # single-sample speed spike doesn't register as a huge accel/decel spike ---
-    accel = np.gradient(speed, dt)
+    # --- Longitudinal acceleration: prefer the model's own exact value when
+    # rollout_harvester.py managed to capture it; otherwise fall back to
+    # d(speed)/dt of the SMOOTHED speed, so a single-sample speed spike
+    # doesn't register as a huge accel/decel spike. See module docstring's
+    # "Native acceleration" note. ---
+    if native_accel_mps2 is not None:
+        accel = np.asarray(native_accel_mps2, dtype=np.float64)
+        assert accel.shape == (n,), (
+            f"native_accel_mps2 length {accel.shape} must match waypoints length {n}"
+        )
+        accel_source = "native"
+    else:
+        accel = np.gradient(speed, dt)
+        accel_source = "finite_difference"
 
     lateral_offset = xy[:, 1]  # already lateral by definition of this frame
 
@@ -246,6 +294,7 @@ def extract_features(
         stop_event=stop_event,
         yield_event=yield_event,
         initial_heading_correction_deg=math.degrees(heading_correction_rad),
+        accel_source=accel_source,
     )
 
 

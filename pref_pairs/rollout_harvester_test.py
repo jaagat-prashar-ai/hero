@@ -30,6 +30,31 @@ class _FakeConfig:
     _name_or_path = "fake-checkpoint"
 
 
+class _FakeActionSpace:
+    """Stands in for the real action_space -- specifically, its
+    action_to_traj method, which is the one thing
+    _sample_with_captured_action spies on to recover the native action
+    tensor. accel_mean/std and curvature_mean/std are the identity
+    transform (mean=0, std=1) so denormalized == raw, keeping the test's
+    expected values simple."""
+
+    def __init__(self) -> None:
+        self.accel_mean = torch.tensor(0.0)
+        self.accel_std = torch.tensor(1.0)
+        self.curvature_mean = torch.tensor(0.0)
+        self.curvature_std = torch.tensor(1.0)
+
+    def action_to_traj(self, action, hist_xyz, hist_rot):
+        # action: (k, T, 2) normalized [accel, kappa]. Reuse the "rollout i's
+        # waypoints are all == i" pattern so the test can still check each
+        # RolloutRecord got the RIGHT batch slice, same as before this
+        # native-action-capture change existed.
+        k, t, _ = action.shape
+        pred_xyz = torch.stack([torch.full((t, 3), float(i)) for i in range(k)])
+        pred_rot = torch.zeros(k, t, 3, 3)
+        return pred_xyz, pred_rot
+
+
 class _FakeModel:
     """Stands in for Alpamayo1_5: returns fixed, easy-to-check tensors instead
     of running real VLM generation + diffusion sampling."""
@@ -37,17 +62,28 @@ class _FakeModel:
     def __init__(self, num_waypoints: int) -> None:
         self.config = _FakeConfig()
         self.tokenizer = None  # unused; _build_tokenized_inputs is mocked out below
+        self.action_space = _FakeActionSpace()
         self._num_waypoints = num_waypoints
 
     def sample_trajectories_from_data_with_vlm_rollout(self, data, **kwargs):
         k = kwargs["num_traj_samples"]
         t = self._num_waypoints
-        # Distinct values per rollout (rollout i's waypoints are all == i)
-        # so the test below can check each RolloutRecord got the RIGHT slice,
-        # not just A slice, of the batched output tensor.
-        pred_xyz = torch.stack([torch.full((t, 3), float(i)) for i in range(k)])
+        # Native action: rollout i gets accel=i, curvature=-i (distinct
+        # per-rollout values, opposite signs, so a test can't mix the two
+        # up by accident). Calling self.action_space.action_to_traj (rather
+        # than building pred_xyz directly, as the pre-native-capture version
+        # of this fake did) means _sample_with_captured_action's spy -- which
+        # replaces this exact attribute -- actually gets exercised here, the
+        # same way it would against the real upstream method.
+        action = torch.stack(
+            [
+                torch.stack([torch.full((t,), float(i)), torch.full((t,), float(-i))], dim=-1)
+                for i in range(k)
+            ]
+        )  # (k, T, 2)
+        pred_xyz, pred_rot = self.action_space.action_to_traj(action, None, None)
         pred_xyz = pred_xyz.unsqueeze(0).unsqueeze(0)  # -> (B=1, ns=1, k, T, 3)
-        pred_rot = torch.zeros(1, 1, k, t, 3, 3)
+        pred_rot = pred_rot.unsqueeze(0).unsqueeze(0)
         cot = np.array([f"reasoning-{i}" for i in range(k)]).reshape(1, 1, k)
         return pred_xyz, pred_rot, {"cot": cot}
 
@@ -90,6 +126,12 @@ def test_harvest_scene_unpacks_k_independent_rollouts():
         }
         assert record.model_version == "fake-checkpoint"
         assert record.ground_truth_coc == "nvidia verified reasoning"
+        # Native action capture (see rollout_harvester.py's "NATIVE ACTION
+        # CAPTURE" docstring note): rollout i's native accel/curvature
+        # should be exactly i / -i, per _FakeModel's construction, denormalized
+        # through the identity-transform _FakeActionSpace.
+        assert record.native_accel_mps2 == [float(i)] * 5
+        assert record.native_curvature_per_m == [float(-i)] * 5
 
 
 def test_harvest_scene_without_ground_truth_coc():
@@ -97,6 +139,63 @@ def test_harvest_scene_without_ground_truth_coc():
     with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}):
         records = harvester.harvest_scene(model_inputs={}, scene_id="scene_b", k=1)
     assert records[0].ground_truth_coc is None
+
+
+def test_capture_failure_falls_back_to_none_gracefully():
+    """If action_to_traj is never called (some hypothetical upstream code
+    path that skips it), _sample_with_captured_action must not crash --
+    capture just comes back empty, and RolloutRecord's native_* fields
+    should be None rather than raising."""
+
+    class _FakeModelNoCapture(_FakeModel):
+        def sample_trajectories_from_data_with_vlm_rollout(self, data, **kwargs):
+            k, t = kwargs["num_traj_samples"], self._num_waypoints
+            # Deliberately does NOT call self.action_space.action_to_traj --
+            # simulates a code path the spy never gets to observe.
+            pred_xyz = torch.zeros(1, 1, k, t, 3)
+            pred_rot = torch.zeros(1, 1, k, t, 3, 3)
+            cot = np.array([f"reasoning-{i}" for i in range(k)]).reshape(1, 1, k)
+            return pred_xyz, pred_rot, {"cot": cot}
+
+    harvester = RolloutHarvester(model=_FakeModelNoCapture(num_waypoints=3), device="cpu")
+    with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}):
+        records = harvester.harvest_scene(model_inputs={}, scene_id="scene_no_capture", k=2)
+
+    assert len(records) == 2
+    assert all(r.native_accel_mps2 is None for r in records)
+    assert all(r.native_curvature_per_m is None for r in records)
+
+
+def test_captured_action_to_traj_is_always_restored_even_on_error():
+    """A failure partway through sampling must not leave action_space
+    permanently monkeypatched -- _sample_with_captured_action's try/finally
+    is the thing guaranteeing this."""
+    from pref_pairs.rollout_harvester import _sample_with_captured_action
+
+    model = _FakeModel(num_waypoints=2)
+    original = model.action_space.action_to_traj
+
+    class _Boom(Exception):
+        pass
+
+    def _raise(*args, **kwargs):
+        raise _Boom("simulated failure mid-sample")
+
+    with mock.patch.object(
+        model, "sample_trajectories_from_data_with_vlm_rollout", side_effect=_raise
+    ):
+        try:
+            _sample_with_captured_action(model, {}, num_traj_samples=2)
+        except _Boom:
+            pass
+
+    # NOTE: bound methods aren't identity-stable across separate attribute
+    # accesses in Python (each access builds a fresh wrapper object), so
+    # comparing with `is` here would fail even when restoration worked
+    # correctly. `==` is the right check -- bound methods compare equal
+    # when __self__ and __func__ match, which is exactly "same method,
+    # same instance" i.e. genuinely restored.
+    assert model.action_space.action_to_traj == original
 
 
 def test_write_scene_records_round_trips_through_json():
