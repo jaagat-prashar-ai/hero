@@ -1,0 +1,84 @@
+name: pref-pairs-cluster
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.pref_pairs_loop
+  training_fn_config:
+    # ── S3 data source ────────────────────────────────────────────────────────
+    # Manifest of scenes to harvest. Build/refresh it with:
+    #   python -m masking.data.sample_clips \
+    #     --bucket research-datasets-chicago \
+    #     --prefix nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds/train \
+    #     --all \
+    #     --out pref_pairs/configs/sample_clips_all.json
+    # (requires AWS creds for this bucket + HF_TOKEN -- see
+    # masking.data.sample_clips's module docstring). This is a SEPARATE,
+    # lighter step from the harvest run below -- no GPU needed, just S3 +
+    # HF metadata access -- and its output is a small checked-in JSON file,
+    # not rebuilt on every training run.
+    manifest_path: "pref_pairs/configs/sample_clips_all.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Rollout sampling ──────────────────────────────────────────────────────
+    k: 20
+    seed: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    # ── Maneuver classification thresholds ───────────────────────────────────
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+
+    # Resume from an interrupted run (skips already-written scene_ids)
+    resume: true
+
+    # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ─────
+    # With num_gpus: 8 each replica owns scenes where hash(scene_id) % 8 == rank.
+    # Outputs: pref_pairs_rollouts_rank{RR}.jsonl (one file per GPU).
+
+    # Omit or set to null to harvest every scene in the manifest.
+    max_scenes: null
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/mnt/work/tmp/pref_pairs_results"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: pref-pairs
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch install is multi-GB per worker; allow ample setup time (same as
+  # masking/configs/cluster.yaml).
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

@@ -1,0 +1,35 @@
+# pref_pairs rollout harvester config (Task 1) -- STANDALONE CLI path.
+#
+# Renamed from local.yaml to standalone_local.yaml: `local.yaml` now means
+# the Lilypad workload config (see pref_pairs/training/run.py), a different
+# schema entirely. This file is for rollout_harvester.py's own `main()`
+# CLI (`python -m pref_pairs.rollout_harvester --config ...`) -- a smaller,
+# non-Lilypad, non-distributed smoke-test path, not the "run at scale via
+# Lilypad" path.
+#
+# Scene selection is config-driven, not hardcoded, per the project brief.
+# `manifest_path` reuses the clip manifest already built for the masking
+# experiment (masking/data/sample_clips.py) -- same S3 WDS shards, same
+# range-read data-loading path, just fed into a different (independent)
+# rollout mechanism. Point this at a fresh manifest (built the same way) once
+# we want pref_pairs' own ~100-scene sample rather than masking's.
+
+manifest_path: "masking/configs/sample_clips.json"
+bucket: "research-datasets-chicago"
+out_dir: "pref_pairs/results/rollouts"
+
+checkpoint: "nvidia/Alpamayo-1.5-10B"
+device: "cuda"
+
+# K rollouts sampled per scene (do_sample=True, resampled reasoning + a
+# batched diffusion draw -- see rollout_harvester.py's module docstring for
+# the seed-control caveat).
+k: 20
+seed: 0
+temperature: 0.6
+top_p: 0.98
+top_k: null
+
+# Cap on number of scenes to harvest this run. Keep small (e.g. 2) for a
+# smoke test before committing to a full ~100-scene pull.
+max_scenes: 100
