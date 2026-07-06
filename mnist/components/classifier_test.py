@@ -16,3 +16,27 @@ def test_classifier_custom_num_classes():
     features = TypedTensorDict({"features": torch.randn(2, 32)}, batch_size=[2])
     out = clf(features)
     assert out["logits"].shape == (2, 5)
+
+
+# use 8 workers for now to address the HF rate limit 
+# bash launch file
+# pre-launch validations, incase there are env variables missing 
+# maintain a good launch file 
+# 8 workers at most, 1 node, 8gpu node, think of it is a local machine, common temp folder
+    # 8 workers...
+# on rank 0, only download the files to /tmp
+
+# exponentional backoff 
+# need a good way of saving 
+
+# maintain a separate folder
+# for lilypad experiments 
+# root_directory: . 
+# zips hero folder, sends it as zip 
+
+# modify it to a folder for wiring to work. 
+
+# For lilypad, export env 
+
+# create a ~/.credits/lilypad folder in home for main env variables
+# in launch script, source from this location, never read the credentials

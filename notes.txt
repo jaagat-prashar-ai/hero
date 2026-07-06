@@ -1,0 +1,29 @@
+# lilypad launch path-to-config
+# whether config is valid, in research template
+
+The issue was the Lilypad worker nodes don't have ~/.aws/credentials, so the hardcoded oci.oci AWS profile doesn't exist on them, causing boto3 to fail 
+when trying to write shards to S3. 
+
+Fix: 
+1. build_webdataset.py - only fall back to the oci.oci profile when AWS_ACCESS_KEY_ID isn't already set; pass AWS_ENDPOINT_URL_S3 explicitly to all boto3.client("s3") calls 
+2. build_wds_cluster.yaml - added the OCI Chicago endpoint uRL as a constant_environmental_variable and declared AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY as required_environmental_variables so Lilypad passes them from the launch machine to the workers
+3. launch_build_wds.sh - reads crdentials from the local oci.oci profile via aws configure get and exports them before launching, so Lilypad picks them up 
+
+
+Another fix: code actually ran and tried to upload to S3. 
+# issue was in NotImplemented for UploadPart - OCI S3 doesn't support AWS chunked encoding, which boto3 uses by default for multipart uploads. The local oci.chi profile has payload_signing_enabled = true which 
+disables chunked encoding, but that profile setting isn't applied on the workers. 
+
+# HF fix is to fully pre-mirror the dataset from HF to OCI S3 first, then run the build job reading from S3 instead 
+# PhysicalAIAVDatasetInterface() is what downloads the clip index, and per-clip data (cameras, LiDAR) also comes from HF. 
+# Redirecting would require refactoring of build_webdataset.py and monkey-patching? can you 
+
+
+# logit idea:
+
+1. Pure logit analysis (token_alternative_map): During the existing generation pass (output_logits=True is already set), capture the top-k runner-up tokens at each
+reasoning position - no re-running needed
+2. Counterfactual sweep (Counterfactual_sweep): For selected positions (ranked by entropy or runner-up probability), inject a ForcedTokenAtStep logits processor that hard-forces an alternative token at step S, lets subsequent reasoning re-sample condiitoned on that choice, 
+that runs the diffusion expert with a common seed to isolate trajectory impact.
+
+

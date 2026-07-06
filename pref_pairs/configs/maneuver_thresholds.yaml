@@ -1,0 +1,48 @@
+# Maneuver classification thresholds (maneuver-class labeling task).
+#
+# One source of truth shared by trajectory_features.py (smoothing/
+# initial_heading/stop/yield -- the parts of feature extraction that are
+# inherently threshold-defined, e.g. "was there a stop event") and
+# classify_maneuvers.py (turn/lane_change/proceed_accelerate -- the
+# priority-ordered rule cascade that picks ONE maneuver_class). Keeping both
+# in this single file is what makes the +/-20% threshold-sensitivity report
+# possible without having to hunt down thresholds in two places.
+
+smoothing:
+  window: 3  # samples; moving average on speed/heading before any thresholding
+
+initial_heading:
+  window: 3  # waypoints from the origin used to estimate/correct the t=0 heading frame
+
+# --- Rule 1: stop ---
+stop:
+  speed_mps: 0.5
+  duration_s: 1.0
+  recovery_speed_mps: 2.0
+
+# --- Rule 2: turn_left / turn_right ---
+turn:
+  heading_change_deg: 45.0
+
+# --- Rule 3: lane_change_left / lane_change_right ---
+lane_change:
+  lateral_offset_m: 2.5
+  heading_change_deg: 45.0  # must stay BELOW this to be a lane change, not a turn
+
+# --- Rule 4: yield ---
+yield:
+  drop_fraction: 0.30
+  min_speed_mps: 2.0
+  recovery_fraction: 0.50
+
+# --- Rule 5: proceed/accelerate ---
+proceed_accelerate:
+  mean_accel_mps2: 0.5
+
+# Rule 6 (lane_keep) is the default and has no threshold of its own.
+
+# A rollout's distance to the NEAREST rule boundary above (as a fraction of
+# that threshold) is logged to the ambiguous-cases sidecar file when it's
+# within this margin, regardless of which rule ultimately fired for it --
+# see classify_maneuvers.py's `_boundary_margins`.
+ambiguous_margin_fraction: 0.10

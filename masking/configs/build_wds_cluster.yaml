@@ -1,0 +1,131 @@
+# ── Job identity ────────────────────────────────────────────────────────────
+# Display name shown in the Lilypad UI and used as the workload ID prefix.
+name: build-physicalai-wds
+
+# ── Workload definition ─────────────────────────────────────────────────────
+workload_variant_config:
+  # "generic" runs the entrypoint_fn once on the Ray HEAD NODE only.
+  # (Training workloads run on each GPU node; generic does not distribute.)
+  workload_type: "generic"
+
+  # Python import path to the Lilypad-compatible entrypoint function.
+  # build_wds_loop sets up sys.argv and delegates to build_webdataset.main().
+  entrypoint_fn: masking.data.build_wds_worker.build_wds_loop
+
+  # Arguments forwarded verbatim to build_wds_loop as training_fn_config.
+  entrypoint_fn_config:
+
+    # ── S3 destination ───────────────────────────────────────────────────────
+    # OCI Object Storage bucket in us-chicago-1.
+    bucket: "research-datasets-chicago"
+    # Key prefix under which train/, val/, test/ shard folders are written.
+    prefix: "Users/jaagat/nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+
+    # ── HuggingFace auth ────────────────────────────────────────────────────
+    # Token for nvidia/PhysicalAI-Autonomous-Vehicles (gated dataset).
+    # Injected at launch time; never commit a real token here.
+    #   lilypad workload launch ... -o workload_variant_config.entrypoint_fn_config.hf_token $HF_TOKEN
+    hf_token: ""
+
+    # ── Concurrency ─────────────────────────────────────────────────────────
+    # Parallel download threads on the head node.
+    # KEEP AT 1: physical_ai_av downloads each camera as a large chunk ZIP
+    # (~hundreds of MB). 4 concurrent workers x 7 cameras = simultaneous
+    # chunk fetches that exhaust the head's ~30 GB RAM and trigger OOM kill.
+    workers: 1
+
+    # Number of clips packed into each .tar shard before uploading to S3.
+    # 50 clips ~= 1-5 GB per shard depending on camera resolution.
+    clips_per_shard: 50
+
+    # Which dataset splits to build. All three are needed for the masking
+    # experiment; OOD-labeled clips follow NVIDIA's official split assignments,
+    # all other clips are hash-split 90% train / 10% val.
+    splits:
+      - trai
+      - val
+      - test
+
+    # If false, rank 0 uploads the three metadata parquets to S3 first
+    # (feature_presence, data_collection, ood_reasoning). Set true to skip
+    # on reruns where metadata is already present.
+    skip_metadata_upload: false
+
+    # Skip downloading/writing LiDAR for this run. The per-clip LiDAR reader
+    # isn't implemented in physical_ai_av yet, so fetching the chunk ZIPs only
+    # adds to HF rate-limit pressure with no payoff. Backfill in a separate
+    # job once physical_ai_av supports it.
+    skip_lidar: true
+
+    # ── Distributed sharding ────────────────────────────────────────────────
+    # This worker's shard index (0-indexed). Lilypad would override via the
+    # RANK env var when running replicas, but generic workloads run only on the
+    # head (rank 0), so this is always 0.
+    rank: 0
+
+    # Total number of sharding partitions.
+    # MUST EQUAL 1 for generic workloads: the entrypoint runs on the head
+    # only. Setting this > 1 would make the head process only 1/world_size
+    # of clips and silently skip the rest forever.
+    world_size: 1
+
+    # Cap clips per split — useful for smoke tests.
+    # Override at launch: -o workload_variant_config.entrypoint_fn_config.max_clips 10
+    max_clips: null  # null = process all clips
+
+# ── Cluster resources ────────────────────────────────────────────────────────
+cluster_resources:
+  # Number of CPU worker nodes (beyond the head).
+  # Set to 1 (the minimum Lilypad accepts) because generic workloads run
+  # entirely on the head; additional worker pods receive no tasks and waste
+  # ~75 GB of RAM each sitting idle.
+  num_cpu_nodes: 1
+
+  # Billing account for this job.
+  customer_resource: research
+
+  # Allow Lilypad to place this job on preemptible (spot) nodes.
+  # Cost is much lower; job is automatically requeued if preempted.
+  preemptible: always
+
+  # Restrict placement to OCI us-chicago-1 where the destination S3 bucket
+  # lives, minimising egress latency and cost.
+  allowed_regions:
+    - us-chicago-1
+
+  # Automatically requeue the job on the same W&B run ID if preempted.
+  # Combined with the resume_file mechanism this makes the build resumable.
+  requeue_if_preempted: true
+
+# ── Runtime environment ──────────────────────────────────────────────────────
+runtime_environment:
+  # Disable the pip setup timeout.
+  # physical_ai_av has deep dependency conflicts that cause pip to backtrack
+  # for 8+ minutes before resolving; the default timeout would kill setup.
+  setup_timeout_seconds: -1
+
+  # Environment variables injected as constants into every worker process.
+  constant_environment_variables:
+    # Required so pip installs physical_ai_av (needs Python >=3.11) on the
+    # cluster's Python 3.10 workers without erroring out.
+    PIP_IGNORE_REQUIRES_PYTHON: "1"
+    # OCI Object Storage S3-compatible endpoint for us-chicago-1.
+    # boto3 reads this automatically via the AWS_ENDPOINT_URL_S3 convention.
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+
+  # Environment variables that must be set in the launching shell.
+  # Lilypad forwards these from the submitter's environment to every node.
+  # Populate them from the oci.chi AWS profile before launching:
+  #   export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile oci.chi)
+  #   export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile oci.chi)
+  required_environment_variables:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+
+  # Code shipped to the cluster.
+  code_assets:
+    # Repo root (two levels up from masking/configs/).
+    root_directory: ../..
+    # Raw pip install from this file before the job starts (not Bazel).
+    # Includes physical_ai_av, webdataset, boto3, huggingface_hub, etc.
+    pip_requirements_path: masking/requirements_build_wds.txt

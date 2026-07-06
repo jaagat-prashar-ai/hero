@@ -1,0 +1,38 @@
+Random notes I write here from just Claude-codeing 
+
+
+WDS build job (build-wds-parallel, the data-sharding/moving job) — No, there's no shared temp folder. Each rank is a fully independent Lilypad job submission (potentially on a different physical node). Each one downloads its own assigned slice of clips straight from HuggingFace, writes shards to its own local/ephemeral tempfile (S3ShardWriter._open_shard in build_webdataset.py, defaults to that pod's local /tmp), and uploads directly to S3. There's no cross-rank read/write of local files — by design, ranks never need to see each other's data since the only handoff point is S3.
+
+Training job (masking-cot-cluster, cluster.yaml) — Yes, but only incidentally. local_data_dir: /mnt/work/tmp/wds_cache is shared across all 8 ranks — run.py's _acquire_shards() has rank 0 download the WDS shards from S3 into that path, and ranks 1-7 just poll the same path waiting for files to appear (masking/training/run.py:137-143). That only works because cluster_resources.gpu_machine_type: a100.8 + num_gpus: 8 means all 8 ranks run as separate processes on one single 8-GPU physical node — so /mnt/work is trivially the same local filesystem for all of them, not a deliberately-provisioned shared network volume. If this job were ever split across multiple nodes, that polling scheme would break unless /mnt/work is also genuinely network-mounted cluster-wide — I can't confirm that from the code alone, only that the current single-node config makes it work either way.
+
+So: shared-folder coordination exists only in the training job between GPU ranks on the same node, not in the data-build/sharding job.
+
+
+Current Config: 
+
+Job: masking-cot-cluster: a training type how
+
+
+Claude Skill / Lilypad memory: 
+
+
+HF documented rate limit (5000 rewsolver requests / 5 min) is exhausted, almost certainly by the 50 still-running stale build-physicalai-wds-p* jobs sharing the same 
+HF token/account quota while the training job tried to load Qwen3VLConfig (VLM backbone inside Alpamayo) and Cosmos-Reason2-8B. That's a sharper number than the old commit history/code's guess of "~1000/5min." Useful for tuning concurrency going forward.
+
+world size = 8, workers = 1 ?
+
+All 8 build ranks launched cleanly: 
+
+July 1st: 
+
+Summary so far:
+- Saved memory on the validated chunk-partition smoke test and the local physical_ai_av verification setup
+- Committed the HF_TOKEN argv-leak fix (ff4eebe) before launching, since Lilypad packages the working tree as-is
+- Caught that launch.sh's build-wds-parallel default (WORKERS=2) contradicts cluster.yaml's own OOM warning — you chose workers=1
+- Submitting the full 100-way production build now (build-physicalai-wds-p0..p99, workers=1, → s3://research-datasets-chicago/.../wds/)
+
+
+# some of the 36 runs faced the login bug when launching. what is this?
+# 36 ranks x ~13s stagger = 8 min total. Confirm and check logs actively. 
+# Also, can write your own loop to continously monintor logs and self-debug. 
+

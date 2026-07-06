@@ -1,3 +1,6 @@
+# debugging through docker
+# maintain a file for installations, etc. so that you don't have to do this every time. 
+
 #!/usr/bin/env bash
 # build.sh — Build the mnist-template dev/build image.
 #
