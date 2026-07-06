@@ -12,6 +12,16 @@ and skipping over the multi-MB camera/parquet payloads by jumping straight to
 the next header using the size field. This costs a handful of small requests
 per clip instead of downloading ~3.5GB/shard.
 
+Before scanning shards at all, candidate clips are filtered against
+metadata/feature_presence.parquet (one boolean column per named sensor
+stream -- verified directly against the dataset: 306,152 rows x 36 columns,
+indexed by clip_id) to require the 4 camera views AND egomotion that
+_expand_clip_to_events (masking/data/wds_dataset.py) actually needs. Without
+this, a clip missing e.g. one camera view could still get selected into the
+manifest here, only to have _expand_clip_to_events silently return []  for
+it at harvest time -- quietly burning a slot out of the requested sample
+size for a clip that could never have produced any scenes to begin with.
+
 Usage:
     python -m masking.data.sample_clips \
         --bucket research-datasets-chicago \
@@ -42,6 +52,20 @@ logger = logging.getLogger(__name__)
 HF_REPO = "nvidia/PhysicalAI-Autonomous-Vehicles"
 TAR_BLOCK = 512
 
+# Matches masking/data/wds_dataset.py's CAMERA_FEATURES (the 4 camera views
+# _expand_clip_to_events actually decodes) plus "egomotion" (that function
+# also hard-requires egomotion.parquet to build ego_history/ego_future --
+# see its `if ego_bytes is None: ... return []` check). Verified column
+# names directly against metadata/feature_presence.parquet (36 boolean
+# columns, indexed by clip_id).
+REQUIRED_FEATURES = [
+    "camera_cross_left_120fov",
+    "camera_front_wide_120fov",
+    "camera_cross_right_120fov",
+    "camera_front_tele_30fov",
+    "egomotion",
+]
+
 
 def load_ood_clips(hf_token: str | None) -> pd.DataFrame:
     """Download reasoning/ood_reasoning.parquet — one row per OOD clip."""
@@ -50,6 +74,54 @@ def load_ood_clips(hf_token: str | None) -> pd.DataFrame:
         token=hf_token,
     )
     return pd.read_parquet(path)
+
+
+def load_feature_presence(hf_token: str | None) -> pd.DataFrame:
+    """Download metadata/feature_presence.parquet — one boolean row per clip,
+    one column per named sensor/data stream (cameras, lidar, radar,
+    egomotion, calibration, ...). Indexed by clip_id."""
+    path = hf_hub_download(
+        repo_id=HF_REPO, repo_type="dataset", filename="metadata/feature_presence.parquet",
+        token=hf_token,
+    )
+    return pd.read_parquet(path)
+
+
+def filter_clips_with_required_features(
+    ood_df: pd.DataFrame,
+    feature_df: pd.DataFrame,
+    required_features: list[str] = REQUIRED_FEATURES,
+) -> pd.DataFrame:
+    """Drop OOD clips missing any of `required_features` in feature_df,
+    BEFORE we spend any shard-scanning effort on them.
+
+    A clip absent from feature_df entirely (shouldn't normally happen, since
+    feature_df's index is used elsewhere as the master clip list, but is
+    handled defensively here) is treated as missing every feature, not
+    silently kept -- reindex+fillna(False) below, rather than a join that
+    would drop it in a way that's easy to miss.
+    """
+    aligned = feature_df.reindex(ood_df.index)[required_features].fillna(False)
+    has_all_required = aligned.all(axis=1)
+
+    n_before, n_after = len(ood_df), int(has_all_required.sum())
+    if n_after < n_before:
+        # Per-cluster breakdown so a category that gets hit hard by this
+        # filter is visible, not just the aggregate count -- silent
+        # truncation is exactly what this filter exists to prevent one step
+        # earlier (missing cameras at harvest time), so it shouldn't
+        # introduce a new silent truncation of its own.
+        dropped = ood_df.loc[~has_all_required]
+        logger.info(
+            "feature_presence filter: dropped %d/%d OOD clips missing one of %s",
+            n_before - n_after, n_before, required_features,
+        )
+        if "event_cluster" in dropped.columns:
+            logger.info(
+                "  dropped-by-cluster:\n%s",
+                dropped["event_cluster"].value_counts().to_string(),
+            )
+    return ood_df.loc[has_all_required]
 
 
 def list_shards(bucket: str, prefix: str) -> list[str]:
@@ -219,6 +291,9 @@ def main() -> None:
     args = ap.parse_args()
 
     ood_df = load_ood_clips(args.hf_token)
+
+    feature_df = load_feature_presence(args.hf_token)
+    ood_df = filter_clips_with_required_features(ood_df, feature_df)
 
     by_cluster = find_available_ood_clips(args.bucket, args.prefix, ood_df, args.n_per_type)
     manifest = sample_per_type(by_cluster, args.n_per_type, args.seed)
