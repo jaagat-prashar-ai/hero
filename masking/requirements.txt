@@ -1,23 +1,47 @@
-# Lilypad pip overlay for masking *inference* (masking_loop on GPU workers).
-# Validated by launch.py (uv pip compile against lilypad-py on Python 3.10).
-#
-# alpamayo1_5 model code is vendored at third_party/alpamayo1.5 (git submodule).
-# torch MUST be pinned — base image ships 2.1.1; transformers>=4.57 needs >=2.4.
-# See ~/knowledge/gotchas/clac-lilypad-torch-nccl.md and lead_sft_lilypad/requirements.txt.
+# Dependencies for the masking experiment and WDS build pipeline.
+# Installed by Lilypad before the workload runs (pip_requirements_path).
+# torch/transformers/einops are expected to be present in the cluster image.
 
-torch==2.7.1
-transformers==4.57.1
-accelerate>=1.12.0
-hydra-core>=1.3.2
-huggingface_hub>=0.36.0
-einops>=0.7
+# Masking inference
 webdataset>=0.2.86
-s3transfer>=0.10.0
-boto3>=1.34
-# pandas/av floors match third_party/alpamayo1.5/pyproject.toml's own minimums --
-# that package isn't pip-installed here (sys.path-injected by bootstrap.py since
-# it declares Python ==3.12.* and we run 3.10), so nothing else enforces them.
-pandas>=2.3.3
-pyarrow
-scipy>=1.15.0
-av>=16.0.1
+einops>=0.7
+
+# WDS build pipeline (build_webdataset.py) — requires Python >= 3.11
+huggingface_hub>=0.23    # hf_hub_download, login
+pandas>=2.0              # parquet loading for metadata / splits
+
+# minimize the pip dependencies as much as possible? venv. 
+
+# pip dependency-resolver message is the ssame benign warning that wehave been seeing in the previous runs as well. 
+ # never correlated with actual failure
+ # Trial is still pending (actor not scheduled yet), continuing to watch
+
+# Does this fix make these runs faster to then what it was compared to before? How do we optimize for speed? CanHow do we ensure that the GPU is not idle?
+
+# Found the exact root cause. WebDataset's TarWriter writes each clip's files in alphabetical order by extension (calibration.json → camera_*.mp4 → egomotion.parquet → json last) — not the insertion order I assumed. sample_clips.py's scan found the offset of the .json member specifically, but since json is alphabetically last in each clip's group, starting extraction there immediately hits the next clip's first file and stops — meaning we only ever captured the json, never anything else. That's why every single clip logged "missing egomotion.parquet." This also means the recent fixes were never actually broken for the reclaim/idle issue — that part worked (model loaded, no SIGTERM this time!) — this is a separate, newly-introduced bug from the offset optimization. Let me fix it properly.
+
+# Reclaim fix worked, we compelted witout SIGTERM, we need to fix the offset bug
+
+#Root cause of missing egomotion.parquet: webdataset.TarWriter writes each clip's files in alphabetical order (calibration.json → camera_*.mp4 → egomotion.parquet → json last), not insertion order. My offset optimization recorded the position of the .json file specifically — but since json is alphabetically last, starting extraction there immediately hit the next clip and stopped, capturing only the json. Fixed scan_shard_for_clips to track the actual group-start offset (first file of each clip), not json's own position. Re-backfilling now.
+
+#"5 files" — unrelated to our bug, just HuggingFace downloading the model checkpoint's 5 shard files (Fetching 5 files: 100%|...). Normal.
+
+# Backfill done, 52/52 offsets, corrected. Verify with a real extraction test before committing and relaunching. 
+# Verification test, launch and submit, inspect actor and ray logs. 
+
+#  A's actual JSONL file isn't retrievable (stuck on the now-inaccessible pod, S3 upload failed every time) — but the logs themselves are durable (stored in OCI Log Analytics, independent of the pod's local disk), and every clip/ADE result was logged. Let me reconstruct a clean table from the full chronological log.
+# how/why is this stuck on the now-inaccessible pod, S3 upload failed every time? But the logs themselves are durable (stored in OCI log analytics)
+
+# Run 8-a's head node has also come up cleanly. All three run8 jobs (a, b, c) are now past head-node startup - waiting for actual clip-processing log lines next. 
+
+# Dashboard
+# Tab A (bar chart + trajectory overlay): reads traj_none_xy/traj_masked_xy for the overlay and now can also plot delta_xy_per_waypoint as a divergence-over-horizon line instead of just one bar per clip. 
+# Tab B (click-a-word): reads per_word_salience_top20, each word entry now has its own delta_xy_per_waypoint, so clicking a word can show how the shift evolves over the trajectory, not just a single scalar
+# Tab C (prefix/suffix tree): prefix_sweep/suffix_sweep now each carry delta_xy_per_waypoint per threshold, which is what's needed to draw the line chart showing divergence-vs-waypoint per branch, not just the endpoint. 
+
+# Once run8's JSONL results land in S3 (masking_results/run8/), the next step is wiring the dashboard's file-picker/fetch to load those real files and extending 
+tabs A/C to render the per-waypoint arrays (currently only the summary ade_m bars are wired up for real data - the per-waypoint line rendering iteslf hasn't been built yet, since this field didn't exist until this session). 
+# Check once results are in. 
+
+# All three runs progressing sensibly, varied ADE ranges across clip, 52 manifest clips
+

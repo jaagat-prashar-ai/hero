@@ -3,7 +3,7 @@
 run.py — Lilypad entrypoint for the CoT-masking experiment.
 
 Reads WebDataset shards from S3 (downloading to a local cache dir first),
-processes each clip's OOD events through the masked Alpamayo 1.5 model, and
+processes each clip's snapshots through the masked Alpamayo 1.5 model, and
 writes results to a JSONL file.  Compatible with the Lilypad training_fn
 contract: accepts a flat config dict and an ExperimentTracker.
 
@@ -21,7 +21,7 @@ already present in this rank's output file.
 Distributed (num_gpus > 1)
 --------------------------
 Lilypad sets RANK / WORLD_SIZE / LOCAL_RANK. Each GPU loads its own model copy,
-processes events where hash(clip_id, t0_us) % world_size == rank, and writes
+processes snapshots where hash(clip_id, t0_us) % world_size == rank, and writes
 batch_experiment_{experiment}_rank{RR}.jsonl. Rank 0 downloads WDS shards from S3;
 other ranks poll until shards appear in local_data_dir.
 
@@ -31,14 +31,6 @@ Full config reference (all keys optional, defaults shown):
     s3_bucket:        "PLACEHOLDER_BUCKET"
     s3_prefix:        "PLACEHOLDER_PREFIX/wds"
     max_shards:       null              # limit number of shards (for smoke tests)
-    sample_clips_manifest: null          # path to a masking.data.sample_clips.py
-                                          # manifest -- restricts download to just
-                                          # that manifest's shard_key set instead of
-                                          # everything under s3_prefix
-    results_s3_prefix: null              # if set, upload the results JSONL to
-                                          # s3://{s3_bucket}/{this}/ after every write --
-                                          # outdir is local-node storage, NOT shared across
-                                          # nodes or persisted after the pod is torn down
     checkpoint:       "nvidia/Alpamayo-1.5-10B"
     experiment:       "a"              # "a" or "b"
     seed:             0
@@ -72,8 +64,6 @@ _DEFAULTS: dict[str, Any] = {
     "s3_bucket":      "PLACEHOLDER_BUCKET",
     "s3_prefix":      "PLACEHOLDER_PREFIX/wds",
     "max_shards":     None,
-    "sample_clips_manifest": None,  # path to a masking.data.sample_clips.py manifest
-    "results_s3_prefix": None,  # if set, upload results JSONL to s3://{s3_bucket}/{this}/
     "checkpoint":     "nvidia/Alpamayo-1.5-10B",
     "experiment":     "a",
     "seed":           0,
@@ -98,7 +88,7 @@ def _distributed_context(cfg: dict[str, Any]) -> tuple[int, int, int]:
 
 
 def _shard_owner(clip_id: str, t0_us: int, world_size: int) -> int:
-    """Stable shard assignment so resume/requeue always maps an event to one rank."""
+    """Stable shard assignment so resume/requeue always maps a snapshot to one rank."""
     digest = hashlib.md5(f"{clip_id}:{t0_us}".encode()).hexdigest()
     return int(digest, 16) % world_size
 
@@ -123,32 +113,6 @@ def _load_done_rows(path: Path) -> set[tuple[str, int]]:
     return done
 
 
-def _upload_results(local_path: Path, bucket: str, s3_prefix: str) -> None:
-    """Upload the results JSONL to S3. outdir is node-local storage -- it is
-    NOT shared across nodes and does not survive the pod being torn down
-    after the job finishes, so this is the only durable copy.
-
-    put_object with the file buffered in memory, NOT upload_file: s3transfer's
-    upload_file always issues chunked-transfer-encoded UploadPart requests,
-    which OCI's S3-compat endpoint rejects with "NotImplemented" -- same
-    issue and same fix as build_wds/data/build_webdataset.py's S3ShardWriter.
-    Results files here are tiny (a JSONL of run outputs), so buffering the
-    whole thing in memory is fine.
-    """
-    import boto3
-
-    s3 = boto3.client("s3")
-    key = f"{s3_prefix.rstrip('/')}/{local_path.name}"
-    s3.put_object(Bucket=bucket, Key=key, Body=local_path.read_bytes())
-
-
-def _sample_manifest_shard_keys(manifest_path: str) -> set[str]:
-    """Read a masking.data.sample_clips.py manifest and return its shard_key set."""
-    with open(manifest_path) as fh:
-        rows = json.load(fh)
-    return {row["shard_key"] for row in rows}
-
-
 def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Path]:
     from masking.data.s3_download import download_shards, shard_paths
 
@@ -158,12 +122,6 @@ def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Pa
                     len(shards), local_data)
         return shards
 
-    only_keys = None
-    if cfg.get("sample_clips_manifest"):
-        only_keys = _sample_manifest_shard_keys(cfg["sample_clips_manifest"])
-        logger.info("sample_clips_manifest=%s: restricting download to %d shard(s)",
-                    cfg["sample_clips_manifest"], len(only_keys))
-
     if rank == 0:
         logger.info("Downloading WDS shards from s3://%s/%s -> %s",
                     cfg["s3_bucket"], cfg["s3_prefix"], local_data)
@@ -172,7 +130,6 @@ def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Pa
             prefix=cfg["s3_prefix"],
             local_dir=local_data,
             max_shards=cfg["max_shards"],
-            only_keys=only_keys,
         )
         return shard_paths(local_data)
 
@@ -215,7 +172,7 @@ def _resolve_device(local_rank: int) -> str:
 
 
 def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
-    """Convert a WDS event item to model inputs on the specified device."""
+    """Convert a WDS snapshot item to model inputs on the specified device."""
     from masking.bootstrap import ensure_alpamayo1_5
 
     ensure_alpamayo1_5()
@@ -241,11 +198,11 @@ def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Per-event inference
+# Per-snapshot inference
 # ---------------------------------------------------------------------------
 
 def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
-    """Masked vs unmasked trajectory ADE for one event."""
+    """Masked vs unmasked trajectory ADE for one snapshot."""
     with torch.autocast("cuda", dtype=torch.bfloat16):
         res = model.compare_conditions(
             model_inputs,
@@ -276,16 +233,11 @@ def _run_experiment_a(model, model_inputs: dict, seed: int) -> dict:
         # the scalar ADE/endpoint summary.
         "traj_none_xy":   none_xyz[:T, :2].round(4).tolist(),
         "traj_masked_xy": masked_xyz[:T, :2].round(4).tolist(),
-        # Per-waypoint distance between the two trajectories (length T) --
-        # ade_m/endpoint_m are just this array's mean and last value, saved
-        # separately so a caller doesn't have to recompute it from the two
-        # raw trajectories to see how the divergence evolves over the horizon.
-        "delta_xy_per_waypoint": delta_xy.round(4).tolist(),
     }
 
 
 def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str]) -> dict:
-    """Per-word steering salience + concept-set ablation for one event."""
+    """Per-word steering salience + concept-set ablation for one snapshot."""
     with torch.autocast("cuda", dtype=torch.bfloat16):
         sal  = model.salience_leave_one_word_out(model_inputs, seed=seed)
         conc = model.compare_conditions(
@@ -302,14 +254,6 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
     ba = none_ctrl["accel"][0].numpy()
     ca = conc_ctrl["accel"][0].numpy()
 
-    # Concept-ablation positional ADE (none vs concept), same shape as
-    # experiment a's masked-vs-unmasked comparison -- this is the "overall"
-    # ADE for experiment b (per-word deltas live in per_word_salience_top20).
-    none_xyz = conc["conditions"]["none"]["pred_xyz"][0, 0, 0].numpy()
-    concept_xyz = conc["conditions"]["concept"]["pred_xyz"][0, 0, 0].numpy()
-    T = min(len(none_xyz), len(concept_xyz))
-    concept_delta_xy = np.linalg.norm(concept_xyz[:T, :2] - none_xyz[:T, :2], axis=-1)
-
     cot_raw = sal.get("cot", "")
     if isinstance(cot_raw, dict):
         seqs = cot_raw.get("cot", [])
@@ -324,11 +268,6 @@ def _run_experiment_b(model, model_inputs: dict, seed: int, concepts: list[str])
         "concept_d_curvature_mean": float(np.abs(cc - bc).mean()),
         "concept_d_curvature_max":  float(np.abs(cc - bc).max()),
         "concept_d_accel_mean":     float(np.abs(ca - ba).mean()),
-        # Overall/final ADE for the none-vs-concept comparison, plus the
-        # per-waypoint array they're computed from (mirrors experiment a).
-        "ade_m":                    float(concept_delta_xy.mean()),
-        "endpoint_m":               float(concept_delta_xy[-1]),
-        "delta_xy_per_waypoint":    concept_delta_xy.round(4).tolist(),
         # Baseline path + per-word masked path (traj_xy) so a caller can
         # render "click a word, see the trajectory shift" instead of only
         # the scalar salience metrics.
@@ -375,35 +314,29 @@ def _run_experiment_c(
 
     baseline_xyz = res["conditions"]["baseline"]["pred_xyz"][0, 0, 0].numpy()  # (T, 3)
 
-    def branch_vs_baseline(cond_name: str) -> tuple[float, list[list[float]], list[float]]:
+    def branch_vs_baseline(cond_name: str) -> tuple[float, list[list[float]]]:
         xyz = res["conditions"][cond_name]["pred_xyz"][0, 0, 0].numpy()
         T = min(len(xyz), len(baseline_xyz))
-        delta_xy = np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1)
-        return float(delta_xy.mean()), xyz[:T, :2].round(4).tolist(), delta_xy.round(4).tolist()
+        ade = float(np.linalg.norm(xyz[:T, :2] - baseline_xyz[:T, :2], axis=-1).mean())
+        return ade, xyz[:T, :2].round(4).tolist()
 
     prefix_sweep = []
     for n in sorted(threshold_words):
-        ade, traj_xy, delta_xy = branch_vs_baseline(f"prefix_{n}w")
+        ade, traj_xy = branch_vs_baseline(f"prefix_{n}w")
         prefix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"prefix_{n}w"]["n_masked_cols"]),
             "ade_m": ade,
-            "endpoint_m": delta_xy[-1],
             "traj_xy": traj_xy,
-            # Per-waypoint distance to the root/baseline (length T) -- ade_m/
-            # endpoint_m are just this array's mean and last value.
-            "delta_xy_per_waypoint": delta_xy,
         })
     suffix_sweep = []
     for n in sorted(threshold_words):
-        ade, traj_xy, delta_xy = branch_vs_baseline(f"suffix_{n}w")
+        ade, traj_xy = branch_vs_baseline(f"suffix_{n}w")
         suffix_sweep.append({
             "n": n,
             "n_masked_cols": int(res["conditions"][f"suffix_{n}w"]["n_masked_cols"]),
             "ade_m": ade,
-            "endpoint_m": delta_xy[-1],
             "traj_xy": traj_xy,
-            "delta_xy_per_waypoint": delta_xy,
         })
 
     return {
@@ -427,7 +360,7 @@ def masking_loop(
 ) -> None:
     """Lilypad-compatible entrypoint.
 
-    Downloads WDS shards from S3, iterates over all events, runs the
+    Downloads WDS shards from S3, iterates over all snapshots, runs the
     chosen masking experiment, and writes results to a JSONL file.
     """
     cfg = {**_DEFAULTS, **training_fn_config}
@@ -451,23 +384,17 @@ def masking_loop(
     logger.info("Writing results to %s", results_path)
 
     # ── 1. Acquire shards (rank 0 downloads; other ranks wait) ───────────────
-    # sample_clips_manifest skips shard acquisition entirely: clips are pulled
-    # directly from S3 via range reads at iteration time (step 4) instead of
-    # downloading whole shards up front -- see iter_clip_events_from_manifest().
-    using_manifest = bool(cfg.get("sample_clips_manifest"))
-    shards: list[Path] = []
-    if not using_manifest:
-        shards = _acquire_shards(cfg, local_data, rank)
+    shards = _acquire_shards(cfg, local_data, rank)
 
-        if cfg["max_shards"] is not None:
-            shards = shards[:int(cfg["max_shards"])]
-            logger.info("max_shards=%d: using %d shards", cfg["max_shards"], len(shards))
+    if cfg["max_shards"] is not None:
+        shards = shards[:int(cfg["max_shards"])]
+        logger.info("max_shards=%d: using %d shards", cfg["max_shards"], len(shards))
 
-        if not shards:
-            raise RuntimeError(
-                f"No shards found in {local_data}. "
-                f"Check s3_bucket={cfg['s3_bucket']} and s3_prefix={cfg['s3_prefix']}."
-            )
+    if not shards:
+        raise RuntimeError(
+            f"No shards found in {local_data}. "
+            f"Check s3_bucket={cfg['s3_bucket']} and s3_prefix={cfg['s3_prefix']}."
+        )
 
     # ── 2. Load already-done rows if resuming ────────────────────────────────
     done: set[tuple[str, int]] = set()
@@ -479,13 +406,8 @@ def masking_loop(
     logger.info("Loading model %s on %s …", cfg["checkpoint"], device)
     model = _load_model(cfg["checkpoint"], device=device)
 
-    # ── 4. Iterate WDS events assigned to this rank ───────────────────────
-    from masking.data.wds_dataset import iter_clip_events, iter_clip_events_from_manifest
-
-    if using_manifest:
-        event_iter = iter_clip_events_from_manifest(cfg["sample_clips_manifest"], cfg["s3_bucket"])
-    else:
-        event_iter = iter_clip_events(shards)
+    # ── 4. Iterate WDS snapshots assigned to this rank ───────────────────────
+    from masking.data.wds_dataset import iter_snapshots
 
     n_success = 0
     n_skipped = 0
@@ -493,7 +415,7 @@ def masking_loop(
     n_other_rank = 0
 
     with open(results_path, "a") as out_f:
-        for item in event_iter:
+        for item in iter_snapshots(shards):
             clip_id = item["clip_id"]
             t0_us   = item["t0_us"]
 
@@ -534,12 +456,6 @@ def masking_loop(
                 out_f.write(json.dumps(result) + "\n")
                 out_f.flush()
                 n_success += 1
-
-                if cfg.get("results_s3_prefix"):
-                    try:
-                        _upload_results(results_path, cfg["s3_bucket"], cfg["results_s3_prefix"])
-                    except Exception as exc:
-                        logger.warning("Failed to upload results to S3: %s", exc)
 
                 if experiment == "c":
                     sweep_adel = [r["ade_m"] for r in result.get("prefix_sweep", [])]
