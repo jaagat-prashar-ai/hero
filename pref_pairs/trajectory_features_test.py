@@ -9,6 +9,8 @@ Alpamayo rollout.
 
 from __future__ import annotations
 
+import pytest
+
 from pref_pairs.synthetic_trajectory_fixtures import (
     HZ,
     accelerate,
@@ -75,3 +77,34 @@ def test_custom_feature_config_changes_stop_detection():
     lenient = FeatureConfig(stop_duration_s=5.0)
     feats = extract_features(waypoints, HZ, "scene_h", 0, config=lenient)
     assert not feats.stop_event
+
+
+def test_without_native_accel_falls_back_to_finite_difference():
+    feats = extract_features(accelerate(), HZ, "scene_i", 0)
+    assert feats.accel_source == "finite_difference"
+
+
+def test_native_accel_is_used_verbatim_instead_of_rederived():
+    # Feed a native accel array that is wildly different from what
+    # finite-differencing this trajectory's xyz would produce (accelerate()
+    # actually speeds up; the native array below claims a huge deceleration
+    # instead). If extract_features is truly using the native array rather
+    # than silently re-deriving its own estimate, the reported
+    # mean_acceleration_mps2 must match the FAKE native value, not the
+    # trajectory's real kinematics.
+    waypoints = accelerate()
+    fake_native_accel = [-9.0] * len(waypoints)
+
+    feats = extract_features(
+        waypoints, HZ, "scene_j", 0, native_accel_mps2=fake_native_accel
+    )
+    assert feats.accel_source == "native"
+    assert feats.mean_acceleration_mps2 == -9.0
+    assert feats.max_deceleration_mps2 == 9.0
+
+
+def test_native_accel_length_mismatch_raises():
+    waypoints = accelerate()
+    wrong_length_accel = [1.0] * (len(waypoints) - 1)
+    with pytest.raises(AssertionError, match="must match waypoints length"):
+        extract_features(waypoints, HZ, "scene_k", 0, native_accel_mps2=wrong_length_accel)
