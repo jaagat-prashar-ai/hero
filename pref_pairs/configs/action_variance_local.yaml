@@ -1,0 +1,66 @@
+# NOTE: as of this writing, Lilypad's LaunchWorkload SDK raises
+# NotImplementedError("Local GPU machine type not supported for workloads
+# yet") on real (non-dry-run) submission of gpu_machine_type: local -- only
+# `--dry-run` validation works against this config today. The actual smoke
+# test for this experiment was instead run as a scoped-down canary directly
+# on action_variance_cluster.yaml's real a100.8 config (num_gpus overridden
+# to 1, max_scenes overridden to 2) via masking/configs/launch.py's -o
+# overrides. Kept here anyway: useful for config validation
+# (`--dry-run`), and for direct-python execution of
+# pref_pairs.training.run.pref_pairs_loop on this workstation's own local
+# GPUs (bypassing the Lilypad SDK entirely) if that's ever wanted.
+name: pref-pairs-action-variance-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.pref_pairs_loop
+  training_fn_config:
+    # ── Data source ───────────────────────────────────────────────────────────
+    # Smoke-test manifest: reuses the existing 12-clip sample_clips_smoke.json
+    # (spans 3 clusters) rather than the full 9x100-clip
+    # sample_clips_action_variance.json -- max_scenes below caps this to just
+    # the first 2 scenes anyway, so there's no need for a dedicated tiny
+    # manifest file.
+    manifest_path: "pref_pairs/configs/sample_clips_smoke.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Rollout sampling ──────────────────────────────────────────────────────
+    # k=5 (not the full experiment's k=100) -- this run only exists to
+    # validate the config + action_space_variance.py's input-format
+    # assumptions end to end, and to get a real per-scene wall-clock number
+    # before committing to the k=100 x ~900-scene cluster run
+    # (action_variance_cluster.yaml).
+    k: 5
+    seed: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    # ── Maneuver classification thresholds (unused by action_space_variance.py,
+    # but pref_pairs_loop always runs classification -- harmless, ignored downstream) ──
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+
+    resume: false
+
+    # Only harvest 2 scenes for the smoke test.
+    max_scenes: 2
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    # Separate outdir from both the Task-1 harvest (/tmp/pref_pairs_results,
+    # see local.yaml) and the full action-variance cluster run's outdir, so
+    # none of the three collide or get resumed into each other.
+    outdir: "/tmp/action_variance_smoke_results"
+
+  experiment_tracker: {}  # no W&B tracking for local smoke tests
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
