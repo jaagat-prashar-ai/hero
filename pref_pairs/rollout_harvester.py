@@ -229,6 +229,119 @@ class RolloutHarvester:
         }
         return helper.to_device(data, self.device)
 
+    def _harvest_batch(
+        self,
+        tokenized_inputs: dict[str, Any],
+        scene_id: str,
+        *,
+        batch_k: int,
+        overall_k: int,
+        seed: int,
+        top_p: float,
+        top_k: int | None,
+        temperature: float,
+        ground_truth_coc: str | None,
+        rollout_id_offset: int,
+    ) -> list[RolloutRecord]:
+        """One batched diffusion call drawing `batch_k` rollouts (<= the
+        scene's full requested `overall_k`) from the given, already-built
+        tokenized_inputs. Factored out of harvest_scene so a large k can be
+        split into several of these (see harvest_scene's `max_batch_size`
+        docstring note) without re-running _build_tokenized_inputs per
+        chunk -- the scene's model inputs never change across chunks.
+        """
+        # --- Patch in the seed control the upstream API doesn't expose ---
+        # (see the "SEED-CONTROL CAVEAT" note at the top of this file). This
+        # seeds the diffusion RNG state right before sampling so re-running
+        # the same scene with the same seed reproduces the same batch of
+        # rollouts. It does NOT give each rollout its own seed -- that
+        # granularity simply isn't exposed anywhere upstream; per-CHUNK
+        # seeding (harvest_scene passes a distinct `seed` per chunk) is the
+        # coarsest granularity that's actually controllable.
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+
+        # do_sample=True + num_return_sequences=batch_k inside
+        # sample_trajectories_from_data_with_vlm_rollout resamples the CoT
+        # text independently per rollout (batch_k separate reasoning
+        # traces), and the diffusion expert is then run once, batched, over
+        # all batch_k. _sample_with_captured_action also recovers the
+        # model's native (accel, curvature) action tensor -- see "NATIVE
+        # ACTION CAPTURE" in the module docstring.
+        with torch.autocast(self.device, dtype=torch.bfloat16):
+            (pred_xyz, _pred_rot, extra), action_raw = _sample_with_captured_action(
+                self.model,
+                tokenized_inputs,
+                top_p=top_p,
+                top_k=top_k,
+                temperature=temperature,
+                num_traj_samples=batch_k,
+                num_traj_sets=1,
+                return_extra=True,
+            )
+
+        # pred_xyz shape: (B=1, num_traj_sets=1, num_traj_samples=batch_k, T, 3).
+        # extra["cot"] shape (after upstream's own reshape): (B=1, ns=1, batch_k) of str.
+        waypoints_per_rollout = pred_xyz[0, 0].float().cpu()  # (batch_k, T, 3)
+        cot_per_rollout = extra["cot"][0, 0]  # (batch_k,) array of str
+
+        # action_raw shape (if captured): (batch_k, T, 2) normalized
+        # [accel, kappa] -- see sample_trajectories_from_data_with_vlm_rollout's
+        # internal `total_batch = B * n_samples_total` batching; B=1 here so
+        # the leading dim is exactly batch_k, no further indexing needed.
+        native_accel_per_rollout = native_curvature_per_rollout = None
+        if action_raw is not None:
+            accel_t, kappa_t = _denorm_accel_curvature(self.model.action_space, action_raw)
+            native_accel_per_rollout = accel_t.float().cpu()  # (batch_k, T)
+            native_curvature_per_rollout = kappa_t.float().cpu()  # (batch_k, T)
+
+        # Read the ACTUAL trajectory length off the sampled tensor instead of
+        # trusting the brief's guessed "16" -- see RolloutRecord docstring.
+        # The 10 Hz sampling rate itself IS a fixed convention throughout this
+        # codebase (TIME_STEP_S=0.1 in masking/data/wds_dataset.py and
+        # time_step=0.1 in load_physical_aiavdataset.py), so we record it
+        # verbatim rather than re-deriving it from the model.
+        hz = 10.0
+
+        # sampling_params.k records the scene's FULL requested k (not this
+        # chunk's batch_k), so a downstream reader sees "this rollout is one
+        # of overall_k requested for this scene" regardless of how it was
+        # internally batched -- chunking is an implementation detail of
+        # fitting in GPU memory, not part of the sampling request's meaning.
+        sampling_params = {
+            "seed": seed,
+            "temperature": temperature,
+            "top_p": top_p,
+            "top_k": top_k,
+            "k": overall_k,
+        }
+        model_version = getattr(self.model.config, "_name_or_path", DEFAULT_CHECKPOINT)
+
+        records = []
+        for local_id in range(batch_k):
+            records.append(
+                RolloutRecord(
+                    scene_id=scene_id,
+                    rollout_id=rollout_id_offset + local_id,
+                    coc_text=str(cot_per_rollout[local_id]),
+                    waypoints=waypoints_per_rollout[local_id].tolist(),
+                    hz=hz,
+                    sampling_params=sampling_params,
+                    model_version=model_version,
+                    ground_truth_coc=ground_truth_coc,
+                    native_accel_mps2=(
+                        native_accel_per_rollout[local_id].tolist()
+                        if native_accel_per_rollout is not None else None
+                    ),
+                    native_curvature_per_m=(
+                        native_curvature_per_rollout[local_id].tolist()
+                        if native_curvature_per_rollout is not None else None
+                    ),
+                )
+            )
+        return records
+
     def harvest_scene(
         self,
         model_inputs: dict[str, Any],
@@ -240,96 +353,57 @@ class RolloutHarvester:
         top_k: int | None = None,
         temperature: float = 0.6,
         ground_truth_coc: str | None = None,
+        max_batch_size: int | None = None,
     ) -> list[RolloutRecord]:
         """Sample K reasoning+trajectory rollouts for one scene.
 
         Returns one RolloutRecord per rollout, ready to serialize to disk.
+
+        `max_batch_size`, if given, caps how many rollouts are drawn in a
+        SINGLE batched diffusion call. Observed empirically: k=100 in one
+        call CUDA-OOMs a single 80GB A100 (the 10B backbone plus a 100-wide
+        batch of diffusion state together fill the GPU) -- k=20 is the
+        largest batch size this pipeline has actually run in production
+        (see pref_pairs/configs/cluster.yaml's default), so a caller wanting
+        a large k (e.g. epsilon-calibration's k=100 same-scene rollouts)
+        should pass max_batch_size=20. This method then transparently splits
+        the request into ceil(k / max_batch_size) sequential sub-batches,
+        all reusing the SAME tokenized_inputs (the scene is genuinely held
+        fixed across sub-batches -- _build_tokenized_inputs runs only once,
+        not once per chunk) and reassembles them into one k-length list of
+        RolloutRecords with globally renumbered rollout_ids (0..k-1). Each
+        sub-batch gets its own seed (`seed + chunk_index`) -- reusing the
+        identical seed per chunk would reset the RNG to the same state and
+        make every chunk's draws IDENTICAL, defeating the purpose of asking
+        for k independent samples (see the "SEED-CONTROL CAVEAT" module
+        docstring note for why per-ROLLOUT seeding isn't possible at all).
+        None (default) preserves the original single-call behavior exactly,
+        so existing k=20 configs are unaffected byte-for-byte.
         """
         tokenized_inputs = self._build_tokenized_inputs(model_inputs)
 
-        # --- Patch in the seed control the upstream API doesn't expose ---
-        # (see the "SEED-CONTROL CAVEAT" note at the top of this file). This
-        # seeds the diffusion RNG state right before sampling so re-running
-        # the same scene with the same seed reproduces the same batch of K
-        # rollouts. It does NOT give each of the K rollouts its own seed --
-        # that granularity simply isn't exposed anywhere upstream.
-        torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)
+        batch_size = k if max_batch_size is None else max_batch_size
+        if batch_size <= 0:
+            raise ValueError(f"max_batch_size must be positive, got {max_batch_size}")
 
-        # One batched call: do_sample=True + num_return_sequences=k inside
-        # sample_trajectories_from_data_with_vlm_rollout resamples the CoT
-        # text independently per rollout (k separate reasoning traces), and
-        # the diffusion expert is then run once, batched, over all k.
-        # _sample_with_captured_action also recovers the model's native
-        # (accel, curvature) action tensor -- see "NATIVE ACTION CAPTURE" in
-        # the module docstring.
-        with torch.autocast(self.device, dtype=torch.bfloat16):
-            (pred_xyz, _pred_rot, extra), action_raw = _sample_with_captured_action(
-                self.model,
-                tokenized_inputs,
-                top_p=top_p,
-                top_k=top_k,
-                temperature=temperature,
-                num_traj_samples=k,
-                num_traj_sets=1,
-                return_extra=True,
-            )
-
-        # pred_xyz shape: (B=1, num_traj_sets=1, num_traj_samples=k, T, 3).
-        # extra["cot"] shape (after upstream's own reshape): (B=1, ns=1, k) of str.
-        waypoints_per_rollout = pred_xyz[0, 0].float().cpu()  # (k, T, 3)
-        cot_per_rollout = extra["cot"][0, 0]  # (k,) array of str
-
-        # action_raw shape (if captured): (k, T, 2) normalized [accel, kappa]
-        # -- see sample_trajectories_from_data_with_vlm_rollout's internal
-        # `total_batch = B * n_samples_total` batching; B=1 here so the
-        # leading dim is exactly k, no further indexing needed.
-        native_accel_per_rollout = native_curvature_per_rollout = None
-        if action_raw is not None:
-            accel_t, kappa_t = _denorm_accel_curvature(self.model.action_space, action_raw)
-            native_accel_per_rollout = accel_t.float().cpu()  # (k, T)
-            native_curvature_per_rollout = kappa_t.float().cpu()  # (k, T)
-
-        # Read the ACTUAL trajectory length off the sampled tensor instead of
-        # trusting the brief's guessed "16" -- see RolloutRecord docstring.
-        # The 10 Hz sampling rate itself IS a fixed convention throughout this
-        # codebase (TIME_STEP_S=0.1 in masking/data/wds_dataset.py and
-        # time_step=0.1 in load_physical_aiavdataset.py), so we record it
-        # verbatim rather than re-deriving it from the model.
-        hz = 10.0
-
-        sampling_params = {
-            "seed": seed,
-            "temperature": temperature,
-            "top_p": top_p,
-            "top_k": top_k,
-            "k": k,
-        }
-        model_version = getattr(self.model.config, "_name_or_path", DEFAULT_CHECKPOINT)
-
-        records = []
-        for rollout_id in range(k):
-            records.append(
-                RolloutRecord(
-                    scene_id=scene_id,
-                    rollout_id=rollout_id,
-                    coc_text=str(cot_per_rollout[rollout_id]),
-                    waypoints=waypoints_per_rollout[rollout_id].tolist(),
-                    hz=hz,
-                    sampling_params=sampling_params,
-                    model_version=model_version,
+        records: list[RolloutRecord] = []
+        remaining = k
+        chunk_idx = 0
+        while remaining > 0:
+            this_batch_k = min(batch_size, remaining)
+            records.extend(
+                self._harvest_batch(
+                    tokenized_inputs, scene_id,
+                    batch_k=this_batch_k, overall_k=k,
+                    seed=seed + chunk_idx,
+                    top_p=top_p, top_k=top_k, temperature=temperature,
                     ground_truth_coc=ground_truth_coc,
-                    native_accel_mps2=(
-                        native_accel_per_rollout[rollout_id].tolist()
-                        if native_accel_per_rollout is not None else None
-                    ),
-                    native_curvature_per_m=(
-                        native_curvature_per_rollout[rollout_id].tolist()
-                        if native_curvature_per_rollout is not None else None
-                    ),
+                    rollout_id_offset=k - remaining,
                 )
             )
+            remaining -= this_batch_k
+            chunk_idx += 1
+
         return records
 
 
@@ -354,6 +428,7 @@ def harvest_dataset(
     top_k: int | None = None,
     temperature: float = 0.6,
     max_scenes: int | None = 100,
+    max_batch_size: int | None = None,
 ) -> list[Path]:
     """Drive the harvester over every scene in a masking-style clip manifest.
 
@@ -394,6 +469,7 @@ def harvest_dataset(
             top_k=top_k,
             temperature=temperature,
             ground_truth_coc=event.get("event_coc") or None,
+            max_batch_size=max_batch_size,
         )
         written.append(_write_scene_records(records, out_dir_path, scene_id))
         n_scenes += 1
@@ -423,6 +499,7 @@ def main() -> None:
         top_k=cfg.get("top_k"),
         temperature=cfg.get("temperature", 0.6),
         max_scenes=cfg.get("max_scenes", 100),
+        max_batch_size=cfg.get("max_batch_size"),
     )
 
 
