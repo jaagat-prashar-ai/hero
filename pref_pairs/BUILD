@@ -144,3 +144,24 @@ py_test(
         "@python_deps//pandas",
     ],
 )
+
+py_library(
+    name = "fetch_from_logs",
+    srcs = ["fetch_from_logs.py"],
+    deps = [
+        ":action_space_variance",
+        ":scene_reasoning_report",
+        "//pref_pairs/training:run_lib",
+        "@python_deps//pandas",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "fetch_from_logs_test",
+    srcs = ["fetch_from_logs_test.py"],
+    deps = [
+        ":fetch_from_logs",
+        "//pref_pairs/training:run_lib",
+    ],
+)

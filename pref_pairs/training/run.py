@@ -47,8 +47,37 @@ Full config reference (all keys optional, defaults shown):
     outdir:             "/tmp/pref_pairs_results"
     max_scenes:         null
     max_batch_size:     null
+    log_scene_summary:  false
+    log_detailed_scenes: 0
     wandb_project:       "pref-pairs"
     wandb_entity:        "research"
+
+RESULT RETRIEVAL -- log_scene_summary / log_detailed_scenes:
+    outdir is a plain local path on whichever machine the Lilypad job
+    actually runs on. When that path isn't reachable from wherever you'd
+    read results afterward (e.g. the job ran in a different region/cluster
+    than your workstation's storage mount, even if the path LOOKS the
+    same -- confirmed to happen with /mnt/work between this project's
+    workstation and its us-chicago-1 Lilypad cluster), the outdir file is
+    simply unreachable, full stop. These two flags are an alternate,
+    opt-in retrieval path THROUGH the log stream instead:
+      - log_scene_summary=true: after each scene, additionally logs one
+        compact JSON line (marked with SCENE_SUMMARY_LOG_MARKER) --
+        action_space_variance.per_clip_variance's summary row for that
+        scene, with the bulky per-waypoint arrays stripped out. Safe to
+        enable for every scene in a large job; each line is small.
+      - log_detailed_scenes=N: for the first N scenes per rank, ALSO logs
+        one JSON line per rollout (marked with ROLLOUT_FULL_LOG_MARKER)
+        containing the COMPLETE row -- waypoints, full coc_text, native
+        action, features. Deliberately bounded (not "every scene") since
+        this is much larger per scene; N is a per-rank cap so total volume
+        stays proportional to N x world_size, not to the manifest size.
+    pref_pairs/fetch_from_logs.py reconstructs local DataFrames from
+    these markers (via `lilypad workload logs --content-filter`) and feeds
+    them straight into the existing action_space_variance /
+    scene_reasoning_report report builders -- no new report logic, just an
+    alternate data source. Both default to off/0, so existing runs that
+    don't need this (outdir already reachable) are unaffected.
 """
 
 from __future__ import annotations
@@ -84,6 +113,9 @@ _DEFAULTS: dict[str, Any] = {
     # large enough to CUDA-OOM a single call -- see rollout_harvester.py's
     # harvest_scene docstring for why 20 is the recommended value.
     "max_batch_size": None,
+    # See module docstring's "RESULT RETRIEVAL" section.
+    "log_scene_summary": False,
+    "log_detailed_scenes": 0,
     "wandb_project": "pref-pairs",
     "wandb_entity": "research",
     "rank": 0,
@@ -145,6 +177,50 @@ def _resolve_device(local_rank: int) -> str:
     return "cpu"
 
 
+# See module docstring's "RESULT RETRIEVAL" section and fetch_from_logs.py,
+# which greps for these exact markers.
+SCENE_SUMMARY_LOG_MARKER = "PREF_PAIRS_SCENE_SUMMARY"
+ROLLOUT_FULL_LOG_MARKER = "PREF_PAIRS_ROLLOUT_FULL"
+
+# action_space_variance.per_clip_variance's per-waypoint arrays (length T
+# each) -- dropped from the scene-summary log line since the per-cluster
+# report only ever consumes the scalar _std_mean_/_range_max_ summaries
+# derived from them, not the raw per-waypoint detail. Keeping hundreds of
+# scene-summary log lines small matters when the log stream is the ONLY
+# retrieval path (see RESULT RETRIEVAL).
+_SUMMARY_LOG_DROP_FIELDS = (
+    "accel_per_waypoint_mean", "accel_per_waypoint_std",
+    "accel_per_waypoint_min", "accel_per_waypoint_max",
+    "curvature_per_waypoint_mean", "curvature_per_waypoint_std",
+    "curvature_per_waypoint_min", "curvature_per_waypoint_max",
+)
+
+
+def _build_scene_summary_log_line(scene_rows: list[dict[str, Any]], expected_k: int | None = None) -> str:
+    """One line summarizing a single scene's cross-rollout variance/range,
+    via action_space_variance.per_clip_variance (scene_rows all share one
+    scene_id, so that function's groupby produces exactly one row here).
+    Pure function -- pandas/action_space_variance imported lazily inside,
+    same reasoning as pref_pairs_loop's own lazy imports, so this stays
+    testable without a GPU or the model.
+    """
+    import pandas as pd
+
+    from pref_pairs.action_space_variance import per_clip_variance
+
+    summary = per_clip_variance(pd.DataFrame(scene_rows), expected_k=expected_k).iloc[0].to_dict()
+    for field in _SUMMARY_LOG_DROP_FIELDS:
+        summary.pop(field, None)
+    return f"{SCENE_SUMMARY_LOG_MARKER} {json.dumps(summary)}"
+
+
+def _build_detailed_log_lines(scene_rows: list[dict[str, Any]]) -> list[str]:
+    """One log line per rollout with the row verbatim -- full waypoints,
+    full coc_text, native action, features. Only ever called for a small,
+    bounded number of scenes (pref_pairs_loop's log_detailed_scenes cap)."""
+    return [f"{ROLLOUT_FULL_LOG_MARKER} {json.dumps(row)}" for row in scene_rows]
+
+
 def pref_pairs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any) -> None:
     """Lilypad-compatible entrypoint. See module docstring for the full
     config reference and design rationale."""
@@ -186,6 +262,7 @@ def pref_pairs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any)
     harvester = RolloutHarvester.load(checkpoint=cfg["checkpoint"], device=device)
 
     n_success = n_skipped = n_error = n_other_rank = n_scenes = 0
+    n_detailed_logged = 0
 
     with open(results_path, "a") as out_f:
         for event in iter_clip_events_from_manifest(cfg["manifest_path"], cfg["bucket"]):
@@ -222,7 +299,7 @@ def pref_pairs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any)
                     max_batch_size=cfg["max_batch_size"],
                 )
 
-                written_classes: list[str] = []
+                scene_rows: list[dict[str, Any]] = []
                 for record in records:
                     features = extract_features(
                         record.waypoints,
@@ -247,12 +324,28 @@ def pref_pairs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any)
                     row["event_cluster"] = event.get("event_cluster")
                     row["rank"] = rank
                     row["world_size"] = world_size
+                    scene_rows.append(row)
 
+                for row in scene_rows:
                     out_f.write(json.dumps(row) + "\n")
-                    written_classes.append(result.maneuver_class)
                 out_f.flush()
                 n_success += 1
-                logger.info("  wrote %d rollouts, classes=%s", len(records), written_classes)
+                logger.info(
+                    "  wrote %d rollouts, classes=%s",
+                    len(scene_rows), [r["maneuver_class"] for r in scene_rows],
+                )
+
+                # Optional: ALSO surface results through the log stream, not
+                # just the outdir file -- see module docstring's "RESULT
+                # RETRIEVAL" note. Needed when outdir isn't reachable from
+                # wherever fetch_from_logs.py runs (e.g. a different-region
+                # storage mount than the one submitting the job).
+                if cfg["log_scene_summary"]:
+                    logger.info(_build_scene_summary_log_line(scene_rows, expected_k=int(cfg["k"])))
+                if n_detailed_logged < int(cfg["log_detailed_scenes"]):
+                    for line in _build_detailed_log_lines(scene_rows):
+                        logger.info(line)
+                    n_detailed_logged += 1
 
             except Exception as exc:
                 logger.error("scene %s: %s", scene_id, exc)

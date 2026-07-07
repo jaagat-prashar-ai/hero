@@ -56,6 +56,21 @@ workload_variant_config:
     # (different manifest, different k) and must not share a resume state.
     outdir: "/mnt/work/tmp/action_variance_results"
 
+    # ── Result retrieval (see run.py's "RESULT RETRIEVAL" docstring note) ──────
+    # CONFIRMED this cluster's /mnt/work is NOT the same filesystem as the
+    # submitting workstation's identically-named /mnt/work (two canary runs
+    # both wrote outdir successfully per their logs, but outdir never
+    # appeared on the workstation) -- outdir above is NOT how this
+    # experiment's results actually get retrieved. log_scene_summary=true
+    # additionally logs one compact summary line per scene (every scene,
+    # ~900 total, small each); log_detailed_scenes=2 additionally logs full
+    # per-rollout rows (waypoints + full CoT text) for the first 2 scenes
+    # PER RANK (16 scenes total across 8 GPUs) -- bounded regardless of
+    # manifest size, since that data is much larger per scene. Fetch both
+    # via `python -m pref_pairs.fetch_from_logs --workload_id <id>`.
+    log_scene_summary: true
+    log_detailed_scenes: 2
+
   experiment_tracker:
     wandb:
       entity: research
