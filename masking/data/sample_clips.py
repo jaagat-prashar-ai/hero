@@ -39,6 +39,16 @@ Usage:
         --hf_token $HF_TOKEN \
         --all \
         --out pref_pairs/configs/sample_clips_all.json
+
+    # --clusters: restrict sampling/scanning to specific event_cluster names
+    # (comma-separated) -- e.g. pref_pairs' epsilon-calibration experiment,
+    # which only wants a fixed 100-per-cluster sample across a known set of
+    # scenario types, not every category in the OOD taxonomy.
+    python -m masking.data.sample_clips \
+        --hf_token $HF_TOKEN \
+        --n_per_type 100 \
+        --clusters PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY,WORK_ZONES_TEMP_TRAFFIC_CONTROL \
+        --out pref_pairs/configs/sample_clips_action_variance.json
 """
 
 from __future__ import annotations
@@ -339,6 +349,15 @@ def main() -> None:
              "feature_presence), instead of sampling n_per_type per category. "
              "Scans every shard -- no early stop.",
     )
+    ap.add_argument(
+        "--clusters", default=None,
+        help="Comma-separated event_cluster names to restrict sampling to "
+             "(e.g. for a per-scenario-type experiment that doesn't need "
+             "every OOD category). Restricts both scanning and the "
+             "early-stop condition to just these clusters, instead of "
+             "requiring every cluster in the full OOD taxonomy to satisfy "
+             "n_per_type first. Omit to sample/scan every cluster (default).",
+    )
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="masking/configs/sample_clips.json")
     args = ap.parse_args()
@@ -349,6 +368,15 @@ def main() -> None:
 
     feature_df = load_feature_presence(args.hf_token)
     ood_df = filter_clips_with_required_features(ood_df, feature_df)
+
+    if args.clusters:
+        clusters = [c.strip() for c in args.clusters.split(",") if c.strip()]
+        n_before = len(ood_df)
+        ood_df = ood_df[ood_df["event_cluster"].isin(clusters)]
+        logger.info(
+            "--clusters filter: restricted to %d/%d clips in %s",
+            len(ood_df), n_before, clusters,
+        )
 
     by_cluster = find_available_ood_clips(args.bucket, args.prefix, ood_df, n_per_type)
     manifest = sample_per_type(by_cluster, n_per_type, args.seed)
