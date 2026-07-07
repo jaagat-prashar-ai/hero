@@ -49,6 +49,16 @@ Usage:
         --n_per_type 100 \
         --clusters PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY,WORK_ZONES_TEMP_TRAFFIC_CONTROL \
         --out pref_pairs/configs/sample_clips_action_variance.json
+
+    # --n_total: unstratified sample of N total clips, ANY category, no
+    # per-category balance -- stops as soon as N are found instead of
+    # requiring every (or every requested) category to individually satisfy
+    # a quota. Useful when some target categories are too rare to ever
+    # reach n_per_type and waiting for a full scan isn't worth it.
+    python -m masking.data.sample_clips \
+        --hf_token $HF_TOKEN \
+        --n_total 100 \
+        --out pref_pairs/configs/sample_clips_n100_unstratified.json
 """
 
 from __future__ import annotations
@@ -293,6 +303,72 @@ def find_available_ood_clips(
     return by_cluster
 
 
+def find_first_n_ood_clips(
+    bucket: str,
+    prefix: str,
+    ood_df: pd.DataFrame,
+    n_total: int,
+    seed: int = 0,
+    max_workers: int = 40,
+) -> list[tuple[str, str, dict, int, str]]:
+    """Scan shards, stopping as soon as n_total OOD clips have been found --
+    ANY category, no per-category balance -- rather than find_available_ood_clips's
+    balanced-per-cluster mode. For a quick, unstratified sample when waiting on
+    a specific rare category's full quota isn't worth it (a handful of common
+    clips will usually satisfy n_total long before a full scan finishes).
+
+    Shard scan order is shuffled (seeded) before submission -- list_shards
+    returns shards in lexicographic key order, which is very likely
+    correlated with collection time/session/location. Stopping "as soon as
+    n_total are found" against that UNshuffled order would silently sample
+    only whatever's in the lexicographically-first shards actually reached
+    (not a random subset of the dataset at all, just "whatever's first"),
+    biasing the sample toward however that ordering happens to cluster.
+    Shuffling first makes "first n_total found" approximate an actual
+    random sample of the currently-available OOD clips.
+
+    Each result also carries its event_cluster (unlike find_available_ood_clips's
+    return value, which is already grouped by cluster) so the caller can
+    record which category each sampled clip actually came from.
+    """
+    ood_ids = set(ood_df.index.astype(str))
+    cluster_of = ood_df["event_cluster"].to_dict()
+
+    keys = list_shards(bucket, prefix)
+    np.random.default_rng(seed).shuffle(keys)
+    logger.info(
+        "Scanning up to %d shards under s3://%s/%s for the first %d OOD clips "
+        "(any category, unstratified -- stopping as soon as %d are found)",
+        len(keys), bucket, prefix, n_total, n_total,
+    )
+
+    found: list[tuple[str, str, dict, int, str]] = []
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+    futures = {pool.submit(scan_shard_for_clips, bucket, k, ood_ids): k for k in keys}
+    try:
+        done = 0
+        for fut in concurrent.futures.as_completed(futures):
+            key = futures[fut]
+            try:
+                for clip_id, shard_key, meta, offset in fut.result():
+                    found.append((clip_id, shard_key, meta, offset, cluster_of.get(clip_id, "UNKNOWN")))
+            except Exception as exc:
+                logger.error("Failed to scan %s: %s", key, exc)
+            done += 1
+
+            if done % 20 == 0 or len(found) >= n_total:
+                logger.info("  %d/%d shards scanned, %d/%d clips found", done, len(keys), len(found), n_total)
+            if len(found) >= n_total:
+                logger.info(
+                    "Found %d clips (>= target %d) after %d/%d shards -- stopping early",
+                    len(found), n_total, done, len(keys),
+                )
+                break
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+    return found
+
+
 def sample_per_type(
     by_cluster: dict[str, list[tuple[str, str, dict, int]]],
     n_per_type: int | None,
@@ -350,6 +426,14 @@ def main() -> None:
              "Scans every shard -- no early stop.",
     )
     ap.add_argument(
+        "--n_total", type=int, default=None,
+        help="Sample this many OOD clips total, ANY category, unstratified "
+             "(no per-category balance) -- stops as soon as n_total are "
+             "found, rather than requiring every category to individually "
+             "reach a quota. Each manifest entry still records its "
+             "event_cluster. Mutually exclusive with --n_per_type/--all.",
+    )
+    ap.add_argument(
         "--clusters", default=None,
         help="Comma-separated event_cluster names to restrict sampling to "
              "(e.g. for a per-scenario-type experiment that doesn't need "
@@ -378,8 +462,24 @@ def main() -> None:
             len(ood_df), n_before, clusters,
         )
 
-    by_cluster = find_available_ood_clips(args.bucket, args.prefix, ood_df, n_per_type)
-    manifest = sample_per_type(by_cluster, n_per_type, args.seed)
+    if args.n_total is not None:
+        found = find_first_n_ood_clips(args.bucket, args.prefix, ood_df, args.n_total, seed=args.seed)
+        rng = np.random.default_rng(args.seed)
+        if len(found) > args.n_total:
+            # The last completed shard's batch can push slightly past
+            # n_total (results arrive per-shard, not per-clip) -- trim back
+            # down to exactly n_total via a random subset, not just
+            # truncation, so which clips get dropped isn't biased toward
+            # whichever shard happened to be scanned last.
+            idxs = rng.choice(len(found), size=args.n_total, replace=False)
+            found = [found[i] for i in idxs]
+        manifest = [
+            {"clip_id": clip_id, "event_cluster": cluster, "shard_key": shard_key, "offset": offset}
+            for clip_id, shard_key, meta, offset, cluster in sorted(found, key=lambda f: f[0])
+        ]
+    else:
+        by_cluster = find_available_ood_clips(args.bucket, args.prefix, ood_df, n_per_type)
+        manifest = sample_per_type(by_cluster, n_per_type, args.seed)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
