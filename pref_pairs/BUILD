@@ -102,3 +102,23 @@ py_test(
         ":synthetic_trajectory_fixtures",
     ],
 )
+
+py_library(
+    name = "action_space_variance",
+    srcs = ["action_space_variance.py"],
+    deps = [
+        "@python_deps//numpy",
+        "@python_deps//pandas",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "action_space_variance_test",
+    srcs = ["action_space_variance_test.py"],
+    deps = [
+        ":action_space_variance",
+        "@python_deps//numpy",
+        "@python_deps//pandas",
+    ],
+)
