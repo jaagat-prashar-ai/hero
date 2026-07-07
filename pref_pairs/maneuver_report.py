@@ -50,10 +50,11 @@ from pref_pairs.classify_maneuvers import (
 
 logger = logging.getLogger(__name__)
 
-# One consistent color per class across every plot this module produces, so
-# a color always means the same maneuver regardless of which scene/figure
-# you're looking at.
-_CLASS_COLORS = dict(zip(MANEUVER_CLASSES, plt.cm.tab10.colors[: len(MANEUVER_CLASSES)]))
+# One consistent color per class across every plot in this module -- AND in
+# scene_reasoning_report.py, which imports this directly rather than
+# building its own map, so a color means the same maneuver across every
+# plot either module produces, not just within one.
+CLASS_COLORS = dict(zip(MANEUVER_CLASSES, plt.cm.tab10.colors[: len(MANEUVER_CLASSES)]))
 
 # (section, key) pairs perturbed independently by threshold_sensitivity_report.
 # Deliberately spans BOTH configs sharing maneuver_thresholds.yaml -- stop/
@@ -183,7 +184,7 @@ def render_scene_spot_checks(
             maneuver_class = scene_labels.loc[record["rollout_id"], "maneuver_class"]
             ax.plot(
                 xy[:, 0], xy[:, 1],
-                color=_CLASS_COLORS.get(maneuver_class, "gray"),
+                color=CLASS_COLORS.get(maneuver_class, "gray"),
                 alpha=0.7, linewidth=1.5,
             )
         ax.scatter([0], [0], marker="*", color="black", s=80, zorder=5, label="t=0 (ego)")
@@ -193,7 +194,7 @@ def render_scene_spot_checks(
         ax.axis("equal")
         handles = [
             plt.Line2D([0], [0], color=color, label=cls)
-            for cls, color in _CLASS_COLORS.items()
+            for cls, color in CLASS_COLORS.items()
             if cls in scene_labels["maneuver_class"].values
         ]
         ax.legend(handles=handles, loc="best", fontsize=8)

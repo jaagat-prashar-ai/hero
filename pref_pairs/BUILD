@@ -122,3 +122,25 @@ py_test(
         "@python_deps//pandas",
     ],
 )
+
+py_library(
+    name = "scene_reasoning_report",
+    srcs = ["scene_reasoning_report.py"],
+    deps = [
+        ":action_space_variance",
+        ":maneuver_report",
+        "@python_deps//matplotlib",
+        "@python_deps//numpy",
+        "@python_deps//pandas",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "scene_reasoning_report_test",
+    srcs = ["scene_reasoning_report_test.py"],
+    deps = [
+        ":scene_reasoning_report",
+        "@python_deps//pandas",
+    ],
+)
