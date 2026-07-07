@@ -4,10 +4,12 @@ py_library(
     name = "run_lib",
     srcs = ["run.py", "__init__.py"],
     deps = [
+        "//pref_pairs:action_space_variance",
         "//pref_pairs:classify_maneuvers",
         "//pref_pairs:rollout_harvester",
         "//pref_pairs:trajectory_features",
         "//masking/data:wds_dataset",
+        "@python_deps//pandas",
         "@python_deps//torch",
         "@python_deps//yaml",
     ],
