@@ -11,9 +11,18 @@ torch==2.7.1
 # and training/run.py's module docstrings for why pref_pairs reuses this
 # specific module rather than duplicating it, and why the manifest+range-read
 # path is used instead of masking_loop's full-shard-download approach).
+# av (PyAV) is wds_dataset.py's camera-frame decoder -- confirmed missing from
+# the Lilypad base image via a live cluster run that failed on `import av`.
 webdataset>=0.2.86
 boto3>=1.34
 einops>=0.7
+av>=16.0.1
+
+# alpamayo1_5.geometry.rotation imports scipy.spatial.transform -- also
+# undeclared in alpamayo1_5's OWN pyproject.toml (a real gap there, not just
+# here), confirmed missing the same way while setting up a manual venv
+# earlier this session.
+scipy>=1.10
 
 # Scene-selection manifest building (masking.data.sample_clips) and
 # classify_maneuvers.py / maneuver_report.py's parquet output.

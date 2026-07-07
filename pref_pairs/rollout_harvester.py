@@ -61,6 +61,19 @@ from typing import Any
 import torch
 import yaml
 
+# alpamayo1_5 is vendored source, not a pip-installable package, on Lilypad's
+# Python 3.10 workers (its own pyproject.toml wants ==3.12.*, which matters
+# for `pip install` but not for importing raw source off sys.path). This adds
+# third_party/alpamayo1.5/src to sys.path -- must run BEFORE the alpamayo1_5
+# imports below. masking.bootstrap.ensure_alpamayo1_5 is pure sys.path
+# plumbing with no model-specific logic, so reusing it here doesn't
+# reintroduce the masking-code dependency this module otherwise avoids (see
+# the "INDEPENDENT OF masking.masked_model" docstring note above) -- it's the
+# same category of reuse as masking.data.wds_dataset, not masking's model code.
+from masking.bootstrap import ensure_alpamayo1_5
+
+ensure_alpamayo1_5()
+
 from alpamayo1_5 import helper
 from alpamayo1_5.models.alpamayo1_5 import Alpamayo1_5
 
@@ -170,7 +183,18 @@ class RolloutHarvester:
     ) -> "RolloutHarvester":
         # Same load pattern as third_party/alpamayo1.5/.../test_inference.py --
         # plain Alpamayo1_5, not MaskedAlpamayo1_5, per the independence note above.
-        model = Alpamayo1_5.from_pretrained(checkpoint, dtype=torch.bfloat16).to(device)
+        #
+        # attn_implementation="sdpa" is required, not cosmetic: base_model.py
+        # defaults to "flash_attention_2" when this kwarg is omitted, and
+        # flash-attn is a slow-to-build CUDA extension we deliberately don't
+        # install (masking/masked_model.py's own from_pretrained call already
+        # works around this the same way). SDPA is PyTorch's built-in fused
+        # attention -- no extra dependency, and alpamayo1_5.py already forces
+        # the diffusion expert's OWN attention to "sdpa" regardless, so this
+        # only affects the VLM backbone, not a mismatch between the two.
+        model = Alpamayo1_5.from_pretrained(
+            checkpoint, dtype=torch.bfloat16, attn_implementation="sdpa",
+        ).to(device)
         model.eval()
         return cls(model=model, device=device)
 
