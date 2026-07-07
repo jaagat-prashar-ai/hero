@@ -1,11 +1,16 @@
 # Dependencies for the pref_pairs rollout-harvest + maneuver-classification
 # Lilypad workload. Installed by Lilypad before the workload runs
-# (pip_requirements_path). transformers is expected to already be present
-# in the cluster image (same assumption masking/requirements.txt makes, and
-# it doesn't list transformers either) -- torch is pinned below because
+# (pip_requirements_path). torch is pinned below because
 # masking/configs/launch.py's preflight validator requires an explicit
 # torch==2.7.1 line for any non-build_wds Lilypad inference workload.
 torch==2.7.1
+
+# masking/requirements.txt assumes transformers is already present in the
+# cluster image and doesn't list it -- confirmed WRONG for our case via a
+# live cluster run: the pre-installed version lacks Qwen3VLConfig, which
+# Alpamayo's Qwen3-VL-based backbone needs. Pin to alpamayo1_5's own exact
+# version (its pyproject.toml requirement) rather than leaving it implicit.
+transformers==4.57.1
 
 # Data loading (masking.data.wds_dataset reuse -- see rollout_harvester.py's
 # and training/run.py's module docstrings for why pref_pairs reuses this
