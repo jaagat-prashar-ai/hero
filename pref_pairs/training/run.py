@@ -46,6 +46,7 @@ Full config reference (all keys optional, defaults shown):
     resume:             false
     outdir:             "/tmp/pref_pairs_results"
     max_scenes:         null
+    max_batch_size:     null
     wandb_project:       "pref-pairs"
     wandb_entity:        "research"
 """
@@ -78,6 +79,11 @@ _DEFAULTS: dict[str, Any] = {
     "resume": False,
     "outdir": "/tmp/pref_pairs_results",
     "max_scenes": None,
+    # None = single batched call (original behavior). Set this (e.g. 20,
+    # the largest batch this pipeline has run in production) when k is
+    # large enough to CUDA-OOM a single call -- see rollout_harvester.py's
+    # harvest_scene docstring for why 20 is the recommended value.
+    "max_batch_size": None,
     "wandb_project": "pref-pairs",
     "wandb_entity": "research",
     "rank": 0,
@@ -213,6 +219,7 @@ def pref_pairs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any)
                     top_k=cfg["top_k"],
                     temperature=float(cfg["temperature"]),
                     ground_truth_coc=event.get("event_coc") or None,
+                    max_batch_size=cfg["max_batch_size"],
                 )
 
                 written_classes: list[str] = []

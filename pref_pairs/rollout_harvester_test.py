@@ -198,6 +198,54 @@ def test_captured_action_to_traj_is_always_restored_even_on_error():
     assert model.action_space.action_to_traj == original
 
 
+def test_harvest_scene_chunks_large_k_into_max_batch_size_sub_batches():
+    """k=5, max_batch_size=2 -> chunks of [2, 2, 1], each a SEPARATE call to
+    sample_trajectories_from_data_with_vlm_rollout (see the seed assertion
+    below), reassembled into 5 globally-renumbered RolloutRecords. This is
+    the fix for k=100 CUDA-OOMing a single 80GB A100 in one batched call --
+    see harvest_scene's docstring."""
+    harvester = _make_harvester(num_waypoints=3)
+
+    calls: list[int] = []
+    original = harvester.model.sample_trajectories_from_data_with_vlm_rollout
+
+    def _spy(data, **kwargs):
+        calls.append(kwargs["num_traj_samples"])
+        return original(data, **kwargs)
+
+    with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}), \
+         mock.patch.object(
+             harvester.model, "sample_trajectories_from_data_with_vlm_rollout", side_effect=_spy
+         ):
+        records = harvester.harvest_scene(
+            model_inputs={}, scene_id="scene_chunked", k=5, seed=100, max_batch_size=2,
+        )
+
+    assert calls == [2, 2, 1]  # 3 separate calls, not 1 call of 5
+    assert len(records) == 5
+    assert [r.rollout_id for r in records] == [0, 1, 2, 3, 4]
+    # sampling_params.k reflects the FULL requested k (5), not any chunk's
+    # batch_k -- chunking is an internal memory-fitting detail, not part of
+    # what was actually requested for this scene.
+    assert all(r.sampling_params["k"] == 5 for r in records)
+    # Each chunk got a distinct seed (100, 101, 102) -- reusing one seed per
+    # chunk would reset the RNG and make every chunk's draws identical.
+    assert all(r.sampling_params["seed"] in (100, 101, 102) for r in records)
+    assert {records[0].sampling_params["seed"], records[2].sampling_params["seed"], records[4].sampling_params["seed"]} == {100, 101, 102}
+
+
+def test_harvest_scene_max_batch_size_none_matches_original_single_call_behavior():
+    """max_batch_size=None (the default) must behave EXACTLY like before
+    this chunking feature existed: one call, sampling_params.k == k."""
+    harvester = _make_harvester(num_waypoints=3)
+    with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}):
+        records = harvester.harvest_scene(model_inputs={}, scene_id="scene_unchunked", k=4, seed=1)
+
+    assert len(records) == 4
+    assert all(r.sampling_params["seed"] == 1 for r in records)
+    assert all(r.sampling_params["k"] == 4 for r in records)
+
+
 def test_write_scene_records_round_trips_through_json():
     harvester = _make_harvester(num_waypoints=4)
     with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}):
