@@ -42,10 +42,16 @@ _CLASS_SECTION_RE = re.compile(r"^## (.+?) \(\d+ rollouts\)$", re.M)
 _QUOTE_RE = re.compile(r"^> (.+)$", re.M)
 
 
-def parse_reasoning_md(path: Path) -> tuple[dict[str, int], dict[str, list[tuple[str, int]]]]:
+def parse_reasoning_md(path: Path) -> tuple[dict[str, int], dict[str, dict[str, Any]]]:
     """Extract a scene's maneuver-class distribution and, per class, its
-    unique reasoning quotes ranked by how many rollouts said exactly that,
-    from a scene_reasoning_report.py-produced Markdown file."""
+    reasoning quotes, from a scene_reasoning_report.py-produced Markdown
+    file. Each class's rollouts rarely phrase their reasoning byte-identically
+    twice, so quotes_by_class[cls]["top"] is only the 3 LARGEST exact-text
+    repeat clusters, not a partition of all rollouts in that class -- e.g. a
+    class of 100 rollouts commonly has 60-80 distinct phrasings, most said
+    only once. n_unique/n_rollouts are included so callers can render that
+    context instead of leaving readers to assume the shown counts sum to the
+    class total (they don't, by design)."""
     text = path.read_text()
     class_counts: dict[str, int] = {}
     m = _CLASS_COUNTS_RE.search(text)
@@ -55,10 +61,14 @@ def parse_reasoning_md(path: Path) -> tuple[dict[str, int], dict[str, list[tuple
             class_counts[cls] = int(n)
 
     sections = _CLASS_SECTION_RE.split(text)[1:]  # [class, body, class, body, ...]
-    quotes_by_class: dict[str, list[tuple[str, int]]] = {}
+    quotes_by_class: dict[str, dict[str, Any]] = {}
     for cls, body in zip(sections[0::2], sections[1::2]):
         counts = collections.Counter(_QUOTE_RE.findall(body))
-        quotes_by_class[cls] = counts.most_common(3)
+        quotes_by_class[cls] = {
+            "top": counts.most_common(3),
+            "n_unique": len(counts),
+            "n_rollouts": sum(counts.values()),
+        }
     return class_counts, quotes_by_class
 
 
@@ -186,14 +196,23 @@ def render_html(data: dict[str, Any]) -> str:
             for cls, n in sorted(cc.items(), key=lambda kv: -kv[1])
         )
         quotes_html = ""
-        for cls, quotes in reasoning["quotes_by_class"].items():
-            if not quotes:
+        for cls, qinfo in reasoning["quotes_by_class"].items():
+            top = qinfo["top"]
+            if not top:
                 continue
             q_html = ""
-            for q, n in quotes:
+            for q, n in top:
                 count_span = f'<span class="qcount">×{n}</span>' if n > 1 else ""
                 q_html += f"<li><q>{_esc(q)}</q> {count_span}</li>"
-            quotes_html += f'<div class="quote-group"><span class="quote-class-label">{_esc(cls)}</span><ul>{q_html}</ul></div>'
+            coverage_note = (
+                f'<span class="quote-coverage">top {len(top)} of {qinfo["n_unique"]} distinct phrasings '
+                f'among {qinfo["n_rollouts"]} rollouts &mdash; counts below don\'t sum to {qinfo["n_rollouts"]}, '
+                f'most rollouts phrase it slightly differently each time</span>'
+            )
+            quotes_html += (
+                f'<div class="quote-group"><span class="quote-class-label">{_esc(cls)}</span>'
+                f'{coverage_note}<ul>{q_html}</ul></div>'
+            )
         flag = '<span class="divergent-flag">rollouts diverged into multiple maneuvers</span>' if len(cc) > 1 else ""
         return f'<div class="class-counts">{chips}{flag}</div><div class="quotes">{quotes_html}</div>'
 
@@ -330,6 +349,7 @@ details.scene > summary::-webkit-details-marker {{ display: none; }}
 .quotes {{ display: flex; flex-direction: column; gap: 0.6rem; }}
 .quote-group {{ display: flex; flex-direction: column; gap: 0.3rem; }}
 .quote-class-label {{ font: 700 0.66rem var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); }}
+.quote-coverage {{ font: 0.72rem var(--sans); color: var(--ink-dim); display: block; margin: 0.1rem 0 0.35rem; }}
 .quote-group ul {{ margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }}
 .quote-group li q {{ font: 0.92rem/1.5 var(--serif); font-style: italic; quotes: "“" "”"; }}
 .qcount {{ font: 0.7rem var(--mono); color: var(--ink-dim); font-style: normal; }}

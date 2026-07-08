@@ -54,8 +54,12 @@ Class counts: lane_keep=3, stop=1
         class_counts, quotes_by_class = parse_reasoning_md(path)
 
     assert class_counts == {"lane_keep": 3, "stop": 1}
-    assert quotes_by_class["lane_keep"][0] == ("Proceed through the work zone at reduced speed.", 2)
-    assert quotes_by_class["stop"] == [("Stop for the flagger.", 1)]
+    lane_keep = quotes_by_class["lane_keep"]
+    assert lane_keep["top"][0] == ("Proceed through the work zone at reduced speed.", 2)
+    assert lane_keep["n_unique"] == 2  # "Proceed..." (x2) and "Stay in lane..." (x1)
+    assert lane_keep["n_rollouts"] == 3
+    assert quotes_by_class["stop"]["top"] == [("Stop for the flagger.", 1)]
+    assert quotes_by_class["stop"]["n_unique"] == 1
 
 
 _ROW_TEMPLATE = {
