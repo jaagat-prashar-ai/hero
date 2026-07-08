@@ -86,6 +86,28 @@ def test_build_action_space_variance_report_end_to_end_from_fake_logs():
         assert (Path(tmp) / "action_space_variance_report.md").exists()
 
 
+def test_build_action_space_variance_report_dedups_repeated_scene_ids():
+    # Simulates the real dual-log-source ingestion artifact: OCI Logging
+    # Analytics can return the exact same scene-summary line twice (once per
+    # log source) when both collectors are watching a pod's stdout. The
+    # report should count that scene once, not twice.
+    fake_text = "\n".join([
+        _log_line(SCENE_SUMMARY_LOG_MARKER, _SCENE_SUMMARY_ROW),
+        _log_line(SCENE_SUMMARY_LOG_MARKER, _SCENE_SUMMARY_ROW),  # duplicate delivery
+        _log_line(SCENE_SUMMARY_LOG_MARKER, {**_SCENE_SUMMARY_ROW, "clip_id": "clip-b", "scene_id": "clip-b_2000"}),
+    ])
+
+    def fake_fetcher(workload_id, content_filter):
+        return fake_text
+
+    with tempfile.TemporaryDirectory() as tmp:
+        per_clip_df, per_cluster_df = build_action_space_variance_report(
+            "wf-123", tmp, logs_fetcher=fake_fetcher,
+        )
+        assert len(per_clip_df) == 2  # deduped from 3 raw rows down to 2 real scenes
+        assert sorted(per_clip_df["scene_id"]) == ["clip-a_1000", "clip-b_2000"]
+
+
 def test_build_scene_reasoning_reports_groups_by_scene_and_writes_files():
     rollout_row = {
         "scene_id": "clip-a_1000", "rollout_id": 0, "event_cluster": "WORK_ZONES_TEMP_TRAFFIC_CONTROL",
@@ -96,6 +118,7 @@ def test_build_scene_reasoning_reports_groups_by_scene_and_writes_files():
     }
     fake_text = "\n".join([
         _log_line(ROLLOUT_FULL_LOG_MARKER, rollout_row),
+        _log_line(ROLLOUT_FULL_LOG_MARKER, rollout_row),  # duplicate delivery, same rollout_id
         _log_line(ROLLOUT_FULL_LOG_MARKER, {**rollout_row, "rollout_id": 1}),
     ])
 
@@ -104,7 +127,7 @@ def test_build_scene_reasoning_reports_groups_by_scene_and_writes_files():
 
     with tempfile.TemporaryDirectory() as tmp:
         detailed_df = build_scene_reasoning_reports("wf-123", tmp, logs_fetcher=fake_fetcher)
-        assert len(detailed_df) == 2
+        assert len(detailed_df) == 2  # deduped from 3 raw rows down to 2 real rollouts
         assert (Path(tmp) / "clip-a_1000_actions.png").exists()
         assert (Path(tmp) / "clip-a_1000_reasoning.md").exists()
         md_text = (Path(tmp) / "clip-a_1000_reasoning.md").read_text()
