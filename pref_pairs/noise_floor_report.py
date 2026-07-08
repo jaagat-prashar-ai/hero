@@ -154,11 +154,13 @@ def _cluster_label(cluster: str) -> str:
     return cluster.replace("_", " ").title().replace("Or", "or")
 
 
-def render_html(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None = None) -> str:
-    """Render build_report_data's output as a single self-contained HTML
-    page: gauge cards per category, then a filterable category -> clip ->
-    scene drill-down. Design: concrete/asphalt palette, monospace for
-    telemetry numbers, serif for reasoning quotes as "transcript" text.
+def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None = None) -> dict[str, Any]:
+    """Render one dataset's gauge cards + category/clip/scene drill-down as
+    HTML fragments (not a full page). Split out of render_html so a second
+    dataset (e.g. a fixed-reasoning/diffusion-only run's results, see
+    pref_pairs/fixed_reasoning_rollout.py) can be rendered as a second tab
+    with zero changes to any of the per-cluster/per-clip/per-scene logic
+    below -- only render_html's page-assembly needs to know there are two.
 
     video_b64_by_scene: optional {scene_id: base64-encoded mp4 bytes} --
     scenes with an entry get an inline <video> (data: URI, so the page stays
@@ -166,7 +168,10 @@ def render_html(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None 
     Deliberately NOT auto-discovered from a directory here -- rendering a
     video is expensive (S3 + log fetches per scene, see
     render_trajectory_overlay.py) and this keeps that cost an explicit
-    caller decision, not something that silently scales with report size."""
+    caller decision, not something that silently scales with report size.
+
+    Returns {"gauge_cards", "cluster_sections", "total_clips", "total_scenes", "n_categories"}.
+    """
     video_b64_by_scene = video_b64_by_scene or {}
     cluster_order = sorted(data["clusters"].items(), key=lambda kv: -kv[1]["n_scenes"])
     total_clips = sum(v["n_clips"] for _, v in cluster_order)
@@ -269,12 +274,67 @@ def render_html(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None 
         cluster_section(c, v, "open" if i == 0 else "") for i, (c, v) in enumerate(cluster_order)
     )
 
+    return {
+        "gauge_cards": gauge_cards,
+        "cluster_sections": cluster_sections,
+        "total_clips": total_clips,
+        "total_scenes": total_scenes,
+        "n_categories": len(cluster_order),
+    }
+
+
+def render_html(
+    data: dict[str, Any],
+    label: str = "Compound noise (reasoning + diffusion)",
+    *,
+    data_b: dict[str, Any] | None = None,
+    label_b: str = "Diffusion-only noise (reasoning fixed)",
+    video_b64_by_scene: dict[str, str] | None = None,
+) -> str:
+    """Render one or two datasets as a single self-contained HTML page.
+
+    With just `data`: identical single-tab page as before this function
+    supported a second dataset -- no tab bar, no behavior change for
+    existing callers (e.g. the published Task 3 report).
+
+    With `data_b` also given: a tab bar switches between two full panels
+    (each its own gauge grid + category/clip/scene drill-down), e.g. Task
+    3's compound-noise numbers vs. the fixed-reasoning mode's diffusion-only
+    numbers on the same scenes. The clip-ID filter is shared (one input) but
+    scoped to whichever panel is currently visible.
+    """
+    section_a = render_section(data, video_b64_by_scene)
+    has_tabs = data_b is not None
+    section_b = render_section(data_b, video_b64_by_scene) if has_tabs else None
+
+    tab_bar = ""
+    if has_tabs:
+        tab_bar = (
+            '<div class="tab-bar" role="tablist">'
+            f'<button type="button" class="tab-btn" data-tab-btn="a" aria-selected="true">{_esc(label)}</button>'
+            f'<button type="button" class="tab-btn" data-tab-btn="b" aria-selected="false">{_esc(label_b)}</button>'
+            "</div>"
+        )
+
+    def panel_html(tab: str, section: dict[str, Any], hidden: bool) -> str:
+        hidden_attr = " hidden" if hidden else ""
+        return (
+            f'<div data-tab-panel="{tab}"{hidden_attr}>'
+            f'<section aria-label="Per-category noise floor"><div class="gauge-grid">{section["gauge_cards"]}</div></section>'
+            f'<main>{section["cluster_sections"]}</main>'
+            "</div>"
+        )
+
+    panels = panel_html("a", section_a, hidden=False)
+    if has_tabs:
+        panels += panel_html("b", section_b, hidden=True)
+
     return _PAGE_TEMPLATE.format(
-        total_clips=total_clips,
-        total_scenes=total_scenes,
-        n_categories=len(cluster_order),
-        gauge_cards=gauge_cards,
-        cluster_sections=cluster_sections,
+        total_clips=section_a["total_clips"],
+        total_scenes=section_a["total_scenes"],
+        n_categories=section_a["n_categories"],
+        tab_bar=tab_bar,
+        panels=panels,
     )
 
 
@@ -325,6 +385,11 @@ h1 {{ font: 600 2.15rem/1.15 var(--sans); margin: 0; letter-spacing: -0.01em; te
 .gauge-vals {{ font: 0.78rem var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }}
 .gauge-vals i {{ font-style: normal; color: var(--ink-dim); margin-right: 0.35rem; }}
 .gauge-med {{ color: var(--ink-dim); }}
+.tab-bar {{ display: flex; gap: 0.4rem; margin: 1.75rem 0 0; border-bottom: 1px solid var(--line); }}
+.tab-btn {{ font: 600 0.86rem var(--sans); color: var(--ink-dim); background: none; border: none; border-bottom: 2px solid transparent; padding: 0.7rem 0.2rem; margin-right: 1.4rem; cursor: pointer; }}
+.tab-btn:hover {{ color: var(--ink); }}
+.tab-btn[aria-selected="true"] {{ color: var(--ink); border-bottom-color: var(--accent); }}
+.tab-btn:focus-visible {{ outline: 2px solid var(--accent); outline-offset: 2px; }}
 .filter-bar {{ position: sticky; top: 0; z-index: 5; background: var(--paper); padding: 0.9rem 0; border-bottom: 1px solid var(--line); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }}
 .filter-bar input {{ flex: 1; max-width: 26rem; font: 0.92rem var(--mono); padding: 0.55rem 0.8rem; background: var(--paper-raised); border: 1px solid var(--line); border-radius: 7px; color: var(--ink); }}
 .filter-bar input:focus {{ outline: 2px solid var(--accent); outline-offset: 1px; }}
@@ -389,12 +454,12 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
       <div class="masthead-stat"><b>100</b><span>rollouts / scene</span></div>
     </div>
   </header>
-  <section aria-label="Per-category noise floor"><div class="gauge-grid">{gauge_cards}</div></section>
+  {tab_bar}
   <div class="filter-bar">
     <input id="filter" type="text" placeholder="Filter by clip ID&hellip;" autocomplete="off" />
     <span class="filter-count" id="filter-count"></span>
   </div>
-  <main id="clusters">{cluster_sections}</main>
+  {panels}
   <footer class="page-footer">
     Amber tick on each gauge marks the recommended epsilon (p90 across scenes in that category) -- the noise level 90%
     of scenes fall under. Teal fill shows where the median sits relative to it. Categories with fewer than 5 clips are
@@ -406,10 +471,19 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 (function() {{
   var input = document.getElementById('filter');
   var count = document.getElementById('filter-count');
-  var clips = Array.prototype.slice.call(document.querySelectorAll('details.clip'));
-  var clusterSections = Array.prototype.slice.call(document.querySelectorAll('.cluster-section'));
-  input.addEventListener('input', function() {{
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[data-tab-btn]'));
+  var panels = Array.prototype.slice.call(document.querySelectorAll('[data-tab-panel]'));
+
+  function activePanel() {{
+    return document.querySelector('[data-tab-panel]:not([hidden])') || panels[0];
+  }}
+
+  function applyFilter() {{
+    var panel = activePanel();
+    if (!panel) return;
     var q = input.value.trim().toLowerCase();
+    var clips = Array.prototype.slice.call(panel.querySelectorAll('details.clip'));
+    var clusterSections = Array.prototype.slice.call(panel.querySelectorAll('.cluster-section'));
     var shown = 0;
     clips.forEach(function(clip) {{
       var id = clip.dataset.clipid.toLowerCase();
@@ -423,6 +497,17 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
       if (q !== '' && anyVisible) section.querySelector(':scope > details').open = true;
     }});
     count.textContent = q === '' ? '' : (shown + ' match' + (shown === 1 ? '' : 'es'));
+  }}
+
+  input.addEventListener('input', applyFilter);
+
+  tabButtons.forEach(function(btn) {{
+    btn.addEventListener('click', function() {{
+      var tab = btn.dataset.tabBtn;
+      tabButtons.forEach(function(b) {{ b.setAttribute('aria-selected', String(b === btn)); }});
+      panels.forEach(function(p) {{ p.hidden = p.dataset.tabPanel !== tab; }});
+      applyFilter();
+    }});
   }});
 }})();
 </script>
@@ -445,6 +530,13 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results_dir", default="pref_pairs/results")
+    ap.add_argument("--label", default="Compound noise (reasoning + diffusion)")
+    ap.add_argument(
+        "--results_dir_b", default=None,
+        help="Optional second results dir (e.g. the fixed-reasoning mode's output) -- "
+             "rendered as a second tab alongside --results_dir.",
+    )
+    ap.add_argument("--label_b", default="Diffusion-only noise (reasoning fixed)")
     ap.add_argument("--out", default="pref_pairs/results/noise_floor_report.html")
     ap.add_argument(
         "--video_dir", default=None,
@@ -453,12 +545,19 @@ def main() -> None:
     args = ap.parse_args()
 
     data = build_report_data(args.results_dir)
+    data_b = build_report_data(args.results_dir_b) if args.results_dir_b else None
     videos = load_videos_b64(args.video_dir) if args.video_dir else {}
     if args.video_dir and not videos:
         logger.warning("--video_dir %s had no .mp4 files", args.video_dir)
-    html_text = render_html(data, videos)
+    html_text = render_html(
+        data, args.label, data_b=data_b, label_b=args.label_b, video_b64_by_scene=videos,
+    )
     Path(args.out).write_text(html_text)
-    logger.info("wrote %s (%d bytes, %d embedded videos)", args.out, len(html_text), len(videos))
+    n_tabs = 2 if data_b else 1
+    logger.info(
+        "wrote %s (%d bytes, %d embedded videos, %d tab%s)",
+        args.out, len(html_text), len(videos), n_tabs, "s" if n_tabs != 1 else "",
+    )
 
 
 if __name__ == "__main__":
