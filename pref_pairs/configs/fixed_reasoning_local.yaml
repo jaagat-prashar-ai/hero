@@ -1,0 +1,65 @@
+# NOTE: as of this writing, Lilypad's LaunchWorkload SDK raises
+# NotImplementedError("Local GPU machine type not supported for workloads
+# yet") on real (non-dry-run) submission of gpu_machine_type: local -- only
+# `--dry-run` validation works against this config today (same limitation
+# documented in action_variance_local.yaml). The actual smoke test for this
+# mode should be run the same way Task 3's was: a scoped-down canary
+# directly on fixed_reasoning_cluster.yaml's real a100.8 config (num_gpus
+# overridden to 1, max_scenes overridden to 2) via masking/configs/launch.py's
+# -o overrides. Kept here anyway for config validation (`--dry-run`) and for
+# direct-python execution of pref_pairs.training.run.fixed_reasoning_loop on
+# this workstation's own local GPUs, bypassing the Lilypad SDK entirely.
+name: pref-pairs-fixed-reasoning-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.fixed_reasoning_loop
+  training_fn_config:
+    # ── Data source ───────────────────────────────────────────────────────────
+    # Smoke-test manifest: reuses the existing 12-clip sample_clips_smoke.json
+    # (spans 3 clusters) -- max_scenes below caps this to just the first 2
+    # scenes anyway, same convention as action_variance_local.yaml.
+    manifest_path: "pref_pairs/configs/sample_clips_smoke.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Rollout sampling ──────────────────────────────────────────────────────
+    # num_draws=5 (not the full experiment's 100) -- this run only exists to
+    # validate the config + fixed_reasoning_rollout.py's ported VLM-generate/
+    # KV-cache/diffusion-step logic end to end against the REAL model, and to
+    # get a real per-scene wall-clock number for 100 SEQUENTIAL diffusion
+    # draws (a fundamentally different workload shape than Task 3's batched
+    # k=100) before committing to the full cluster run
+    # (fixed_reasoning_cluster.yaml).
+    num_draws: 5
+    seed_start: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    # ── Maneuver classification thresholds (unused by action_space_variance.py,
+    # but fixed_reasoning_loop always runs classification -- harmless, ignored downstream) ──
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+
+    resume: false
+
+    # Only harvest 2 scenes for the smoke test.
+    max_scenes: 2
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    # Separate outdir from every other pref_pairs outdir so none collide or
+    # get resumed into each other.
+    outdir: "/tmp/fixed_reasoning_smoke_results"
+
+  experiment_tracker: {}  # no W&B tracking for local smoke tests
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
