@@ -1,0 +1,107 @@
+name: pref-pairs-fixed-reasoning-cluster
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.fixed_reasoning_loop
+  training_fn_config:
+    # ── S3 data source ────────────────────────────────────────────────────────
+    # SAME manifest as Task 3's action_variance_cluster.yaml, deliberately --
+    # this experiment isolates diffusion-only noise as a comparison AGAINST
+    # Task 3's compound (reasoning+diffusion) noise, so it needs to cover the
+    # exact same 100 clips/scenes to be comparable scene-for-scene, not just
+    # cluster-for-cluster.
+    manifest_path: "pref_pairs/configs/sample_clips_n100_unstratified.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Rollout sampling ──────────────────────────────────────────────────────
+    # num_draws=100: one CoC reasoning generated ONCE per scene (frozen KV
+    # cache), then 100 diffusion-only draws against that SAME fixed reasoning,
+    # varying only the diffusion seed (seed_start + draw index) -- see
+    # fixed_reasoning_rollout.py's module docstring. Unlike Task 3's k=100
+    # (one batched call over max_batch_size=20 sub-batches), there is no
+    # batching trick for "one frozen reasoning, K diffusion draws" anywhere
+    # in this codebase (confirmed) -- FixedReasoningHarvester.harvest_scene
+    # runs num_draws sequential diffusion calls per scene instead. No
+    # max_batch_size field here: nothing to split, each draw is its own call.
+    num_draws: 100
+    seed_start: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    # ── Maneuver classification thresholds (unused by action_space_variance.py,
+    # but fixed_reasoning_loop always runs classification -- harmless, ignored downstream) ──
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+
+    # Resume from an interrupted run (skips already-written scene_ids).
+    resume: true
+
+    # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ─────
+    # With num_gpus: 8 each replica owns scenes where hash(scene_id) % 8 == rank.
+    # Outputs: pref_pairs_rollouts_rank{RR}.jsonl (one file per GPU).
+
+    # Omit or set to null to harvest every scene in the manifest.
+    max_scenes: null
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    # Deliberately a DIFFERENT outdir from Task 3's
+    # /mnt/work/tmp/action_variance_results -- independent runs, must not
+    # share a resume state.
+    outdir: "/mnt/work/tmp/fixed_reasoning_results"
+
+    # ── Result retrieval (see run.py's "RESULT RETRIEVAL" docstring note) ──────
+    # Same confirmed issue as Task 3: this cluster's /mnt/work is NOT the
+    # same filesystem as the submitting workstation's identically-named
+    # /mnt/work -- outdir above is not how results actually get retrieved.
+    # log_scene_summary=true logs one compact summary line per scene (every
+    # scene, ~100 total); log_detailed_scenes=20 additionally logs full
+    # per-rollout rows (waypoints + full CoT text -- identical CoT text
+    # across all 100 rows per scene here, that's the point) for the first 20
+    # scenes PER RANK, covering every scene at this run's ~12-13 scenes/rank
+    # scale. Fetch both via
+    # `python -m pref_pairs.fetch_from_logs --workload_id <id>
+    #  --out_dir pref_pairs/results/fixed_reasoning
+    #  --scene_reasoning_out_dir pref_pairs/results/fixed_reasoning/scene_reasoning`.
+    log_scene_summary: true
+    log_detailed_scenes: 20
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: pref-pairs-fixed-reasoning-variance
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch install is multi-GB per worker; allow ample setup time (same as
+  # masking/configs/cluster.yaml and pref_pairs/configs/cluster.yaml).
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

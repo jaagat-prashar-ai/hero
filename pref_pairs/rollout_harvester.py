@@ -170,6 +170,63 @@ def _sample_with_captured_action(
     return result, captured.get("action_raw")
 
 
+def load_alpamayo(checkpoint: str = DEFAULT_CHECKPOINT, device: str = "cuda") -> Alpamayo1_5:
+    """Plain Alpamayo1_5 load, shared by RolloutHarvester and
+    fixed_reasoning_rollout.FixedReasoningHarvester -- NOT MaskedAlpamayo1_5,
+    per the independence note at the top of this file. Same load pattern as
+    third_party/alpamayo1.5/.../test_inference.py.
+
+    attn_implementation="sdpa" is required, not cosmetic: base_model.py
+    defaults to "flash_attention_2" when this kwarg is omitted, and
+    flash-attn is a slow-to-build CUDA extension we deliberately don't
+    install (masking/masked_model.py's own from_pretrained call already
+    works around this the same way). SDPA is PyTorch's built-in fused
+    attention -- no extra dependency, and alpamayo1_5.py already forces
+    the diffusion expert's OWN attention to "sdpa" regardless, so this
+    only affects the VLM backbone, not a mismatch between the two.
+    """
+    model = Alpamayo1_5.from_pretrained(
+        checkpoint, dtype=torch.bfloat16, attn_implementation="sdpa",
+    ).to(device)
+    model.eval()
+    return model
+
+
+def build_tokenized_inputs(model: Alpamayo1_5, model_inputs: dict[str, Any], device: str) -> dict[str, Any]:
+    """Turn raw (image_frames, camera_indices, ego_history_xyz/rot) into the
+    {tokenized_data, ego_history_xyz, ego_history_rot} dict the model's
+    rollout method expects. Shared by RolloutHarvester and
+    fixed_reasoning_rollout.FixedReasoningHarvester -- both need identical
+    tokenization glue, so this lives here once rather than duplicated; this
+    is a pref_pairs-internal share, not a masking dependency (see the
+    independence note at the top of this file).
+
+    This re-implements masking/run_masked_openloop.py's build_inputs()
+    logic, but calls ONLY upstream alpamayo1_5.helper utilities -- no
+    import from `masking` -- so this module's model-facing code has zero
+    dependency on the masking experiment's code.
+    """
+    messages = helper.create_message(
+        frames=model_inputs["image_frames"].flatten(0, 1),
+        camera_indices=model_inputs["camera_indices"],
+    )
+    processor = helper.get_processor(model.tokenizer)
+    tokenized = processor.apply_chat_template(
+        messages,
+        tokenize=True,
+        add_generation_prompt=False,
+        continue_final_message=True,
+        return_dict=True,
+        return_tensors="pt",
+    )
+    data = {
+        "tokenized_data": tokenized,
+        "ego_history_xyz": model_inputs["ego_history_xyz"],
+        "ego_history_rot": model_inputs["ego_history_rot"],
+    }
+    return helper.to_device(data, device)
+
+
 class RolloutHarvester:
     """Loads Alpamayo 1.5 once and samples K rollouts per scene on demand."""
 
@@ -181,53 +238,10 @@ class RolloutHarvester:
     def load(
         cls, checkpoint: str = DEFAULT_CHECKPOINT, device: str = "cuda"
     ) -> "RolloutHarvester":
-        # Same load pattern as third_party/alpamayo1.5/.../test_inference.py --
-        # plain Alpamayo1_5, not MaskedAlpamayo1_5, per the independence note above.
-        #
-        # attn_implementation="sdpa" is required, not cosmetic: base_model.py
-        # defaults to "flash_attention_2" when this kwarg is omitted, and
-        # flash-attn is a slow-to-build CUDA extension we deliberately don't
-        # install (masking/masked_model.py's own from_pretrained call already
-        # works around this the same way). SDPA is PyTorch's built-in fused
-        # attention -- no extra dependency, and alpamayo1_5.py already forces
-        # the diffusion expert's OWN attention to "sdpa" regardless, so this
-        # only affects the VLM backbone, not a mismatch between the two.
-        model = Alpamayo1_5.from_pretrained(
-            checkpoint, dtype=torch.bfloat16, attn_implementation="sdpa",
-        ).to(device)
-        model.eval()
-        return cls(model=model, device=device)
+        return cls(model=load_alpamayo(checkpoint, device), device=device)
 
     def _build_tokenized_inputs(self, model_inputs: dict[str, Any]) -> dict[str, Any]:
-        """Turn raw (image_frames, camera_indices, ego_history_xyz/rot) into the
-        {tokenized_data, ego_history_xyz, ego_history_rot} dict the model's
-        rollout method expects.
-
-        This re-implements masking/run_masked_openloop.py's build_inputs()
-        logic, but calls ONLY upstream alpamayo1_5.helper utilities -- no
-        import from `masking` -- so this module's model-facing code has zero
-        dependency on the masking experiment's code, per the independence
-        note at the top of this file.
-        """
-        messages = helper.create_message(
-            frames=model_inputs["image_frames"].flatten(0, 1),
-            camera_indices=model_inputs["camera_indices"],
-        )
-        processor = helper.get_processor(self.model.tokenizer)
-        tokenized = processor.apply_chat_template(
-            messages,
-            tokenize=True,
-            add_generation_prompt=False,
-            continue_final_message=True,
-            return_dict=True,
-            return_tensors="pt",
-        )
-        data = {
-            "tokenized_data": tokenized,
-            "ego_history_xyz": model_inputs["ego_history_xyz"],
-            "ego_history_rot": model_inputs["ego_history_rot"],
-        }
-        return helper.to_device(data, self.device)
+        return build_tokenized_inputs(self.model, model_inputs, self.device)
 
     def _harvest_batch(
         self,
