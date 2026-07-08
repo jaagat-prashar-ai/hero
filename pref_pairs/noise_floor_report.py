@@ -154,12 +154,20 @@ def _cluster_label(cluster: str) -> str:
     return cluster.replace("_", " ").title().replace("Or", "or")
 
 
-def render_html(data: dict[str, Any]) -> str:
+def render_html(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None = None) -> str:
     """Render build_report_data's output as a single self-contained HTML
     page: gauge cards per category, then a filterable category -> clip ->
-    scene drill-down. See pref_pairs/pref.txt or the published artifact for
-    the design rationale (concrete/asphalt palette, mono for telemetry
-    data, serif for reasoning quotes as "transcript" text)."""
+    scene drill-down. Design: concrete/asphalt palette, monospace for
+    telemetry numbers, serif for reasoning quotes as "transcript" text.
+
+    video_b64_by_scene: optional {scene_id: base64-encoded mp4 bytes} --
+    scenes with an entry get an inline <video> (data: URI, so the page stays
+    self-contained per the Artifact CSP); scenes without one show no video.
+    Deliberately NOT auto-discovered from a directory here -- rendering a
+    video is expensive (S3 + log fetches per scene, see
+    render_trajectory_overlay.py) and this keeps that cost an explicit
+    caller decision, not something that silently scales with report size."""
+    video_b64_by_scene = video_b64_by_scene or {}
     cluster_order = sorted(data["clusters"].items(), key=lambda kv: -kv[1]["n_scenes"])
     total_clips = sum(v["n_clips"] for _, v in cluster_order)
     total_scenes = sum(v["n_scenes"] for _, v in cluster_order)
@@ -224,10 +232,16 @@ def render_html(data: dict[str, Any]) -> str:
             for _, (short, label, unit) in METRICS.items()
         )
         incomplete = "" if scene["complete"] else '<span class="incomplete-flag">incomplete rollout set</span>'
+        video_b64 = video_b64_by_scene.get(scene["scene_id"])
+        video_html = (
+            f'<video class="scene-video" controls preload="none" playsinline muted loop>'
+            f'<source src="data:video/mp4;base64,{video_b64}" type="video/mp4"></video>'
+            if video_b64 else ""
+        )
         return (
             f'<details class="scene"><summary><span class="scene-t0">t0={_esc(scene["t0_us"])}µs</span>'
             f'<span class="scene-n">{_esc(scene["n_rollouts"])} rollouts</span>{incomplete}</summary>'
-            f'<div class="scene-body"><div class="stat-row">{stat_html}</div>'
+            f'<div class="scene-body">{video_html}<div class="stat-row">{stat_html}</div>'
             f'{reasoning_block(scene["reasoning"])}</div></details>'
         )
 
@@ -337,6 +351,7 @@ details.scene > summary::-webkit-details-marker {{ display: none; }}
 .scene-n {{ color: var(--ink-dim); font-size: 0.76rem; }}
 .incomplete-flag, .divergent-flag {{ font: 600 0.66rem var(--sans); letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 55%, transparent); padding: 0.1rem 0.4rem; border-radius: 20px; }}
 .scene-body {{ padding: 0 0.9rem 0.95rem; border-top: 1px solid var(--line); }}
+.scene-video {{ display: block; width: 100%; max-width: 32rem; border-radius: 6px; margin-top: 0.75rem; background: #000; }}
 .stat-row {{ display: flex; flex-wrap: wrap; gap: 1.1rem; margin: 0.75rem 0; }}
 .stat {{ display: flex; flex-direction: column; gap: 0.1rem; }}
 .stat-label {{ font-size: 0.68rem; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }}
@@ -414,17 +429,36 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 """
 
 
+def load_videos_b64(video_dir: str | Path) -> dict[str, str]:
+    """Reads every {scene_id}.mp4 in video_dir (e.g. produced by
+    render_trajectory_overlay.py) and base64-encodes it for inline embedding."""
+    import base64
+
+    video_dir = Path(video_dir)
+    return {
+        p.stem: base64.b64encode(p.read_bytes()).decode("ascii")
+        for p in sorted(video_dir.glob("*.mp4"))
+    } if video_dir.is_dir() else {}
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results_dir", default="pref_pairs/results")
     ap.add_argument("--out", default="pref_pairs/results/noise_floor_report.html")
+    ap.add_argument(
+        "--video_dir", default=None,
+        help="Optional directory of {scene_id}.mp4 files (see render_trajectory_overlay.py) to embed inline.",
+    )
     args = ap.parse_args()
 
     data = build_report_data(args.results_dir)
-    html_text = render_html(data)
+    videos = load_videos_b64(args.video_dir) if args.video_dir else {}
+    if args.video_dir and not videos:
+        logger.warning("--video_dir %s had no .mp4 files", args.video_dir)
+    html_text = render_html(data, videos)
     Path(args.out).write_text(html_text)
-    logger.info("wrote %s (%d bytes)", args.out, len(html_text))
+    logger.info("wrote %s (%d bytes, %d embedded videos)", args.out, len(html_text), len(videos))
 
 
 if __name__ == "__main__":

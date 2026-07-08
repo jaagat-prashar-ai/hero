@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from pref_pairs.noise_floor_report import build_report_data, parse_reasoning_md, render_html
+from pref_pairs.noise_floor_report import build_report_data, load_videos_b64, parse_reasoning_md, render_html
 
 
 def test_parse_reasoning_md_ranks_quotes_by_frequency_per_class():
@@ -127,3 +127,32 @@ def test_render_html_produces_balanced_details_tags():
     assert out.count("<details") == out.count("</details>")
     assert "OTHER_LONGTAIL".title().replace("Or", "or") not in out  # sanity: label gets human-cased, not raw enum
     assert "Other Longtail" in out
+
+
+def test_render_html_embeds_video_only_for_scenes_with_one():
+    rows = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+        {**_ROW_TEMPLATE, "clip_id": "b", "scene_id": "b_200", "t0_us": "200", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_fixture(tmp_path, rows)
+        data = build_report_data(tmp_path)
+    out = render_html(data, video_b64_by_scene={"a_100": "ZmFrZS1tcDQtYnl0ZXM="})
+    assert out.count('<video class="scene-video"') == 1
+    assert "data:video/mp4;base64,ZmFrZS1tcDQtYnl0ZXM=" in out
+
+
+def test_load_videos_b64_reads_mp4s_keyed_by_scene_id():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        (tmp_path / "a_100.mp4").write_bytes(b"fake-mp4-bytes")
+        (tmp_path / "not_a_video.txt").write_bytes(b"ignored")
+        result = load_videos_b64(tmp_path)
+    assert list(result.keys()) == ["a_100"]
+    import base64
+    assert base64.b64decode(result["a_100"]) == b"fake-mp4-bytes"
+
+
+def test_load_videos_b64_returns_empty_for_missing_dir():
+    assert load_videos_b64("/nonexistent/path") == {}
