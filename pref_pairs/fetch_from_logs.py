@@ -97,6 +97,20 @@ def build_action_space_variance_report(
             "was log_scene_summary=true set in this run's config?"
         )
     per_clip_df = pd.DataFrame(summaries)
+    # `lilypad workload logs` queries OCI Logging Analytics with
+    # ('Log Source' = 'Ray Application Logs' or 'Log Source' = 'Kubernetes
+    # Container Generic Logs') OR'd together (see lilypad_py's
+    # oci_logs_query.py) and returns every matching row with no dedup across
+    # sources. Each scene is logged exactly once by the training loop (one
+    # logger.info call per scene, see run.py), but on a pod where BOTH log
+    # collectors are watching the same stdout stream, that single write gets
+    # ingested twice under two different Log Source tags and comes back as
+    # two identical rows here. Confirmed against a real run: 50/123 scenes
+    # were doubled, silently inflating their weight in the per-cluster
+    # median/p90 epsilon calibration. Scene summaries are one-per-scene by
+    # construction, so any repeat scene_id is this ingestion artifact, not a
+    # second real scene -- keep the first occurrence and drop the rest.
+    per_clip_df = per_clip_df.drop_duplicates(subset="scene_id", keep="first")
     per_cluster_df = per_cluster_range(per_clip_df)
     write_report(per_clip_df, per_cluster_df, out_dir)
     return per_clip_df, per_cluster_df
@@ -117,6 +131,11 @@ def build_scene_reasoning_reports(
             "was log_detailed_scenes > 0 set in this run's config?"
         )
     detailed_df = pd.DataFrame(rows)
+    # Same dual-log-source ingestion artifact as build_action_space_variance_report
+    # above, applied to per-rollout rows: dedup on (scene_id, rollout_id) since
+    # that pair uniquely identifies one rollout -- a repeat is a duplicate
+    # delivery of the same logger.info call, not a second real rollout.
+    detailed_df = detailed_df.drop_duplicates(subset=["scene_id", "rollout_id"], keep="first")
     for scene_id, scene_df in detailed_df.groupby("scene_id"):
         png_path, md_path = write_scene_report(scene_df, out_dir)
         logger.info("scene %s: wrote %s and %s", scene_id, png_path, md_path)
