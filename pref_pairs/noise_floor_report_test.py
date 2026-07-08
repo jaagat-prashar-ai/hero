@@ -156,3 +156,47 @@ def test_load_videos_b64_reads_mp4s_keyed_by_scene_id():
 
 def test_load_videos_b64_returns_empty_for_missing_dir():
     assert load_videos_b64("/nonexistent/path") == {}
+
+
+def test_render_html_single_dataset_has_no_tab_bar():
+    rows = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_fixture(tmp_path, rows)
+        data = build_report_data(tmp_path)
+    out = render_html(data)
+    assert 'role="tablist"' not in out
+    assert '<div class="tab-bar"' not in out
+    assert out.count('data-tab-panel="') == 1  # exactly one panel, unconditionally emitted
+
+
+def test_render_html_two_datasets_renders_both_panels_and_tab_bar():
+    rows_a = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    rows_b = [
+        {**_ROW_TEMPLATE, "clip_id": "z", "scene_id": "z_500", "t0_us": "500", "event_cluster": "EMERGENCY_INCIDENT_SCENE"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp_a, tempfile.TemporaryDirectory() as tmp_b:
+        tmp_a_path, tmp_b_path = Path(tmp_a), Path(tmp_b)
+        _write_fixture(tmp_a_path, rows_a)
+        _write_fixture(tmp_b_path, rows_b)
+        data_a = build_report_data(tmp_a_path)
+        data_b = build_report_data(tmp_b_path)
+
+    out = render_html(data_a, "Tab A Label", data_b=data_b, label_b="Tab B Label")
+    assert out.count("<details") == out.count("</details>")
+    assert '<div class="tab-bar"' in out
+    assert "Tab A Label" in out and "Tab B Label" in out
+    assert out.count('data-tab-panel="') == 2
+    # Panel b starts hidden; panel a doesn't.
+    assert '<div data-tab-panel="b" hidden>' in out
+    assert '<div data-tab-panel="a">' in out
+    # Each dataset's own clip appears exactly once (proves both panels got
+    # their own data, not one panel's data duplicated into both).
+    assert out.count('data-clipid="a"') == 1
+    assert out.count('data-clipid="z"') == 1
+    assert "Other Longtail" in out
+    assert "Emergency Incident Scene" in out
