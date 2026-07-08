@@ -276,11 +276,21 @@ def _expand_clip_to_events(sample: dict) -> list[dict]:
         group = row.get("feature", "unknown")
         sub_events = row.get("events", [])
         if isinstance(sub_events, str):
-            try:
-                sub_events = json.loads(sub_events)
-            except Exception:
-                logger.warning("clip %s: could not parse stringified events field", clip_id)
+            if sub_events == "None":
+                # build_webdataset.py's metadata writer blanket-casts every
+                # ood_events field through str(v); when the upstream events
+                # value was a genuine Python None ("this event has no
+                # sub-events"), that becomes the literal text "None", which
+                # is not valid JSON. This is a known, legitimate "no
+                # sub-events" case, not corruption -- treat it as an empty
+                # list without the parse-failure warning below.
                 sub_events = []
+            else:
+                try:
+                    sub_events = json.loads(sub_events)
+                except Exception:
+                    logger.warning("clip %s: could not parse stringified events field", clip_id)
+                    sub_events = []
 
         for sub_idx, ev in enumerate(sub_events):
             t0_us_raw = int(ev.get("event_start_timestamp", 0))

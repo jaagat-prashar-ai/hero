@@ -328,6 +328,24 @@ def _read_camera_mp4_bytes(
     return data
 
 
+def _serialize_ood_event_field(key: str, v: Any) -> Any:
+    """Stringify one ood_events field for JSON metadata, matching the
+    convention masking.data.wds_dataset already expects (e.g. "events" is
+    normally a JSON-encoded string it re-parses with json.loads).
+
+    NVIDIA's own reasoning/ood_reasoning.parquet has a small number of rows
+    (9/1740 as of this writing) where "events" is null -- a row-level "no
+    sub-events for this OOD tag" case, not a missing/corrupt clip. The
+    blanket str(v) below turns that null into the literal text "None",
+    which is not valid JSON and gets silently dropped by the downstream
+    parser. Serialize it as an empty JSON array instead, so it round-trips
+    through json.loads() as [] like a real (empty) sub-events list would.
+    """
+    if key == "events" and (v is None or (isinstance(v, float) and pd.isna(v))):
+        return "[]"
+    return v.tolist() if hasattr(v, "tolist") else str(v)
+
+
 def build_clip_sample(
     avdi: PhysicalAIAVDatasetInterface,
     clip_id: str,
@@ -352,7 +370,7 @@ def build_clip_sample(
         "collection":       {k: str(v) for k, v in (collection_row or {}).items()},
         "feature_presence": {k: str(v) for k, v in feature_row.items()},
         "ood_events":       [
-            {k: (v.tolist() if hasattr(v, "tolist") else str(v)) for k, v in ev.items()}
+            {k: _serialize_ood_event_field(k, v) for k, v in ev.items()}
             for ev in ood_events
         ],
     }
