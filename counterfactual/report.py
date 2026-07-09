@@ -65,6 +65,8 @@ def build_counterfactual_data(results_dir: str | Path) -> dict[str, Any]:
 
     scenes = []
     clean_a: list[float] = []
+    clean_a_step0: list[float] = []
+    clean_a_other: list[float] = []
     clean_b: list[float] = []
     clean_b_step0: list[float] = []
     clean_b_other: list[float] = []
@@ -87,6 +89,7 @@ def build_counterfactual_data(results_dir: str | Path) -> dict[str, Any]:
             for alt_a in pa["alternatives"]:
                 n_alts_total += 1
                 clean_a.append(alt_a["traj_ade_m"])
+                (clean_a_step0 if step == 0 else clean_a_other).append(alt_a["traj_ade_m"])
                 alt_b = None
                 if pb:
                     alt_b = next((a for a in pb["alternatives"] if a["token"] == alt_a["token"]), None)
@@ -144,6 +147,8 @@ def build_counterfactual_data(results_dir: str | Path) -> dict[str, Any]:
         "n_alternatives": n_alts_total,
         "n_degenerate": n_degenerate,
         "stats_a": _stats(clean_a),
+        "stats_a_step0": _stats(clean_a_step0),
+        "stats_a_other": _stats(clean_a_other),
         "stats_b": _stats(clean_b),
         "stats_b_step0": _stats(clean_b_step0),
         "stats_b_other": _stats(clean_b_other),
@@ -172,6 +177,7 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
     """Render the full 'Token Sensitivity' tab body (everything inside the
     <div data-tab-panel="...">, not the page shell)."""
     sa, sb = data["stats_a"], data["stats_b"]
+    sa0, sao = data["stats_a_step0"], data["stats_a_other"]
     sb0, sbo = data["stats_b_step0"], data["stats_b_other"]
 
     stat_tiles = "".join(
@@ -182,7 +188,7 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
         ]
     )
 
-    scale_max = max(sa["p90"], sb["p90"], sb0["p90"], sbo["p90"], 0.001) * 1.15
+    scale_max = max(sa["p90"], sa0["p90"], sao["p90"], sb["p90"], sb0["p90"], sbo["p90"], 0.001) * 1.15
     compare_html = (
         f'<div class="compare-legend">'
         f'<span class="legend-chip"><i class="swatch swatch-a"></i>Option A (isolated single-token swap)</span>'
@@ -191,13 +197,17 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
         f'<div class="compare-grid"><article class="compare-panel">'
         f'<h3>Trajectory delta by swap mode<span class="compare-metric-note">median ADE, meters</span></h3>'
         f'{_dumbbell_row("Overall", sa["median"], sb["median"], scale_max)}'
-        f'{_dumbbell_row("First reasoning token (step 0)", sa["median"], sb0["median"], scale_max)}'
-        f'{_dumbbell_row("Later reasoning tokens", sa["median"], sbo["median"], scale_max)}'
+        f'{_dumbbell_row("First reasoning token (step 0)", sa0["median"], sb0["median"], scale_max)}'
+        f'{_dumbbell_row("Later reasoning tokens", sao["median"], sbo["median"], scale_max)}'
         f'</article></div>'
         f'<p class="compare-missing-note">'
-        f'Full distributions (m, ADE, clean/non-degenerate only) &mdash; '
-        f'Option A: mean {_fmt(sa["mean"])} &middot; p90 {_fmt(sa["p90"])} &middot; max {_fmt(sa["max"])}. '
-        f'Option B: mean {_fmt(sb["mean"])} &middot; p90 {_fmt(sb["p90"])} &middot; max {_fmt(sb["max"])}. '
+        f'Full distributions (m, ADE, clean/non-degenerate only), mean / median / p90 / max &mdash; '
+        f'Option A overall: {_fmt(sa["mean"])} / {_fmt(sa["median"])} / {_fmt(sa["p90"])} / {_fmt(sa["max"])}, '
+        f'step 0: {_fmt(sa0["mean"])} / {_fmt(sa0["median"])} / {_fmt(sa0["p90"])} / {_fmt(sa0["max"])}, '
+        f'later steps: {_fmt(sao["mean"])} / {_fmt(sao["median"])} / {_fmt(sao["p90"])} / {_fmt(sao["max"])}. '
+        f'Option B overall: {_fmt(sb["mean"])} / {_fmt(sb["median"])} / {_fmt(sb["p90"])} / {_fmt(sb["max"])}, '
+        f'step 0: {_fmt(sb0["mean"])} / {_fmt(sb0["median"])} / {_fmt(sb0["p90"])} / {_fmt(sb0["max"])}, '
+        f'later steps: {_fmt(sbo["mean"])} / {_fmt(sbo["median"])} / {_fmt(sbo["p90"])} / {_fmt(sbo["max"])}. '
         f'{data["n_degenerate"]} of {data["n_alternatives"]} Option B continuations never closed their reasoning '
         f'cleanly within the generation budget and are excluded from every statistic above (mean ADE among '
         f'those degenerate ones alone: ~25&times; higher than clean ones &mdash; a KV-cache/diffusion artifact '
