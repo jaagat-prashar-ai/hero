@@ -269,3 +269,44 @@ def test_render_html_embeds_trajectory_image_only_for_scenes_with_one():
     out = render_html(data, image_b64_by_scene_a={"a_100": "ZmFrZS1wbmc="})
     assert out.count('<img class="scene-traj-img"') == 1
     assert "data:image/png;base64,ZmFrZS1wbmc=" in out
+
+
+def test_render_html_adds_fourth_tab_for_counterfactual_html():
+    rows_a = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    rows_b = [
+        {**_ROW_TEMPLATE, "clip_id": "z", "scene_id": "z_500", "t0_us": "500", "event_cluster": "EMERGENCY_INCIDENT_SCENE"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp_a, tempfile.TemporaryDirectory() as tmp_b:
+        tmp_a_path, tmp_b_path = Path(tmp_a), Path(tmp_b)
+        _write_fixture(tmp_a_path, rows_a)
+        _write_fixture(tmp_b_path, rows_b)
+        data_a = build_report_data(tmp_a_path)
+        data_b = build_report_data(tmp_b_path)
+
+    out = render_html(
+        data_a, "Tab A", data_b=data_b, label_b="Tab B",
+        counterfactual_html="<p>FAKE_COUNTERFACTUAL_MARKER</p>",
+    )
+    assert out.count("<details") == out.count("</details>")
+    assert out.count('data-tab-panel="') == 4
+    assert '<div data-tab-panel="counterfactual" hidden>' in out
+    assert "FAKE_COUNTERFACTUAL_MARKER" in out
+    assert "Token Sensitivity" in out
+
+
+def test_render_html_counterfactual_tab_alone_is_visible_by_default():
+    rows = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_fixture(tmp_path, rows)
+        data = build_report_data(tmp_path)
+
+    out = render_html(data, counterfactual_html="<p>FAKE_MARKER</p>")
+    # No data_b -- "a" has no tab button of its own, so the counterfactual
+    # tab (the only one with a button) must be the visible one, not "a".
+    assert '<div data-tab-panel="a" hidden>' in out
+    assert '<div data-tab-panel="counterfactual">' in out
