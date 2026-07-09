@@ -6,6 +6,7 @@ fixtures (no model, no real cluster data)."""
 from __future__ import annotations
 
 import json
+import statistics
 import tempfile
 from pathlib import Path
 
@@ -80,6 +81,38 @@ def test_build_counterfactual_data_excludes_degenerate_from_stats():
     assert data["stats_b"]["mean"] == pytest.approx(0.2)
     # Option A stats are never filtered by degeneracy (it only applies to Option B).
     assert data["stats_a"]["max"] == pytest.approx(0.3)
+
+
+def test_build_counterfactual_data_splits_option_a_by_step_too():
+    """Regression test: an earlier version split Option B's ADE values by
+    step (stats_b_step0/stats_b_other) but forgot to do the same for Option
+    A, so the rendered report showed the SAME Option A number on the
+    "Overall"/"step 0"/"later steps" rows. Both options must be split
+    identically."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_scene(tmp_path, "scene_a", "cot", [
+            {"step": 0, "sampled_token": "x", "sampled_prob": 0.9, "entropy": 0.1, "alternatives": [
+                ("y", 0.05, 9.0, 9.5, "step0 alt cot"),  # Option A ade_a=9.0 at step 0
+            ]},
+            {"step": 1, "sampled_token": "z", "sampled_prob": 0.9, "entropy": 0.1, "alternatives": [
+                ("w", 0.05, 1.0, 1.5, "step1 alt cot"),  # Option A ade_a=1.0 at step 1
+            ]},
+        ])
+        data = build_counterfactual_data(tmp_path)
+
+    assert data["stats_a_step0"]["median"] == pytest.approx(9.0)
+    assert data["stats_a_other"]["median"] == pytest.approx(1.0)
+    assert data["stats_a"]["median"] == pytest.approx(statistics.median([9.0, 1.0]))
+    # The three must NOT all collapse to the same value.
+    assert data["stats_a_step0"]["median"] != data["stats_a_other"]["median"]
+
+    out = render_counterfactual_section(data)
+    # Both the step-0 (9) and later-step (1) Option A medians must appear as
+    # distinct rendered dumbbell values -- not the same overall-median
+    # number (5, the median of [9, 1]) repeated on every row.
+    assert 'swatch-a"></i>9<i' in out
+    assert 'swatch-a"></i>1<i' in out
 
 
 def test_build_counterfactual_data_sorts_scenes_by_max_clean_ade_descending():
