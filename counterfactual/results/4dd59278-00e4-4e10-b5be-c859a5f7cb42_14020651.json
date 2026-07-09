@@ -1,0 +1,3008 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Nudge left due to the construction barrier blocking the right side of our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 15,
+    "mean_entropy": 0.3418741205845947,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "N",
+        "sampled_prob": 0.9999387264251709,
+        "entropy": 0.0007777075516059995,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.9999387264251709
+          },
+          {
+            "text": "Keep",
+            "prob": 3.426756666158326e-05
+          },
+          {
+            "text": "Slow",
+            "prob": 1.012947268463904e-05
+          },
+          {
+            "text": "Maint",
+            "prob": 4.356631961854873e-06
+          },
+          {
+            "text": "Ad",
+            "prob": 4.356631961854873e-06
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "udge",
+        "sampled_prob": 1.0,
+        "entropy": 3.288081984464952e-08,
+        "top_k": [
+          {
+            "text": "udge",
+            "prob": 1.0
+          },
+          {
+            "text": " left",
+            "prob": 5.547519665860534e-10
+          },
+          {
+            "text": " right",
+            "prob": 5.547519665860534e-10
+          },
+          {
+            "text": " for",
+            "prob": 1.4783637855564358e-11
+          },
+          {
+            "text": "apt",
+            "prob": 1.0483170755082316e-11
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " left",
+        "sampled_prob": 0.9094720482826233,
+        "entropy": 0.3068040609359741,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.9094720482826233
+          },
+          {
+            "text": " right",
+            "prob": 0.09004992991685867
+          },
+          {
+            "text": " to",
+            "prob": 0.00047253863885998726
+          },
+          {
+            "text": " due",
+            "prob": 3.303820790279133e-07
+          },
+          {
+            "text": " the",
+            "prob": 2.0038686443513143e-07
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " due",
+        "sampled_prob": 0.9429356455802917,
+        "entropy": 0.22243176400661469,
+        "top_k": [
+          {
+            "text": " due",
+            "prob": 0.9429356455802917
+          },
+          {
+            "text": " to",
+            "prob": 0.05662768334150314
+          },
+          {
+            "text": " because",
+            "prob": 0.00018595474830362946
+          },
+          {
+            "text": " for",
+            "prob": 5.851325113326311e-05
+          },
+          {
+            "text": " since",
+            "prob": 5.671299004461616e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " to",
+        "sampled_prob": 0.9999984502792358,
+        "entropy": 2.656764627317898e-05,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9999984502792358
+          },
+          {
+            "text": " for",
+            "prob": 9.422440143680433e-07
+          },
+          {
+            "text": " from",
+            "prob": 2.238025871292848e-07
+          },
+          {
+            "text": " because",
+            "prob": 9.042440751727554e-08
+          },
+          {
+            "text": " since",
+            "prob": 6.412051334336866e-08
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " the",
+        "sampled_prob": 0.5048539042472839,
+        "entropy": 1.0813515186309814,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.5048539042472839
+          },
+          {
+            "text": " construction",
+            "prob": 0.36935901641845703
+          },
+          {
+            "text": " road",
+            "prob": 0.10582312941551208
+          },
+          {
+            "text": " a",
+            "prob": 0.006979792378842831
+          },
+          {
+            "text": " lane",
+            "prob": 0.002909610513597727
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " construction",
+        "sampled_prob": 0.7988719940185547,
+        "entropy": 0.7740613222122192,
+        "top_k": [
+          {
+            "text": " construction",
+            "prob": 0.7988719940185547
+          },
+          {
+            "text": " road",
+            "prob": 0.13882312178611755
+          },
+          {
+            "text": " barric",
+            "prob": 0.019999369978904724
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.012130229733884335
+          },
+          {
+            "text": " barrier",
+            "prob": 0.00629308121278882
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " barrier",
+        "sampled_prob": 0.4817046523094177,
+        "entropy": 1.041137933731079,
+        "top_k": [
+          {
+            "text": " barrier",
+            "prob": 0.4817046523094177
+          },
+          {
+            "text": " barric",
+            "prob": 0.37515196204185486
+          },
+          {
+            "text": " barriers",
+            "prob": 0.13801069557666779
+          },
+          {
+            "text": " cones",
+            "prob": 0.0022307352628558874
+          },
+          {
+            "text": "work",
+            "prob": 0.00021744838159065694
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " blocking",
+        "sampled_prob": 0.8948780298233032,
+        "entropy": 0.5246335864067078,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.8948780298233032
+          },
+          {
+            "text": " enc",
+            "prob": 0.05048556625843048
+          },
+          {
+            "text": " narrowing",
+            "prob": 0.019770430400967598
+          },
+          {
+            "text": " intr",
+            "prob": 0.013169946148991585
+          },
+          {
+            "text": " on",
+            "prob": 0.012764749117195606
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " the",
+        "sampled_prob": 0.9896118640899658,
+        "entropy": 0.08430175483226776,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9896118640899658
+          },
+          {
+            "text": " part",
+            "prob": 0.006667952053248882
+          },
+          {
+            "text": " a",
+            "prob": 0.0007481235079467297
+          },
+          {
+            "text": " it",
+            "prob": 0.00022816476121079177
+          },
+          {
+            "text": " right",
+            "prob": 0.0001833355490816757
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " right",
+        "sampled_prob": 0.9994691014289856,
+        "entropy": 0.004649518057703972,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9994691014289856
+          },
+          {
+            "text": " lane",
+            "prob": 0.0005192988319322467
+          },
+          {
+            "text": " left",
+            "prob": 1.5286035477402038e-06
+          },
+          {
+            "text": " ego",
+            "prob": 8.310872772199218e-07
+          },
+          {
+            "text": " adjacent",
+            "prob": 4.5896996425653924e-07
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " side",
+        "sampled_prob": 0.9934952855110168,
+        "entropy": 0.045936405658721924,
+        "top_k": [
+          {
+            "text": " side",
+            "prob": 0.9934952855110168
+          },
+          {
+            "text": " edge",
+            "prob": 0.0033660142216831446
+          },
+          {
+            "text": " lane",
+            "prob": 0.002790523925796151
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0001389319950249046
+          },
+          {
+            "text": ".",
+            "prob": 6.985939398873597e-05
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " of",
+        "sampled_prob": 0.6458411812782288,
+        "entropy": 0.6969606876373291,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.6458411812782288
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.3456938862800598
+          },
+          {
+            "text": ".",
+            "prob": 0.006739957723766565
+          },
+          {
+            "text": " ahead",
+            "prob": 0.001369305420666933
+          },
+          {
+            "text": " since",
+            "prob": 3.536804797477089e-05
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " our",
+        "sampled_prob": 0.893105149269104,
+        "entropy": 0.34235575795173645,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.893105149269104
+          },
+          {
+            "text": " the",
+            "prob": 0.106666199862957
+          },
+          {
+            "text": " lane",
+            "prob": 6.47937849862501e-05
+          },
+          {
+            "text": " my",
+            "prob": 2.6179053747910075e-05
+          },
+          {
+            "text": " your",
+            "prob": 2.6179053747910075e-05
+          }
+        ]
+      },
+      {
+        "step": 14,
+        "col": 3100,
+        "sampled": " lane",
+        "sampled_prob": 0.9997937083244324,
+        "entropy": 0.002683190628886223,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9997937083244324
+          },
+          {
+            "text": " path",
+            "prob": 7.030228152871132e-05
+          },
+          {
+            "text": " vehicle",
+            "prob": 2.2823809558758512e-05
+          },
+          {
+            "text": " car",
+            "prob": 1.892160071292892e-05
+          },
+          {
+            "text": " current",
+            "prob": 9.816398232942447e-06
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9999387264251709,
+      "entropy": 0.0007777075516059995,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 3.426756666158326e-05,
+          "d_curvature_mean": 2.0189574570395052e-05,
+          "d_curvature_max": 6.122654303908348e-05,
+          "endpoint_shift_m": 0.02397160790860653,
+          "traj_ade_m": 0.008256277069449425,
+          "forced_cot": {
+            "cot": [
+              "Keepudge left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 1.012947268463904e-05,
+          "d_curvature_mean": 1.812674236134626e-05,
+          "d_curvature_max": 6.122968625277281e-05,
+          "endpoint_shift_m": 0.0030598887242376804,
+          "traj_ade_m": 0.002799871377646923,
+          "forced_cot": {
+            "cot": [
+              "Slowudge left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 4.356631961854873e-06,
+          "d_curvature_mean": 2.6878629796556197e-05,
+          "d_curvature_max": 8.673639968037605e-05,
+          "endpoint_shift_m": 0.06329595297574997,
+          "traj_ade_m": 0.019514843821525574,
+          "forced_cot": {
+            "cot": [
+              "Maintudge left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 4.356631961854873e-06,
+          "d_curvature_mean": 1.8248856576974504e-05,
+          "d_curvature_max": 5.6123826652765274e-05,
+          "endpoint_shift_m": 0.03419933095574379,
+          "traj_ade_m": 0.009365584701299667,
+          "forced_cot": {
+            "cot": [
+              "Adudge left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 3.288081984464952e-08,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 7.539637590525672e-05,
+          "d_curvature_max": 0.00021939212456345558,
+          "endpoint_shift_m": 0.03295377269387245,
+          "traj_ade_m": 0.009800787083804607,
+          "forced_cot": {
+            "cot": [
+              "N left left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 5.665696880896576e-05,
+          "d_curvature_max": 0.00016327155753970146,
+          "endpoint_shift_m": 0.04720071703195572,
+          "traj_ade_m": 0.014550948515534401,
+          "forced_cot": {
+            "cot": [
+              "N right left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 1.4783637855564358e-11,
+          "d_curvature_mean": 7.459422340616584e-05,
+          "d_curvature_max": 0.0002346993423998356,
+          "endpoint_shift_m": 0.02513684518635273,
+          "traj_ade_m": 0.008444873616099358,
+          "forced_cot": {
+            "cot": [
+              "N for left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.0483170755082316e-11,
+          "d_curvature_mean": 2.1293089957907796e-05,
+          "d_curvature_max": 8.163636084645987e-05,
+          "endpoint_shift_m": 0.011279936879873276,
+          "traj_ade_m": 0.0049159228801727295,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9094720482826233,
+      "entropy": 0.3068040609359741,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.09004992991685867,
+          "d_curvature_mean": 4.0702543628867716e-05,
+          "d_curvature_max": 0.00011224718764424324,
+          "endpoint_shift_m": 0.09023349732160568,
+          "traj_ade_m": 0.02923973649740219,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00047253863885998726,
+          "d_curvature_mean": 0.00011385935067664832,
+          "d_curvature_max": 0.00028572091832756996,
+          "endpoint_shift_m": 0.055522989481687546,
+          "traj_ade_m": 0.022438403218984604,
+          "forced_cot": {
+            "cot": [
+              "Nudge to due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 3.303820790279133e-07,
+          "d_curvature_mean": 3.676886990433559e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.08154986053705215,
+          "traj_ade_m": 0.021248873323202133,
+          "forced_cot": {
+            "cot": [
+              "Nudge due due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.0038686443513143e-07,
+          "d_curvature_mean": 2.6773870558827184e-05,
+          "d_curvature_max": 8.163950406014919e-05,
+          "endpoint_shift_m": 0.0012054534163326025,
+          "traj_ade_m": 0.006076943129301071,
+          "forced_cot": {
+            "cot": [
+              "Nudge the due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.9429356455802917,
+      "entropy": 0.22243176400661469,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05662768334150314,
+          "d_curvature_mean": 5.122102447785437e-05,
+          "d_curvature_max": 0.00014286127407103777,
+          "endpoint_shift_m": 0.027546949684619904,
+          "traj_ade_m": 0.013264818117022514,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00018595474830362946,
+          "d_curvature_mean": 4.8535497626289725e-05,
+          "d_curvature_max": 0.00014286325313150883,
+          "endpoint_shift_m": 0.07650522887706757,
+          "traj_ade_m": 0.021509241312742233,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 5.851325113326311e-05,
+          "d_curvature_mean": 4.158474621362984e-05,
+          "d_curvature_max": 0.00012245774269104004,
+          "endpoint_shift_m": 0.029170656576752663,
+          "traj_ade_m": 0.010602477937936783,
+          "forced_cot": {
+            "cot": [
+              "Nudge left for to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 5.671299004461616e-05,
+          "d_curvature_mean": 4.50799307145644e-05,
+          "d_curvature_max": 0.00014286604709923267,
+          "endpoint_shift_m": 0.01972951926290989,
+          "traj_ade_m": 0.012034999206662178,
+          "forced_cot": {
+            "cot": [
+              "Nudge left since to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999984502792358,
+      "entropy": 2.656764627317898e-05,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 9.422440143680433e-07,
+          "d_curvature_mean": 1.0622919944580644e-05,
+          "d_curvature_max": 4.0818238630890846e-05,
+          "endpoint_shift_m": 0.006594907026737928,
+          "traj_ade_m": 0.001663512084633112,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 2.238025871292848e-07,
+          "d_curvature_mean": 1.3657412637257949e-05,
+          "d_curvature_max": 6.122537888586521e-05,
+          "endpoint_shift_m": 0.006177801638841629,
+          "traj_ade_m": 0.0020450337324291468,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 9.042440751727554e-08,
+          "d_curvature_mean": 3.432537414482795e-05,
+          "d_curvature_max": 7.142964750528336e-05,
+          "endpoint_shift_m": 0.10452398657798767,
+          "traj_ade_m": 0.02858714386820793,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 6.412051334336866e-08,
+          "d_curvature_mean": 3.084001218667254e-05,
+          "d_curvature_max": 7.653189823031425e-05,
+          "endpoint_shift_m": 0.07111858576536179,
+          "traj_ade_m": 0.02053624764084816,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due since the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.5048539042472839,
+      "entropy": 1.0813515186309814,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.36935901641845703,
+          "d_curvature_mean": 1.5174568034126423e-05,
+          "d_curvature_max": 4.5919325202703476e-05,
+          "endpoint_shift_m": 0.019597109407186508,
+          "traj_ade_m": 0.005943056661635637,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to construction construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.10582312941551208,
+          "d_curvature_mean": 9.374894034408499e-06,
+          "d_curvature_max": 4.081346560269594e-05,
+          "endpoint_shift_m": 0.012980254366993904,
+          "traj_ade_m": 0.0047150105237960815,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to road construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.006979792378842831,
+          "d_curvature_mean": 2.3383272491628304e-05,
+          "d_curvature_max": 8.673634147271514e-05,
+          "endpoint_shift_m": 0.02408790960907936,
+          "traj_ade_m": 0.0057618580758571625,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.002909610513597727,
+          "d_curvature_mean": 1.7521251720609143e-05,
+          "d_curvature_max": 4.591839388012886e-05,
+          "endpoint_shift_m": 0.016282711178064346,
+          "traj_ade_m": 0.005442213732749224,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to lane construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " construction",
+      "sampled_prob": 0.7988719940185547,
+      "entropy": 0.7740613222122192,
+      "alternatives": [
+        {
+          "token": " road",
+          "token_prob": 0.13882312178611755,
+          "d_curvature_mean": 1.113602593250107e-05,
+          "d_curvature_max": 4.0817540138959885e-05,
+          "endpoint_shift_m": 0.02654215693473816,
+          "traj_ade_m": 0.007529805414378643,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the road barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.019999369978904724,
+          "d_curvature_mean": 1.6562067685299553e-05,
+          "d_curvature_max": 4.59207221865654e-05,
+          "endpoint_shift_m": 0.031035108491778374,
+          "traj_ade_m": 0.01527130976319313,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the barric barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.012130229733884335,
+          "d_curvature_mean": 8.500338481098879e-06,
+          "d_curvature_max": 2.1684449166059494e-05,
+          "endpoint_shift_m": 0.04649747535586357,
+          "traj_ade_m": 0.0133056016638875,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the vehicle barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barrier",
+          "token_prob": 0.00629308121278882,
+          "d_curvature_mean": 1.2389360563247465e-05,
+          "d_curvature_max": 6.122654303908348e-05,
+          "endpoint_shift_m": 0.022205432876944542,
+          "traj_ade_m": 0.005528344307094812,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the barrier barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " barrier",
+      "sampled_prob": 0.4817046523094177,
+      "entropy": 1.041137933731079,
+      "alternatives": [
+        {
+          "token": " barric",
+          "token_prob": 0.37515196204185486,
+          "d_curvature_mean": 1.3315995602170005e-05,
+          "d_curvature_max": 4.081812221556902e-05,
+          "endpoint_shift_m": 0.0423196405172348,
+          "traj_ade_m": 0.015505211427807808,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barric blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.13801069557666779,
+          "d_curvature_mean": 6.569634933839552e-06,
+          "d_curvature_max": 3.061257302761078e-05,
+          "endpoint_shift_m": 0.005527982022613287,
+          "traj_ade_m": 0.0016568686114624143,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barriers blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.0022307352628558874,
+          "d_curvature_mean": 1.0899516382778529e-05,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.009858931414783001,
+          "traj_ade_m": 0.004151408560574055,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "work",
+          "token_prob": 0.00021744838159065694,
+          "d_curvature_mean": 2.2364427422871813e-05,
+          "d_curvature_max": 8.163740858435631e-05,
+          "endpoint_shift_m": 0.03733223304152489,
+          "traj_ade_m": 0.009617878124117851,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the constructionwork blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.8948780298233032,
+      "entropy": 0.5246335864067078,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.05048556625843048,
+          "d_curvature_mean": 2.801456139422953e-05,
+          "d_curvature_max": 9.183911606669426e-05,
+          "endpoint_shift_m": 0.011948816478252411,
+          "traj_ade_m": 0.0030917623080313206,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier enc the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 0.019770430400967598,
+          "d_curvature_mean": 1.5899484424153343e-05,
+          "d_curvature_max": 5.1023904234170914e-05,
+          "endpoint_shift_m": 0.028159771114587784,
+          "traj_ade_m": 0.007788929156959057,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier narrowing the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intr",
+          "token_prob": 0.013169946148991585,
+          "d_curvature_mean": 3.749385359697044e-05,
+          "d_curvature_max": 0.00011224579066038132,
+          "endpoint_shift_m": 0.004001859575510025,
+          "traj_ade_m": 0.003034693654626608,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier intr the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.012764749117195606,
+          "d_curvature_mean": 2.718728137551807e-05,
+          "d_curvature_max": 0.00010204373393207788,
+          "endpoint_shift_m": 0.008240541443228722,
+          "traj_ade_m": 0.004083767533302307,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier on the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9896118640899658,
+      "entropy": 0.08430175483226776,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.006667952053248882,
+          "d_curvature_mean": 2.4750996090006083e-05,
+          "d_curvature_max": 0.00010331906378269196,
+          "endpoint_shift_m": 0.026154911145567894,
+          "traj_ade_m": 0.008298547007143497,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking part right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0007481235079467297,
+          "d_curvature_mean": 2.2371656086761504e-05,
+          "d_curvature_max": 6.122805643826723e-05,
+          "endpoint_shift_m": 0.025148561224341393,
+          "traj_ade_m": 0.007955075241625309,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking a right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00022816476121079177,
+          "d_curvature_mean": 1.9691216948558576e-05,
+          "d_curvature_max": 5.1022274419665337e-05,
+          "endpoint_shift_m": 0.017617203295230865,
+          "traj_ade_m": 0.006475063040852547,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking it right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0001833355490816757,
+          "d_curvature_mean": 1.532890019007027e-05,
+          "d_curvature_max": 6.122549530118704e-05,
+          "endpoint_shift_m": 0.022118037566542625,
+          "traj_ade_m": 0.007759607397019863,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking right right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " right",
+      "sampled_prob": 0.9994691014289856,
+      "entropy": 0.004649518057703972,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.0005192988319322467,
+          "d_curvature_mean": 3.4589040296850726e-05,
+          "d_curvature_max": 8.163799066096544e-05,
+          "endpoint_shift_m": 0.06261058896780014,
+          "traj_ade_m": 0.0191640742123127,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the lane side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.5286035477402038e-06,
+          "d_curvature_mean": 2.412327376077883e-05,
+          "d_curvature_max": 8.801184594631195e-05,
+          "endpoint_shift_m": 0.010095233097672462,
+          "traj_ade_m": 0.0036286094691604376,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 8.310872772199218e-07,
+          "d_curvature_mean": 2.2578677089768462e-05,
+          "d_curvature_max": 7.143337279558182e-05,
+          "endpoint_shift_m": 0.05476110801100731,
+          "traj_ade_m": 0.014186711050570011,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the ego side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 4.5896996425653924e-07,
+          "d_curvature_mean": 3.532648042892106e-05,
+          "d_curvature_max": 0.0001122504472732544,
+          "endpoint_shift_m": 0.07707080990076065,
+          "traj_ade_m": 0.02226661518216133,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the adjacent side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " side",
+      "sampled_prob": 0.9934952855110168,
+      "entropy": 0.045936405658721924,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.0033660142216831446,
+          "d_curvature_mean": 1.4267861843109131e-05,
+          "d_curvature_max": 4.209257895126939e-05,
+          "endpoint_shift_m": 0.005219269078224897,
+          "traj_ade_m": 0.002498386660590768,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.002790523925796151,
+          "d_curvature_mean": 2.6335248549003154e-05,
+          "d_curvature_max": 6.122968625277281e-05,
+          "endpoint_shift_m": 0.03459543362259865,
+          "traj_ade_m": 0.012072082608938217,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right lane of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0001389319950249046,
+          "d_curvature_mean": 4.238955079927109e-05,
+          "d_curvature_max": 0.00010204408317804337,
+          "endpoint_shift_m": 0.13445894420146942,
+          "traj_ade_m": 0.04642387107014656,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 6.985939398873597e-05,
+          "d_curvature_mean": 2.2566106054000556e-05,
+          "d_curvature_max": 6.122631020843983e-05,
+          "endpoint_shift_m": 0.01379323098808527,
+          "traj_ade_m": 0.00663516391068697,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right. of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " of",
+      "sampled_prob": 0.6458411812782288,
+      "entropy": 0.6969606876373291,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.3456938862800598,
+          "d_curvature_mean": 4.676670141634531e-05,
+          "d_curvature_max": 0.0001237274263985455,
+          "endpoint_shift_m": 0.13201165199279785,
+          "traj_ade_m": 0.04212338477373123,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.006739957723766565,
+          "d_curvature_mean": 4.002280911663547e-05,
+          "d_curvature_max": 0.00013265630695968866,
+          "endpoint_shift_m": 0.0141908572986722,
+          "traj_ade_m": 0.006943653337657452,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side. our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.001369305420666933,
+          "d_curvature_mean": 1.2797916497220285e-05,
+          "d_curvature_max": 4.081660881638527e-05,
+          "endpoint_shift_m": 0.007889550179243088,
+          "traj_ade_m": 0.002824113704264164,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side ahead our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 3.536804797477089e-05,
+          "d_curvature_mean": 2.0418663552845828e-05,
+          "d_curvature_max": 6.760400719940662e-05,
+          "endpoint_shift_m": 0.021657191216945648,
+          "traj_ade_m": 0.007168019190430641,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side since our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " our",
+      "sampled_prob": 0.893105149269104,
+      "entropy": 0.34235575795173645,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.106666199862957,
+          "d_curvature_mean": 1.4163086234475486e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.003603421850129962,
+          "traj_ade_m": 0.0019598384387791157,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 6.47937849862501e-05,
+          "d_curvature_mean": 1.3749554454989266e-05,
+          "d_curvature_max": 4.0817540138959885e-05,
+          "endpoint_shift_m": 0.0411803163588047,
+          "traj_ade_m": 0.014337041415274143,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of lane lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 2.6179053747910075e-05,
+          "d_curvature_mean": 1.634283398743719e-05,
+          "d_curvature_max": 6.122654303908348e-05,
+          "endpoint_shift_m": 0.0029244069010019302,
+          "traj_ade_m": 0.0014552182983607054,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.6179053747910075e-05,
+          "d_curvature_mean": 1.0079785170091782e-05,
+          "d_curvature_max": 3.061490133404732e-05,
+          "endpoint_shift_m": 0.012555873952805996,
+          "traj_ade_m": 0.004597318824380636,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9997937083244324,
+      "entropy": 0.002683190628886223,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 7.030228152871132e-05,
+          "d_curvature_mean": 8.467966836178675e-06,
+          "d_curvature_max": 4.081707447767258e-05,
+          "endpoint_shift_m": 0.0065170773304998875,
+          "traj_ade_m": 0.0021120142191648483,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 2.2823809558758512e-05,
+          "d_curvature_mean": 1.9085753592662513e-05,
+          "d_curvature_max": 6.122654303908348e-05,
+          "endpoint_shift_m": 0.017237724736332893,
+          "traj_ade_m": 0.006915124133229256,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of our vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 1.892160071292892e-05,
+          "d_curvature_mean": 1.6484915249748155e-05,
+          "d_curvature_max": 5.101948045194149e-05,
+          "endpoint_shift_m": 0.021129705011844635,
+          "traj_ade_m": 0.007048138417303562,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of our car"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 9.816398232942447e-06,
+          "d_curvature_mean": 2.8736954845953733e-05,
+          "d_curvature_max": 8.418597280979156e-05,
+          "endpoint_shift_m": 0.03955330327153206,
+          "traj_ade_m": 0.013462761417031288,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barrier blocking the right side of our current"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9999387264251709,
+      "entropy": 0.0007777075516059995,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 3.426756666158326e-05,
+          "d_curvature_mean": 0.000152601336594671,
+          "d_curvature_max": 0.00041837524622678757,
+          "endpoint_shift_m": 0.14062389731407166,
+          "traj_ade_m": 0.04109819233417511,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 1.012947268463904e-05,
+          "d_curvature_mean": 0.0002321382489753887,
+          "d_curvature_max": 0.0007245093584060669,
+          "endpoint_shift_m": 0.26314660906791687,
+          "traj_ade_m": 0.0765637457370758,
+          "forced_cot": {
+            "cot": [
+              "Slow down due to lane narrowing from roadwork ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 4.356631961854873e-06,
+          "d_curvature_mean": 0.0002023972338065505,
+          "d_curvature_max": 0.0005306270904839039,
+          "endpoint_shift_m": 0.043318502604961395,
+          "traj_ade_m": 0.012148925103247166,
+          "forced_cot": {
+            "cot": [
+              "Maintain a safe distance from the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 4.356631961854873e-06,
+          "d_curvature_mean": 0.00015995321155060083,
+          "d_curvature_max": 0.00044898921623826027,
+          "endpoint_shift_m": 0.1328466683626175,
+          "traj_ade_m": 0.04101857542991638,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the narrowed lane due to construction barricades ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 3.288081984464952e-08,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 1.1602152881096117e-05,
+          "d_curvature_max": 3.571598790585995e-05,
+          "endpoint_shift_m": 0.02406187169253826,
+          "traj_ade_m": 0.005516079254448414,
+          "forced_cot": {
+            "cot": [
+              "N left due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 5.304451769916341e-05,
+          "d_curvature_max": 0.00015306519344449043,
+          "endpoint_shift_m": 0.018559690564870834,
+          "traj_ade_m": 0.00730407889932394,
+          "forced_cot": {
+            "cot": [
+              "N right due to the vehicle encroaching from the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 1.4783637855564358e-11,
+          "d_curvature_mean": 9.988094825530425e-05,
+          "d_curvature_max": 0.00032653758535161614,
+          "endpoint_shift_m": 0.10437165200710297,
+          "traj_ade_m": 0.032569486647844315,
+          "forced_cot": {
+            "cot": [
+              "N forklift left due to roadwork barricades blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.0483170755082316e-11,
+          "d_curvature_mean": 2.1773976186523214e-05,
+          "d_curvature_max": 8.163484744727612e-05,
+          "endpoint_shift_m": 0.030355025082826614,
+          "traj_ade_m": 0.01268093567341566,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9094720482826233,
+      "entropy": 0.3068040609359741,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.09004992991685867,
+          "d_curvature_mean": 6.413313531083986e-05,
+          "d_curvature_max": 0.0001836768351495266,
+          "endpoint_shift_m": 0.019215283915400505,
+          "traj_ade_m": 0.007215805351734161,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the vehicle encroaching from the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00047253863885998726,
+          "d_curvature_mean": 0.00011106429155915976,
+          "d_curvature_max": 0.0002640374004840851,
+          "endpoint_shift_m": 0.05172617360949516,
+          "traj_ade_m": 0.02284245938062668,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 3.303820790279133e-07,
+          "d_curvature_mean": 4.0734907088335603e-05,
+          "d_curvature_max": 0.0001428588293492794,
+          "endpoint_shift_m": 0.047035738825798035,
+          "traj_ade_m": 0.011888619512319565,
+          "forced_cot": {
+            "cot": [
+              "Nudge due to the construction barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.0038686443513143e-07,
+          "d_curvature_mean": 2.5059882318601012e-05,
+          "d_curvature_max": 6.122805643826723e-05,
+          "endpoint_shift_m": 0.023673856630921364,
+          "traj_ade_m": 0.008832302875816822,
+          "forced_cot": {
+            "cot": [
+              "Nudge the left due to construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.9429356455802917,
+      "entropy": 0.22243176400661469,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05662768334150314,
+          "d_curvature_mean": 5.198592407396063e-05,
+          "d_curvature_max": 0.00019388459622859955,
+          "endpoint_shift_m": 0.042070142924785614,
+          "traj_ade_m": 0.010057401843369007,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to increase clearance to the construction barrier on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00018595474830362946,
+          "d_curvature_mean": 1.633283136470709e-05,
+          "d_curvature_max": 4.081800580024719e-05,
+          "endpoint_shift_m": 0.0325026661157608,
+          "traj_ade_m": 0.00957504753023386,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because of the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 5.851325113326311e-05,
+          "d_curvature_mean": 5.4484320571646094e-05,
+          "d_curvature_max": 0.0001989840529859066,
+          "endpoint_shift_m": 0.04461730271577835,
+          "traj_ade_m": 0.010927779600024223,
+          "forced_cot": {
+            "cot": [
+              "Nudge left for increase clearance to the construction barrier on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 5.671299004461616e-05,
+          "d_curvature_mean": 8.513740613125265e-05,
+          "d_curvature_max": 0.00023469794541597366,
+          "endpoint_shift_m": 0.08780255913734436,
+          "traj_ade_m": 0.03167574107646942,
+          "forced_cot": {
+            "cot": [
+              "Nudge left since construction barricades narrow the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999984502792358,
+      "entropy": 2.656764627317898e-05,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 9.422440143680433e-07,
+          "d_curvature_mean": 1.3410482097242493e-05,
+          "d_curvature_max": 4.081428050994873e-05,
+          "endpoint_shift_m": 0.017489438876509666,
+          "traj_ade_m": 0.008292334154248238,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 2.238025871292848e-07,
+          "d_curvature_mean": 1.4628865756094456e-05,
+          "d_curvature_max": 4.0817889384925365e-05,
+          "endpoint_shift_m": 0.009726903401315212,
+          "traj_ade_m": 0.0047949133440852165,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 9.042440751727554e-08,
+          "d_curvature_mean": 6.718296208418906e-05,
+          "d_curvature_max": 0.00018368265591561794,
+          "endpoint_shift_m": 0.038444481790065765,
+          "traj_ade_m": 0.01617996208369732,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because construction barriers narrow the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 6.412051334336866e-08,
+          "d_curvature_mean": 6.753394700353965e-05,
+          "d_curvature_max": 0.00019515817984938622,
+          "endpoint_shift_m": 0.06543369591236115,
+          "traj_ade_m": 0.021858956664800644,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due since construction barriers encroach from the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.5048539042472839,
+      "entropy": 1.0813515186309814,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.36935901641845703,
+          "d_curvature_mean": 2.885676803998649e-05,
+          "d_curvature_max": 9.183725342154503e-05,
+          "endpoint_shift_m": 0.019296294078230858,
+          "traj_ade_m": 0.006489698775112629,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to construction barriers blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.10582312941551208,
+          "d_curvature_mean": 4.4820935727329925e-05,
+          "d_curvature_max": 0.00012245122343301773,
+          "endpoint_shift_m": 0.04719929397106171,
+          "traj_ade_m": 0.01448983047157526,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to roadwork barricades blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.006979792378842831,
+          "d_curvature_mean": 6.811948696849868e-05,
+          "d_curvature_max": 0.0001887790858745575,
+          "endpoint_shift_m": 0.01267069298774004,
+          "traj_ade_m": 0.006004736293107271,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a vehicle encroaching from the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.002909610513597727,
+          "d_curvature_mean": 6.990053225308657e-05,
+          "d_curvature_max": 0.00021428969921544194,
+          "endpoint_shift_m": 0.0956263467669487,
+          "traj_ade_m": 0.027655424550175667,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to lane narrowing from construction barricades on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " construction",
+      "sampled_prob": 0.7988719940185547,
+      "entropy": 0.7740613222122192,
+      "alternatives": [
+        {
+          "token": " road",
+          "token_prob": 0.13882312178611755,
+          "d_curvature_mean": 2.9446955522871576e-05,
+          "d_curvature_max": 8.163228631019592e-05,
+          "endpoint_shift_m": 0.055702511221170425,
+          "traj_ade_m": 0.018885575234889984,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the roadwork barricades blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.019999369978904724,
+          "d_curvature_mean": 1.5157102097873576e-05,
+          "d_curvature_max": 4.081835504621267e-05,
+          "endpoint_shift_m": 0.03516984358429909,
+          "traj_ade_m": 0.016121385619044304,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.012130229733884335,
+          "d_curvature_mean": 6.133783608675003e-05,
+          "d_curvature_max": 0.0001632682979106903,
+          "endpoint_shift_m": 0.0391443707048893,
+          "traj_ade_m": 0.01204727217555046,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the vehicle encroaching from the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barrier",
+          "token_prob": 0.00629308121278882,
+          "d_curvature_mean": 1.555074777570553e-05,
+          "d_curvature_max": 6.122968625277281e-05,
+          "endpoint_shift_m": 0.00867299921810627,
+          "traj_ade_m": 0.0024863050784915686,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the barrier blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " barrier",
+      "sampled_prob": 0.4817046523094177,
+      "entropy": 1.041137933731079,
+      "alternatives": [
+        {
+          "token": " barric",
+          "token_prob": 0.37515196204185486,
+          "d_curvature_mean": 1.31366005007294e-05,
+          "d_curvature_max": 4.5919325202703476e-05,
+          "endpoint_shift_m": 0.026709292083978653,
+          "traj_ade_m": 0.010659939609467983,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.13801069557666779,
+          "d_curvature_mean": 7.386724973912351e-06,
+          "d_curvature_max": 2.0409002900123596e-05,
+          "endpoint_shift_m": 0.006830426398664713,
+          "traj_ade_m": 0.002094629453495145,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barriers blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.0022307352628558874,
+          "d_curvature_mean": 4.5735243475064635e-05,
+          "d_curvature_max": 0.00013775750994682312,
+          "endpoint_shift_m": 0.016677604988217354,
+          "traj_ade_m": 0.005771777126938105,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction cones blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "work",
+          "token_prob": 0.00021744838159065694,
+          "d_curvature_mean": 3.331596963107586e-05,
+          "d_curvature_max": 0.0001122504472732544,
+          "endpoint_shift_m": 0.06825555115938187,
+          "traj_ade_m": 0.02120165340602398,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the constructionwork barricades blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.8948780298233032,
+      "entropy": 0.5246335864067078,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.05048556625843048,
+          "d_curvature_mean": 6.026430492056534e-05,
+          "d_curvature_max": 0.00020918948575854301,
+          "endpoint_shift_m": 0.09270331263542175,
+          "traj_ade_m": 0.025601772591471672,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barric encroaching from the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 0.019770430400967598,
+          "d_curvature_mean": 2.3089149181032553e-05,
+          "d_curvature_max": 7.142685353755951e-05,
+          "endpoint_shift_m": 0.06611447036266327,
+          "traj_ade_m": 0.020922832190990448,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barric narrowing the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intr",
+          "token_prob": 0.013169946148991585,
+          "d_curvature_mean": 7.152993202907965e-05,
+          "d_curvature_max": 0.0002500084228813648,
+          "endpoint_shift_m": 0.08198083192110062,
+          "traj_ade_m": 0.023837506771087646,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barric intruding from the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.012764749117195606,
+          "d_curvature_mean": 8.346336835529655e-05,
+          "d_curvature_max": 0.00022449932293966413,
+          "endpoint_shift_m": 0.06866694986820221,
+          "traj_ade_m": 0.022030722349882126,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barric on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9896118640899658,
+      "entropy": 0.08430175483226776,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.006667952053248882,
+          "d_curvature_mean": 4.765074481838383e-05,
+          "d_curvature_max": 0.00013775750994682312,
+          "endpoint_shift_m": 0.048801496624946594,
+          "traj_ade_m": 0.015804069116711617,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades part of the lane on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0007481235079467297,
+          "d_curvature_mean": 6.496056448668242e-05,
+          "d_curvature_max": 0.00022449437528848648,
+          "endpoint_shift_m": 0.04109051451086998,
+          "traj_ade_m": 0.014196643605828285,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades a bit to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00022816476121079177,
+          "d_curvature_mean": 0.00035018427297472954,
+          "d_curvature_max": 0.0009387990576215088,
+          "endpoint_shift_m": 0.8204668760299683,
+          "traj_ade_m": 0.4825708866119385,
+          "forced_cot": {
+            "cot": [
+              ""
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3486><i3503><i3600><i3502><i3499><i3600><i3502><i3499><i3600><i3502><i3499><i3600><i3501><i3499><i3600><i3501><i3499><i3600><i3501><i3499><i3600><i3500><i3499><i3600><i3500><i3500><i3599><i3500><i3500><i3599><i3500><i3500><i3599><i3500><i3500><i3600><i3499><i3499><i3600><i3499><i3499><i3600><i3499><i3499><i3600><i3500><i3499><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Nudge left due to the construction barricades it40"
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0001833355490816757,
+          "d_curvature_mean": 6.075524288462475e-05,
+          "d_curvature_max": 0.00019388366490602493,
+          "endpoint_shift_m": 0.05597960576415062,
+          "traj_ade_m": 0.01811431720852852,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades right-side narrowing"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " right",
+      "sampled_prob": 0.9994691014289856,
+      "entropy": 0.004649518057703972,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.0005192988319322467,
+          "d_curvature_mean": 6.338859384413809e-05,
+          "d_curvature_max": 0.00020408723503351212,
+          "endpoint_shift_m": 0.08076325058937073,
+          "traj_ade_m": 0.022899476811289787,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.5286035477402038e-06,
+          "d_curvature_mean": 2.702550591493491e-05,
+          "d_curvature_max": 8.163403254002333e-05,
+          "endpoint_shift_m": 0.047095973044633865,
+          "traj_ade_m": 0.015400126576423645,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 8.310872772199218e-07,
+          "d_curvature_mean": 4.26708793384023e-05,
+          "d_curvature_max": 0.0001632673665881157,
+          "endpoint_shift_m": 0.07104132324457169,
+          "traj_ade_m": 0.024592038244009018,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking ego\u2019s right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 4.5896996425653924e-07,
+          "d_curvature_mean": 7.371733954641968e-05,
+          "d_curvature_max": 0.00024490291252732277,
+          "endpoint_shift_m": 0.10198374837636948,
+          "traj_ade_m": 0.032290056347846985,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking adjacent space"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " side",
+      "sampled_prob": 0.9934952855110168,
+      "entropy": 0.045936405658721924,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.0033660142216831446,
+          "d_curvature_mean": 4.3425541662145406e-05,
+          "d_curvature_max": 0.00012755393981933594,
+          "endpoint_shift_m": 0.0878089889883995,
+          "traj_ade_m": 0.02771002985537052,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.002790523925796151,
+          "d_curvature_mean": 4.164470010437071e-05,
+          "d_curvature_max": 0.00012245215475559235,
+          "endpoint_shift_m": 0.08747630566358566,
+          "traj_ade_m": 0.024987798184156418,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0001389319950249046,
+          "d_curvature_mean": 6.224978278623894e-05,
+          "d_curvature_max": 0.00023470213636755943,
+          "endpoint_shift_m": 0.08480073511600494,
+          "traj_ade_m": 0.024368993937969208,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 6.985939398873597e-05,
+          "d_curvature_mean": 6.509724335046485e-05,
+          "d_curvature_max": 0.0002551097422838211,
+          "endpoint_shift_m": 0.07862481474876404,
+          "traj_ade_m": 0.022335141897201538,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " of",
+      "sampled_prob": 0.6458411812782288,
+      "entropy": 0.6969606876373291,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.3456938862800598,
+          "d_curvature_mean": 4.90585807710886e-05,
+          "d_curvature_max": 0.0001785755157470703,
+          "endpoint_shift_m": 0.0838315412402153,
+          "traj_ade_m": 0.027514835819602013,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.006739957723766565,
+          "d_curvature_mean": 3.342564741615206e-05,
+          "d_curvature_max": 0.00012245122343301773,
+          "endpoint_shift_m": 0.06557260453701019,
+          "traj_ade_m": 0.020898541435599327,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.001369305420666933,
+          "d_curvature_mean": 3.68213550245855e-05,
+          "d_curvature_max": 0.00012755393981933594,
+          "endpoint_shift_m": 0.06465859711170197,
+          "traj_ade_m": 0.02278095856308937,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 3.536804797477089e-05,
+          "d_curvature_mean": 2.3385719032376073e-05,
+          "d_curvature_max": 7.015466690063477e-05,
+          "endpoint_shift_m": 0.03752809762954712,
+          "traj_ade_m": 0.012339449487626553,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right since the lane is narrowed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " our",
+      "sampled_prob": 0.893105149269104,
+      "entropy": 0.34235575795173645,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.106666199862957,
+          "d_curvature_mean": 1.9086000975221395e-05,
+          "d_curvature_max": 4.8472313210368156e-05,
+          "endpoint_shift_m": 0.03304430842399597,
+          "traj_ade_m": 0.011118417605757713,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 6.47937849862501e-05,
+          "d_curvature_mean": 1.830859764595516e-05,
+          "d_curvature_max": 6.122537888586521e-05,
+          "endpoint_shift_m": 0.012817449867725372,
+          "traj_ade_m": 0.0063286954537034035,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side lane edge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 2.6179053747910075e-05,
+          "d_curvature_mean": 1.405108741892036e-05,
+          "d_curvature_max": 6.122537888586521e-05,
+          "endpoint_shift_m": 0.02023078314960003,
+          "traj_ade_m": 0.009236399084329605,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.6179053747910075e-05,
+          "d_curvature_mean": 1.767814865161199e-05,
+          "d_curvature_max": 6.122537888586521e-05,
+          "endpoint_shift_m": 0.025933656841516495,
+          "traj_ade_m": 0.011267759837210178,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9997937083244324,
+      "entropy": 0.002683190628886223,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 7.030228152871132e-05,
+          "d_curvature_mean": 1.4504384125757497e-05,
+          "d_curvature_max": 5.6124990805983543e-05,
+          "endpoint_shift_m": 0.03388712555170059,
+          "traj_ade_m": 0.012206819839775562,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side of path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 2.2823809558758512e-05,
+          "d_curvature_mean": 1.9295228412374854e-05,
+          "d_curvature_max": 7.142871618270874e-05,
+          "endpoint_shift_m": 0.06417915225028992,
+          "traj_ade_m": 0.019987670704722404,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side of vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 1.892160071292892e-05,
+          "d_curvature_mean": 2.0722964109154418e-05,
+          "d_curvature_max": 6.122887134552002e-05,
+          "endpoint_shift_m": 0.06543269008398056,
+          "traj_ade_m": 0.021081050857901573,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side of carriageway"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 9.816398232942447e-06,
+          "d_curvature_mean": 1.2466562111512758e-05,
+          "d_curvature_max": 4.591606557369232e-05,
+          "endpoint_shift_m": 0.021442092955112457,
+          "traj_ade_m": 0.006784466095268726,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side of current lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

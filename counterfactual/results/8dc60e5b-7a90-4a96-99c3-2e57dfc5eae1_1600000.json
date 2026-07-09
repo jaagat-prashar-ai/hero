@@ -1,0 +1,2212 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the lead vehicle since it is stopped ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 11,
+    "mean_entropy": 0.29423666156997735,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.3576105833053589,
+        "entropy": 1.8131184577941895,
+        "top_k": [
+          {
+            "text": "Keep",
+            "prob": 0.3576105833053589
+          },
+          {
+            "text": "N",
+            "prob": 0.17981790006160736
+          },
+          {
+            "text": "Slow",
+            "prob": 0.1586887389421463
+          },
+          {
+            "text": "Dec",
+            "prob": 0.14448773860931396
+          },
+          {
+            "text": "Stop",
+            "prob": 0.09041811525821686
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.9933220744132996,
+        "entropy": 0.0477575957775116,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9933220744132996
+          },
+          {
+            "text": " lane",
+            "prob": 0.004059480503201485
+          },
+          {
+            "text": " right",
+            "prob": 0.0015897153643891215
+          },
+          {
+            "text": " to",
+            "prob": 0.00048483582213521004
+          },
+          {
+            "text": " left",
+            "prob": 0.00040194299072027206
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.9988927245140076,
+        "entropy": 0.010307961143553257,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9988927245140076
+          },
+          {
+            "text": " from",
+            "prob": 0.0006664083921350539
+          },
+          {
+            "text": " due",
+            "prob": 0.00013968678831588477
+          },
+          {
+            "text": " for",
+            "prob": 0.0001271862565772608
+          },
+          {
+            "text": " since",
+            "prob": 6.0078535170760006e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9989309906959534,
+        "entropy": 0.011171085759997368,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9989309906959534
+          },
+          {
+            "text": " our",
+            "prob": 0.0006067949580028653
+          },
+          {
+            "text": " follow",
+            "prob": 6.598589243367314e-05
+          },
+          {
+            "text": " lead",
+            "prob": 6.598589243367314e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 5.644072371069342e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lead",
+        "sampled_prob": 0.9560878872871399,
+        "entropy": 0.19478315114974976,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.9560878872871399
+          },
+          {
+            "text": " cut",
+            "prob": 0.04200756922364235
+          },
+          {
+            "text": " merging",
+            "prob": 0.0004967590793967247
+          },
+          {
+            "text": " stopped",
+            "prob": 0.00035225492320023477
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.0002497861278243363
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " vehicle",
+        "sampled_prob": 0.9999337196350098,
+        "entropy": 0.0008513354696333408,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.9999337196350098
+          },
+          {
+            "text": " motorcycle",
+            "prob": 2.5866385840345174e-05
+          },
+          {
+            "text": " vehicles",
+            "prob": 1.8924250980489887e-05
+          },
+          {
+            "text": " scooter",
+            "prob": 6.143805421743309e-06
+          },
+          {
+            "text": " truck",
+            "prob": 2.902128244386404e-06
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " since",
+        "sampled_prob": 0.9965698719024658,
+        "entropy": 0.028942180797457695,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9965698719024658
+          },
+          {
+            "text": " as",
+            "prob": 0.0010961666703224182
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0009087541257031262
+          },
+          {
+            "text": " because",
+            "prob": 0.0008019726956263185
+          },
+          {
+            "text": " stopped",
+            "prob": 0.0001681026042206213
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " it",
+        "sampled_prob": 0.9974156618118286,
+        "entropy": 0.022355511784553528,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9974156618118286
+          },
+          {
+            "text": " a",
+            "prob": 0.0008026533178053796
+          },
+          {
+            "text": " the",
+            "prob": 0.0007540230290032923
+          },
+          {
+            "text": " we",
+            "prob": 0.0005872336914762855
+          },
+          {
+            "text": " traffic",
+            "prob": 0.0002605833578854799
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " is",
+        "sampled_prob": 0.9987621307373047,
+        "entropy": 0.013714025728404522,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9987621307373047
+          },
+          {
+            "text": " slows",
+            "prob": 0.000588026421610266
+          },
+          {
+            "text": " dec",
+            "prob": 9.599267650628462e-05
+          },
+          {
+            "text": " merges",
+            "prob": 6.806899909861386e-05
+          },
+          {
+            "text": " controls",
+            "prob": 5.301219061948359e-05
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " stopped",
+        "sampled_prob": 0.6847789883613586,
+        "entropy": 0.9245008230209351,
+        "top_k": [
+          {
+            "text": " stopped",
+            "prob": 0.6847789883613586
+          },
+          {
+            "text": " slowing",
+            "prob": 0.22231517732143402
+          },
+          {
+            "text": " directly",
+            "prob": 0.06369436532258987
+          },
+          {
+            "text": " ahead",
+            "prob": 0.012542164884507656
+          },
+          {
+            "text": " dec",
+            "prob": 0.0076072076335549355
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.9688798189163208,
+        "entropy": 0.16910114884376526,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9688798189163208
+          },
+          {
+            "text": " for",
+            "prob": 0.01566048339009285
+          },
+          {
+            "text": " at",
+            "prob": 0.013820327818393707
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0007557010976597667
+          },
+          {
+            "text": ".",
+            "prob": 0.0002611632808111608
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.3576105833053589,
+      "entropy": 1.8131184577941895,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.17981790006160736,
+          "d_curvature_mean": 2.635545752127655e-05,
+          "d_curvature_max": 6.632786244153976e-05,
+          "endpoint_shift_m": 0.0626603290438652,
+          "traj_ade_m": 0.011999038979411125,
+          "forced_cot": {
+            "cot": [
+              "N distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.1586887389421463,
+          "d_curvature_mean": 4.226245073368773e-05,
+          "d_curvature_max": 0.00010204408317804337,
+          "endpoint_shift_m": 0.27407413721084595,
+          "traj_ade_m": 0.09707457572221756,
+          "forced_cot": {
+            "cot": [
+              "Slow distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.14448773860931396,
+          "d_curvature_mean": 1.5439738490385935e-05,
+          "d_curvature_max": 6.122700870037079e-05,
+          "endpoint_shift_m": 0.11283276975154877,
+          "traj_ade_m": 0.039945684373378754,
+          "forced_cot": {
+            "cot": [
+              "Dec distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.09041811525821686,
+          "d_curvature_mean": 7.824871136108413e-05,
+          "d_curvature_max": 0.000380110926926136,
+          "endpoint_shift_m": 0.651882529258728,
+          "traj_ade_m": 0.15201768279075623,
+          "forced_cot": {
+            "cot": [
+              "Stop distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9933220744132996,
+      "entropy": 0.0477575957775116,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.004059480503201485,
+          "d_curvature_mean": 0.00017193128587678075,
+          "d_curvature_max": 0.0004668477922677994,
+          "endpoint_shift_m": 0.6593887805938721,
+          "traj_ade_m": 0.2047429084777832,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0015897153643891215,
+          "d_curvature_mean": 0.0001850329281296581,
+          "d_curvature_max": 0.0004206085577607155,
+          "endpoint_shift_m": 0.8961749076843262,
+          "traj_ade_m": 0.29810190200805664,
+          "forced_cot": {
+            "cot": [
+              "Keep right to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00048483582213521004,
+          "d_curvature_mean": 0.00011902354890480638,
+          "d_curvature_max": 0.00029592495411634445,
+          "endpoint_shift_m": 0.5201712250709534,
+          "traj_ade_m": 0.15026597678661346,
+          "forced_cot": {
+            "cot": [
+              "Keep to to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 0.00040194299072027206,
+          "d_curvature_mean": 7.532184827141464e-05,
+          "d_curvature_max": 0.0002244953066110611,
+          "endpoint_shift_m": 0.49970778822898865,
+          "traj_ade_m": 0.16319486498832703,
+          "forced_cot": {
+            "cot": [
+              "Keep left to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9988927245140076,
+      "entropy": 0.010307961143553257,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0006664083921350539,
+          "d_curvature_mean": 1.9575245460146107e-05,
+          "d_curvature_max": 4.59207221865654e-05,
+          "endpoint_shift_m": 0.04046263173222542,
+          "traj_ade_m": 0.02944459393620491,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.00013968678831588477,
+          "d_curvature_mean": 0.00031120292260311544,
+          "d_curvature_max": 0.0006785872392356396,
+          "endpoint_shift_m": 1.160129427909851,
+          "traj_ade_m": 0.374919056892395,
+          "forced_cot": {
+            "cot": [
+              "Keep distance due the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 0.0001271862565772608,
+          "d_curvature_mean": 6.685686821583658e-05,
+          "d_curvature_max": 0.00018877815455198288,
+          "endpoint_shift_m": 0.29054737091064453,
+          "traj_ade_m": 0.08560025691986084,
+          "forced_cot": {
+            "cot": [
+              "Keep distance for the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 6.0078535170760006e-05,
+          "d_curvature_mean": 7.012670539552346e-05,
+          "d_curvature_max": 0.00015605473890900612,
+          "endpoint_shift_m": 0.2243419736623764,
+          "traj_ade_m": 0.0746694952249527,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9989309906959534,
+      "entropy": 0.011171085759997368,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0006067949580028653,
+          "d_curvature_mean": 3.841102807200514e-05,
+          "d_curvature_max": 0.00014286022633314133,
+          "endpoint_shift_m": 0.05418618023395538,
+          "traj_ade_m": 0.022261926904320717,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 6.598589243367314e-05,
+          "d_curvature_mean": 0.00010120188380824402,
+          "d_curvature_max": 0.0003746878355741501,
+          "endpoint_shift_m": 0.5092050433158875,
+          "traj_ade_m": 0.13926531374454498,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 6.598589243367314e-05,
+          "d_curvature_mean": 4.2307787225581706e-05,
+          "d_curvature_max": 0.00022449344396591187,
+          "endpoint_shift_m": 0.15978331863880157,
+          "traj_ade_m": 0.04550617188215256,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to lead lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 5.644072371069342e-05,
+          "d_curvature_mean": 8.24515736894682e-05,
+          "d_curvature_max": 0.00025000423192977905,
+          "endpoint_shift_m": 0.3863174319267273,
+          "traj_ade_m": 0.11067868769168854,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9560878872871399,
+      "entropy": 0.19478315114974976,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.04200756922364235,
+          "d_curvature_mean": 0.0003134730795864016,
+          "d_curvature_max": 0.0007959359791129827,
+          "endpoint_shift_m": 0.44926461577415466,
+          "traj_ade_m": 0.11936616897583008,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.0004967590793967247,
+          "d_curvature_mean": 0.00034317735116928816,
+          "d_curvature_max": 0.0007959366776049137,
+          "endpoint_shift_m": 0.5709459185600281,
+          "traj_ade_m": 0.15193375945091248,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the merging vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.00035225492320023477,
+          "d_curvature_mean": 0.0001507241395302117,
+          "d_curvature_max": 0.0003775600343942642,
+          "endpoint_shift_m": 0.3767298758029938,
+          "traj_ade_m": 0.10100074112415314,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.0002497861278243363,
+          "d_curvature_mean": 0.0002003866684390232,
+          "d_curvature_max": 0.0005051130428910255,
+          "endpoint_shift_m": 0.5444985032081604,
+          "traj_ade_m": 0.1887061893939972,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the vehicle vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9999337196350098,
+      "entropy": 0.0008513354696333408,
+      "alternatives": [
+        {
+          "token": " motorcycle",
+          "token_prob": 2.5866385840345174e-05,
+          "d_curvature_mean": 0.00011087983875768259,
+          "d_curvature_max": 0.00028572045266628265,
+          "endpoint_shift_m": 0.22113977372646332,
+          "traj_ade_m": 0.04892471060156822,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 1.8924250980489887e-05,
+          "d_curvature_mean": 5.436542778625153e-05,
+          "d_curvature_max": 0.00012245215475559235,
+          "endpoint_shift_m": 0.2031315714120865,
+          "traj_ade_m": 0.07674401998519897,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicles since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 6.143805421743309e-06,
+          "d_curvature_mean": 0.00013476864842232317,
+          "d_curvature_max": 0.00034694792702794075,
+          "endpoint_shift_m": 0.14682640135288239,
+          "traj_ade_m": 0.0427880734205246,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead scooter since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " truck",
+          "token_prob": 2.902128244386404e-06,
+          "d_curvature_mean": 9.97960232780315e-05,
+          "d_curvature_max": 0.0002551078796386719,
+          "endpoint_shift_m": 0.209274023771286,
+          "traj_ade_m": 0.05714662745594978,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead truck since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9965698719024658,
+      "entropy": 0.028942180797457695,
+      "alternatives": [
+        {
+          "token": " as",
+          "token_prob": 0.0010961666703224182,
+          "d_curvature_mean": 4.951245864504017e-05,
+          "d_curvature_max": 0.00012579746544361115,
+          "endpoint_shift_m": 0.08430946618318558,
+          "traj_ade_m": 0.024648498743772507,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle as it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0009087541257031262,
+          "d_curvature_mean": 8.430780872004107e-05,
+          "d_curvature_max": 0.00037756096571683884,
+          "endpoint_shift_m": 0.4886273741722107,
+          "traj_ade_m": 0.14852802455425262,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle ahead it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0008019726956263185,
+          "d_curvature_mean": 1.8309816368855536e-05,
+          "d_curvature_max": 7.493607699871063e-05,
+          "endpoint_shift_m": 0.015090949833393097,
+          "traj_ade_m": 0.004061413928866386,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle because it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0001681026042206213,
+          "d_curvature_mean": 4.9748698074836284e-05,
+          "d_curvature_max": 0.00026020780205726624,
+          "endpoint_shift_m": 0.3910956084728241,
+          "traj_ade_m": 0.11585643142461777,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle stopped it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9974156618118286,
+      "entropy": 0.022355511784553528,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.0008026533178053796,
+          "d_curvature_mean": 7.487709081033245e-05,
+          "d_curvature_max": 0.0003453511744737625,
+          "endpoint_shift_m": 0.4833153188228607,
+          "traj_ade_m": 0.1358274519443512,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since a is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0007540230290032923,
+          "d_curvature_mean": 3.237944474676624e-05,
+          "d_curvature_max": 0.00011479854583740234,
+          "endpoint_shift_m": 0.1338931918144226,
+          "traj_ade_m": 0.04110587015748024,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since the is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0005872336914762855,
+          "d_curvature_mean": 2.1251500584185123e-05,
+          "d_curvature_max": 5.612242966890335e-05,
+          "endpoint_shift_m": 0.08232751488685608,
+          "traj_ade_m": 0.03407394886016846,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since we is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0002605833578854799,
+          "d_curvature_mean": 4.979360892320983e-05,
+          "d_curvature_max": 0.00015561655163764954,
+          "endpoint_shift_m": 0.35941973328590393,
+          "traj_ade_m": 0.10951638221740723,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since traffic is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9987621307373047,
+      "entropy": 0.013714025728404522,
+      "alternatives": [
+        {
+          "token": " slows",
+          "token_prob": 0.000588026421610266,
+          "d_curvature_mean": 2.4569284505560063e-05,
+          "d_curvature_max": 6.12279400229454e-05,
+          "endpoint_shift_m": 0.04765264689922333,
+          "traj_ade_m": 0.0132688507437706,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it slows stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 9.599267650628462e-05,
+          "d_curvature_mean": 2.733433575485833e-05,
+          "d_curvature_max": 9.694136679172516e-05,
+          "endpoint_shift_m": 0.09300827980041504,
+          "traj_ade_m": 0.018603499978780746,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it dec stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 6.806899909861386e-05,
+          "d_curvature_mean": 0.00012185832747491077,
+          "d_curvature_max": 0.0002500060945749283,
+          "endpoint_shift_m": 0.16129620373249054,
+          "traj_ade_m": 0.034677013754844666,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it merges stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 5.301219061948359e-05,
+          "d_curvature_mean": 0.00010222634591627866,
+          "d_curvature_max": 0.0005153166130185127,
+          "endpoint_shift_m": 0.4964172840118408,
+          "traj_ade_m": 0.12096481025218964,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it controls stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.6847789883613586,
+      "entropy": 0.9245008230209351,
+      "alternatives": [
+        {
+          "token": " slowing",
+          "token_prob": 0.22231517732143402,
+          "d_curvature_mean": 4.473995795706287e-05,
+          "d_curvature_max": 0.00019898265600204468,
+          "endpoint_shift_m": 0.1383366882801056,
+          "traj_ade_m": 0.03482698276638985,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 0.06369436532258987,
+          "d_curvature_mean": 0.00013695443340111524,
+          "d_curvature_max": 0.0005255201831459999,
+          "endpoint_shift_m": 0.651827871799469,
+          "traj_ade_m": 0.1598697006702423,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.012542164884507656,
+          "d_curvature_mean": 0.00014045533316675574,
+          "d_curvature_max": 0.0005204193294048309,
+          "endpoint_shift_m": 0.7107025384902954,
+          "traj_ade_m": 0.17931878566741943,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is ahead ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 0.0076072076335549355,
+          "d_curvature_mean": 0.00011456827633082867,
+          "d_curvature_max": 0.0005357265472412109,
+          "endpoint_shift_m": 0.6125184893608093,
+          "traj_ade_m": 0.15158793330192566,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is dec ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9688798189163208,
+      "entropy": 0.16910114884376526,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 0.01566048339009285,
+          "d_curvature_mean": 7.180825195973739e-05,
+          "d_curvature_max": 0.00028571952134370804,
+          "endpoint_shift_m": 0.27799761295318604,
+          "traj_ade_m": 0.07054824382066727,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped for"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.013820327818393707,
+          "d_curvature_mean": 7.144772098399699e-05,
+          "d_curvature_max": 0.00023469794541597366,
+          "endpoint_shift_m": 0.2962155342102051,
+          "traj_ade_m": 0.07929644733667374,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped at"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0007557010976597667,
+          "d_curvature_mean": 0.0001089141660486348,
+          "d_curvature_max": 0.00025510741397738457,
+          "endpoint_shift_m": 0.40464091300964355,
+          "traj_ade_m": 0.17404763400554657,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0002611632808111608,
+          "d_curvature_mean": 7.582300895592198e-05,
+          "d_curvature_max": 0.00027041230350732803,
+          "endpoint_shift_m": 0.158358633518219,
+          "traj_ade_m": 0.032803673297166824,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.3576105833053589,
+      "entropy": 1.8131184577941895,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.17981790006160736,
+          "d_curvature_mean": 0.00020383780065458268,
+          "d_curvature_max": 0.0006224624812602997,
+          "endpoint_shift_m": 0.6305959820747375,
+          "traj_ade_m": 0.14176593720912933,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the right to clear the construction cones blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.1586887389421463,
+          "d_curvature_mean": 0.00017434789333492517,
+          "d_curvature_max": 0.0005586864426732063,
+          "endpoint_shift_m": 1.0495409965515137,
+          "traj_ade_m": 0.321569561958313,
+          "forced_cot": {
+            "cot": [
+              "Slow down to keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.14448773860931396,
+          "d_curvature_mean": 0.00020155390666332096,
+          "d_curvature_max": 0.0005790963768959045,
+          "endpoint_shift_m": 1.340596079826355,
+          "traj_ade_m": 0.38885384798049927,
+          "forced_cot": {
+            "cot": [
+              "Decelerate to maintain a safe distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.09041811525821686,
+          "d_curvature_mean": 8.77880011103116e-05,
+          "d_curvature_max": 0.0004617460072040558,
+          "endpoint_shift_m": 0.6574928164482117,
+          "traj_ade_m": 0.1532304286956787,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9933220744132996,
+      "entropy": 0.0477575957775116,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.004059480503201485,
+          "d_curvature_mean": 0.0002137266128556803,
+          "d_curvature_max": 0.0005969507619738579,
+          "endpoint_shift_m": 1.2310123443603516,
+          "traj_ade_m": 0.4433181881904602,
+          "forced_cot": {
+            "cot": [
+              "Stop lane due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0015897153643891215,
+          "d_curvature_mean": 0.0006060524610802531,
+          "d_curvature_max": 0.00135717261582613,
+          "endpoint_shift_m": 1.963850736618042,
+          "traj_ade_m": 0.6370861530303955,
+          "forced_cot": {
+            "cot": [
+              "Stop right turn due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00048483582213521004,
+          "d_curvature_mean": 8.77880011103116e-05,
+          "d_curvature_max": 0.0004617460072040558,
+          "endpoint_shift_m": 0.6574928164482117,
+          "traj_ade_m": 0.1532304286956787,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 0.00040194299072027206,
+          "d_curvature_mean": 0.00023514608619734645,
+          "d_curvature_max": 0.0008979793637990952,
+          "endpoint_shift_m": 0.9915295839309692,
+          "traj_ade_m": 0.3801209628582001,
+          "forced_cot": {
+            "cot": [
+              "Stop left in lane due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9988927245140076,
+      "entropy": 0.010307961143553257,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0006664083921350539,
+          "d_curvature_mean": 9.52257978497073e-05,
+          "d_curvature_max": 0.00025765877217054367,
+          "endpoint_shift_m": 0.17106576263904572,
+          "traj_ade_m": 0.06813071668148041,
+          "forced_cot": {
+            "cot": [
+              "Stop to from stop to the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.00013968678831588477,
+          "d_curvature_mean": 0.00022373255342245102,
+          "d_curvature_max": 0.0006403210572898388,
+          "endpoint_shift_m": 1.0469359159469604,
+          "traj_ade_m": 0.40623757243156433,
+          "forced_cot": {
+            "cot": [
+              "Stop to due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 0.0001271862565772608,
+          "d_curvature_mean": 5.3556650527752936e-05,
+          "d_curvature_max": 0.0001530637964606285,
+          "endpoint_shift_m": 0.11846192181110382,
+          "traj_ade_m": 0.046595051884651184,
+          "forced_cot": {
+            "cot": [
+              "Stop to for the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 6.0078535170760006e-05,
+          "d_curvature_mean": 8.083332795649767e-05,
+          "d_curvature_max": 0.00023980159312486649,
+          "endpoint_shift_m": 0.20905661582946777,
+          "traj_ade_m": 0.07884664088487625,
+          "forced_cot": {
+            "cot": [
+              "Stop to since the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9989309906959534,
+      "entropy": 0.011171085759997368,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0006067949580028653,
+          "d_curvature_mean": 0.0001594965870026499,
+          "d_curvature_max": 0.000387764535844326,
+          "endpoint_shift_m": 0.19060999155044556,
+          "traj_ade_m": 0.06647889316082001,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep our lane since the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 6.598589243367314e-05,
+          "d_curvature_mean": 9.743028931552544e-05,
+          "d_curvature_max": 0.0002960851415991783,
+          "endpoint_shift_m": 0.5440847277641296,
+          "traj_ade_m": 0.14671090245246887,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep follow the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 6.598589243367314e-05,
+          "d_curvature_mean": 0.00011021328100468963,
+          "d_curvature_max": 0.00031123124063014984,
+          "endpoint_shift_m": 0.37517765164375305,
+          "traj_ade_m": 0.14163102209568024,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep lead vehicle stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 5.644072371069342e-05,
+          "d_curvature_mean": 9.460791625315323e-05,
+          "d_curvature_max": 0.0004489906132221222,
+          "endpoint_shift_m": 0.7527055144309998,
+          "traj_ade_m": 0.18477118015289307,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep maintain a safe distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9560878872871399,
+      "entropy": 0.19478315114974976,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.04200756922364235,
+          "d_curvature_mean": 0.00029517521033994853,
+          "d_curvature_max": 0.0006734833586961031,
+          "endpoint_shift_m": 0.2417699247598648,
+          "traj_ade_m": 0.06781025230884552,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance cut-in from the police vehicle blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.0004967590793967247,
+          "d_curvature_mean": 0.00029099310631863773,
+          "d_curvature_max": 0.0007398133166134357,
+          "endpoint_shift_m": 0.5819417834281921,
+          "traj_ade_m": 0.17375770211219788,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance merging into the right-turn-only lane since the right-turn traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.00035225492320023477,
+          "d_curvature_mean": 5.447831790661439e-05,
+          "d_curvature_max": 0.00021428987383842468,
+          "endpoint_shift_m": 0.12403814494609833,
+          "traj_ade_m": 0.03060929849743843,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance stopped for the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.0002497861278243363,
+          "d_curvature_mean": 5.260982288746163e-05,
+          "d_curvature_max": 0.00016326876357197762,
+          "endpoint_shift_m": 0.20161545276641846,
+          "traj_ade_m": 0.0796094536781311,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance vehicle stopped ahead since the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9999337196350098,
+      "entropy": 0.0008513354696333408,
+      "alternatives": [
+        {
+          "token": " motorcycle",
+          "token_prob": 2.5866385840345174e-05,
+          "d_curvature_mean": 5.4154144891072065e-05,
+          "d_curvature_max": 0.00017123855650424957,
+          "endpoint_shift_m": 0.022412095218896866,
+          "traj_ade_m": 0.02742639370262623,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to motorcycle ahead since it is stopped at a red light"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 1.8924250980489887e-05,
+          "d_curvature_mean": 4.2056606616824865e-05,
+          "d_curvature_max": 0.00012245215475559235,
+          "endpoint_shift_m": 0.12042751908302307,
+          "traj_ade_m": 0.042195625603199005,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to vehicles queued at the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 6.143805421743309e-06,
+          "d_curvature_mean": 9.045803744811565e-05,
+          "d_curvature_max": 0.0002908250316977501,
+          "endpoint_shift_m": 0.15627455711364746,
+          "traj_ade_m": 0.04368504881858826,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to scooter in the same lane since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " truck",
+          "token_prob": 2.902128244386404e-06,
+          "d_curvature_mean": 8.225906640291214e-05,
+          "d_curvature_max": 0.00018367869779467583,
+          "endpoint_shift_m": 0.2596130073070526,
+          "traj_ade_m": 0.09423448890447617,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to truck blocking the right-turn lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9965698719024658,
+      "entropy": 0.028942180797457695,
+      "alternatives": [
+        {
+          "token": " as",
+          "token_prob": 0.0010961666703224182,
+          "d_curvature_mean": 0.0001527944259578362,
+          "d_curvature_max": 0.00044898735359311104,
+          "endpoint_shift_m": 0.3819572925567627,
+          "traj_ade_m": 0.12013302743434906,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the asy right-turn lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0009087541257031262,
+          "d_curvature_mean": 5.6034172303043306e-05,
+          "d_curvature_max": 0.00018973834812641144,
+          "endpoint_shift_m": 0.35625091195106506,
+          "traj_ade_m": 0.08194643259048462,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the ahead lead vehicle since it is stopped at a red light"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0008019726956263185,
+          "d_curvature_mean": 5.966798198642209e-05,
+          "d_curvature_max": 0.00016326969489455223,
+          "endpoint_shift_m": 0.07105609774589539,
+          "traj_ade_m": 0.028843872249126434,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the because the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0001681026042206213,
+          "d_curvature_mean": 0.00011247646762058139,
+          "d_curvature_max": 0.00033801794052124023,
+          "endpoint_shift_m": 0.5475584864616394,
+          "traj_ade_m": 0.12124240398406982,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the stopped lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9974156618118286,
+      "entropy": 0.022355511784553528,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.0008026533178053796,
+          "d_curvature_mean": 0.00011981525312876329,
+          "d_curvature_max": 0.00031920429319143295,
+          "endpoint_shift_m": 0.4781326651573181,
+          "traj_ade_m": 0.1144208237528801,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead a stopped vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0007540230290032923,
+          "d_curvature_mean": 7.583778642583638e-05,
+          "d_curvature_max": 0.0002500070258975029,
+          "endpoint_shift_m": 0.34909534454345703,
+          "traj_ade_m": 0.07335111498832703,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead the stopped lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0005872336914762855,
+          "d_curvature_mean": 5.2132538257865235e-05,
+          "d_curvature_max": 0.00016326969489455223,
+          "endpoint_shift_m": 0.056234072893857956,
+          "traj_ade_m": 0.0203322172164917,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead we are following stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0002605833578854799,
+          "d_curvature_mean": 8.710390829946846e-05,
+          "d_curvature_max": 0.00030485354363918304,
+          "endpoint_shift_m": 0.3953225016593933,
+          "traj_ade_m": 0.08589529991149902,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead traffic since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9987621307373047,
+      "entropy": 0.013714025728404522,
+      "alternatives": [
+        {
+          "token": " slows",
+          "token_prob": 0.000588026421610266,
+          "d_curvature_mean": 5.711410631192848e-05,
+          "d_curvature_max": 0.00019962433725595474,
+          "endpoint_shift_m": 0.32841750979423523,
+          "traj_ade_m": 0.06064848229289055,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle slows ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 9.599267650628462e-05,
+          "d_curvature_mean": 5.0137852667830884e-05,
+          "d_curvature_max": 0.00014286045916378498,
+          "endpoint_shift_m": 0.370229572057724,
+          "traj_ade_m": 0.08184389024972916,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle decelerating for the red light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 6.806899909861386e-05,
+          "d_curvature_mean": 0.00016463450447190553,
+          "d_curvature_max": 0.0003775591030716896,
+          "endpoint_shift_m": 0.37149301171302795,
+          "traj_ade_m": 0.08916570991277695,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle merges ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 5.301219061948359e-05,
+          "d_curvature_mean": 3.0827082809992135e-05,
+          "d_curvature_max": 8.94470140337944e-05,
+          "endpoint_shift_m": 0.09037499874830246,
+          "traj_ade_m": 0.02041071094572544,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle controls by the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.6847789883613586,
+      "entropy": 0.9245008230209351,
+      "alternatives": [
+        {
+          "token": " slowing",
+          "token_prob": 0.22231517732143402,
+          "d_curvature_mean": 3.2408544939244166e-05,
+          "d_curvature_max": 0.00014541111886501312,
+          "endpoint_shift_m": 0.0686948224902153,
+          "traj_ade_m": 0.06409277766942978,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since slowing ahead for a red light"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 0.06369436532258987,
+          "d_curvature_mean": 4.8919588152784854e-05,
+          "d_curvature_max": 0.00012723589316010475,
+          "endpoint_shift_m": 0.47668251395225525,
+          "traj_ade_m": 0.1220347061753273,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since directly ahead it is stopped at a red light"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.012542164884507656,
+          "d_curvature_mean": 7.003569771768525e-05,
+          "d_curvature_max": 0.0001964336261153221,
+          "endpoint_shift_m": 0.30121442675590515,
+          "traj_ade_m": 0.05765926465392113,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since ahead is stopped"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 0.0076072076335549355,
+          "d_curvature_mean": 3.38018435286358e-05,
+          "d_curvature_max": 8.673634147271514e-05,
+          "endpoint_shift_m": 0.2804523706436157,
+          "traj_ade_m": 0.0531531423330307,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since decelerating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9688798189163208,
+      "entropy": 0.16910114884376526,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 0.01566048339009285,
+          "d_curvature_mean": 7.369961531367153e-05,
+          "d_curvature_max": 0.00021429266780614853,
+          "endpoint_shift_m": 0.41213586926460266,
+          "traj_ade_m": 0.08771079778671265,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it for our lane is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.013820327818393707,
+          "d_curvature_mean": 5.670356040354818e-05,
+          "d_curvature_max": 0.00021126028150320053,
+          "endpoint_shift_m": 0.29384979605674744,
+          "traj_ade_m": 0.05289623886346817,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it at the red light is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0007557010976597667,
+          "d_curvature_mean": 6.429303175536916e-05,
+          "d_curvature_max": 0.00016518030315637589,
+          "endpoint_shift_m": 0.23187847435474396,
+          "traj_ade_m": 0.04655463621020317,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0002611632808111608,
+          "d_curvature_mean": 7.99765475676395e-05,
+          "d_curvature_max": 0.0002052048221230507,
+          "endpoint_shift_m": 0.3509046137332916,
+          "traj_ade_m": 0.10089939087629318,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

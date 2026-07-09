@@ -1,0 +1,3406 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Nudge to the left to clear the construction vehicle blocking the right side of our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 17,
+    "mean_entropy": 0.2901659564369168,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "N",
+        "sampled_prob": 0.8667626976966858,
+        "entropy": 0.6830600500106812,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.8667626976966858
+          },
+          {
+            "text": "Change",
+            "prob": 0.03929177671670914
+          },
+          {
+            "text": "Lane",
+            "prob": 0.028746478259563446
+          },
+          {
+            "text": "Merge",
+            "prob": 0.022387780249118805
+          },
+          {
+            "text": "Keep",
+            "prob": 0.010575237683951855
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "udge",
+        "sampled_prob": 1.0,
+        "entropy": 2.7951350123345264e-09,
+        "top_k": [
+          {
+            "text": "udge",
+            "prob": 1.0
+          },
+          {
+            "text": "ain",
+            "prob": 2.5946095966178362e-11
+          },
+          {
+            "text": " for",
+            "prob": 6.983296753360069e-12
+          },
+          {
+            "text": "apt",
+            "prob": 6.5602007333354084e-12
+          },
+          {
+            "text": " change",
+            "prob": 4.105268208709489e-12
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.6000282168388367,
+        "entropy": 0.730011522769928,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.6000282168388367
+          },
+          {
+            "text": " left",
+            "prob": 0.3874073326587677
+          },
+          {
+            "text": " right",
+            "prob": 0.012453188188374043
+          },
+          {
+            "text": " due",
+            "prob": 1.8146576621802524e-05
+          },
+          {
+            "text": " for",
+            "prob": 1.100645476981299e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9999357461929321,
+        "entropy": 0.0009013913222588599,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9999357461929321
+          },
+          {
+            "text": " a",
+            "prob": 2.9310514946701005e-05
+          },
+          {
+            "text": " its",
+            "prob": 2.9942575565655716e-06
+          },
+          {
+            "text": " our",
+            "prob": 2.331930090804235e-06
+          },
+          {
+            "text": " an",
+            "prob": 1.6027105402827146e-06
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " left",
+        "sampled_prob": 0.9937041401863098,
+        "entropy": 0.038254816085100174,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.9937041401863098
+          },
+          {
+            "text": " right",
+            "prob": 0.006289864424616098
+          },
+          {
+            "text": " to",
+            "prob": 1.4962243994887103e-06
+          },
+          {
+            "text": " front",
+            "prob": 1.2404134395183064e-06
+          },
+          {
+            "text": " side",
+            "prob": 4.1548648255229637e-07
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " to",
+        "sampled_prob": 0.8918476104736328,
+        "entropy": 0.4452874958515167,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.8918476104736328
+          },
+          {
+            "text": " in",
+            "prob": 0.08295474946498871
+          },
+          {
+            "text": " due",
+            "prob": 0.006809340324252844
+          },
+          {
+            "text": " within",
+            "prob": 0.005824337247759104
+          },
+          {
+            "text": " because",
+            "prob": 0.005471458192914724
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " clear",
+        "sampled_prob": 0.8771093487739563,
+        "entropy": 0.484002023935318,
+        "top_k": [
+          {
+            "text": " clear",
+            "prob": 0.8771093487739563
+          },
+          {
+            "text": " pass",
+            "prob": 0.09244664013385773
+          },
+          {
+            "text": " increase",
+            "prob": 0.018203822895884514
+          },
+          {
+            "text": " create",
+            "prob": 0.006291072815656662
+          },
+          {
+            "text": " avoid",
+            "prob": 0.0033673688303679228
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " the",
+        "sampled_prob": 0.9896238446235657,
+        "entropy": 0.08095844835042953,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9896238446235657
+          },
+          {
+            "text": " construction",
+            "prob": 0.005357915069907904
+          },
+          {
+            "text": " road",
+            "prob": 0.0014878392685204744
+          },
+          {
+            "text": " a",
+            "prob": 0.0011587303597480059
+          },
+          {
+            "text": " from",
+            "prob": 0.0002505930024199188
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " construction",
+        "sampled_prob": 0.6696120500564575,
+        "entropy": 1.2392950057983398,
+        "top_k": [
+          {
+            "text": " construction",
+            "prob": 0.6696120500564575
+          },
+          {
+            "text": " stopped",
+            "prob": 0.1494106501340866
+          },
+          {
+            "text": " road",
+            "prob": 0.08513161540031433
+          },
+          {
+            "text": " slow",
+            "prob": 0.05163493752479553
+          },
+          {
+            "text": " work",
+            "prob": 0.011521311476826668
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " vehicle",
+        "sampled_prob": 0.9315155744552612,
+        "entropy": 0.47534364461898804,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.9315155744552612
+          },
+          {
+            "text": " equipment",
+            "prob": 0.03844824060797691
+          },
+          {
+            "text": " cones",
+            "prob": 0.005043311510235071
+          },
+          {
+            "text": " truck",
+            "prob": 0.004313773475587368
+          },
+          {
+            "text": " machinery",
+            "prob": 0.0017429218860343099
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " blocking",
+        "sampled_prob": 0.9955405592918396,
+        "entropy": 0.036911509931087494,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.9955405592918396
+          },
+          {
+            "text": " enc",
+            "prob": 0.0022468650713562965
+          },
+          {
+            "text": " partially",
+            "prob": 0.0012802251148968935
+          },
+          {
+            "text": " occupying",
+            "prob": 0.0001392180274706334
+          },
+          {
+            "text": " ahead",
+            "prob": 0.00011541579442564398
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " the",
+        "sampled_prob": 0.973386287689209,
+        "entropy": 0.1988115906715393,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.973386287689209
+          },
+          {
+            "text": " part",
+            "prob": 0.014325354248285294
+          },
+          {
+            "text": " a",
+            "prob": 0.0035105792339891195
+          },
+          {
+            "text": " it",
+            "prob": 0.0009448595228604972
+          },
+          {
+            "text": " partially",
+            "prob": 0.0008603044552728534
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " right",
+        "sampled_prob": 0.9336473941802979,
+        "entropy": 0.26005780696868896,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9336473941802979
+          },
+          {
+            "text": " lane",
+            "prob": 0.06353550404310226
+          },
+          {
+            "text": " same",
+            "prob": 0.0021071764640510082
+          },
+          {
+            "text": " ego",
+            "prob": 0.00016248799511231482
+          },
+          {
+            "text": " travel",
+            "prob": 0.00015748877194710076
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " side",
+        "sampled_prob": 0.9969015121459961,
+        "entropy": 0.02185187116265297,
+        "top_k": [
+          {
+            "text": " side",
+            "prob": 0.9969015121459961
+          },
+          {
+            "text": " edge",
+            "prob": 0.0029806816019117832
+          },
+          {
+            "text": " portion",
+            "prob": 4.1209023038391024e-05
+          },
+          {
+            "text": " lane",
+            "prob": 2.9221573640825227e-05
+          },
+          {
+            "text": " part",
+            "prob": 1.3803293768432923e-05
+          }
+        ]
+      },
+      {
+        "step": 14,
+        "col": 3100,
+        "sampled": " of",
+        "sampled_prob": 0.9960463643074036,
+        "entropy": 0.027699727565050125,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.9960463643074036
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0035923041868954897
+          },
+          {
+            "text": ".",
+            "prob": 0.00017334765288978815
+          },
+          {
+            "text": " ahead",
+            "prob": 0.00011547443136805668
+          },
+          {
+            "text": " since",
+            "prob": 1.8850681954063475e-05
+          }
+        ]
+      },
+      {
+        "step": 15,
+        "col": 3101,
+        "sampled": " our",
+        "sampled_prob": 0.9578521847724915,
+        "entropy": 0.1753670871257782,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9578521847724915
+          },
+          {
+            "text": " the",
+            "prob": 0.04208508878946304
+          },
+          {
+            "text": " your",
+            "prob": 2.8076943635824136e-05
+          },
+          {
+            "text": " my",
+            "prob": 7.324308626266429e-06
+          },
+          {
+            "text": " it",
+            "prob": 2.959288167403429e-06
+          }
+        ]
+      },
+      {
+        "step": 16,
+        "col": 3102,
+        "sampled": " lane",
+        "sampled_prob": 0.9951460957527161,
+        "entropy": 0.03500726446509361,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9951460957527161
+          },
+          {
+            "text": " path",
+            "prob": 0.0043292297050356865
+          },
+          {
+            "text": " side",
+            "prob": 0.00010504563397262245
+          },
+          {
+            "text": " travel",
+            "prob": 3.203711094101891e-05
+          },
+          {
+            "text": " direction",
+            "prob": 2.827265052474104e-05
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.8667626976966858,
+      "entropy": 0.6830600500106812,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.03929177671670914,
+          "d_curvature_mean": 0.0014915403444319963,
+          "d_curvature_max": 0.004255201667547226,
+          "endpoint_shift_m": 1.345189094543457,
+          "traj_ade_m": 0.3925480544567108,
+          "forced_cot": {
+            "cot": [
+              "Changeudge to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.028746478259563446,
+          "d_curvature_mean": 0.00016241866978816688,
+          "d_curvature_max": 0.00029592588543891907,
+          "endpoint_shift_m": 0.062180694192647934,
+          "traj_ade_m": 0.025367852300405502,
+          "forced_cot": {
+            "cot": [
+              "Laneudge to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.022387780249118805,
+          "d_curvature_mean": 0.0006363209104165435,
+          "d_curvature_max": 0.001775551587343216,
+          "endpoint_shift_m": 0.4001636803150177,
+          "traj_ade_m": 0.11386950314044952,
+          "forced_cot": {
+            "cot": [
+              "Mergeudge to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.010575237683951855,
+          "d_curvature_mean": 0.00015270835137926042,
+          "d_curvature_max": 0.0003367425233591348,
+          "endpoint_shift_m": 0.4525926113128662,
+          "traj_ade_m": 0.13170036673545837,
+          "forced_cot": {
+            "cot": [
+              "Keepudge to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 2.7951350123345264e-09,
+      "alternatives": [
+        {
+          "token": "ain",
+          "token_prob": 2.5946095966178362e-11,
+          "d_curvature_mean": 0.0003919829905498773,
+          "d_curvature_max": 0.0007584672421216965,
+          "endpoint_shift_m": 0.10213833302259445,
+          "traj_ade_m": 0.02561110444366932,
+          "forced_cot": {
+            "cot": [
+              "Nain to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.983296753360069e-12,
+          "d_curvature_mean": 0.0006721136160194874,
+          "d_curvature_max": 0.002183724194765091,
+          "endpoint_shift_m": 0.8354051113128662,
+          "traj_ade_m": 0.22674302756786346,
+          "forced_cot": {
+            "cot": [
+              "N for to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 6.5602007333354084e-12,
+          "d_curvature_mean": 0.00033614764106459916,
+          "d_curvature_max": 0.0010204315185546875,
+          "endpoint_shift_m": 0.4082333743572235,
+          "traj_ade_m": 0.10583005100488663,
+          "forced_cot": {
+            "cot": [
+              "Napt to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " change",
+          "token_prob": 4.105268208709489e-12,
+          "d_curvature_mean": 0.0010709759080782533,
+          "d_curvature_max": 0.0031123198568820953,
+          "endpoint_shift_m": 1.1409664154052734,
+          "traj_ade_m": 0.3349306583404541,
+          "forced_cot": {
+            "cot": [
+              "N change to the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.6000282168388367,
+      "entropy": 0.730011522769928,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.3874073326587677,
+          "d_curvature_mean": 0.001283089048229158,
+          "d_curvature_max": 0.004122544080018997,
+          "endpoint_shift_m": 1.4263805150985718,
+          "traj_ade_m": 0.40130630135536194,
+          "forced_cot": {
+            "cot": [
+              "Nudge left the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.012453188188374043,
+          "d_curvature_mean": 0.0018117364961653948,
+          "d_curvature_max": 0.005290938541293144,
+          "endpoint_shift_m": 1.907978892326355,
+          "traj_ade_m": 0.5402754545211792,
+          "forced_cot": {
+            "cot": [
+              "Nudge right the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 1.8146576621802524e-05,
+          "d_curvature_mean": 0.0018714765319600701,
+          "d_curvature_max": 0.005979727953672409,
+          "endpoint_shift_m": 1.8420840501785278,
+          "traj_ade_m": 0.5290602445602417,
+          "forced_cot": {
+            "cot": [
+              "Nudge due the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 1.100645476981299e-05,
+          "d_curvature_mean": 0.00043276295764371753,
+          "d_curvature_max": 0.0014694221317768097,
+          "endpoint_shift_m": 0.7108308672904968,
+          "traj_ade_m": 0.2041517198085785,
+          "forced_cot": {
+            "cot": [
+              "Nudge for the left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9999357461929321,
+      "entropy": 0.0009013913222588599,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 2.9310514946701005e-05,
+          "d_curvature_mean": 0.00014540721895173192,
+          "d_curvature_max": 0.00033674202859401703,
+          "endpoint_shift_m": 0.015971625223755836,
+          "traj_ade_m": 0.008890255354344845,
+          "forced_cot": {
+            "cot": [
+              "Nudge to a left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " its",
+          "token_prob": 2.9942575565655716e-06,
+          "d_curvature_mean": 5.31415207660757e-05,
+          "d_curvature_max": 0.00010204408317804337,
+          "endpoint_shift_m": 0.016698941588401794,
+          "traj_ade_m": 0.005192158278077841,
+          "forced_cot": {
+            "cot": [
+              "Nudge to its left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 2.331930090804235e-06,
+          "d_curvature_mean": 8.498401439283043e-05,
+          "d_curvature_max": 0.0002653095871210098,
+          "endpoint_shift_m": 0.08959963172674179,
+          "traj_ade_m": 0.02815844863653183,
+          "forced_cot": {
+            "cot": [
+              "Nudge to our left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 1.6027105402827146e-06,
+          "d_curvature_mean": 8.248139783972874e-05,
+          "d_curvature_max": 0.00022449716925621033,
+          "endpoint_shift_m": 0.061634428799152374,
+          "traj_ade_m": 0.019272563979029655,
+          "forced_cot": {
+            "cot": [
+              "Nudge to an left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " left",
+      "sampled_prob": 0.9937041401863098,
+      "entropy": 0.038254816085100174,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.006289864424616098,
+          "d_curvature_mean": 0.00018484462634660304,
+          "d_curvature_max": 0.0006017377600073814,
+          "endpoint_shift_m": 0.31705671548843384,
+          "traj_ade_m": 0.09783142805099487,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the right to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.4962243994887103e-06,
+          "d_curvature_mean": 0.00039564762846566737,
+          "d_curvature_max": 0.0013877879828214645,
+          "endpoint_shift_m": 0.5724680423736572,
+          "traj_ade_m": 0.1717720478773117,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the to to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 1.2404134395183064e-06,
+          "d_curvature_mean": 0.00010126446431968361,
+          "d_curvature_max": 0.0002449043095111847,
+          "endpoint_shift_m": 0.20339377224445343,
+          "traj_ade_m": 0.06323006749153137,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the front to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 4.1548648255229637e-07,
+          "d_curvature_mean": 0.00020690824021585286,
+          "d_curvature_max": 0.0005360487848520279,
+          "endpoint_shift_m": 0.26882901787757874,
+          "traj_ade_m": 0.0729348435997963,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the side to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " to",
+      "sampled_prob": 0.8918476104736328,
+      "entropy": 0.4452874958515167,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.08295474946498871,
+          "d_curvature_mean": 0.0005598947172984481,
+          "d_curvature_max": 0.0016684066504240036,
+          "endpoint_shift_m": 0.5189500451087952,
+          "traj_ade_m": 0.1538039743900299,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left in clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.006809340324252844,
+          "d_curvature_mean": 0.0009179936605505645,
+          "d_curvature_max": 0.0025612860918045044,
+          "endpoint_shift_m": 0.7302325963973999,
+          "traj_ade_m": 0.21696369349956512,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left due clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 0.005824337247759104,
+          "d_curvature_mean": 0.0004444006481207907,
+          "d_curvature_max": 0.0011632926762104034,
+          "endpoint_shift_m": 0.303771048784256,
+          "traj_ade_m": 0.08923202753067017,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left within clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.005471458192914724,
+          "d_curvature_mean": 0.0005804961547255516,
+          "d_curvature_max": 0.0015510600060224533,
+          "endpoint_shift_m": 0.19197231531143188,
+          "traj_ade_m": 0.0643417239189148,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left because clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " clear",
+      "sampled_prob": 0.8771093487739563,
+      "entropy": 0.484002023935318,
+      "alternatives": [
+        {
+          "token": " pass",
+          "token_prob": 0.09244664013385773,
+          "d_curvature_mean": 7.522500527556986e-05,
+          "d_curvature_max": 0.00018877815455198288,
+          "endpoint_shift_m": 0.021547626703977585,
+          "traj_ade_m": 0.008572407066822052,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to pass the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " increase",
+          "token_prob": 0.018203822895884514,
+          "d_curvature_mean": 0.00022800327860750258,
+          "d_curvature_max": 0.000604601576924324,
+          "endpoint_shift_m": 0.3227294981479645,
+          "traj_ade_m": 0.10265754908323288,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " create",
+          "token_prob": 0.006291072815656662,
+          "d_curvature_mean": 9.494667028775439e-05,
+          "d_curvature_max": 0.00026754289865493774,
+          "endpoint_shift_m": 0.10118008404970169,
+          "traj_ade_m": 0.0253014974296093,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to create the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " avoid",
+          "token_prob": 0.0033673688303679228,
+          "d_curvature_mean": 0.0001983476395253092,
+          "d_curvature_max": 0.0005459338426589966,
+          "endpoint_shift_m": 0.09368602931499481,
+          "traj_ade_m": 0.025393154472112656,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to avoid the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.9896238446235657,
+      "entropy": 0.08095844835042953,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.005357915069907904,
+          "d_curvature_mean": 8.457717194687575e-05,
+          "d_curvature_max": 0.0002040863037109375,
+          "endpoint_shift_m": 0.088575080037117,
+          "traj_ade_m": 0.027017083019018173,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear construction construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.0014878392685204744,
+          "d_curvature_mean": 0.00016550110012758523,
+          "d_curvature_max": 0.000510217621922493,
+          "endpoint_shift_m": 0.16209548711776733,
+          "traj_ade_m": 0.0525527223944664,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear road construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0011587303597480059,
+          "d_curvature_mean": 0.00020223998581059277,
+          "d_curvature_max": 0.0005357302725315094,
+          "endpoint_shift_m": 0.19115130603313446,
+          "traj_ade_m": 0.053405120968818665,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear a construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0002505930024199188,
+          "d_curvature_mean": 8.298910688608885e-05,
+          "d_curvature_max": 0.00024490244686603546,
+          "endpoint_shift_m": 0.06821213662624359,
+          "traj_ade_m": 0.02139325998723507,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear from construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " construction",
+      "sampled_prob": 0.6696120500564575,
+      "entropy": 1.2392950057983398,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.1494106501340866,
+          "d_curvature_mean": 0.00044723990140482783,
+          "d_curvature_max": 0.001382686197757721,
+          "endpoint_shift_m": 0.24389956891536713,
+          "traj_ade_m": 0.06765548884868622,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.08513161540031433,
+          "d_curvature_mean": 0.00020579644478857517,
+          "d_curvature_max": 0.00037756189703941345,
+          "endpoint_shift_m": 0.11791288107633591,
+          "traj_ade_m": 0.035640232264995575,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the road vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.05163493752479553,
+          "d_curvature_mean": 0.00015469398931600153,
+          "d_curvature_max": 0.0004489906132221222,
+          "endpoint_shift_m": 0.14349505305290222,
+          "traj_ade_m": 0.03983306512236595,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the slow vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.011521311476826668,
+          "d_curvature_mean": 3.185606328770518e-05,
+          "d_curvature_max": 9.694136679172516e-05,
+          "endpoint_shift_m": 0.02323322184383869,
+          "traj_ade_m": 0.0078081898391246796,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the work vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9315155744552612,
+      "entropy": 0.47534364461898804,
+      "alternatives": [
+        {
+          "token": " equipment",
+          "token_prob": 0.03844824060797691,
+          "d_curvature_mean": 5.611862434307113e-05,
+          "d_curvature_max": 0.00011543836444616318,
+          "endpoint_shift_m": 0.03087024949491024,
+          "traj_ade_m": 0.010948725044727325,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction equipment blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.005043311510235071,
+          "d_curvature_mean": 0.0006177510367706418,
+          "d_curvature_max": 0.0017347335815429688,
+          "endpoint_shift_m": 0.29853585362434387,
+          "traj_ade_m": 0.08728156238794327,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " truck",
+          "token_prob": 0.004313773475587368,
+          "d_curvature_mean": 5.9171547036385164e-05,
+          "d_curvature_max": 0.00014795921742916107,
+          "endpoint_shift_m": 0.019600417464971542,
+          "traj_ade_m": 0.007031580433249474,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " machinery",
+          "token_prob": 0.0017429218860343099,
+          "d_curvature_mean": 3.364220538060181e-05,
+          "d_curvature_max": 0.00010427739471197128,
+          "endpoint_shift_m": 0.02322012558579445,
+          "traj_ade_m": 0.008175431750714779,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction machinery blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9955405592918396,
+      "entropy": 0.036911509931087494,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.0022468650713562965,
+          "d_curvature_mean": 0.00020765780936926603,
+          "d_curvature_max": 0.000408172607421875,
+          "endpoint_shift_m": 0.13356119394302368,
+          "traj_ade_m": 0.04464618116617203,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle enc the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " partially",
+          "token_prob": 0.0012802251148968935,
+          "d_curvature_mean": 8.125464955810457e-05,
+          "d_curvature_max": 0.00022449251264333725,
+          "endpoint_shift_m": 0.018644429743289948,
+          "traj_ade_m": 0.011375556699931622,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle partially the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.0001392180274706334,
+          "d_curvature_mean": 0.0002209199737990275,
+          "d_curvature_max": 0.0006734840571880341,
+          "endpoint_shift_m": 0.11415312439203262,
+          "traj_ade_m": 0.041526179760694504,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle occupying the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.00011541579442564398,
+          "d_curvature_mean": 0.00022596321650780737,
+          "d_curvature_max": 0.0004923567175865173,
+          "endpoint_shift_m": 0.14141179621219635,
+          "traj_ade_m": 0.04705321788787842,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle ahead the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " the",
+      "sampled_prob": 0.973386287689209,
+      "entropy": 0.1988115906715393,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.014325354248285294,
+          "d_curvature_mean": 0.0002551974030211568,
+          "d_curvature_max": 0.000744914636015892,
+          "endpoint_shift_m": 0.293479323387146,
+          "traj_ade_m": 0.09680688381195068,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking part right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0035105792339891195,
+          "d_curvature_mean": 0.00017097550153266639,
+          "d_curvature_max": 0.0005357228219509125,
+          "endpoint_shift_m": 0.011877290904521942,
+          "traj_ade_m": 0.007963361218571663,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking a right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0009448595228604972,
+          "d_curvature_mean": 0.00013754836982116103,
+          "d_curvature_max": 0.0004336833953857422,
+          "endpoint_shift_m": 0.01907413639128208,
+          "traj_ade_m": 0.009036974981427193,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking it right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " partially",
+          "token_prob": 0.0008603044552728534,
+          "d_curvature_mean": 0.00023966548906173557,
+          "d_curvature_max": 0.0006683766841888428,
+          "endpoint_shift_m": 0.18996857106685638,
+          "traj_ade_m": 0.0658387839794159,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking partially right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " right",
+      "sampled_prob": 0.9336473941802979,
+      "entropy": 0.26005780696868896,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.06353550404310226,
+          "d_curvature_mean": 7.845430809538811e-05,
+          "d_curvature_max": 0.0002168416976928711,
+          "endpoint_shift_m": 0.08811947703361511,
+          "traj_ade_m": 0.02721320278942585,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the lane side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 0.0021071764640510082,
+          "d_curvature_mean": 3.6486118915490806e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.04457482323050499,
+          "traj_ade_m": 0.016992736607789993,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the same side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.00016248799511231482,
+          "d_curvature_mean": 0.00026544887805357575,
+          "d_curvature_max": 0.0006530750542879105,
+          "endpoint_shift_m": 0.01191463228315115,
+          "traj_ade_m": 0.012022042647004128,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the ego side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 0.00015748877194710076,
+          "d_curvature_mean": 0.00010829367238329723,
+          "d_curvature_max": 0.0002551078796386719,
+          "endpoint_shift_m": 0.017978817224502563,
+          "traj_ade_m": 0.0042681945487856865,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the travel side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " side",
+      "sampled_prob": 0.9969015121459961,
+      "entropy": 0.02185187116265297,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.0029806816019117832,
+          "d_curvature_mean": 6.253684841794893e-05,
+          "d_curvature_max": 0.00018368102610111237,
+          "endpoint_shift_m": 0.09145484119653702,
+          "traj_ade_m": 0.025647439062595367,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " portion",
+          "token_prob": 4.1209023038391024e-05,
+          "d_curvature_mean": 0.00012195621820865199,
+          "d_curvature_max": 0.0002653077244758606,
+          "endpoint_shift_m": 0.015670517459511757,
+          "traj_ade_m": 0.007128905970603228,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 2.9221573640825227e-05,
+          "d_curvature_mean": 0.00010744428436737508,
+          "d_curvature_max": 0.00026020975201390684,
+          "endpoint_shift_m": 0.08440755307674408,
+          "traj_ade_m": 0.02808534726500511,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right lane of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 1.3803293768432923e-05,
+          "d_curvature_mean": 6.212158768903464e-05,
+          "d_curvature_max": 0.00012245215475559235,
+          "endpoint_shift_m": 0.0633024051785469,
+          "traj_ade_m": 0.020484719425439835,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right part of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " of",
+      "sampled_prob": 0.9960463643074036,
+      "entropy": 0.027699727565050125,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0035923041868954897,
+          "d_curvature_mean": 0.0004148766747675836,
+          "d_curvature_max": 0.0009158384054899216,
+          "endpoint_shift_m": 0.4541654884815216,
+          "traj_ade_m": 0.18480363488197327,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.00017334765288978815,
+          "d_curvature_mean": 0.0005840330268256366,
+          "d_curvature_max": 0.0016633030027151108,
+          "endpoint_shift_m": 0.027242328971624374,
+          "traj_ade_m": 0.024138981476426125,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side. our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.00011547443136805668,
+          "d_curvature_mean": 0.00018641771748661995,
+          "d_curvature_max": 0.00047449953854084015,
+          "endpoint_shift_m": 0.04764891043305397,
+          "traj_ade_m": 0.010625258088111877,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side ahead our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 1.8850681954063475e-05,
+          "d_curvature_mean": 0.00046057128929533064,
+          "d_curvature_max": 0.0012755338102579117,
+          "endpoint_shift_m": 0.06981265544891357,
+          "traj_ade_m": 0.028264014050364494,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side since our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": " our",
+      "sampled_prob": 0.9578521847724915,
+      "entropy": 0.1753670871257782,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.04208508878946304,
+          "d_curvature_mean": 0.00014541247219312936,
+          "d_curvature_max": 0.0003571491688489914,
+          "endpoint_shift_m": 0.08447053283452988,
+          "traj_ade_m": 0.025408241897821426,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.8076943635824136e-05,
+          "d_curvature_mean": 9.476373816141859e-05,
+          "d_curvature_max": 0.0002484116703271866,
+          "endpoint_shift_m": 0.13323326408863068,
+          "traj_ade_m": 0.046886883676052094,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 7.324308626266429e-06,
+          "d_curvature_mean": 0.0001071645601768978,
+          "d_curvature_max": 0.0002193935215473175,
+          "endpoint_shift_m": 0.016690267249941826,
+          "traj_ade_m": 0.006785279139876366,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 2.959288167403429e-06,
+          "d_curvature_mean": 0.0002512774080969393,
+          "d_curvature_max": 0.000698992982506752,
+          "endpoint_shift_m": 0.04951564595103264,
+          "traj_ade_m": 0.021671457216143608,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of it lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "col": 3102,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9951460957527161,
+      "entropy": 0.03500726446509361,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.0043292297050356865,
+          "d_curvature_mean": 4.982115933671594e-05,
+          "d_curvature_max": 0.0001428592950105667,
+          "endpoint_shift_m": 0.010709786787629128,
+          "traj_ade_m": 0.004932590760290623,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 0.00010504563397262245,
+          "d_curvature_mean": 0.0003266920684836805,
+          "d_curvature_max": 0.0009209383279085159,
+          "endpoint_shift_m": 0.14525483548641205,
+          "traj_ade_m": 0.044833481311798096,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 3.203711094101891e-05,
+          "d_curvature_mean": 0.00024075471446849406,
+          "d_curvature_max": 0.000668378546833992,
+          "endpoint_shift_m": 0.11981900781393051,
+          "traj_ade_m": 0.04000883549451828,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " direction",
+          "token_prob": 2.827265052474104e-05,
+          "d_curvature_mean": 0.0002642815816216171,
+          "d_curvature_max": 0.0008342042565345764,
+          "endpoint_shift_m": 0.09411857277154922,
+          "traj_ade_m": 0.031181462109088898,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our direction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.8667626976966858,
+      "entropy": 0.6830600500106812,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.03929177671670914,
+          "d_curvature_mean": 0.0030956794507801533,
+          "d_curvature_max": 0.006000136025249958,
+          "endpoint_shift_m": 1.9278310537338257,
+          "traj_ade_m": 0.6039708852767944,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the right and slow to merge into the right lane because construction cones channelize traffic rightward; after clearing the slow construction vehicle, return to the normal right lane and continue with a smooth acceleration once the merge is completed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.028746478259563446,
+          "d_curvature_mean": 0.0014829752035439014,
+          "d_curvature_max": 0.002459239214658737,
+          "endpoint_shift_m": 1.0900689363479614,
+          "traj_ade_m": 0.2944805324077606,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a slow construction vehicle blocking the right side of our lane and temporary cones guiding traffic into a left merge, then merge back right after clearing."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.022387780249118805,
+          "d_curvature_mean": 0.0053709447383880615,
+          "d_curvature_max": 0.011450596153736115,
+          "endpoint_shift_m": 8.211389541625977,
+          "traj_ade_m": 2.737934112548828,
+          "forced_cot": {
+            "cot": [
+              ""
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3395><i3502><i3565><i3512><i3499><i3565><i3512><i3499><i3566><i3511><i3499><i3567><i3510><i3499><i3568><i3509><i3499><i3569><i3508><i3499><i3570><i3507><i3499><i3571><i3507><i3499><i3571><i3506><i3499><i3572><i3505><i3499><i3573><i3504><i3499><i3573><i3503><i3499><i3573><i3502><i3499><i3573><i3501><i3499><i3573><i3500><i3499><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Merge right and reduce speed due to roadwork cones blocking the original path and a slow construction vehicle occupying the right side, then proceed through the narrowed work\u2011zone lane with caution around nearby workers and equipment; after clearing, return to the normal travel lane and accelerate gently once past the obstruction and speed bumps, with opposing traffic confirmed but not conflicting with our path of travel"
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.010575237683951855,
+          "d_curvature_mean": 0.0007064560195431113,
+          "d_curvature_max": 0.0016971053555607796,
+          "endpoint_shift_m": 0.29291680455207825,
+          "traj_ade_m": 0.08127518743276596,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 2.7951350123345264e-09,
+      "alternatives": [
+        {
+          "token": "ain",
+          "token_prob": 2.5946095966178362e-11,
+          "d_curvature_mean": 0.0036458575632423162,
+          "d_curvature_max": 0.008726043626666069,
+          "endpoint_shift_m": 6.211971759796143,
+          "traj_ade_m": 1.8631582260131836,
+          "forced_cot": {
+            "cot": [
+              "Nain lane and wait for a gap to merge right because a construction excavator is occupying the right side of our lane, blocking an immediate right-lane merge; once clear, the right lane is available for our intended path past the work-zone cones and barrier ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.983296753360069e-12,
+          "d_curvature_mean": 0.0004377977747935802,
+          "d_curvature_max": 0.001377263106405735,
+          "endpoint_shift_m": 0.3592652678489685,
+          "traj_ade_m": 0.11584625393152237,
+          "forced_cot": {
+            "cot": [
+              "N forklift to clear the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 6.5602007333354084e-12,
+          "d_curvature_mean": 0.0010331805096939206,
+          "d_curvature_max": 0.0022066812962293625,
+          "endpoint_shift_m": 1.1265382766723633,
+          "traj_ade_m": 0.32513749599456787,
+          "forced_cot": {
+            "cot": [
+              "Napt to slow for the speed bump blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " change",
+          "token_prob": 4.105268208709489e-12,
+          "d_curvature_mean": 0.002804071642458439,
+          "d_curvature_max": 0.005571556277573109,
+          "endpoint_shift_m": 1.2537182569503784,
+          "traj_ade_m": 0.4184025824069977,
+          "forced_cot": {
+            "cot": [
+              "N change to the right and slow to merge into the right lane because construction cones channelize traffic rightward; after clearing the slow construction vehicle, return to the normal right lane and continue with a smooth acceleration once the merge is completed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.6000282168388367,
+      "entropy": 0.730011522769928,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.3874073326587677,
+          "d_curvature_mean": 0.0024794626515358686,
+          "d_curvature_max": 0.00829610601067543,
+          "endpoint_shift_m": 2.0278518199920654,
+          "traj_ade_m": 0.583989679813385,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.012453188188374043,
+          "d_curvature_mean": 0.0022633098997175694,
+          "d_curvature_max": 0.007734866812825203,
+          "endpoint_shift_m": 1.861971378326416,
+          "traj_ade_m": 0.5322112441062927,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to cones blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 1.8146576621802524e-05,
+          "d_curvature_mean": 0.0023070320021361113,
+          "d_curvature_max": 0.007602214813232422,
+          "endpoint_shift_m": 1.7622730731964111,
+          "traj_ade_m": 0.48958492279052734,
+          "forced_cot": {
+            "cot": [
+              "Nudge due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 1.100645476981299e-05,
+          "d_curvature_mean": 0.0013984831748530269,
+          "d_curvature_max": 0.0037960074841976166,
+          "endpoint_shift_m": 1.2008341550827026,
+          "traj_ade_m": 0.36097151041030884,
+          "forced_cot": {
+            "cot": [
+              "Nudge for a left lane change to clear the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9999357461929321,
+      "entropy": 0.0009013913222588599,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 2.9310514946701005e-05,
+          "d_curvature_mean": 0.0030801044777035713,
+          "d_curvature_max": 0.009400405921041965,
+          "endpoint_shift_m": 4.198587894439697,
+          "traj_ade_m": 1.1797945499420166,
+          "forced_cot": {
+            "cot": [
+              "Nudge to a stop for the roadwork vehicle blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " its",
+          "token_prob": 2.9942575565655716e-06,
+          "d_curvature_mean": 5.9580252127489075e-05,
+          "d_curvature_max": 0.00012755393981933594,
+          "endpoint_shift_m": 0.009681785479187965,
+          "traj_ade_m": 0.006240168586373329,
+          "forced_cot": {
+            "cot": [
+              "Nudge to its left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 2.331930090804235e-06,
+          "d_curvature_mean": 8.277535380329937e-05,
+          "d_curvature_max": 0.00026020780205726624,
+          "endpoint_shift_m": 0.09459540247917175,
+          "traj_ade_m": 0.03021559678018093,
+          "forced_cot": {
+            "cot": [
+              "Nudge to our left to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 1.6027105402827146e-06,
+          "d_curvature_mean": 0.0008119070553220809,
+          "d_curvature_max": 0.0023878104984760284,
+          "endpoint_shift_m": 1.0601387023925781,
+          "traj_ade_m": 0.3150150775909424,
+          "forced_cot": {
+            "cot": [
+              "Nudge to an gap to clear the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " left",
+      "sampled_prob": 0.9937041401863098,
+      "entropy": 0.038254816085100174,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.006289864424616098,
+          "d_curvature_mean": 0.00030757670174352825,
+          "d_curvature_max": 0.0007119886577129364,
+          "endpoint_shift_m": 0.21756500005722046,
+          "traj_ade_m": 0.08112263679504395,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the right to clear the construction vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.4962243994887103e-06,
+          "d_curvature_mean": 0.00037588385748676956,
+          "d_curvature_max": 0.0011888034641742706,
+          "endpoint_shift_m": 0.617885410785675,
+          "traj_ade_m": 0.18761219084262848,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the to clear the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 1.2404134395183064e-06,
+          "d_curvature_mean": 0.0003040700394194573,
+          "d_curvature_max": 0.0005714427679777145,
+          "endpoint_shift_m": 0.16384252905845642,
+          "traj_ade_m": 0.06869587302207947,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the front to clear the construction vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 4.1548648255229637e-07,
+          "d_curvature_mean": 0.0002472084597684443,
+          "d_curvature_max": 0.0005816463381052017,
+          "endpoint_shift_m": 0.2855624854564667,
+          "traj_ade_m": 0.09437254071235657,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the side to clear the construction vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " to",
+      "sampled_prob": 0.8918476104736328,
+      "entropy": 0.4452874958515167,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.08295474946498871,
+          "d_curvature_mean": 0.0004545507254078984,
+          "d_curvature_max": 0.0009592045098543167,
+          "endpoint_shift_m": 0.22927355766296387,
+          "traj_ade_m": 0.07674134522676468,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left in the same lane to clear the stopped construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.006809340324252844,
+          "d_curvature_mean": 0.001074699335731566,
+          "d_curvature_max": 0.0030204802751541138,
+          "endpoint_shift_m": 0.903145432472229,
+          "traj_ade_m": 0.26740097999572754,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left due to the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 0.005824337247759104,
+          "d_curvature_mean": 0.0004402502963785082,
+          "d_curvature_max": 0.0013367626816034317,
+          "endpoint_shift_m": 0.3320125341415405,
+          "traj_ade_m": 0.09982311725616455,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left within our lane to clear the roadwork vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.005471458192914724,
+          "d_curvature_mean": 0.000704978418070823,
+          "d_curvature_max": 0.002209234982728958,
+          "endpoint_shift_m": 0.6260973215103149,
+          "traj_ade_m": 0.18424609303474426,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left because a construction vehicle is blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " clear",
+      "sampled_prob": 0.8771093487739563,
+      "entropy": 0.484002023935318,
+      "alternatives": [
+        {
+          "token": " pass",
+          "token_prob": 0.09244664013385773,
+          "d_curvature_mean": 0.0001344213233096525,
+          "d_curvature_max": 0.0003163320943713188,
+          "endpoint_shift_m": 0.06257457286119461,
+          "traj_ade_m": 0.023504169657826424,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to pass the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " increase",
+          "token_prob": 0.018203822895884514,
+          "d_curvature_mean": 0.0002333625016035512,
+          "d_curvature_max": 0.0006428752094507217,
+          "endpoint_shift_m": 0.29186639189720154,
+          "traj_ade_m": 0.09818566590547562,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase clearance from the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " create",
+          "token_prob": 0.006291072815656662,
+          "d_curvature_mean": 0.00025991396978497505,
+          "d_curvature_max": 0.000724506564438343,
+          "endpoint_shift_m": 0.03689032047986984,
+          "traj_ade_m": 0.02287205681204796,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to create clearance from the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " avoid",
+          "token_prob": 0.0033673688303679228,
+          "d_curvature_mean": 0.00013531287549994886,
+          "d_curvature_max": 0.0003469455987215042,
+          "endpoint_shift_m": 0.03134001046419144,
+          "traj_ade_m": 0.018909431993961334,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to avoid the construction vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.9896238446235657,
+      "entropy": 0.08095844835042953,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.005357915069907904,
+          "d_curvature_mean": 0.0006995446747168899,
+          "d_curvature_max": 0.00187759380787611,
+          "endpoint_shift_m": 0.3945092558860779,
+          "traj_ade_m": 0.11653552204370499,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear construction cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.0014878392685204744,
+          "d_curvature_mean": 0.00036337447818368673,
+          "d_curvature_max": 0.001071454957127571,
+          "endpoint_shift_m": 0.304532915353775,
+          "traj_ade_m": 0.09392053633928299,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear roadwork cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0011587303597480059,
+          "d_curvature_mean": 0.00017169112106785178,
+          "d_curvature_max": 0.00037692394107580185,
+          "endpoint_shift_m": 0.241367369890213,
+          "traj_ade_m": 0.0681614950299263,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear a slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0002505930024199188,
+          "d_curvature_mean": 7.774489495204762e-05,
+          "d_curvature_max": 0.0002347007393836975,
+          "endpoint_shift_m": 0.05103812366724014,
+          "traj_ade_m": 0.021657906472682953,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear from the construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " construction",
+      "sampled_prob": 0.6696120500564575,
+      "entropy": 1.2392950057983398,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.1494106501340866,
+          "d_curvature_mean": 0.0002668636734597385,
+          "d_curvature_max": 0.0007398147135972977,
+          "endpoint_shift_m": 0.10539022088050842,
+          "traj_ade_m": 0.026665277779102325,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the stopped construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.08513161540031433,
+          "d_curvature_mean": 0.0001507110137026757,
+          "d_curvature_max": 0.0003801099956035614,
+          "endpoint_shift_m": 0.0764530673623085,
+          "traj_ade_m": 0.028499837964773178,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the roadwork vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.05163493752479553,
+          "d_curvature_mean": 7.387296500382945e-05,
+          "d_curvature_max": 0.0002244962379336357,
+          "endpoint_shift_m": 0.04509107023477554,
+          "traj_ade_m": 0.011350849643349648,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the slow construction vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.011521311476826668,
+          "d_curvature_mean": 3.5295175621286035e-05,
+          "d_curvature_max": 0.00012499839067459106,
+          "endpoint_shift_m": 0.021987145766615868,
+          "traj_ade_m": 0.007683613337576389,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the work vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9315155744552612,
+      "entropy": 0.47534364461898804,
+      "alternatives": [
+        {
+          "token": " equipment",
+          "token_prob": 0.03844824060797691,
+          "d_curvature_mean": 5.203677574172616e-05,
+          "d_curvature_max": 0.00010842084884643555,
+          "endpoint_shift_m": 0.04062285274267197,
+          "traj_ade_m": 0.01431775651872158,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction equipment blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.005043311510235071,
+          "d_curvature_mean": 0.0005774145829491317,
+          "d_curvature_max": 0.001377580687403679,
+          "endpoint_shift_m": 0.04164157435297966,
+          "traj_ade_m": 0.04001539945602417,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction cones blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " truck",
+          "token_prob": 0.004313773475587368,
+          "d_curvature_mean": 5.306666571414098e-05,
+          "d_curvature_max": 0.0001403074711561203,
+          "endpoint_shift_m": 0.008195755071938038,
+          "traj_ade_m": 0.0033431826159358025,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " machinery",
+          "token_prob": 0.0017429218860343099,
+          "d_curvature_mean": 3.698893851833418e-05,
+          "d_curvature_max": 0.00013265572488307953,
+          "endpoint_shift_m": 0.02400812692940235,
+          "traj_ade_m": 0.007601109333336353,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction machinery blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9955405592918396,
+      "entropy": 0.036911509931087494,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.0022468650713562965,
+          "d_curvature_mean": 0.00022740989516023546,
+          "d_curvature_max": 0.0005102157592773438,
+          "endpoint_shift_m": 0.1360590159893036,
+          "traj_ade_m": 0.04719964414834976,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle encroaching into our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " partially",
+          "token_prob": 0.0012802251148968935,
+          "d_curvature_mean": 0.00012365342990960926,
+          "d_curvature_max": 0.00037756189703941345,
+          "endpoint_shift_m": 0.08034149557352066,
+          "traj_ade_m": 0.03091626986861229,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle partially blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.0001392180274706334,
+          "d_curvature_mean": 0.00021039361308794469,
+          "d_curvature_max": 0.0006734896451234818,
+          "endpoint_shift_m": 0.12229255586862564,
+          "traj_ade_m": 0.043793775141239166,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle occupying the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.00011541579442564398,
+          "d_curvature_mean": 0.00011001736856997013,
+          "d_curvature_max": 0.00028571300208568573,
+          "endpoint_shift_m": 0.1248227059841156,
+          "traj_ade_m": 0.04130415618419647,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle ahead blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " the",
+      "sampled_prob": 0.973386287689209,
+      "entropy": 0.1988115906715393,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.014325354248285294,
+          "d_curvature_mean": 0.0001644572039367631,
+          "d_curvature_max": 0.00037756096571683884,
+          "endpoint_shift_m": 0.1333250254392624,
+          "traj_ade_m": 0.043920859694480896,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking part of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0035105792339891195,
+          "d_curvature_mean": 0.00020447623683139682,
+          "d_curvature_max": 0.0005510319024324417,
+          "endpoint_shift_m": 0.04021663963794708,
+          "traj_ade_m": 0.013122068718075752,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking a portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0009448595228604972,
+          "d_curvature_mean": 0.0004744407196994871,
+          "d_curvature_max": 0.0012806355953216553,
+          "endpoint_shift_m": 0.06087275221943855,
+          "traj_ade_m": 0.034309037029743195,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking it"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " partially",
+          "token_prob": 0.0008603044552728534,
+          "d_curvature_mean": 0.00013135428889654577,
+          "d_curvature_max": 0.0002908199094235897,
+          "endpoint_shift_m": 0.036106616258621216,
+          "traj_ade_m": 0.015739314258098602,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking partially of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " right",
+      "sampled_prob": 0.9336473941802979,
+      "entropy": 0.26005780696868896,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.06353550404310226,
+          "d_curvature_mean": 0.00031669961754232645,
+          "d_curvature_max": 0.000857161357998848,
+          "endpoint_shift_m": 0.09130854159593582,
+          "traj_ade_m": 0.031026987358927727,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 0.0021071764640510082,
+          "d_curvature_mean": 0.00026699271984398365,
+          "d_curvature_max": 0.000698992982506752,
+          "endpoint_shift_m": 0.05152098089456558,
+          "traj_ade_m": 0.024427594617009163,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the same lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.00016248799511231482,
+          "d_curvature_mean": 9.467689960729331e-05,
+          "d_curvature_max": 0.0002653151750564575,
+          "endpoint_shift_m": 0.049535881727933884,
+          "traj_ade_m": 0.014127084985375404,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the ego lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 0.00015748877194710076,
+          "d_curvature_mean": 0.00012638472253456712,
+          "d_curvature_max": 0.0003469446673989296,
+          "endpoint_shift_m": 0.03573990240693092,
+          "traj_ade_m": 0.021225182339549065,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the travel path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " side",
+      "sampled_prob": 0.9969015121459961,
+      "entropy": 0.02185187116265297,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.0029806816019117832,
+          "d_curvature_mean": 4.9435533583164215e-05,
+          "d_curvature_max": 0.00010204501450061798,
+          "endpoint_shift_m": 0.09447146952152252,
+          "traj_ade_m": 0.028171788901090622,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " portion",
+          "token_prob": 4.1209023038391024e-05,
+          "d_curvature_mean": 0.00011925699800485745,
+          "d_curvature_max": 0.0002551078796386719,
+          "endpoint_shift_m": 0.020164476707577705,
+          "traj_ade_m": 0.00839544553309679,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 2.9221573640825227e-05,
+          "d_curvature_mean": 0.00034104270162060857,
+          "d_curvature_max": 0.0009132847189903259,
+          "endpoint_shift_m": 0.08592305332422256,
+          "traj_ade_m": 0.029886974021792412,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 1.3803293768432923e-05,
+          "d_curvature_mean": 5.5893320677569136e-05,
+          "d_curvature_max": 0.00013265665620565414,
+          "endpoint_shift_m": 0.07653585821390152,
+          "traj_ade_m": 0.02301386371254921,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right part of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " of",
+      "sampled_prob": 0.9960463643074036,
+      "entropy": 0.027699727565050125,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0035923041868954897,
+          "d_curvature_mean": 0.0004882870125584304,
+          "d_curvature_max": 0.001311248168349266,
+          "endpoint_shift_m": 0.15167517960071564,
+          "traj_ade_m": 0.050769004970788956,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.00017334765288978815,
+          "d_curvature_mean": 0.00022668611200060695,
+          "d_curvature_max": 0.0005306247621774673,
+          "endpoint_shift_m": 0.2761252224445343,
+          "traj_ade_m": 0.08072377741336823,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.00011547443136805668,
+          "d_curvature_mean": 0.00025168899446725845,
+          "d_curvature_max": 0.0005484800785779953,
+          "endpoint_shift_m": 0.0446493923664093,
+          "traj_ade_m": 0.02219933271408081,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 1.8850681954063475e-05,
+          "d_curvature_mean": 0.0004390125395730138,
+          "d_curvature_max": 0.0010816603899002075,
+          "endpoint_shift_m": 0.21548746526241302,
+          "traj_ade_m": 0.06896950304508209,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side since it encroaches into our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": " our",
+      "sampled_prob": 0.9578521847724915,
+      "entropy": 0.1753670871257782,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.04208508878946304,
+          "d_curvature_mean": 0.0001331995881628245,
+          "d_curvature_max": 0.0003418419510126114,
+          "endpoint_shift_m": 0.08799701184034348,
+          "traj_ade_m": 0.02807455323636532,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.8076943635824136e-05,
+          "d_curvature_mean": 0.00010081473737955093,
+          "d_curvature_max": 0.0002346998080611229,
+          "endpoint_shift_m": 0.12654513120651245,
+          "traj_ade_m": 0.044869061559438705,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 7.324308626266429e-06,
+          "d_curvature_mean": 0.00011557454126887023,
+          "d_curvature_max": 0.0002500060945749283,
+          "endpoint_shift_m": 0.007085185497999191,
+          "traj_ade_m": 0.0059563699178397655,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 2.959288167403429e-06,
+          "d_curvature_mean": 0.0005250037065707147,
+          "d_curvature_max": 0.001397985965013504,
+          "endpoint_shift_m": 0.1265830248594284,
+          "traj_ade_m": 0.049416784197092056,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of it"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "col": 3102,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9951460957527161,
+      "entropy": 0.03500726446509361,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.0043292297050356865,
+          "d_curvature_mean": 3.767788439290598e-05,
+          "d_curvature_max": 0.00012245215475559235,
+          "endpoint_shift_m": 0.026340601965785027,
+          "traj_ade_m": 0.007824293337762356,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 0.00010504563397262245,
+          "d_curvature_mean": 0.0002656996948644519,
+          "d_curvature_max": 0.0009898170828819275,
+          "endpoint_shift_m": 0.27748575806617737,
+          "traj_ade_m": 0.08781573921442032,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 3.203711094101891e-05,
+          "d_curvature_mean": 0.0001136225473601371,
+          "d_curvature_max": 0.00029719946905970573,
+          "endpoint_shift_m": 0.0777425467967987,
+          "traj_ade_m": 0.0319071039557457,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our travel lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " direction",
+          "token_prob": 2.827265052474104e-05,
+          "d_curvature_mean": 0.0002669643727131188,
+          "d_curvature_max": 0.0008444041013717651,
+          "endpoint_shift_m": 0.10709740221500397,
+          "traj_ade_m": 0.03495952859520912,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction vehicle blocking the right side of our direction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

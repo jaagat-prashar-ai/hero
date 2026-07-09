@@ -1,0 +1,2212 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the lead vehicle since it is slowing ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 11,
+    "mean_entropy": 0.3041081696918065,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.22761772572994232,
+        "entropy": 1.3398594856262207,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.5460265278816223
+          },
+          {
+            "text": "Keep",
+            "prob": 0.22761772572994232
+          },
+          {
+            "text": "Lane",
+            "prob": 0.16652867197990417
+          },
+          {
+            "text": "Merge",
+            "prob": 0.019889015704393387
+          },
+          {
+            "text": "Ad",
+            "prob": 0.010000824928283691
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.9823404550552368,
+        "entropy": 0.09387458115816116,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9823404550552368
+          },
+          {
+            "text": " lane",
+            "prob": 0.016902100294828415
+          },
+          {
+            "text": " right",
+            "prob": 0.0004101172962691635
+          },
+          {
+            "text": " to",
+            "prob": 0.00013314560055732727
+          },
+          {
+            "text": " left",
+            "prob": 1.4938520507712383e-05
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.997992992401123,
+        "entropy": 0.016131814569234848,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.997992992401123
+          },
+          {
+            "text": " from",
+            "prob": 0.001700200722552836
+          },
+          {
+            "text": " for",
+            "prob": 9.591875277692452e-05
+          },
+          {
+            "text": " and",
+            "prob": 4.9761994887376204e-05
+          },
+          {
+            "text": " since",
+            "prob": 3.875468246405944e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.998852014541626,
+        "entropy": 0.012825824320316315,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.998852014541626
+          },
+          {
+            "text": " our",
+            "prob": 0.0005030109314247966
+          },
+          {
+            "text": " follow",
+            "prob": 0.00011223691399209201
+          },
+          {
+            "text": " lead",
+            "prob": 7.023607031442225e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 4.5347813284024596e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lead",
+        "sampled_prob": 0.9783920049667358,
+        "entropy": 0.11320608109235764,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.9783920049667358
+          },
+          {
+            "text": " cut",
+            "prob": 0.020305877551436424
+          },
+          {
+            "text": " merging",
+            "prob": 0.000576033431570977
+          },
+          {
+            "text": " vehicle",
+            "prob": 8.298548345919698e-05
+          },
+          {
+            "text": " slowing",
+            "prob": 7.5559139077086e-05
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " vehicle",
+        "sampled_prob": 0.999669075012207,
+        "entropy": 0.004001968540251255,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.999669075012207
+          },
+          {
+            "text": " truck",
+            "prob": 8.74816978466697e-05
+          },
+          {
+            "text": " van",
+            "prob": 4.9845566536532715e-05
+          },
+          {
+            "text": " car",
+            "prob": 3.534580173436552e-05
+          },
+          {
+            "text": " vehicles",
+            "prob": 3.218271740479395e-05
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " since",
+        "sampled_prob": 0.993815541267395,
+        "entropy": 0.04813235625624657,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.993815541267395
+          },
+          {
+            "text": " as",
+            "prob": 0.002042248845100403
+          },
+          {
+            "text": " because",
+            "prob": 0.0019185153068974614
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0011636383133009076
+          },
+          {
+            "text": " approaching",
+            "prob": 0.00036615505814552307
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " it",
+        "sampled_prob": 0.9884755611419678,
+        "entropy": 0.08346711844205856,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9884755611419678
+          },
+          {
+            "text": " traffic",
+            "prob": 0.004577550571411848
+          },
+          {
+            "text": " a",
+            "prob": 0.0027764246333390474
+          },
+          {
+            "text": " the",
+            "prob": 0.0017925943247973919
+          },
+          {
+            "text": " we",
+            "prob": 0.0011941252741962671
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " is",
+        "sampled_prob": 0.9933683276176453,
+        "entropy": 0.05934963747859001,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9933683276176453
+          },
+          {
+            "text": " slows",
+            "prob": 0.003161673666909337
+          },
+          {
+            "text": " controls",
+            "prob": 0.0014029841404408216
+          },
+          {
+            "text": " sets",
+            "prob": 0.0002219843299826607
+          },
+          {
+            "text": " dec",
+            "prob": 0.00011516395898070186
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " slowing",
+        "sampled_prob": 0.3215601146221161,
+        "entropy": 0.9342007040977478,
+        "top_k": [
+          {
+            "text": " directly",
+            "prob": 0.6007533669471741
+          },
+          {
+            "text": " slowing",
+            "prob": 0.3215601146221161
+          },
+          {
+            "text": " moving",
+            "prob": 0.06331893801689148
+          },
+          {
+            "text": " ahead",
+            "prob": 0.009411519393324852
+          },
+          {
+            "text": " controlling",
+            "prob": 0.0010559431975707412
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.8356775641441345,
+        "entropy": 0.6401402950286865,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.8356775641441345
+          },
+          {
+            "text": " for",
+            "prob": 0.12039077281951904
+          },
+          {
+            "text": " in",
+            "prob": 0.01019597239792347
+          },
+          {
+            "text": " into",
+            "prob": 0.00899791531264782
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.00872107781469822
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.22761772572994232,
+      "entropy": 1.3398594856262207,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.5460265278816223,
+          "d_curvature_mean": 0.00010064236994367093,
+          "d_curvature_max": 0.0004936326295137405,
+          "endpoint_shift_m": 0.03448481112718582,
+          "traj_ade_m": 0.013086877763271332,
+          "forced_cot": {
+            "cot": [
+              "N distance to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.16652867197990417,
+          "d_curvature_mean": 4.9662059609545395e-05,
+          "d_curvature_max": 0.0002117399126291275,
+          "endpoint_shift_m": 0.012913740240037441,
+          "traj_ade_m": 0.0176340751349926,
+          "forced_cot": {
+            "cot": [
+              "Lane distance to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.019889015704393387,
+          "d_curvature_mean": 8.420991071034223e-05,
+          "d_curvature_max": 0.00019770837388932705,
+          "endpoint_shift_m": 0.18756066262722015,
+          "traj_ade_m": 0.04150630161166191,
+          "forced_cot": {
+            "cot": [
+              "Merge distance to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.010000824928283691,
+          "d_curvature_mean": 0.00010728398046921939,
+          "d_curvature_max": 0.0006097089499235153,
+          "endpoint_shift_m": 0.02636083960533142,
+          "traj_ade_m": 0.007377267349511385,
+          "forced_cot": {
+            "cot": [
+              "Ad distance to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9823404550552368,
+      "entropy": 0.09387458115816116,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.016902100294828415,
+          "d_curvature_mean": 0.0003751649346668273,
+          "d_curvature_max": 0.00244903564453125,
+          "endpoint_shift_m": 0.2995275855064392,
+          "traj_ade_m": 0.11326389759778976,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0004101172962691635,
+          "d_curvature_mean": 0.00019864591013174504,
+          "d_curvature_max": 0.0005867481231689453,
+          "endpoint_shift_m": 0.171510249376297,
+          "traj_ade_m": 0.031907886266708374,
+          "forced_cot": {
+            "cot": [
+              "Keep right to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00013314560055732727,
+          "d_curvature_mean": 0.00013153183681424707,
+          "d_curvature_max": 0.0006913430988788605,
+          "endpoint_shift_m": 0.15470795333385468,
+          "traj_ade_m": 0.034873850643634796,
+          "forced_cot": {
+            "cot": [
+              "Keep to to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.4938520507712383e-05,
+          "d_curvature_mean": 0.00045538059202954173,
+          "d_curvature_max": 0.0025612786412239075,
+          "endpoint_shift_m": 0.09777333587408066,
+          "traj_ade_m": 0.04570970684289932,
+          "forced_cot": {
+            "cot": [
+              "Keep left to the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.997992992401123,
+      "entropy": 0.016131814569234848,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.001700200722552836,
+          "d_curvature_mean": 3.3972421078942716e-05,
+          "d_curvature_max": 0.00011990219354629517,
+          "endpoint_shift_m": 0.013842022977769375,
+          "traj_ade_m": 0.006186464801430702,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 9.591875277692452e-05,
+          "d_curvature_mean": 8.473685738863423e-05,
+          "d_curvature_max": 0.000461747869849205,
+          "endpoint_shift_m": 0.03791161626577377,
+          "traj_ade_m": 0.013724640011787415,
+          "forced_cot": {
+            "cot": [
+              "Keep distance for the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 4.9761994887376204e-05,
+          "d_curvature_mean": 0.00010869620746234432,
+          "d_curvature_max": 0.00045536644756793976,
+          "endpoint_shift_m": 0.09421373158693314,
+          "traj_ade_m": 0.025181565433740616,
+          "forced_cot": {
+            "cot": [
+              "Keep distance and the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 3.875468246405944e-05,
+          "d_curvature_mean": 0.0001867408282123506,
+          "d_curvature_max": 0.0011556409299373627,
+          "endpoint_shift_m": 0.046180360019207,
+          "traj_ade_m": 0.009737194515764713,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.998852014541626,
+      "entropy": 0.012825824320316315,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0005030109314247966,
+          "d_curvature_mean": 6.241831579245627e-05,
+          "d_curvature_max": 0.00029082223773002625,
+          "endpoint_shift_m": 0.03622325509786606,
+          "traj_ade_m": 0.0154474638402462,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.00011223691399209201,
+          "d_curvature_mean": 4.127800275455229e-05,
+          "d_curvature_max": 0.0001479610800743103,
+          "endpoint_shift_m": 0.14007417857646942,
+          "traj_ade_m": 0.024685338139533997,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 7.023607031442225e-05,
+          "d_curvature_mean": 3.767336966120638e-05,
+          "d_curvature_max": 0.00017857179045677185,
+          "endpoint_shift_m": 0.03920133039355278,
+          "traj_ade_m": 0.016139265149831772,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to lead lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 4.5347813284024596e-05,
+          "d_curvature_mean": 6.100983591750264e-05,
+          "d_curvature_max": 0.00044388696551322937,
+          "endpoint_shift_m": 0.17251591384410858,
+          "traj_ade_m": 0.031186383217573166,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain lead vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9783920049667358,
+      "entropy": 0.11320608109235764,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.020305877551436424,
+          "d_curvature_mean": 0.0002032785560004413,
+          "d_curvature_max": 0.0007449090480804443,
+          "endpoint_shift_m": 0.16495740413665771,
+          "traj_ade_m": 0.0683157742023468,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.000576033431570977,
+          "d_curvature_mean": 0.00029252638341858983,
+          "d_curvature_max": 0.0013724751770496368,
+          "endpoint_shift_m": 0.18317937850952148,
+          "traj_ade_m": 0.06474851816892624,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the merging vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 8.298548345919698e-05,
+          "d_curvature_mean": 0.00023723460617475212,
+          "d_curvature_max": 0.0016071796417236328,
+          "endpoint_shift_m": 0.05299484729766846,
+          "traj_ade_m": 0.025263352319598198,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the vehicle vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowing",
+          "token_prob": 7.5559139077086e-05,
+          "d_curvature_mean": 0.00014463724801316857,
+          "d_curvature_max": 0.0005472078919410706,
+          "endpoint_shift_m": 0.09765123575925827,
+          "traj_ade_m": 0.04166063666343689,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the slowing vehicle since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.999669075012207,
+      "entropy": 0.004001968540251255,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 8.74816978466697e-05,
+          "d_curvature_mean": 0.00012860829883720726,
+          "d_curvature_max": 0.0008571594953536987,
+          "endpoint_shift_m": 0.12411588430404663,
+          "traj_ade_m": 0.037950556725263596,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead truck since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " van",
+          "token_prob": 4.9845566536532715e-05,
+          "d_curvature_mean": 5.267762753646821e-05,
+          "d_curvature_max": 0.0001479601487517357,
+          "endpoint_shift_m": 0.04909740388393402,
+          "traj_ade_m": 0.025915132835507393,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead van since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 3.534580173436552e-05,
+          "d_curvature_mean": 2.0821051293751225e-05,
+          "d_curvature_max": 9.18358564376831e-05,
+          "endpoint_shift_m": 0.041777972131967545,
+          "traj_ade_m": 0.01013224571943283,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead car since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 3.218271740479395e-05,
+          "d_curvature_mean": 0.00015088070358615369,
+          "d_curvature_max": 0.000752568244934082,
+          "endpoint_shift_m": 0.12549170851707458,
+          "traj_ade_m": 0.044977009296417236,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicles since it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.993815541267395,
+      "entropy": 0.04813235625624657,
+      "alternatives": [
+        {
+          "token": " as",
+          "token_prob": 0.002042248845100403,
+          "d_curvature_mean": 0.00012124673230573535,
+          "d_curvature_max": 0.0007117539644241333,
+          "endpoint_shift_m": 0.06571652740240097,
+          "traj_ade_m": 0.028871262446045876,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle as it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0019185153068974614,
+          "d_curvature_mean": 1.5560861356789246e-05,
+          "d_curvature_max": 0.00010713934898376465,
+          "endpoint_shift_m": 0.05694323033094406,
+          "traj_ade_m": 0.009539003483951092,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle because it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0011636383133009076,
+          "d_curvature_mean": 7.984384137671441e-05,
+          "d_curvature_max": 0.0005204156041145325,
+          "endpoint_shift_m": 0.33018413186073303,
+          "traj_ade_m": 0.10424710810184479,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle ahead it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaching",
+          "token_prob": 0.00036615505814552307,
+          "d_curvature_mean": 0.00011771715071517974,
+          "d_curvature_max": 0.0007092021405696869,
+          "endpoint_shift_m": 0.07794049382209778,
+          "traj_ade_m": 0.01624627783894539,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle approaching it is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9884755611419678,
+      "entropy": 0.08346711844205856,
+      "alternatives": [
+        {
+          "token": " traffic",
+          "token_prob": 0.004577550571411848,
+          "d_curvature_mean": 3.783317151828669e-05,
+          "d_curvature_max": 0.0001479610800743103,
+          "endpoint_shift_m": 0.1660527139902115,
+          "traj_ade_m": 0.039140310138463974,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since traffic is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0027764246333390474,
+          "d_curvature_mean": 7.357895810855553e-05,
+          "d_curvature_max": 0.0005229748785495758,
+          "endpoint_shift_m": 0.11398082226514816,
+          "traj_ade_m": 0.021328521892428398,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since a is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0017925943247973919,
+          "d_curvature_mean": 0.00010462730278959498,
+          "d_curvature_max": 0.0006632842123508453,
+          "endpoint_shift_m": 0.1054094135761261,
+          "traj_ade_m": 0.021386446431279182,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since the is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0011941252741962671,
+          "d_curvature_mean": 7.39918541512452e-05,
+          "d_curvature_max": 0.0004974603652954102,
+          "endpoint_shift_m": 0.23735417425632477,
+          "traj_ade_m": 0.06726517528295517,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since we is slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9933683276176453,
+      "entropy": 0.05934963747859001,
+      "alternatives": [
+        {
+          "token": " slows",
+          "token_prob": 0.003161673666909337,
+          "d_curvature_mean": 7.531234587077051e-05,
+          "d_curvature_max": 0.0004540923982858658,
+          "endpoint_shift_m": 0.13127268850803375,
+          "traj_ade_m": 0.039083853363990784,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it slows slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 0.0014029841404408216,
+          "d_curvature_mean": 0.00011609593639150262,
+          "d_curvature_max": 0.0007296055555343628,
+          "endpoint_shift_m": 0.263162225484848,
+          "traj_ade_m": 0.053687386214733124,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it controls slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sets",
+          "token_prob": 0.0002219843299826607,
+          "d_curvature_mean": 0.00016705025336705148,
+          "d_curvature_max": 0.0010867565870285034,
+          "endpoint_shift_m": 0.2258497178554535,
+          "traj_ade_m": 0.05091393366456032,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it sets slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 0.00011516395898070186,
+          "d_curvature_mean": 1.9895382138201967e-05,
+          "d_curvature_max": 9.693950414657593e-05,
+          "endpoint_shift_m": 0.13114604353904724,
+          "traj_ade_m": 0.03841129690408707,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it dec slowing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " slowing",
+      "sampled_prob": 0.3215601146221161,
+      "entropy": 0.9342007040977478,
+      "alternatives": [
+        {
+          "token": " directly",
+          "token_prob": 0.6007533669471741,
+          "d_curvature_mean": 4.8771344154374674e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.22597315907478333,
+          "traj_ade_m": 0.04153516888618469,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.06331893801689148,
+          "d_curvature_mean": 0.00010306693002348766,
+          "d_curvature_max": 0.00046939775347709656,
+          "endpoint_shift_m": 0.31762394309043884,
+          "traj_ade_m": 0.05867818742990494,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is moving ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.009411519393324852,
+          "d_curvature_mean": 0.00010571879101917148,
+          "d_curvature_max": 0.0004923567175865173,
+          "endpoint_shift_m": 0.2154475599527359,
+          "traj_ade_m": 0.039079323410987854,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is ahead ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controlling",
+          "token_prob": 0.0010559431975707412,
+          "d_curvature_mean": 5.984204835840501e-05,
+          "d_curvature_max": 0.0002449052408337593,
+          "endpoint_shift_m": 0.21830208599567413,
+          "traj_ade_m": 0.039019376039505005,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is controlling ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.8356775641441345,
+      "entropy": 0.6401402950286865,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 0.12039077281951904,
+          "d_curvature_mean": 4.5253022108227015e-05,
+          "d_curvature_max": 0.00026786327362060547,
+          "endpoint_shift_m": 0.07792238146066666,
+          "traj_ade_m": 0.014263651333749294,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing for"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.01019597239792347,
+          "d_curvature_mean": 2.2584199541597627e-05,
+          "d_curvature_max": 8.163228631019592e-05,
+          "endpoint_shift_m": 0.0295876432210207,
+          "traj_ade_m": 0.012575581669807434,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing in"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.00899791531264782,
+          "d_curvature_mean": 2.1686828404199332e-05,
+          "d_curvature_max": 0.00011480040848255157,
+          "endpoint_shift_m": 0.04107988625764847,
+          "traj_ade_m": 0.012657945975661278,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing into"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.00872107781469822,
+          "d_curvature_mean": 0.00012607226381078362,
+          "d_curvature_max": 0.0007398165762424469,
+          "endpoint_shift_m": 0.05517858639359474,
+          "traj_ade_m": 0.023864440619945526,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.22761772572994232,
+      "entropy": 1.3398594856262207,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.5460265278816223,
+          "d_curvature_mean": 0.0005782498046755791,
+          "d_curvature_max": 0.004002640023827553,
+          "endpoint_shift_m": 0.3647124767303467,
+          "traj_ade_m": 0.05935179442167282,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the construction cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.16652867197990417,
+          "d_curvature_mean": 0.0005826643900945783,
+          "d_curvature_max": 0.0024209730327129364,
+          "endpoint_shift_m": 0.2994157671928406,
+          "traj_ade_m": 0.11046244204044342,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones blocking and narrowing our lane ahead, merging into a safe gap behind right-lane traffic and then slowing for the work zone and upcoming signalized intersection, then proceeding once clear of cones."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.019889015704393387,
+          "d_curvature_mean": 0.000303525710478425,
+          "d_curvature_max": 0.0007398147135972977,
+          "endpoint_shift_m": 0.1300736963748932,
+          "traj_ade_m": 0.10460390895605087,
+          "forced_cot": {
+            "cot": [
+              "Merge right due to a left-lane closure marked by cones and an arrow board, adjusting speed to slot in behind vehicles already in the right lane before the intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.010000824928283691,
+          "d_curvature_mean": 0.0004084806132595986,
+          "d_curvature_max": 0.002673529088497162,
+          "endpoint_shift_m": 0.3812752366065979,
+          "traj_ade_m": 0.0700262039899826,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the work zone since cones narrow our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9823404550552368,
+      "entropy": 0.09387458115816116,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.016902100294828415,
+          "d_curvature_mean": 0.0007353672990575433,
+          "d_curvature_max": 0.004093527793884277,
+          "endpoint_shift_m": 0.4067707061767578,
+          "traj_ade_m": 0.1005621924996376,
+          "forced_cot": {
+            "cot": [
+              "Lane lane change to the right due to construction cones blocking and closing our lane ahead, merging into the right-lane queue behind lead vehicles and then proceeding with reduced speed toward the signalized intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0004101172962691635,
+          "d_curvature_mean": 0.00017369096167385578,
+          "d_curvature_max": 0.0004974603652954102,
+          "endpoint_shift_m": 0.3846849799156189,
+          "traj_ade_m": 0.1347939372062683,
+          "forced_cot": {
+            "cot": [
+              "Lane right due to construction cones blocking and closing our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.00013314560055732727,
+          "d_curvature_mean": 7.370796811301261e-05,
+          "d_curvature_max": 0.0004591941833496094,
+          "endpoint_shift_m": 0.3704042434692383,
+          "traj_ade_m": 0.1367364376783371,
+          "forced_cot": {
+            "cot": [
+              "Lane to the right to bypass construction cones blocking the current lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.4938520507712383e-05,
+          "d_curvature_mean": 0.000417663948610425,
+          "d_curvature_max": 0.0023112744092941284,
+          "endpoint_shift_m": 0.3845095932483673,
+          "traj_ade_m": 0.08282984793186188,
+          "forced_cot": {
+            "cot": [
+              "Lane left due to construction cones blocking the right lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.997992992401123,
+      "entropy": 0.016131814569234848,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.001700200722552836,
+          "d_curvature_mean": 0.0002356952172704041,
+          "d_curvature_max": 0.0014643222093582153,
+          "endpoint_shift_m": 0.3280154764652252,
+          "traj_ade_m": 0.1835697591304779,
+          "forced_cot": {
+            "cot": [
+              "Lane change from the right due to construction cones blocking our lane ahead and a merge-right sign guiding traffic into the right lane; then merge back left after clearing the construction zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 9.591875277692452e-05,
+          "d_curvature_mean": 0.001419733394868672,
+          "d_curvature_max": 0.010484933853149414,
+          "endpoint_shift_m": 0.757158637046814,
+          "traj_ade_m": 0.44686782360076904,
+          "forced_cot": {
+            "cot": [
+              "Lane change for an upcoming right turn due to construction cones blocking and slowing through-lane traffic, then merge back right after clearing the work zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 4.9761994887376204e-05,
+          "d_curvature_mean": 0.0005760452477261424,
+          "d_curvature_max": 0.0030038971453905106,
+          "endpoint_shift_m": 0.24255940318107605,
+          "traj_ade_m": 0.08064201474189758,
+          "forced_cot": {
+            "cot": [
+              "Lane change and merge to the right due to construction cones blocking the current lane ahead, adjusting speed to slot in behind the lead vehicle and maintain clearance from parked trucks along the right edge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 3.875468246405944e-05,
+          "d_curvature_mean": 0.00010451018169987947,
+          "d_curvature_max": 0.0005178675055503845,
+          "endpoint_shift_m": 0.2673681974411011,
+          "traj_ade_m": 0.10481201112270355,
+          "forced_cot": {
+            "cot": [
+              "Lane change since construction cones close our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.998852014541626,
+      "entropy": 0.012825824320316315,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0005030109314247966,
+          "d_curvature_mean": 0.001947911223396659,
+          "d_curvature_max": 0.006752707064151764,
+          "endpoint_shift_m": 1.1369069814682007,
+          "traj_ade_m": 0.2542310059070587,
+          "forced_cot": {
+            "cot": [
+              "Lane change to our right due to construction cones blocking our current lane ahead and to merge safely with right-lane traffic, then slow for the work zone and upcoming signal-controlled intersection, with a right turn only after crossing the bike-lane merge zone if applicable; after clearing, merge back left to continue straight as the right lane becomes turn-only."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.00011223691399209201,
+          "d_curvature_mean": 0.0001799090241547674,
+          "d_curvature_max": 0.0011046156287193298,
+          "endpoint_shift_m": 0.3640929162502289,
+          "traj_ade_m": 0.12465398758649826,
+          "forced_cot": {
+            "cot": [
+              "Lane change to follow the cone-defined lane shift around construction cones ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 7.023607031442225e-05,
+          "d_curvature_mean": 0.0002980694698635489,
+          "d_curvature_max": 0.001126779243350029,
+          "endpoint_shift_m": 0.09509922564029694,
+          "traj_ade_m": 0.03034006617963314,
+          "forced_cot": {
+            "cot": [
+              "Lane change to lead vehicle due to construction cones blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 4.5347813284024596e-05,
+          "d_curvature_mean": 0.00021155958529561758,
+          "d_curvature_max": 0.0010459385812282562,
+          "endpoint_shift_m": 0.566533625125885,
+          "traj_ade_m": 0.13665442168712616,
+          "forced_cot": {
+            "cot": [
+              "Lane change to maintain traffic flow due to a cone-marked lane closure blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9783920049667358,
+      "entropy": 0.11320608109235764,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.020305877551436424,
+          "d_curvature_mean": 0.0009018145501613617,
+          "d_curvature_max": 0.005857275798916817,
+          "endpoint_shift_m": 0.27987775206565857,
+          "traj_ade_m": 0.2568521499633789,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the cut-in vehicle from the left since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.000576033431570977,
+          "d_curvature_mean": 0.0010704249143600464,
+          "d_curvature_max": 0.005311347544193268,
+          "endpoint_shift_m": 1.5069652795791626,
+          "traj_ade_m": 0.27432775497436523,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the merging right due to a cone-marked lane closure blocking the current lane ahead and to slot in behind right-lane traffic, then slow for the work zone and the lead vehicle decelerating ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 8.298548345919698e-05,
+          "d_curvature_mean": 0.00017549455515109003,
+          "d_curvature_max": 0.00044388859532773495,
+          "endpoint_shift_m": 0.04615895077586174,
+          "traj_ade_m": 0.016560249030590057,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the vehicle ahead due to a cone-marked lane closure blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowing",
+          "token_prob": 7.5559139077086e-05,
+          "d_curvature_mean": 0.0002867017174139619,
+          "d_curvature_max": 0.0008826740086078644,
+          "endpoint_shift_m": 0.1831277310848236,
+          "traj_ade_m": 0.0922209843993187,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the slowing lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.999669075012207,
+      "entropy": 0.004001968540251255,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 8.74816978466697e-05,
+          "d_curvature_mean": 0.0004220139526296407,
+          "d_curvature_max": 0.0022730156779289246,
+          "endpoint_shift_m": 0.355998694896698,
+          "traj_ade_m": 0.141100212931633,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right truck lane due to construction cones blocking and closing the current lane ahead, then merge back left after clearing the work zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " van",
+          "token_prob": 4.9845566536532715e-05,
+          "d_curvature_mean": 0.0005654147826135159,
+          "d_curvature_max": 0.0020089782774448395,
+          "endpoint_shift_m": 0.3913232386112213,
+          "traj_ade_m": 0.08373603224754333,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right vanishing lane due to construction cones closing/redirecting our lane and merge-left signage, then slow to merge smoothly into the work-zone channel and maintain a safe gap to lead vehicles after entering the right channel."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 3.534580173436552e-05,
+          "d_curvature_mean": 0.0004466873942874372,
+          "d_curvature_max": 0.0021224990487098694,
+          "endpoint_shift_m": 0.48460692167282104,
+          "traj_ade_m": 0.17769849300384521,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right carpool lane due to construction cones closing/redirecting our lane and merge-left signage, then slow to merge smoothly into the carpool queue before the intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 3.218271740479395e-05,
+          "d_curvature_mean": 0.0001863158104242757,
+          "d_curvature_max": 0.0007299315184354782,
+          "endpoint_shift_m": 0.12841083109378815,
+          "traj_ade_m": 0.06583517044782639,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right vehicles in the left lane to bypass construction blocking their lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.993815541267395,
+      "entropy": 0.04813235625624657,
+      "alternatives": [
+        {
+          "token": " as",
+          "token_prob": 0.002042248845100403,
+          "d_curvature_mean": 0.0002877106599044055,
+          "d_curvature_max": 0.0017449408769607544,
+          "endpoint_shift_m": 0.2687382996082306,
+          "traj_ade_m": 0.1287182718515396,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due as the current lane is closed by construction cones ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0019185153068974614,
+          "d_curvature_mean": 0.0006163253565318882,
+          "d_curvature_max": 0.0030370596796274185,
+          "endpoint_shift_m": 0.32533687353134155,
+          "traj_ade_m": 0.1040031760931015,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due because construction cones block and close our lane ahead, merging into a gap behind right\u2011lane vehicles; slow slightly to create space, then proceed once merged."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0011636383133009076,
+          "d_curvature_mean": 0.00018198922043666244,
+          "d_curvature_max": 0.0013112500309944153,
+          "endpoint_shift_m": 0.2633380889892578,
+          "traj_ade_m": 0.11426576972007751,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due ahead lane closure marked by cones and an arrow board blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaching",
+          "token_prob": 0.00036615505814552307,
+          "d_curvature_mean": 0.00046838540583848953,
+          "d_curvature_max": 0.0016607530415058136,
+          "endpoint_shift_m": 0.5846518874168396,
+          "traj_ade_m": 0.1513044834136963,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due approaching construction cones blocking the current lane ahead and to merge safely with right-lane traffic, then slow for the work zone and intersection control ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9884755611419678,
+      "entropy": 0.08346711844205856,
+      "alternatives": [
+        {
+          "token": " traffic",
+          "token_prob": 0.004577550571411848,
+          "d_curvature_mean": 0.0008882082183845341,
+          "d_curvature_max": 0.004775620996952057,
+          "endpoint_shift_m": 0.319194495677948,
+          "traj_ade_m": 0.12253154814243317,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to traffic cones blocking and narrowing our lane ahead, merging into the right through-lane behind lead vehicles and then slowing for the signalized work zone, then continuing straight after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0027764246333390474,
+          "d_curvature_mean": 0.00032361276680603623,
+          "d_curvature_max": 0.001969430595636368,
+          "endpoint_shift_m": 0.21348583698272705,
+          "traj_ade_m": 0.104655921459198,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to a cone-marked work zone blocking the current lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0017925943247973919,
+          "d_curvature_mean": 0.0003567421226762235,
+          "d_curvature_max": 0.0013112500309944153,
+          "endpoint_shift_m": 0.12589886784553528,
+          "traj_ade_m": 0.03983470797538757,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to the left lane closure marked by cones and a merge-right sign ahead, then follow the lead vehicle through the work zone with reduced speed and increased following distance for safety, then merge back left after clearing the closure."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0011941252741962671,
+          "d_curvature_mean": 0.0005041090771555901,
+          "d_curvature_max": 0.001630142331123352,
+          "endpoint_shift_m": 0.924720048904419,
+          "traj_ade_m": 0.17145560681819916,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to we-lane closure marked by construction cones ahead, merging into the right-lane queue behind lead vehicles and then slowing as it approaches the signal-controlled intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9933683276176453,
+      "entropy": 0.05934963747859001,
+      "alternatives": [
+        {
+          "token": " slows",
+          "token_prob": 0.003161673666909337,
+          "d_curvature_mean": 0.0005681631155312061,
+          "d_curvature_max": 0.00414295494556427,
+          "endpoint_shift_m": 0.1764439046382904,
+          "traj_ade_m": 0.15474165976047516,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction slows blocking the current lane ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 0.0014029841404408216,
+          "d_curvature_mean": 0.0055517032742500305,
+          "d_curvature_max": 0.03040200099349022,
+          "endpoint_shift_m": 5.26514196395874,
+          "traj_ade_m": 1.8978925943374634,
+          "forced_cot": {
+            "cot": [
+              ""
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sets",
+          "token_prob": 0.0002219843299826607,
+          "d_curvature_mean": 0.004986102692782879,
+          "d_curvature_max": 0.03137914463877678,
+          "endpoint_shift_m": 5.997191429138184,
+          "traj_ade_m": 2.0773775577545166,
+          "forced_cot": {
+            "cot": [
+              ""
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3498><i3499><i3621><i3499><i3499><i3621><i3499><i3499><i3621><i3499><i3499><i3621><i3499><i3500><i3620><i3500><i3500><i3620><i3500><i3500><i3620><i3500><i3500><i3619><i3500><i3500><i3619><i3500><i3500><i3618><i3500><i3500><i3618><i3500><i3500><i3618><i3500><i3500><i3617><i3500><i3500><i3616><i3500><i3500><i3616><i3499><i3500><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Lane change to the right due to construction sets blocking and narrowing our lane ahead, merging into a safe gap behind right-lane traffic and then slowing for the cone-defined work zone and upcoming signalized intersection; after clearing the work zone, our lane is maintained with steady acceleration, with a small left lane change for opposing traffic that is safely separated by a median; overall, the merge is cautious and in compliance with temporary lane boundaries and work-zone channelization, then"
+            ]
+          }
+        },
+        {
+          "token": " dec",
+          "token_prob": 0.00011516395898070186,
+          "d_curvature_mean": 0.002248962176963687,
+          "d_curvature_max": 0.007296079769730568,
+          "endpoint_shift_m": 0.3203302025794983,
+          "traj_ade_m": 0.10863666236400604,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction decelerating our lane ahead with cones and a slow lead vehicle, using the available gap and then stabilizing after merging to proceed through the green-light intersection with safe clearance to the right curb and parked vehicles; then, gently slow for the intersection and upcoming crosswalk after completing the merge into the right lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " slowing",
+      "sampled_prob": 0.3215601146221161,
+      "entropy": 0.9342007040977478,
+      "alternatives": [
+        {
+          "token": " directly",
+          "token_prob": 0.6007533669471741,
+          "d_curvature_mean": 0.001800394500605762,
+          "d_curvature_max": 0.005691457539796829,
+          "endpoint_shift_m": 0.9989749789237976,
+          "traj_ade_m": 0.22873079776763916,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones directly blocking our lane ahead and to merge safely with right-lane traffic, then slow for the work zone and upcoming signal-controlled intersection, with a right turn only after crossing the bike-lane merge zone if applicable; after clearing, merge back left to continue straight as the right lane becomes turn-only."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.06331893801689148,
+          "d_curvature_mean": 0.0003669835568871349,
+          "d_curvature_max": 0.002020452171564102,
+          "endpoint_shift_m": 0.10446852445602417,
+          "traj_ade_m": 0.1656898856163025,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones moving traffic into the right lane ahead, blocking and slowing our current lane; then match speed with right-lane traffic after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.009411519393324852,
+          "d_curvature_mean": 0.0006179721676744521,
+          "d_curvature_max": 0.002956700511276722,
+          "endpoint_shift_m": 1.0546733140945435,
+          "traj_ade_m": 0.19211198389530182,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones ahead blocking and closing our lane, merging into the right-lane queue behind slow traffic and then slowing for the signal-controlled intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controlling",
+          "token_prob": 0.0010559431975707412,
+          "d_curvature_mean": 0.0003851222281809896,
+          "d_curvature_max": 0.001614835113286972,
+          "endpoint_shift_m": 0.4899210035800934,
+          "traj_ade_m": 0.11952197551727295,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones controlling traffic into a rightward merge lane ahead and slower vehicles in front, then decelerate to maintain a safe gap after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.8356775641441345,
+      "entropy": 0.6401402950286865,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 0.12039077281951904,
+          "d_curvature_mean": 0.0004973207833245397,
+          "d_curvature_max": 0.0033470168709754944,
+          "endpoint_shift_m": 0.26866379380226135,
+          "traj_ade_m": 0.15619201958179474,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones blocking for our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.01019597239792347,
+          "d_curvature_mean": 0.00042567180935293436,
+          "d_curvature_max": 0.002780679613351822,
+          "endpoint_shift_m": 0.21135403215885162,
+          "traj_ade_m": 0.1354716569185257,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones blocking in our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.00899791531264782,
+          "d_curvature_mean": 0.0019962883088737726,
+          "d_curvature_max": 0.007102202624082565,
+          "endpoint_shift_m": 1.0430172681808472,
+          "traj_ade_m": 0.2291741669178009,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones blocking into our lane ahead and to merge safely with right-lane traffic, then slow for the work zone and upcoming signal-controlled intersection, with a right turn only after crossing the bike-lane merge zone if applicable; after clearing, merge back left to continue straight as the right lane becomes turn-only."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.00872107781469822,
+          "d_curvature_mean": 0.0007348718936555088,
+          "d_curvature_max": 0.005010321736335754,
+          "endpoint_shift_m": 0.31288114190101624,
+          "traj_ade_m": 0.18061316013336182,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction cones blocking"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

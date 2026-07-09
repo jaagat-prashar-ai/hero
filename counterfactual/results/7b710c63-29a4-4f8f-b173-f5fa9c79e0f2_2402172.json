@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Yield to the vehicle in the roundabout since it has priority ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 0.45462499279978213,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Y",
+        "sampled_prob": 0.4132567048072815,
+        "entropy": 1.1294418573379517,
+        "top_k": [
+          {
+            "text": "Slow",
+            "prob": 0.49848273396492004
+          },
+          {
+            "text": "Y",
+            "prob": 0.4132567048072815
+          },
+          {
+            "text": "Reduce",
+            "prob": 0.024817993864417076
+          },
+          {
+            "text": "Ad",
+            "prob": 0.0175985936075449
+          },
+          {
+            "text": "Stop",
+            "prob": 0.011362506076693535
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "ield",
+        "sampled_prob": 1.0,
+        "entropy": 6.124180274014179e-09,
+        "top_k": [
+          {
+            "text": "ield",
+            "prob": 1.0
+          },
+          {
+            "text": " to",
+            "prob": 7.052879807956103e-11
+          },
+          {
+            "text": "apt",
+            "prob": 9.84802690784381e-12
+          },
+          {
+            "text": "ain",
+            "prob": 7.20497056114211e-12
+          },
+          {
+            "text": "ate",
+            "prob": 5.271269098300335e-12
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.8864760994911194,
+        "entropy": 0.45308050513267517,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.8864760994911194
+          },
+          {
+            "text": " due",
+            "prob": 0.077459417283535
+          },
+          {
+            "text": " and",
+            "prob": 0.030333543196320534
+          },
+          {
+            "text": " because",
+            "prob": 0.0018794969655573368
+          },
+          {
+            "text": " by",
+            "prob": 0.0013327628839761019
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.982379674911499,
+        "entropy": 0.1452130228281021,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.982379674911499
+          },
+          {
+            "text": " a",
+            "prob": 0.005661721341311932
+          },
+          {
+            "text": " round",
+            "prob": 0.0027593025006353855
+          },
+          {
+            "text": " traffic",
+            "prob": 0.0016221102559939027
+          },
+          {
+            "text": " vehicles",
+            "prob": 0.00111485889647156
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " vehicle",
+        "sampled_prob": 0.2412460446357727,
+        "entropy": 1.505285382270813,
+        "top_k": [
+          {
+            "text": " traffic",
+            "prob": 0.42340001463890076
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.2412460446357727
+          },
+          {
+            "text": " van",
+            "prob": 0.22662971913814545
+          },
+          {
+            "text": " round",
+            "prob": 0.0649304986000061
+          },
+          {
+            "text": " cut",
+            "prob": 0.009957414120435715
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " in",
+        "sampled_prob": 0.7849625945091248,
+        "entropy": 0.9432023763656616,
+        "top_k": [
+          {
+            "text": " in",
+            "prob": 0.7849625945091248
+          },
+          {
+            "text": " already",
+            "prob": 0.1062331348657608
+          },
+          {
+            "text": " circulating",
+            "prob": 0.045690298080444336
+          },
+          {
+            "text": " entering",
+            "prob": 0.027712570503354073
+          },
+          {
+            "text": " since",
+            "prob": 0.006582312751561403
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " the",
+        "sampled_prob": 0.9629336595535278,
+        "entropy": 0.1907319873571396,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9629336595535278
+          },
+          {
+            "text": " our",
+            "prob": 0.030953451991081238
+          },
+          {
+            "text": " round",
+            "prob": 0.003696862608194351
+          },
+          {
+            "text": " front",
+            "prob": 0.0007510632276535034
+          },
+          {
+            "text": " circulating",
+            "prob": 0.0001525877305539325
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " round",
+        "sampled_prob": 0.9999611377716064,
+        "entropy": 0.0007089638384059072,
+        "top_k": [
+          {
+            "text": " round",
+            "prob": 0.9999611377716064
+          },
+          {
+            "text": " left",
+            "prob": 2.726371803873917e-06
+          },
+          {
+            "text": " intersection",
+            "prob": 1.6536281464141211e-06
+          },
+          {
+            "text": " right",
+            "prob": 1.5534399153693812e-06
+          },
+          {
+            "text": " main",
+            "prob": 1.4593216519642738e-06
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": "about",
+        "sampled_prob": 1.0,
+        "entropy": 3.905657308678201e-07,
+        "top_k": [
+          {
+            "text": "about",
+            "prob": 1.0
+          },
+          {
+            "text": " about",
+            "prob": 5.263340430161634e-09
+          },
+          {
+            "text": "abouts",
+            "prob": 3.0941582629395725e-09
+          },
+          {
+            "text": " lane",
+            "prob": 4.457557378767518e-10
+          },
+          {
+            "text": ",",
+            "prob": 2.3859586528729437e-10
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " since",
+        "sampled_prob": 0.9924471378326416,
+        "entropy": 0.053789980709552765,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9924471378326416
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0033624630887061357
+          },
+          {
+            "text": " because",
+            "prob": 0.0031587418634444475
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0005843084654770792
+          },
+          {
+            "text": " that",
+            "prob": 0.0001303768513025716
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " it",
+        "sampled_prob": 0.9923413991928101,
+        "entropy": 0.05917380005121231,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9923413991928101
+          },
+          {
+            "text": " a",
+            "prob": 0.003809763817116618
+          },
+          {
+            "text": " the",
+            "prob": 0.001915669534355402
+          },
+          {
+            "text": " cross",
+            "prob": 0.0006416688556782901
+          },
+          {
+            "text": " entry",
+            "prob": 0.0003434605896472931
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " has",
+        "sampled_prob": 0.9083681106567383,
+        "entropy": 0.32532185316085815,
+        "top_k": [
+          {
+            "text": " has",
+            "prob": 0.9083681106567383
+          },
+          {
+            "text": " is",
+            "prob": 0.0899406298995018
+          },
+          {
+            "text": " occupies",
+            "prob": 9.293543553212658e-05
+          },
+          {
+            "text": " have",
+            "prob": 7.015134178800508e-05
+          },
+          {
+            "text": " crossing",
+            "prob": 6.799302354920655e-05
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " priority",
+        "sampled_prob": 0.8975110650062561,
+        "entropy": 0.3432486355304718,
+        "top_k": [
+          {
+            "text": " priority",
+            "prob": 0.8975110650062561
+          },
+          {
+            "text": " right",
+            "prob": 0.10069794952869415
+          },
+          {
+            "text": " the",
+            "prob": 0.0013493533479049802
+          },
+          {
+            "text": " left",
+            "prob": 5.746239548898302e-05
+          },
+          {
+            "text": " a",
+            "prob": 2.321690772078e-05
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " ahead",
+        "sampled_prob": 0.37154456973075867,
+        "entropy": 1.2155511379241943,
+        "top_k": [
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.4210151433944702
+          },
+          {
+            "text": " ahead",
+            "prob": 0.37154456973075867
+          },
+          {
+            "text": " at",
+            "prob": 0.17550522089004517
+          },
+          {
+            "text": ".",
+            "prob": 0.01908530853688717
+          },
+          {
+            "text": " since",
+            "prob": 0.0027494991663843393
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.4132567048072815,
+      "entropy": 1.1294418573379517,
+      "alternatives": [
+        {
+          "token": "Slow",
+          "token_prob": 0.49848273396492004,
+          "d_curvature_mean": 0.000843623885884881,
+          "d_curvature_max": 0.0033036507666110992,
+          "endpoint_shift_m": 0.6606451272964478,
+          "traj_ade_m": 0.1872432827949524,
+          "forced_cot": {
+            "cot": [
+              "Slowield to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Reduce",
+          "token_prob": 0.024817993864417076,
+          "d_curvature_mean": 0.0004496605251915753,
+          "d_curvature_max": 0.001650545746088028,
+          "endpoint_shift_m": 0.31173959374427795,
+          "traj_ade_m": 0.07724166661500931,
+          "forced_cot": {
+            "cot": [
+              "Reduceield to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.0175985936075449,
+          "d_curvature_mean": 0.00010383685730630532,
+          "d_curvature_max": 0.00025989115238189697,
+          "endpoint_shift_m": 0.010352960787713528,
+          "traj_ade_m": 0.004140927456319332,
+          "forced_cot": {
+            "cot": [
+              "Adield to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.011362506076693535,
+          "d_curvature_mean": 0.0036126249469816685,
+          "d_curvature_max": 0.010854840278625488,
+          "endpoint_shift_m": 2.7185781002044678,
+          "traj_ade_m": 0.8194769620895386,
+          "forced_cot": {
+            "cot": [
+              "Stopield to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 6.124180274014179e-09,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 7.052879807956103e-11,
+          "d_curvature_mean": 0.0002878221566788852,
+          "d_curvature_max": 0.0008188970386981964,
+          "endpoint_shift_m": 0.1922128051519394,
+          "traj_ade_m": 0.05577925965189934,
+          "forced_cot": {
+            "cot": [
+              "Y to to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 9.84802690784381e-12,
+          "d_curvature_mean": 0.0007459151092916727,
+          "d_curvature_max": 0.0026429183781147003,
+          "endpoint_shift_m": 0.46237197518348694,
+          "traj_ade_m": 0.15620587766170502,
+          "forced_cot": {
+            "cot": [
+              "Yapt to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 7.20497056114211e-12,
+          "d_curvature_mean": 0.0002579068241175264,
+          "d_curvature_max": 0.0005484819412231445,
+          "endpoint_shift_m": 0.19635304808616638,
+          "traj_ade_m": 0.07614366710186005,
+          "forced_cot": {
+            "cot": [
+              "Yain to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 5.271269098300335e-12,
+          "d_curvature_mean": 0.000994172296486795,
+          "d_curvature_max": 0.0031888484954833984,
+          "endpoint_shift_m": 0.6604179739952087,
+          "traj_ade_m": 0.20685631036758423,
+          "forced_cot": {
+            "cot": [
+              "Yate to the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.8864760994911194,
+      "entropy": 0.45308050513267517,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.077459417283535,
+          "d_curvature_mean": 0.00039401493268087506,
+          "d_curvature_max": 0.0009592026472091675,
+          "endpoint_shift_m": 0.2841450273990631,
+          "traj_ade_m": 0.09472262114286423,
+          "forced_cot": {
+            "cot": [
+              "Yield due the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.030333543196320534,
+          "d_curvature_mean": 0.0014922169502824545,
+          "d_curvature_max": 0.0038151368498802185,
+          "endpoint_shift_m": 0.8950070738792419,
+          "traj_ade_m": 0.2909574806690216,
+          "forced_cot": {
+            "cot": [
+              "Yield and the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0018794969655573368,
+          "d_curvature_mean": 0.001322690979577601,
+          "d_curvature_max": 0.0037896260619163513,
+          "endpoint_shift_m": 0.6099973917007446,
+          "traj_ade_m": 0.17687392234802246,
+          "forced_cot": {
+            "cot": [
+              "Yield because the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " by",
+          "token_prob": 0.0013327628839761019,
+          "d_curvature_mean": 0.0016309539787471294,
+          "d_curvature_max": 0.004111059010028839,
+          "endpoint_shift_m": 0.9482138752937317,
+          "traj_ade_m": 0.28570860624313354,
+          "forced_cot": {
+            "cot": [
+              "Yield by the vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.982379674911499,
+      "entropy": 0.1452130228281021,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.005661721341311932,
+          "d_curvature_mean": 0.0004768947255797684,
+          "d_curvature_max": 0.001474522054195404,
+          "endpoint_shift_m": 0.3986499607563019,
+          "traj_ade_m": 0.13044655323028564,
+          "forced_cot": {
+            "cot": [
+              "Yield to a vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.0027593025006353855,
+          "d_curvature_mean": 0.0009263966931030154,
+          "d_curvature_max": 0.0027742907404899597,
+          "endpoint_shift_m": 0.6331397294998169,
+          "traj_ade_m": 0.19027888774871826,
+          "forced_cot": {
+            "cot": [
+              "Yield to round vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0016221102559939027,
+          "d_curvature_mean": 0.000898912490811199,
+          "d_curvature_max": 0.002699039876461029,
+          "endpoint_shift_m": 0.7090572118759155,
+          "traj_ade_m": 0.22269633412361145,
+          "forced_cot": {
+            "cot": [
+              "Yield to traffic vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.00111485889647156,
+          "d_curvature_mean": 0.0009309989400207996,
+          "d_curvature_max": 0.002331681549549103,
+          "endpoint_shift_m": 0.6018069386482239,
+          "traj_ade_m": 0.1883997917175293,
+          "forced_cot": {
+            "cot": [
+              "Yield to vehicles vehicle in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.2412460446357727,
+      "entropy": 1.505285382270813,
+      "alternatives": [
+        {
+          "token": " traffic",
+          "token_prob": 0.42340001463890076,
+          "d_curvature_mean": 0.0006650696159340441,
+          "d_curvature_max": 0.0017551407217979431,
+          "endpoint_shift_m": 0.48240187764167786,
+          "traj_ade_m": 0.1533905416727066,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " van",
+          "token_prob": 0.22662971913814545,
+          "d_curvature_mean": 0.00027775371563620865,
+          "d_curvature_max": 0.0009872689843177795,
+          "endpoint_shift_m": 0.27390947937965393,
+          "traj_ade_m": 0.10161308944225311,
+          "forced_cot": {
+            "cot": [
+              "Yield to the van in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.0649304986000061,
+          "d_curvature_mean": 0.0005608054925687611,
+          "d_curvature_max": 0.001505136489868164,
+          "endpoint_shift_m": 0.3962918519973755,
+          "traj_ade_m": 0.11437603831291199,
+          "forced_cot": {
+            "cot": [
+              "Yield to the round in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cut",
+          "token_prob": 0.009957414120435715,
+          "d_curvature_mean": 0.0003535827563609928,
+          "d_curvature_max": 0.0008061416447162628,
+          "endpoint_shift_m": 0.1895657479763031,
+          "traj_ade_m": 0.06865382939577103,
+          "forced_cot": {
+            "cot": [
+              "Yield to the cut in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " in",
+      "sampled_prob": 0.7849625945091248,
+      "entropy": 0.9432023763656616,
+      "alternatives": [
+        {
+          "token": " already",
+          "token_prob": 0.1062331348657608,
+          "d_curvature_mean": 0.0001855762384366244,
+          "d_curvature_max": 0.0010280832648277283,
+          "endpoint_shift_m": 0.20175133645534515,
+          "traj_ade_m": 0.06661789119243622,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle already the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " circulating",
+          "token_prob": 0.045690298080444336,
+          "d_curvature_mean": 0.0003089461533818394,
+          "d_curvature_max": 0.0006982050836086273,
+          "endpoint_shift_m": 0.1355704516172409,
+          "traj_ade_m": 0.03845139592885971,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle circulating the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.027712570503354073,
+          "d_curvature_mean": 0.00027097167912870646,
+          "d_curvature_max": 0.0014745257794857025,
+          "endpoint_shift_m": 0.30631300806999207,
+          "traj_ade_m": 0.09260602295398712,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle entering the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.006582312751561403,
+          "d_curvature_mean": 0.00020090240286663175,
+          "d_curvature_max": 0.0010459423065185547,
+          "endpoint_shift_m": 0.13648518919944763,
+          "traj_ade_m": 0.03615105152130127,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle since the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " the",
+      "sampled_prob": 0.9629336595535278,
+      "entropy": 0.1907319873571396,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.030953451991081238,
+          "d_curvature_mean": 0.00015712640015408397,
+          "d_curvature_max": 0.0006683804094791412,
+          "endpoint_shift_m": 0.20316052436828613,
+          "traj_ade_m": 0.05962179973721504,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in our roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.003696862608194351,
+          "d_curvature_mean": 9.981825132854283e-05,
+          "d_curvature_max": 0.0004413388669490814,
+          "endpoint_shift_m": 0.0747716873884201,
+          "traj_ade_m": 0.024537470191717148,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in round roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 0.0007510632276535034,
+          "d_curvature_mean": 7.670569175388664e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.0677272230386734,
+          "traj_ade_m": 0.026357799768447876,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in front roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " circulating",
+          "token_prob": 0.0001525877305539325,
+          "d_curvature_mean": 0.00047595324576832354,
+          "d_curvature_max": 0.0011224746704101562,
+          "endpoint_shift_m": 0.3533798158168793,
+          "traj_ade_m": 0.1142335906624794,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in circulating roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " round",
+      "sampled_prob": 0.9999611377716064,
+      "entropy": 0.0007089638384059072,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 2.726371803873917e-06,
+          "d_curvature_mean": 0.0002712188579607755,
+          "d_curvature_max": 0.0005867518484592438,
+          "endpoint_shift_m": 0.18662413954734802,
+          "traj_ade_m": 0.05809056758880615,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the leftabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intersection",
+          "token_prob": 1.6536281464141211e-06,
+          "d_curvature_mean": 0.0005568722845055163,
+          "d_curvature_max": 0.0015944242477416992,
+          "endpoint_shift_m": 0.356869101524353,
+          "traj_ade_m": 0.10841412842273712,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the intersectionabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 1.5534399153693812e-06,
+          "d_curvature_mean": 0.00035691610537469387,
+          "d_curvature_max": 0.0013597272336483002,
+          "endpoint_shift_m": 0.21159116923809052,
+          "traj_ade_m": 0.05815824866294861,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the rightabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " main",
+          "token_prob": 1.4593216519642738e-06,
+          "d_curvature_mean": 0.000294036406558007,
+          "d_curvature_max": 0.0006989911198616028,
+          "endpoint_shift_m": 0.2012166678905487,
+          "traj_ade_m": 0.06667765974998474,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the mainabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": "about",
+      "sampled_prob": 1.0,
+      "entropy": 3.905657308678201e-07,
+      "alternatives": [
+        {
+          "token": " about",
+          "token_prob": 5.263340430161634e-09,
+          "d_curvature_mean": 8.51584627525881e-05,
+          "d_curvature_max": 0.00029082968831062317,
+          "endpoint_shift_m": 0.06792905926704407,
+          "traj_ade_m": 0.0232237521559,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the round about since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "abouts",
+          "token_prob": 3.0941582629395725e-09,
+          "d_curvature_mean": 7.455916056642309e-05,
+          "d_curvature_max": 0.00032398849725723267,
+          "endpoint_shift_m": 0.08195259422063828,
+          "traj_ade_m": 0.02719787508249283,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabouts since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.457557378767518e-10,
+          "d_curvature_mean": 0.00013009739632252604,
+          "d_curvature_max": 0.0003699064254760742,
+          "endpoint_shift_m": 0.05642907693982124,
+          "traj_ade_m": 0.017091425135731697,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the round lane since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ",",
+          "token_prob": 2.3859586528729437e-10,
+          "d_curvature_mean": 4.2012201447505504e-05,
+          "d_curvature_max": 0.00022449716925621033,
+          "endpoint_shift_m": 0.00904956553131342,
+          "traj_ade_m": 0.0038292391691356897,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the round, since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " since",
+      "sampled_prob": 0.9924471378326416,
+      "entropy": 0.053789980709552765,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0033624630887061357,
+          "d_curvature_mean": 0.00024868198670446873,
+          "d_curvature_max": 0.0006734821945428848,
+          "endpoint_shift_m": 0.1698332130908966,
+          "traj_ade_m": 0.06572351604700089,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout ahead it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0031587418634444475,
+          "d_curvature_mean": 0.00022049355902709067,
+          "d_curvature_max": 0.0007729753851890564,
+          "endpoint_shift_m": 0.17055679857730865,
+          "traj_ade_m": 0.05027439072728157,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout because it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0005843084654770792,
+          "d_curvature_mean": 0.0028850017115473747,
+          "d_curvature_max": 0.007967017590999603,
+          "endpoint_shift_m": 2.099388837814331,
+          "traj_ade_m": 0.700259804725647,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 0.0001303768513025716,
+          "d_curvature_mean": 8.418126526521519e-05,
+          "d_curvature_max": 0.00024259090423583984,
+          "endpoint_shift_m": 0.09541935473680496,
+          "traj_ade_m": 0.021663475781679153,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout that it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " it",
+      "sampled_prob": 0.9923413991928101,
+      "entropy": 0.05917380005121231,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.003809763817116618,
+          "d_curvature_mean": 0.00047649716725572944,
+          "d_curvature_max": 0.0012678839266300201,
+          "endpoint_shift_m": 0.362221360206604,
+          "traj_ade_m": 0.1084984540939331,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since a has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.001915669534355402,
+          "d_curvature_mean": 0.0001806588697945699,
+          "d_curvature_max": 0.00044898688793182373,
+          "endpoint_shift_m": 0.2111358642578125,
+          "traj_ade_m": 0.06599760800600052,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since the has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0006416688556782901,
+          "d_curvature_mean": 0.0003224124084226787,
+          "d_curvature_max": 0.00072450190782547,
+          "endpoint_shift_m": 0.19675211608409882,
+          "traj_ade_m": 0.06439348310232162,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since cross has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0003434605896472931,
+          "d_curvature_mean": 0.00048511510249227285,
+          "d_curvature_max": 0.0010459423065185547,
+          "endpoint_shift_m": 0.10534624755382538,
+          "traj_ade_m": 0.026309113949537277,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since entry has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " has",
+      "sampled_prob": 0.9083681106567383,
+      "entropy": 0.32532185316085815,
+      "alternatives": [
+        {
+          "token": " is",
+          "token_prob": 0.0899406298995018,
+          "d_curvature_mean": 9.742580004967749e-05,
+          "d_curvature_max": 0.0002653151750564575,
+          "endpoint_shift_m": 0.03833358734846115,
+          "traj_ade_m": 0.010411493480205536,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it is priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupies",
+          "token_prob": 9.293543553212658e-05,
+          "d_curvature_mean": 0.00016544143727514893,
+          "d_curvature_max": 0.000864814966917038,
+          "endpoint_shift_m": 0.13628213107585907,
+          "traj_ade_m": 0.04274628311395645,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it occupies priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " have",
+          "token_prob": 7.015134178800508e-05,
+          "d_curvature_mean": 3.1208157452056184e-05,
+          "d_curvature_max": 0.00010714679956436157,
+          "endpoint_shift_m": 0.011755217798054218,
+          "traj_ade_m": 0.0029183807782828808,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it have priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 6.799302354920655e-05,
+          "d_curvature_mean": 0.00015106187493074685,
+          "d_curvature_max": 0.0004183761775493622,
+          "endpoint_shift_m": 0.015022898092865944,
+          "traj_ade_m": 0.010644892230629921,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it crossing priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " priority",
+      "sampled_prob": 0.8975110650062561,
+      "entropy": 0.3432486355304718,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.10069794952869415,
+          "d_curvature_mean": 0.00023711321409791708,
+          "d_curvature_max": 0.0005714409053325653,
+          "endpoint_shift_m": 0.12974324822425842,
+          "traj_ade_m": 0.05479636415839195,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0013493533479049802,
+          "d_curvature_mean": 0.0003258003562223166,
+          "d_curvature_max": 0.0017219781875610352,
+          "endpoint_shift_m": 0.26883721351623535,
+          "traj_ade_m": 0.06976444274187088,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has the ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 5.746239548898302e-05,
+          "d_curvature_mean": 0.00026225688634440303,
+          "d_curvature_max": 0.0007410794496536255,
+          "endpoint_shift_m": 0.026929738000035286,
+          "traj_ade_m": 0.01292046532034874,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has left ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 2.321690772078e-05,
+          "d_curvature_mean": 0.00010722127626650035,
+          "d_curvature_max": 0.0005739890038967133,
+          "endpoint_shift_m": 0.10192607343196869,
+          "traj_ade_m": 0.0241822749376297,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has a ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.37154456973075867,
+      "entropy": 1.2155511379241943,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.4210151433944702,
+          "d_curvature_mean": 0.0019119482021778822,
+          "d_curvature_max": 0.006236109882593155,
+          "endpoint_shift_m": 1.3098759651184082,
+          "traj_ade_m": 0.42603713274002075,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.17550522089004517,
+          "d_curvature_mean": 0.000109016866190359,
+          "d_curvature_max": 0.0005867443978786469,
+          "endpoint_shift_m": 0.12326736003160477,
+          "traj_ade_m": 0.035671260207891464,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has priority at"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.01908530853688717,
+          "d_curvature_mean": 0.0009040370350703597,
+          "d_curvature_max": 0.003012828528881073,
+          "endpoint_shift_m": 0.4081108272075653,
+          "traj_ade_m": 0.11414390802383423,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has priority."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0027494991663843393,
+          "d_curvature_mean": 0.00021790080063510686,
+          "d_curvature_max": 0.0005306210368871689,
+          "endpoint_shift_m": 0.06117245927453041,
+          "traj_ade_m": 0.01612350158393383,
+          "forced_cot": {
+            "cot": [
+              "Yield to the vehicle in the roundabout since it has priority since"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.4132567048072815,
+      "entropy": 1.1294418573379517,
+      "alternatives": [
+        {
+          "token": "Slow",
+          "token_prob": 0.49848273396492004,
+          "d_curvature_mean": 0.004379046615213156,
+          "d_curvature_max": 0.017666220664978027,
+          "endpoint_shift_m": 2.9071290493011475,
+          "traj_ade_m": 0.9032830595970154,
+          "forced_cot": {
+            "cot": [
+              "Slow down due to a vehicle in the roundabout ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Reduce",
+          "token_prob": 0.024817993864417076,
+          "d_curvature_mean": 0.007532856892794371,
+          "d_curvature_max": 0.0291919969022274,
+          "endpoint_shift_m": 5.541893005371094,
+          "traj_ade_m": 1.816638469696045,
+          "forced_cot": {
+            "cot": [
+              "Reduce speed due to roundabout entry ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.0175985936075449,
+          "d_curvature_mean": 0.00036183951306156814,
+          "d_curvature_max": 0.0011747665703296661,
+          "endpoint_shift_m": 0.10571678727865219,
+          "traj_ade_m": 0.05157480761408806,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the roundabout since a yield-controlled roundabout is ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.011362506076693535,
+          "d_curvature_mean": 0.004206718876957893,
+          "d_curvature_max": 0.011558935046195984,
+          "endpoint_shift_m": 3.015033006668091,
+          "traj_ade_m": 0.8972062468528748,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the van in the roundabout since it has priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 6.124180274014179e-09,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 7.052879807956103e-11,
+          "d_curvature_mean": 0.0002814859617501497,
+          "d_curvature_max": 0.0011122748255729675,
+          "endpoint_shift_m": 0.2509835362434387,
+          "traj_ade_m": 0.09535971283912659,
+          "forced_cot": {
+            "cot": [
+              "Y to the left to enter the roundabout since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 9.84802690784381e-12,
+          "d_curvature_mean": 0.00031463781488128006,
+          "d_curvature_max": 0.0007659569382667542,
+          "endpoint_shift_m": 0.0681944489479065,
+          "traj_ade_m": 0.07143931835889816,
+          "forced_cot": {
+            "cot": [
+              "Yapt speed for the roundabout since a yield-controlled roundabout is ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 7.20497056114211e-12,
+          "d_curvature_mean": 0.015206076204776764,
+          "d_curvature_max": 0.04656994342803955,
+          "endpoint_shift_m": 11.405241012573242,
+          "traj_ade_m": 3.9081156253814697,
+          "forced_cot": {
+            "cot": [
+              "Yain low speed to proceed into the roundabout because a vehicle is circulating ahead with right-of-way; wait for it to clear before entering."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 5.271269098300335e-12,
+          "d_curvature_mean": 0.006217059213668108,
+          "d_curvature_max": 0.024829652160406113,
+          "endpoint_shift_m": 4.195416450500488,
+          "traj_ade_m": 1.3148208856582642,
+          "forced_cot": {
+            "cot": [
+              "Yate speed due to vehicle in the roundabout ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.8864760994911194,
+      "entropy": 0.45308050513267517,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.077459417283535,
+          "d_curvature_mean": 0.0006530149257741868,
+          "d_curvature_max": 0.0020255595445632935,
+          "endpoint_shift_m": 0.1891133040189743,
+          "traj_ade_m": 0.07678749412298203,
+          "forced_cot": {
+            "cot": [
+              "Yield due to vehicle in the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.030333543196320534,
+          "d_curvature_mean": 0.01890852302312851,
+          "d_curvature_max": 0.049582768231630325,
+          "endpoint_shift_m": 13.918068885803223,
+          "traj_ade_m": 4.718818664550781,
+          "forced_cot": {
+            "cot": [
+              "Yield and merge to the right lane into the roundabout due to a circulating van occupying the circulating lane; once it clears, proceed into our entry and merge right to take the first exit, then accelerate as our lane is clear for wet, low\u2011visibility conditions."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0018794969655573368,
+          "d_curvature_mean": 0.00040380790596827865,
+          "d_curvature_max": 0.001265333965420723,
+          "endpoint_shift_m": 0.2857968211174011,
+          "traj_ade_m": 0.10714559257030487,
+          "forced_cot": {
+            "cot": [
+              "Yield because of a vehicle in the roundabout ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " by",
+          "token_prob": 0.0013327628839761019,
+          "d_curvature_mean": 0.017484620213508606,
+          "d_curvature_max": 0.04972945526242256,
+          "endpoint_shift_m": 12.644816398620605,
+          "traj_ade_m": 4.32483434677124,
+          "forced_cot": {
+            "cot": [
+              "Yield by slowing to let the green van in the roundabout pass, creating a safe gap for our entry into the roundabout."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.982379674911499,
+      "entropy": 0.1452130228281021,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.005661721341311932,
+          "d_curvature_mean": 0.00037239279481582344,
+          "d_curvature_max": 0.0011122692376375198,
+          "endpoint_shift_m": 0.346564918756485,
+          "traj_ade_m": 0.1308043897151947,
+          "forced_cot": {
+            "cot": [
+              "Yield to a vehicle in the roundabout since it has priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.0027593025006353855,
+          "d_curvature_mean": 0.000647245324216783,
+          "d_curvature_max": 0.0018112659454345703,
+          "endpoint_shift_m": 0.33260786533355713,
+          "traj_ade_m": 0.09519226849079132,
+          "forced_cot": {
+            "cot": [
+              "Yield to roundabout traffic since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0016221102559939027,
+          "d_curvature_mean": 0.0005197094287723303,
+          "d_curvature_max": 0.0015127882361412048,
+          "endpoint_shift_m": 0.3664844036102295,
+          "traj_ade_m": 0.11543875187635422,
+          "forced_cot": {
+            "cot": [
+              "Yield to traffic in the roundabout since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.00111485889647156,
+          "d_curvature_mean": 0.0011894556228071451,
+          "d_curvature_max": 0.003122519701719284,
+          "endpoint_shift_m": 0.8219360113143921,
+          "traj_ade_m": 0.2719154953956604,
+          "forced_cot": {
+            "cot": [
+              "Yield to vehicles in the roundabout since they have priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.2412460446357727,
+      "entropy": 1.505285382270813,
+      "alternatives": [
+        {
+          "token": " traffic",
+          "token_prob": 0.42340001463890076,
+          "d_curvature_mean": 0.0002534644154366106,
+          "d_curvature_max": 0.0011301226913928986,
+          "endpoint_shift_m": 0.233155757188797,
+          "traj_ade_m": 0.06554394215345383,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " van",
+          "token_prob": 0.22662971913814545,
+          "d_curvature_mean": 0.0002571879595052451,
+          "d_curvature_max": 0.0008826777338981628,
+          "endpoint_shift_m": 0.25348395109176636,
+          "traj_ade_m": 0.09492941200733185,
+          "forced_cot": {
+            "cot": [
+              "Yield to the van in the roundabout since it has priority ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.0649304986000061,
+          "d_curvature_mean": 0.00019745943427551538,
+          "d_curvature_max": 0.0009923763573169708,
+          "endpoint_shift_m": 0.24315086007118225,
+          "traj_ade_m": 0.08304359763860703,
+          "forced_cot": {
+            "cot": [
+              "Yield to the roundabout traffic since a van is circulating ahead with priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cut",
+          "token_prob": 0.009957414120435715,
+          "d_curvature_mean": 0.0006053547258488834,
+          "d_curvature_max": 0.00151023268699646,
+          "endpoint_shift_m": 0.23327721655368805,
+          "traj_ade_m": 0.0548878088593483,
+          "forced_cot": {
+            "cot": [
+              "Yield to the cut-in vehicle from the left since it is entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " in",
+      "sampled_prob": 0.7849625945091248,
+      "entropy": 0.9432023763656616,
+      "alternatives": [
+        {
+          "token": " already",
+          "token_prob": 0.1062331348657608,
+          "d_curvature_mean": 0.00045816192869096994,
+          "d_curvature_max": 0.0021275952458381653,
+          "endpoint_shift_m": 0.4303334355354309,
+          "traj_ade_m": 0.13439935445785522,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic already in the roundabout since a van is circulating ahead of our entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " circulating",
+          "token_prob": 0.045690298080444336,
+          "d_curvature_mean": 0.0007788718212395906,
+          "d_curvature_max": 0.002903122454881668,
+          "endpoint_shift_m": 0.6230484247207642,
+          "traj_ade_m": 0.19482386112213135,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic circulating in the roundabout since a van is circulating ahead of our entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.027712570503354073,
+          "d_curvature_mean": 0.00036070431815460324,
+          "d_curvature_max": 0.0009209364652633667,
+          "endpoint_shift_m": 0.2704632878303528,
+          "traj_ade_m": 0.1076648011803627,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic entering from the left since a van is already circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.006582312751561403,
+          "d_curvature_mean": 0.0004177613300271332,
+          "d_curvature_max": 0.0010115057229995728,
+          "endpoint_shift_m": 0.1572810262441635,
+          "traj_ade_m": 0.04582982882857323,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic since a van is circulating ahead at the roundabout entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " the",
+      "sampled_prob": 0.9629336595535278,
+      "entropy": 0.1907319873571396,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.030953451991081238,
+          "d_curvature_mean": 0.0009000063873827457,
+          "d_curvature_max": 0.0031837448477745056,
+          "endpoint_shift_m": 0.7956186532974243,
+          "traj_ade_m": 0.24838775396347046,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in our lane since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.003696862608194351,
+          "d_curvature_mean": 0.00022465825895778835,
+          "d_curvature_max": 0.0007780790328979492,
+          "endpoint_shift_m": 0.23760172724723816,
+          "traj_ade_m": 0.07412111759185791,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in roundabout since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 0.0007510632276535034,
+          "d_curvature_mean": 0.00032722807372920215,
+          "d_curvature_max": 0.0013048797845840454,
+          "endpoint_shift_m": 0.27665168046951294,
+          "traj_ade_m": 0.07847733795642853,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in front since a van is already circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " circulating",
+          "token_prob": 0.0001525877305539325,
+          "d_curvature_mean": 0.0009945487836375833,
+          "d_curvature_max": 0.003308746963739395,
+          "endpoint_shift_m": 0.9111571907997131,
+          "traj_ade_m": 0.2829129695892334,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in circulating within the roundabout since a vehicle is already circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " round",
+      "sampled_prob": 0.9999611377716064,
+      "entropy": 0.0007089638384059072,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 2.726371803873917e-06,
+          "d_curvature_mean": 0.00043932104017585516,
+          "d_curvature_max": 0.0015485025942325592,
+          "endpoint_shift_m": 0.2845380902290344,
+          "traj_ade_m": 0.08318113535642624,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the left lane since a van is circulating ahead at the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intersection",
+          "token_prob": 1.6536281464141211e-06,
+          "d_curvature_mean": 0.0006783601711504161,
+          "d_curvature_max": 0.0021811723709106445,
+          "endpoint_shift_m": 0.5080468058586121,
+          "traj_ade_m": 0.14920905232429504,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the intersection since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 1.5534399153693812e-06,
+          "d_curvature_mean": 0.0005207699141465127,
+          "d_curvature_max": 0.001428607851266861,
+          "endpoint_shift_m": 0.31164902448654175,
+          "traj_ade_m": 0.09582872688770294,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the right lane since a van is circulating ahead at the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " main",
+          "token_prob": 1.4593216519642738e-06,
+          "d_curvature_mean": 0.00027024466544389725,
+          "d_curvature_max": 0.0009005255997180939,
+          "endpoint_shift_m": 0.11003569513559341,
+          "traj_ade_m": 0.032834164798259735,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the main road since a van is circulating ahead at the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": "about",
+      "sampled_prob": 1.0,
+      "entropy": 3.905657308678201e-07,
+      "alternatives": [
+        {
+          "token": " about",
+          "token_prob": 5.263340430161634e-09,
+          "d_curvature_mean": 0.0001934122119564563,
+          "d_curvature_max": 0.0009745098650455475,
+          "endpoint_shift_m": 0.20062363147735596,
+          "traj_ade_m": 0.058235153555870056,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the round about since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "abouts",
+          "token_prob": 3.0941582629395725e-09,
+          "d_curvature_mean": 0.0003565613878890872,
+          "d_curvature_max": 0.0015076883137226105,
+          "endpoint_shift_m": 0.30569857358932495,
+          "traj_ade_m": 0.084321990609169,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabouts since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.457557378767518e-10,
+          "d_curvature_mean": 0.00039087189361453056,
+          "d_curvature_max": 0.0016607530415058136,
+          "endpoint_shift_m": 0.3277926445007324,
+          "traj_ade_m": 0.09989199787378311,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the round lane since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ",",
+          "token_prob": 2.3859586528729437e-10,
+          "d_curvature_mean": 0.00018085470946971327,
+          "d_curvature_max": 0.0007168464362621307,
+          "endpoint_shift_m": 0.2493150532245636,
+          "traj_ade_m": 0.08283364772796631,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the round, since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " since",
+      "sampled_prob": 0.9924471378326416,
+      "entropy": 0.053789980709552765,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0033624630887061357,
+          "d_curvature_mean": 0.0007560103549621999,
+          "d_curvature_max": 0.0028763413429260254,
+          "endpoint_shift_m": 0.5557830333709717,
+          "traj_ade_m": 0.17393040657043457,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout ahead since a van is circulating past our entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0031587418634444475,
+          "d_curvature_mean": 0.0002457248338032514,
+          "d_curvature_max": 0.0010127760469913483,
+          "endpoint_shift_m": 0.13441398739814758,
+          "traj_ade_m": 0.04564785212278366,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout because a van is circulating ahead at our entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0005843084654770792,
+          "d_curvature_mean": 0.002001575892791152,
+          "d_curvature_max": 0.005518302321434021,
+          "endpoint_shift_m": 1.2907756567001343,
+          "traj_ade_m": 0.37738776206970215,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 0.0001303768513025716,
+          "d_curvature_mean": 0.0005849318113178015,
+          "d_curvature_max": 0.0015510600060224533,
+          "endpoint_shift_m": 0.3057684898376465,
+          "traj_ade_m": 0.10372360795736313,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout that has priority"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " it",
+      "sampled_prob": 0.9923413991928101,
+      "entropy": 0.05917380005121231,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.003809763817116618,
+          "d_curvature_mean": 0.0002534644154366106,
+          "d_curvature_max": 0.0011301226913928986,
+          "endpoint_shift_m": 0.233155757188797,
+          "traj_ade_m": 0.06554394215345383,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.001915669534355402,
+          "d_curvature_mean": 0.0007764675538055599,
+          "d_curvature_max": 0.002560008317232132,
+          "endpoint_shift_m": 0.5000331997871399,
+          "traj_ade_m": 0.13251811265945435,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since the entry is yield controlled"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0006416688556782901,
+          "d_curvature_mean": 0.0007511232397519052,
+          "d_curvature_max": 0.0021071918308734894,
+          "endpoint_shift_m": 0.5484722256660461,
+          "traj_ade_m": 0.16501373052597046,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since cross-traffic is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0003434605896472931,
+          "d_curvature_mean": 0.0006649175775237381,
+          "d_curvature_max": 0.0028521008789539337,
+          "endpoint_shift_m": 0.49659135937690735,
+          "traj_ade_m": 0.15221890807151794,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since entry is controlled by a yield sign and a vehicle is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " has",
+      "sampled_prob": 0.9083681106567383,
+      "entropy": 0.32532185316085815,
+      "alternatives": [
+        {
+          "token": " is",
+          "token_prob": 0.0899406298995018,
+          "d_curvature_mean": 0.0009394226362928748,
+          "d_curvature_max": 0.0030192025005817413,
+          "endpoint_shift_m": 0.8237932920455933,
+          "traj_ade_m": 0.26305273175239563,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a is circulating ahead with right of way"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupies",
+          "token_prob": 9.293543553212658e-05,
+          "d_curvature_mean": 0.0008405252592638135,
+          "d_curvature_max": 0.0023163743317127228,
+          "endpoint_shift_m": 0.7082020044326782,
+          "traj_ade_m": 0.2357284426689148,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a occupies the circle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " have",
+          "token_prob": 7.015134178800508e-05,
+          "d_curvature_mean": 0.0006320835673250258,
+          "d_curvature_max": 0.002665877342224121,
+          "endpoint_shift_m": 0.6668047904968262,
+          "traj_ade_m": 0.20909401774406433,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a have-way vehicle is already circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 6.799302354920655e-05,
+          "d_curvature_mean": 0.0006660473882220685,
+          "d_curvature_max": 0.0023801513016223907,
+          "endpoint_shift_m": 0.5666042566299438,
+          "traj_ade_m": 0.17704328894615173,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a crossing vehicle is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " priority",
+      "sampled_prob": 0.8975110650062561,
+      "entropy": 0.3432486355304718,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.10069794952869415,
+          "d_curvature_mean": 0.0006565749645233154,
+          "d_curvature_max": 0.002446480095386505,
+          "endpoint_shift_m": 0.5074241757392883,
+          "traj_ade_m": 0.14706677198410034,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van right-of-way is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.0013493533479049802,
+          "d_curvature_mean": 0.0003975819272454828,
+          "d_curvature_max": 0.0016888119280338287,
+          "endpoint_shift_m": 0.31935468316078186,
+          "traj_ade_m": 0.10833881050348282,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van the roundabout is crossing our entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 5.746239548898302e-05,
+          "d_curvature_mean": 0.0002647753863129765,
+          "d_curvature_max": 0.0009069070219993591,
+          "endpoint_shift_m": 0.21421308815479279,
+          "traj_ade_m": 0.08285820484161377,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van left is crossing ahead with right of way"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 2.321690772078e-05,
+          "d_curvature_mean": 0.00019470132247079164,
+          "d_curvature_max": 0.0010000243782997131,
+          "endpoint_shift_m": 0.06117452681064606,
+          "traj_ade_m": 0.016981085762381554,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van a short distance ahead is already circulating"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.37154456973075867,
+      "entropy": 1.2155511379241943,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.4210151433944702,
+          "d_curvature_mean": 0.00017983122961595654,
+          "d_curvature_max": 0.0005204230546951294,
+          "endpoint_shift_m": 0.09970535337924957,
+          "traj_ade_m": 0.0282570980489254,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.17550522089004517,
+          "d_curvature_mean": 0.0002271569101139903,
+          "d_curvature_max": 0.0012015588581562042,
+          "endpoint_shift_m": 0.21202389895915985,
+          "traj_ade_m": 0.07365473359823227,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is at the entry ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.01908530853688717,
+          "d_curvature_mean": 0.0003449387731961906,
+          "d_curvature_max": 0.0006798617541790009,
+          "endpoint_shift_m": 0.1675640195608139,
+          "traj_ade_m": 0.05094624310731888,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0027494991663843393,
+          "d_curvature_mean": 0.0005823185201734304,
+          "d_curvature_max": 0.0019936636090278625,
+          "endpoint_shift_m": 0.4333576261997223,
+          "traj_ade_m": 0.13560974597930908,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a van is since passing ahead with right of way"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

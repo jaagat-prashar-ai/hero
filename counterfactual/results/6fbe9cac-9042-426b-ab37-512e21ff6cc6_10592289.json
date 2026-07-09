@@ -1,0 +1,2411 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Nudge left due to the scooter rider ahead in our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 12,
+    "mean_entropy": 0.508675880643016,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "N",
+        "sampled_prob": 0.9094805121421814,
+        "entropy": 0.6634619235992432,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.9094805121421814
+          },
+          {
+            "text": "Create",
+            "prob": 0.014700382947921753
+          },
+          {
+            "text": "Keep",
+            "prob": 0.011096430942416191
+          },
+          {
+            "text": "Lane",
+            "prob": 0.011096430942416191
+          },
+          {
+            "text": "Find",
+            "prob": 0.007868547923862934
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "udge",
+        "sampled_prob": 1.0,
+        "entropy": 3.6109801815342735e-09,
+        "top_k": [
+          {
+            "text": "udge",
+            "prob": 1.0
+          },
+          {
+            "text": "ield",
+            "prob": 4.018610097467068e-11
+          },
+          {
+            "text": " change",
+            "prob": 5.7893564074651405e-12
+          },
+          {
+            "text": "apt",
+            "prob": 5.438597055346106e-12
+          },
+          {
+            "text": "ain",
+            "prob": 4.3700355834008775e-12
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " left",
+        "sampled_prob": 0.9018598794937134,
+        "entropy": 0.376645028591156,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.9018598794937134
+          },
+          {
+            "text": " to",
+            "prob": 0.07402916252613068
+          },
+          {
+            "text": " right",
+            "prob": 0.02403375133872032
+          },
+          {
+            "text": " for",
+            "prob": 8.06242496764753e-06
+          },
+          {
+            "text": " due",
+            "prob": 4.38346478404128e-06
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " due",
+        "sampled_prob": 0.5916611552238464,
+        "entropy": 0.6914888620376587,
+        "top_k": [
+          {
+            "text": " due",
+            "prob": 0.5916611552238464
+          },
+          {
+            "text": " to",
+            "prob": 0.4066423773765564
+          },
+          {
+            "text": " because",
+            "prob": 0.000574321486055851
+          },
+          {
+            "text": " and",
+            "prob": 0.0003074121486861259
+          },
+          {
+            "text": " since",
+            "prob": 0.0001923736126627773
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " to",
+        "sampled_prob": 0.9999746084213257,
+        "entropy": 0.00033829209860414267,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9999746084213257
+          },
+          {
+            "text": " for",
+            "prob": 1.3845844478055369e-05
+          },
+          {
+            "text": " from",
+            "prob": 6.96212782713701e-06
+          },
+          {
+            "text": " since",
+            "prob": 4.592021127791668e-07
+          },
+          {
+            "text": " because",
+            "prob": 3.57626959157642e-07
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " the",
+        "sampled_prob": 0.7749702334403992,
+        "entropy": 0.7110374569892883,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.7749702334403992
+          },
+          {
+            "text": " a",
+            "prob": 0.19594316184520721
+          },
+          {
+            "text": " scooter",
+            "prob": 0.017121322453022003
+          },
+          {
+            "text": " rider",
+            "prob": 0.0014054037164896727
+          },
+          {
+            "text": " an",
+            "prob": 0.0006849390920251608
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " scooter",
+        "sampled_prob": 0.9574246406555176,
+        "entropy": 0.29445791244506836,
+        "top_k": [
+          {
+            "text": " scooter",
+            "prob": 0.9574246406555176
+          },
+          {
+            "text": " rider",
+            "prob": 0.028911719098687172
+          },
+          {
+            "text": " person",
+            "prob": 0.0028626478742808104
+          },
+          {
+            "text": " cyclist",
+            "prob": 0.0011566142784431577
+          },
+          {
+            "text": " pedestrian",
+            "prob": 0.0009588669636286795
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " rider",
+        "sampled_prob": 0.7363535165786743,
+        "entropy": 1.0804970264434814,
+        "top_k": [
+          {
+            "text": " rider",
+            "prob": 0.7363535165786743
+          },
+          {
+            "text": " ahead",
+            "prob": 0.13621170818805695
+          },
+          {
+            "text": " in",
+            "prob": 0.07522325217723846
+          },
+          {
+            "text": " on",
+            "prob": 0.009563563391566277
+          },
+          {
+            "text": " at",
+            "prob": 0.007928472943603992
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " ahead",
+        "sampled_prob": 0.6647436618804932,
+        "entropy": 1.3311340808868408,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.6647436618804932
+          },
+          {
+            "text": " in",
+            "prob": 0.17340876162052155
+          },
+          {
+            "text": " occupying",
+            "prob": 0.05992846190929413
+          },
+          {
+            "text": " blocking",
+            "prob": 0.02007352001965046
+          },
+          {
+            "text": " on",
+            "prob": 0.016641533002257347
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " in",
+        "sampled_prob": 0.8445045948028564,
+        "entropy": 0.8923351764678955,
+        "top_k": [
+          {
+            "text": " in",
+            "prob": 0.8445045948028564
+          },
+          {
+            "text": " on",
+            "prob": 0.026311347261071205
+          },
+          {
+            "text": " occupying",
+            "prob": 0.02250528521835804
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.02049129642546177
+          },
+          {
+            "text": " blocking",
+            "prob": 0.019860845059156418
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " our",
+        "sampled_prob": 0.9998062252998352,
+        "entropy": 0.001874797628261149,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9998062252998352
+          },
+          {
+            "text": " the",
+            "prob": 0.00019110378343611956
+          },
+          {
+            "text": " your",
+            "prob": 7.111063382581051e-07
+          },
+          {
+            "text": " front",
+            "prob": 4.736989467346575e-07
+          },
+          {
+            "text": " my",
+            "prob": 2.964331997645786e-07
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " lane",
+        "sampled_prob": 0.9907178282737732,
+        "entropy": 0.06084000691771507,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9907178282737732
+          },
+          {
+            "text": " right",
+            "prob": 0.005891023203730583
+          },
+          {
+            "text": " path",
+            "prob": 0.00315323774702847
+          },
+          {
+            "text": " vehicle",
+            "prob": 2.4075266992440447e-05
+          },
+          {
+            "text": " direction",
+            "prob": 1.934502142830752e-05
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9094805121421814,
+      "entropy": 0.6634619235992432,
+      "alternatives": [
+        {
+          "token": "Create",
+          "token_prob": 0.014700382947921753,
+          "d_curvature_mean": 2.1182877389946952e-05,
+          "d_curvature_max": 6.122514605522156e-05,
+          "endpoint_shift_m": 0.009068608283996582,
+          "traj_ade_m": 0.019971340894699097,
+          "forced_cot": {
+            "cot": [
+              "Createudge left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.011096430942416191,
+          "d_curvature_mean": 4.0309911128133535e-05,
+          "d_curvature_max": 0.00013265665620565414,
+          "endpoint_shift_m": 0.5852371454238892,
+          "traj_ade_m": 0.1989200860261917,
+          "forced_cot": {
+            "cot": [
+              "Keepudge left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.011096430942416191,
+          "d_curvature_mean": 2.7950425646849908e-05,
+          "d_curvature_max": 9.184051305055618e-05,
+          "endpoint_shift_m": 0.05532582849264145,
+          "traj_ade_m": 0.013874363154172897,
+          "forced_cot": {
+            "cot": [
+              "Laneudge left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Find",
+          "token_prob": 0.007868547923862934,
+          "d_curvature_mean": 3.2880099752219394e-05,
+          "d_curvature_max": 8.673639968037605e-05,
+          "endpoint_shift_m": 0.026899226009845734,
+          "traj_ade_m": 0.010001054033637047,
+          "forced_cot": {
+            "cot": [
+              "Findudge left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 3.6109801815342735e-09,
+      "alternatives": [
+        {
+          "token": "ield",
+          "token_prob": 4.018610097467068e-11,
+          "d_curvature_mean": 0.00018464316963218153,
+          "d_curvature_max": 0.0005612410604953766,
+          "endpoint_shift_m": 1.703535795211792,
+          "traj_ade_m": 0.6169019341468811,
+          "forced_cot": {
+            "cot": [
+              "Nield left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " change",
+          "token_prob": 5.7893564074651405e-12,
+          "d_curvature_mean": 5.6604119890835136e-05,
+          "d_curvature_max": 0.00020408490672707558,
+          "endpoint_shift_m": 0.10270263999700546,
+          "traj_ade_m": 0.040041618049144745,
+          "forced_cot": {
+            "cot": [
+              "N change left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 5.438597055346106e-12,
+          "d_curvature_mean": 6.790574843762442e-05,
+          "d_curvature_max": 0.00023469747975468636,
+          "endpoint_shift_m": 0.6647026538848877,
+          "traj_ade_m": 0.248066246509552,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 4.3700355834008775e-12,
+          "d_curvature_mean": 0.00012051290832459927,
+          "d_curvature_max": 0.0003673550672829151,
+          "endpoint_shift_m": 1.0594491958618164,
+          "traj_ade_m": 0.39566606283187866,
+          "forced_cot": {
+            "cot": [
+              "Nain left due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9018598794937134,
+      "entropy": 0.376645028591156,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.07402916252613068,
+          "d_curvature_mean": 0.00013427354861050844,
+          "d_curvature_max": 0.0002806184347718954,
+          "endpoint_shift_m": 0.3605399429798126,
+          "traj_ade_m": 0.19654692709445953,
+          "forced_cot": {
+            "cot": [
+              "Nudge to due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.02403375133872032,
+          "d_curvature_mean": 3.269362423452549e-05,
+          "d_curvature_max": 6.632867734879255e-05,
+          "endpoint_shift_m": 0.11567728966474533,
+          "traj_ade_m": 0.02520417422056198,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 8.06242496764753e-06,
+          "d_curvature_mean": 0.00013531482545658946,
+          "d_curvature_max": 0.0003265436098445207,
+          "endpoint_shift_m": 0.4424528479576111,
+          "traj_ade_m": 0.2324875146150589,
+          "forced_cot": {
+            "cot": [
+              "Nudge for due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.38346478404128e-06,
+          "d_curvature_mean": 6.774879875592887e-05,
+          "d_curvature_max": 0.00017347163520753384,
+          "endpoint_shift_m": 0.4387752413749695,
+          "traj_ade_m": 0.19121000170707703,
+          "forced_cot": {
+            "cot": [
+              "Nudge due due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.5916611552238464,
+      "entropy": 0.6914888620376587,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.4066423773765564,
+          "d_curvature_mean": 2.2964824893279e-05,
+          "d_curvature_max": 6.122584454715252e-05,
+          "endpoint_shift_m": 0.5067644715309143,
+          "traj_ade_m": 0.1322912871837616,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.000574321486055851,
+          "d_curvature_mean": 2.1226631361059844e-05,
+          "d_curvature_max": 6.122840568423271e-05,
+          "endpoint_shift_m": 0.5960111618041992,
+          "traj_ade_m": 0.17967158555984497,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0003074121486861259,
+          "d_curvature_mean": 4.47219681518618e-05,
+          "d_curvature_max": 0.0001326547935605049,
+          "endpoint_shift_m": 0.9443097710609436,
+          "traj_ade_m": 0.2785620391368866,
+          "forced_cot": {
+            "cot": [
+              "Nudge left and to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0001923736126627773,
+          "d_curvature_mean": 2.9179491320974194e-05,
+          "d_curvature_max": 8.163508027791977e-05,
+          "endpoint_shift_m": 0.42810338735580444,
+          "traj_ade_m": 0.12457230687141418,
+          "forced_cot": {
+            "cot": [
+              "Nudge left since to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999746084213257,
+      "entropy": 0.00033829209860414267,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 1.3845844478055369e-05,
+          "d_curvature_mean": 1.2948159564984962e-05,
+          "d_curvature_max": 4.081707447767258e-05,
+          "endpoint_shift_m": 0.15409530699253082,
+          "traj_ade_m": 0.04571649804711342,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 6.96212782713701e-06,
+          "d_curvature_mean": 1.2053474165441003e-05,
+          "d_curvature_max": 3.44407744705677e-05,
+          "endpoint_shift_m": 0.026834262534976006,
+          "traj_ade_m": 0.01477083470672369,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 4.592021127791668e-07,
+          "d_curvature_mean": 4.540086956694722e-05,
+          "d_curvature_max": 0.00012755475472658873,
+          "endpoint_shift_m": 0.30140361189842224,
+          "traj_ade_m": 0.10128837823867798,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due since the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 3.57626959157642e-07,
+          "d_curvature_mean": 4.424594226293266e-05,
+          "d_curvature_max": 0.00011735002044588327,
+          "endpoint_shift_m": 0.42513036727905273,
+          "traj_ade_m": 0.14440324902534485,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.7749702334403992,
+      "entropy": 0.7110374569892883,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.19594316184520721,
+          "d_curvature_mean": 2.7659021725412458e-05,
+          "d_curvature_max": 7.143151015043259e-05,
+          "endpoint_shift_m": 0.13858191668987274,
+          "traj_ade_m": 0.03933563828468323,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 0.017121322453022003,
+          "d_curvature_mean": 1.944951873156242e-05,
+          "d_curvature_max": 5.229748785495758e-05,
+          "endpoint_shift_m": 0.12362227588891983,
+          "traj_ade_m": 0.035414520651102066,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to scooter scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " rider",
+          "token_prob": 0.0014054037164896727,
+          "d_curvature_mean": 3.0982329917605966e-05,
+          "d_curvature_max": 9.183981455862522e-05,
+          "endpoint_shift_m": 0.1365470439195633,
+          "traj_ade_m": 0.04166436195373535,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to rider scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.0006849390920251608,
+          "d_curvature_mean": 3.212464798707515e-05,
+          "d_curvature_max": 8.29123891890049e-05,
+          "endpoint_shift_m": 0.14992108941078186,
+          "traj_ade_m": 0.037487007677555084,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to an scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " scooter",
+      "sampled_prob": 0.9574246406555176,
+      "entropy": 0.29445791244506836,
+      "alternatives": [
+        {
+          "token": " rider",
+          "token_prob": 0.028911719098687172,
+          "d_curvature_mean": 1.5061827070894651e-05,
+          "d_curvature_max": 4.082033410668373e-05,
+          "endpoint_shift_m": 0.018145546317100525,
+          "traj_ade_m": 0.011234867386519909,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the rider rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " person",
+          "token_prob": 0.0028626478742808104,
+          "d_curvature_mean": 3.390842903172597e-05,
+          "d_curvature_max": 0.00010204501450061798,
+          "endpoint_shift_m": 0.11967785656452179,
+          "traj_ade_m": 0.043676115572452545,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the person rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0011566142784431577,
+          "d_curvature_mean": 8.816240551823284e-06,
+          "d_curvature_max": 4.081893712282181e-05,
+          "endpoint_shift_m": 0.029267948120832443,
+          "traj_ade_m": 0.013281626626849174,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the cyclist rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrian",
+          "token_prob": 0.0009588669636286795,
+          "d_curvature_mean": 6.764081263099797e-06,
+          "d_curvature_max": 2.0411796867847443e-05,
+          "endpoint_shift_m": 0.003110290737822652,
+          "traj_ade_m": 0.00322987069375813,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the pedestrian rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " rider",
+      "sampled_prob": 0.7363535165786743,
+      "entropy": 1.0804970264434814,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.13621170818805695,
+          "d_curvature_mean": 1.5565132343908772e-05,
+          "d_curvature_max": 7.142825052142143e-05,
+          "endpoint_shift_m": 0.02400926873087883,
+          "traj_ade_m": 0.011826693080365658,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter ahead ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.07522325217723846,
+          "d_curvature_mean": 2.688169843167998e-05,
+          "d_curvature_max": 0.0001326543278992176,
+          "endpoint_shift_m": 0.13998901844024658,
+          "traj_ade_m": 0.045100223273038864,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter in ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.009563563391566277,
+          "d_curvature_mean": 2.2277108655543998e-05,
+          "d_curvature_max": 0.00010204501450061798,
+          "endpoint_shift_m": 0.03760182484984398,
+          "traj_ade_m": 0.01674417406320572,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter on ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.007928472943603992,
+          "d_curvature_mean": 2.2122147129266523e-05,
+          "d_curvature_max": 0.00010204548016190529,
+          "endpoint_shift_m": 0.03796312212944031,
+          "traj_ade_m": 0.014520655386149883,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter at ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.6647436618804932,
+      "entropy": 1.3311340808868408,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.17340876162052155,
+          "d_curvature_mean": 2.2244808860705234e-05,
+          "d_curvature_max": 0.00010204780846834183,
+          "endpoint_shift_m": 0.1939897984266281,
+          "traj_ade_m": 0.06636727601289749,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider in in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.05992846190929413,
+          "d_curvature_mean": 3.7097823224030435e-05,
+          "d_curvature_max": 0.00010204501450061798,
+          "endpoint_shift_m": 0.12273495644330978,
+          "traj_ade_m": 0.04285458102822304,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider occupying in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.02007352001965046,
+          "d_curvature_mean": 2.827317439368926e-05,
+          "d_curvature_max": 0.00010204501450061798,
+          "endpoint_shift_m": 0.13126221299171448,
+          "traj_ade_m": 0.05092763900756836,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider blocking in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.016641533002257347,
+          "d_curvature_mean": 2.031703115790151e-05,
+          "d_curvature_max": 0.00010204780846834183,
+          "endpoint_shift_m": 0.10130554437637329,
+          "traj_ade_m": 0.03761320561170578,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider on in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " in",
+      "sampled_prob": 0.8445045948028564,
+      "entropy": 0.8923351764678955,
+      "alternatives": [
+        {
+          "token": " on",
+          "token_prob": 0.026311347261071205,
+          "d_curvature_mean": 1.2846623576479033e-05,
+          "d_curvature_max": 6.122840568423271e-05,
+          "endpoint_shift_m": 0.07030048221349716,
+          "traj_ade_m": 0.021938316524028778,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead on our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.02250528521835804,
+          "d_curvature_mean": 3.192675649188459e-05,
+          "d_curvature_max": 0.00011224776972085238,
+          "endpoint_shift_m": 0.0964260846376419,
+          "traj_ade_m": 0.03052440471947193,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead occupying our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.02049129642546177,
+          "d_curvature_mean": 8.091723429970443e-05,
+          "d_curvature_max": 0.00022959744092077017,
+          "endpoint_shift_m": 0.8876441717147827,
+          "traj_ade_m": 0.2945534884929657,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.019860845059156418,
+          "d_curvature_mean": 2.357327684876509e-05,
+          "d_curvature_max": 6.122840568423271e-05,
+          "endpoint_shift_m": 0.03519013524055481,
+          "traj_ade_m": 0.011505232192575932,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998062252998352,
+      "entropy": 0.001874797628261149,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00019110378343611956,
+          "d_curvature_mean": 2.2264979634201154e-05,
+          "d_curvature_max": 9.183725342154503e-05,
+          "endpoint_shift_m": 0.11014189571142197,
+          "traj_ade_m": 0.04313952103257179,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 7.111063382581051e-07,
+          "d_curvature_mean": 2.129946369677782e-05,
+          "d_curvature_max": 7.653282955288887e-05,
+          "endpoint_shift_m": 0.1456221044063568,
+          "traj_ade_m": 0.05287732183933258,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 4.736989467346575e-07,
+          "d_curvature_mean": 2.1828727767569944e-05,
+          "d_curvature_max": 7.143057882785797e-05,
+          "endpoint_shift_m": 0.18577757477760315,
+          "traj_ade_m": 0.06958574801683426,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in front lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 2.964331997645786e-07,
+          "d_curvature_mean": 2.461261101416312e-05,
+          "d_curvature_max": 9.183911606669426e-05,
+          "endpoint_shift_m": 0.06337816268205643,
+          "traj_ade_m": 0.029296938329935074,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9907178282737732,
+      "entropy": 0.06084000691771507,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.005891023203730583,
+          "d_curvature_mean": 4.231303319102153e-05,
+          "d_curvature_max": 0.00016327574849128723,
+          "endpoint_shift_m": 0.31468188762664795,
+          "traj_ade_m": 0.10580792278051376,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.00315323774702847,
+          "d_curvature_mean": 8.256891305791214e-06,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.036349955946207047,
+          "traj_ade_m": 0.015790941193699837,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 2.4075266992440447e-05,
+          "d_curvature_mean": 2.6217421691399068e-05,
+          "d_curvature_max": 0.00010204920545220375,
+          "endpoint_shift_m": 0.11567416787147522,
+          "traj_ade_m": 0.038244541734457016,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " direction",
+          "token_prob": 1.934502142830752e-05,
+          "d_curvature_mean": 1.7808491975301877e-05,
+          "d_curvature_max": 6.122561171650887e-05,
+          "endpoint_shift_m": 0.09024697542190552,
+          "traj_ade_m": 0.03063793107867241,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our direction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9094805121421814,
+      "entropy": 0.6634619235992432,
+      "alternatives": [
+        {
+          "token": "Create",
+          "token_prob": 0.014700382947921753,
+          "d_curvature_mean": 4.7216111852321774e-05,
+          "d_curvature_max": 0.00011224998161196709,
+          "endpoint_shift_m": 0.8358944058418274,
+          "traj_ade_m": 0.318126916885376,
+          "forced_cot": {
+            "cot": [
+              "Create a usable gap to nudge left because of a scooter ahead blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.011096430942416191,
+          "d_curvature_mean": 0.00011805530084529892,
+          "d_curvature_max": 0.00029783882200717926,
+          "endpoint_shift_m": 0.8650720119476318,
+          "traj_ade_m": 0.3568513095378876,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the scooter ahead since it is directly in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.011096430942416191,
+          "d_curvature_mean": 0.0005019913660362363,
+          "d_curvature_max": 0.002204127609729767,
+          "endpoint_shift_m": 2.746502637863159,
+          "traj_ade_m": 0.9974497556686401,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a slow scooter ahead blocking our lane and a safe gap forming after the passing car clears, then merge back right after overtaking to resume normal travel."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Find",
+          "token_prob": 0.007868547923862934,
+          "d_curvature_mean": 8.788843115326017e-05,
+          "d_curvature_max": 0.00022561149671673775,
+          "endpoint_shift_m": 0.517059326171875,
+          "traj_ade_m": 0.18537278473377228,
+          "forced_cot": {
+            "cot": [
+              "Find a usable gap to nudge left because of a scooter ahead blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 3.6109801815342735e-09,
+      "alternatives": [
+        {
+          "token": "ield",
+          "token_prob": 4.018610097467068e-11,
+          "d_curvature_mean": 0.00014444295084103942,
+          "d_curvature_max": 0.00035715149715542793,
+          "endpoint_shift_m": 1.6942434310913086,
+          "traj_ade_m": 0.6083464622497559,
+          "forced_cot": {
+            "cot": [
+              "Nield to the scooter rider ahead to adapt speed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " change",
+          "token_prob": 5.7893564074651405e-12,
+          "d_curvature_mean": 0.0003911771345883608,
+          "d_curvature_max": 0.001887795515358448,
+          "endpoint_shift_m": 2.7555899620056152,
+          "traj_ade_m": 0.930429220199585,
+          "forced_cot": {
+            "cot": [
+              "N change to the left lane to overtake the slow scooter ahead after yielding to a car already in the left lane, then merge back right once clear."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 5.438597055346106e-12,
+          "d_curvature_mean": 0.00012361674453131855,
+          "d_curvature_max": 0.00029911426827311516,
+          "endpoint_shift_m": 0.7785897254943848,
+          "traj_ade_m": 0.3238002359867096,
+          "forced_cot": {
+            "cot": [
+              "Napt speed to maintain a safe distance from the scooter ahead since it is directly in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 4.3700355834008775e-12,
+          "d_curvature_mean": 0.00023064331617206335,
+          "d_curvature_max": 0.001015329733490944,
+          "endpoint_shift_m": 3.657071590423584,
+          "traj_ade_m": 1.1630862951278687,
+          "forced_cot": {
+            "cot": [
+              "Nain lane and wait for a gap to merge left because a scooter is directly ahead and oncoming cars in our opposing lane make an immediate left merge unsafe; once clear, pass and shift left to overtake."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9018598794937134,
+      "entropy": 0.376645028591156,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.07402916252613068,
+          "d_curvature_mean": 0.00010712945368140936,
+          "d_curvature_max": 0.00021429173648357391,
+          "endpoint_shift_m": 0.26560238003730774,
+          "traj_ade_m": 0.14319470524787903,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase clearance from the scooter ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.02403375133872032,
+          "d_curvature_mean": 3.2288859074469656e-05,
+          "d_curvature_max": 0.000132653396576643,
+          "endpoint_shift_m": 0.020369896665215492,
+          "traj_ade_m": 0.02890666015446186,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the vehicle encroaching from the left into our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 8.06242496764753e-06,
+          "d_curvature_mean": 0.00012249482097104192,
+          "d_curvature_max": 0.00031665340065956116,
+          "endpoint_shift_m": 0.23724742233753204,
+          "traj_ade_m": 0.0930456668138504,
+          "forced_cot": {
+            "cot": [
+              "Nudge for a left pass because of a scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.38346478404128e-06,
+          "d_curvature_mean": 7.938554335851222e-05,
+          "d_curvature_max": 0.00020408397540450096,
+          "endpoint_shift_m": 0.5935810208320618,
+          "traj_ade_m": 0.2412484735250473,
+          "forced_cot": {
+            "cot": [
+              "Nudge due to the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.5916611552238464,
+      "entropy": 0.6914888620376587,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.4066423773765564,
+          "d_curvature_mean": 4.5231532567413524e-05,
+          "d_curvature_max": 0.0001326547935605049,
+          "endpoint_shift_m": 0.09703750163316727,
+          "traj_ade_m": 0.04269351437687874,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to overtake the scooter rider ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.000574321486055851,
+          "d_curvature_mean": 1.7109752661781386e-05,
+          "d_curvature_max": 4.20939177274704e-05,
+          "endpoint_shift_m": 0.11005035042762756,
+          "traj_ade_m": 0.026887480169534683,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because of the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0003074121486861259,
+          "d_curvature_mean": 9.519037848804146e-05,
+          "d_curvature_max": 0.0002449038438498974,
+          "endpoint_shift_m": 0.38578930497169495,
+          "traj_ade_m": 0.08650760352611542,
+          "forced_cot": {
+            "cot": [
+              "Nudge left and overtake due to a slow scooter ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0001923736126627773,
+          "d_curvature_mean": 5.85254019824788e-05,
+          "d_curvature_max": 0.00015306193381547928,
+          "endpoint_shift_m": 0.1847599744796753,
+          "traj_ade_m": 0.04271681234240532,
+          "forced_cot": {
+            "cot": [
+              "Nudge left since a scooter rider is ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999746084213257,
+      "entropy": 0.00033829209860414267,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 1.3845844478055369e-05,
+          "d_curvature_mean": 1.161595901066903e-05,
+          "d_curvature_max": 3.18894162774086e-05,
+          "endpoint_shift_m": 0.1520378440618515,
+          "traj_ade_m": 0.04533682018518448,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 6.96212782713701e-06,
+          "d_curvature_mean": 9.230928299075458e-06,
+          "d_curvature_max": 3.0612340196967125e-05,
+          "endpoint_shift_m": 0.02330639213323593,
+          "traj_ade_m": 0.012587899342179298,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 4.592021127791668e-07,
+          "d_curvature_mean": 6.249769649002701e-05,
+          "d_curvature_max": 0.00015306612476706505,
+          "endpoint_shift_m": 0.08384045213460922,
+          "traj_ade_m": 0.038169462233781815,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due since a scooter is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 3.57626959157642e-07,
+          "d_curvature_mean": 4.049032577313483e-05,
+          "d_curvature_max": 0.00012245099060237408,
+          "endpoint_shift_m": 0.26056531071662903,
+          "traj_ade_m": 0.07370589673519135,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because of a scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.7749702334403992,
+      "entropy": 0.7110374569892883,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.19594316184520721,
+          "d_curvature_mean": 2.584096000646241e-05,
+          "d_curvature_max": 7.270742207765579e-05,
+          "endpoint_shift_m": 0.13472126424312592,
+          "traj_ade_m": 0.037376441061496735,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 0.017121322453022003,
+          "d_curvature_mean": 2.576489350758493e-05,
+          "d_curvature_max": 7.653201464563608e-05,
+          "endpoint_shift_m": 0.03342340514063835,
+          "traj_ade_m": 0.010531154461205006,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to scooter rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " rider",
+          "token_prob": 0.0014054037164896727,
+          "d_curvature_mean": 5.367974517866969e-05,
+          "d_curvature_max": 0.00018367869779467583,
+          "endpoint_shift_m": 0.15466876327991486,
+          "traj_ade_m": 0.06590662151575089,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to rider in our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.0006849390920251608,
+          "d_curvature_mean": 9.699951624497771e-05,
+          "d_curvature_max": 0.0003265351988375187,
+          "endpoint_shift_m": 0.5525131821632385,
+          "traj_ade_m": 0.20938096940517426,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to an upcoming left turn into a side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " scooter",
+      "sampled_prob": 0.9574246406555176,
+      "entropy": 0.29445791244506836,
+      "alternatives": [
+        {
+          "token": " rider",
+          "token_prob": 0.028911719098687172,
+          "d_curvature_mean": 2.7728890927392058e-05,
+          "d_curvature_max": 0.00012245168909430504,
+          "endpoint_shift_m": 0.08977208286523819,
+          "traj_ade_m": 0.03231149911880493,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the rider ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " person",
+          "token_prob": 0.0028626478742808104,
+          "d_curvature_mean": 2.602030144771561e-05,
+          "d_curvature_max": 9.183958172798157e-05,
+          "endpoint_shift_m": 0.16405953466892242,
+          "traj_ade_m": 0.05166551098227501,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the person riding a scooter ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0011566142784431577,
+          "d_curvature_mean": 2.3880989829194732e-05,
+          "d_curvature_max": 0.00012245075777173042,
+          "endpoint_shift_m": 0.060805175453424454,
+          "traj_ade_m": 0.023009687662124634,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the cyclist ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrian",
+          "token_prob": 0.0009588669636286795,
+          "d_curvature_mean": 2.4504053726559505e-05,
+          "d_curvature_max": 0.0001326543278992176,
+          "endpoint_shift_m": 0.09322257339954376,
+          "traj_ade_m": 0.03169407323002815,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the pedestrian ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " rider",
+      "sampled_prob": 0.7363535165786743,
+      "entropy": 1.0804970264434814,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.13621170818805695,
+          "d_curvature_mean": 2.289721669512801e-05,
+          "d_curvature_max": 0.00011224672198295593,
+          "endpoint_shift_m": 0.052325718104839325,
+          "traj_ade_m": 0.019131174311041832,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.07522325217723846,
+          "d_curvature_mean": 2.1631529307342134e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.08559496700763702,
+          "traj_ade_m": 0.02805100567638874,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter in our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.009563563391566277,
+          "d_curvature_mean": 2.3887254428700544e-05,
+          "d_curvature_max": 8.163973689079285e-05,
+          "endpoint_shift_m": 0.043630845844745636,
+          "traj_ade_m": 0.017543718218803406,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter on the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.007928472943603992,
+          "d_curvature_mean": 1.7264736015931703e-05,
+          "d_curvature_max": 6.122584454715252e-05,
+          "endpoint_shift_m": 0.08752063661813736,
+          "traj_ade_m": 0.02542589232325554,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter at the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.6647436618804932,
+      "entropy": 1.3311340808868408,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.17340876162052155,
+          "d_curvature_mean": 1.7812271835282445e-05,
+          "d_curvature_max": 6.123119965195656e-05,
+          "endpoint_shift_m": 0.05304821580648422,
+          "traj_ade_m": 0.02009737864136696,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.05992846190929413,
+          "d_curvature_mean": 3.3657946914900094e-05,
+          "d_curvature_max": 0.00017347047105431557,
+          "endpoint_shift_m": 0.1099509596824646,
+          "traj_ade_m": 0.0357375293970108,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider occupying the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.02007352001965046,
+          "d_curvature_mean": 1.6077137843240052e-05,
+          "d_curvature_max": 6.122805643826723e-05,
+          "endpoint_shift_m": 0.04366163909435272,
+          "traj_ade_m": 0.024279441684484482,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.016641533002257347,
+          "d_curvature_mean": 1.923245145007968e-05,
+          "d_curvature_max": 7.142685353755951e-05,
+          "endpoint_shift_m": 0.06325098127126694,
+          "traj_ade_m": 0.015078997239470482,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider on the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " in",
+      "sampled_prob": 0.8445045948028564,
+      "entropy": 0.8923351764678955,
+      "alternatives": [
+        {
+          "token": " on",
+          "token_prob": 0.026311347261071205,
+          "d_curvature_mean": 1.9789706129813567e-05,
+          "d_curvature_max": 7.143011316657066e-05,
+          "endpoint_shift_m": 0.0317595973610878,
+          "traj_ade_m": 0.019905662164092064,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.02250528521835804,
+          "d_curvature_mean": 3.5893866879632697e-05,
+          "d_curvature_max": 0.00021428894251585007,
+          "endpoint_shift_m": 0.13049350678920746,
+          "traj_ade_m": 0.050178565084934235,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead occupying the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.02049129642546177,
+          "d_curvature_mean": 3.578606992959976e-05,
+          "d_curvature_max": 0.0001428644172847271,
+          "endpoint_shift_m": 0.095660500228405,
+          "traj_ade_m": 0.025800876319408417,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.019860845059156418,
+          "d_curvature_mean": 2.2801061277277768e-05,
+          "d_curvature_max": 0.0001326538622379303,
+          "endpoint_shift_m": 0.02758873999118805,
+          "traj_ade_m": 0.009132234379649162,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998062252998352,
+      "entropy": 0.001874797628261149,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00019110378343611956,
+          "d_curvature_mean": 3.495172495604493e-05,
+          "d_curvature_max": 0.00015306239947676659,
+          "endpoint_shift_m": 0.10533151775598526,
+          "traj_ade_m": 0.0482056699693203,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in the same lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 7.111063382581051e-07,
+          "d_curvature_mean": 1.9953404262196273e-05,
+          "d_curvature_max": 7.143057882785797e-05,
+          "endpoint_shift_m": 0.1377554088830948,
+          "traj_ade_m": 0.0509796068072319,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 4.736989467346575e-07,
+          "d_curvature_mean": 2.4100852897390723e-05,
+          "d_curvature_max": 0.00010203896090388298,
+          "endpoint_shift_m": 0.11626534909009933,
+          "traj_ade_m": 0.042139168828725815,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in front of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 2.964331997645786e-07,
+          "d_curvature_mean": 2.279656837345101e-05,
+          "d_curvature_max": 9.183911606669426e-05,
+          "endpoint_shift_m": 0.065999336540699,
+          "traj_ade_m": 0.030883166939020157,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9907178282737732,
+      "entropy": 0.06084000691771507,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.005891023203730583,
+          "d_curvature_mean": 2.001072971324902e-05,
+          "d_curvature_max": 6.122840568423271e-05,
+          "endpoint_shift_m": 0.11041947454214096,
+          "traj_ade_m": 0.03166860714554787,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.00315323774702847,
+          "d_curvature_mean": 8.158483979059383e-06,
+          "d_curvature_max": 3.061490133404732e-05,
+          "endpoint_shift_m": 0.04126955196261406,
+          "traj_ade_m": 0.016331985592842102,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 2.4075266992440447e-05,
+          "d_curvature_mean": 2.4065457182587124e-05,
+          "d_curvature_max": 0.00010204780846834183,
+          "endpoint_shift_m": 0.11437349021434784,
+          "traj_ade_m": 0.03762578219175339,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " direction",
+          "token_prob": 1.934502142830752e-05,
+          "d_curvature_mean": 2.0852845409535803e-05,
+          "d_curvature_max": 6.122421473264694e-05,
+          "endpoint_shift_m": 0.0773136094212532,
+          "traj_ade_m": 0.0246424563229084,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the scooter rider ahead in our direction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

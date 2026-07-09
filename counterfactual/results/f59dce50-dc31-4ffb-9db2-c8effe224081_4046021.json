@@ -1,0 +1,2212 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Turn right to avoid the closed gate blocking the lane ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 11,
+    "mean_entropy": 0.6990590175105766,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Turn",
+        "sampled_prob": 0.6536110043525696,
+        "entropy": 1.4975788593292236,
+        "top_k": [
+          {
+            "text": "Turn",
+            "prob": 0.6536110043525696
+          },
+          {
+            "text": "Stop",
+            "prob": 0.12090587615966797
+          },
+          {
+            "text": "Change",
+            "prob": 0.04311031848192215
+          },
+          {
+            "text": "Ad",
+            "prob": 0.036874208599328995
+          },
+          {
+            "text": "Slow",
+            "prob": 0.0357397086918354
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " right",
+        "sampled_prob": 0.9985837936401367,
+        "entropy": 0.01077677495777607,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9985837936401367
+          },
+          {
+            "text": " left",
+            "prob": 0.0014103502035140991
+          },
+          {
+            "text": " to",
+            "prob": 1.600543555468903e-06
+          },
+          {
+            "text": " adjacent",
+            "prob": 1.4429339501020877e-07
+          },
+          {
+            "text": " front",
+            "prob": 1.4205632226094167e-07
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.49959680438041687,
+        "entropy": 1.4729593992233276,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.49959680438041687
+          },
+          {
+            "text": " because",
+            "prob": 0.17265604436397552
+          },
+          {
+            "text": " since",
+            "prob": 0.15236841142177582
+          },
+          {
+            "text": " at",
+            "prob": 0.08681689947843552
+          },
+          {
+            "text": " into",
+            "prob": 0.06351660192012787
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " avoid",
+        "sampled_prob": 0.13523149490356445,
+        "entropy": 2.070645809173584,
+        "top_k": [
+          {
+            "text": " enter",
+            "prob": 0.4165423512458801
+          },
+          {
+            "text": " proceed",
+            "prob": 0.15323738753795624
+          },
+          {
+            "text": " bypass",
+            "prob": 0.14395318925380707
+          },
+          {
+            "text": " avoid",
+            "prob": 0.13523149490356445
+          },
+          {
+            "text": " continue",
+            "prob": 0.054638464003801346
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " the",
+        "sampled_prob": 0.9903528094291687,
+        "entropy": 0.08814389258623123,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9903528094291687
+          },
+          {
+            "text": " stopping",
+            "prob": 0.002306107897311449
+          },
+          {
+            "text": " entering",
+            "prob": 0.0021663878578692675
+          },
+          {
+            "text": " since",
+            "prob": 0.0007724494789727032
+          },
+          {
+            "text": " stopped",
+            "prob": 0.0005830753943882883
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " closed",
+        "sampled_prob": 0.9932617545127869,
+        "entropy": 0.06200619786977768,
+        "top_k": [
+          {
+            "text": " closed",
+            "prob": 0.9932617545127869
+          },
+          {
+            "text": " fence",
+            "prob": 0.0018584526842460036
+          },
+          {
+            "text": " gate",
+            "prob": 0.0013178401859477162
+          },
+          {
+            "text": " stop",
+            "prob": 0.0009344887803308666
+          },
+          {
+            "text": " stopped",
+            "prob": 0.0009057374554686248
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " gate",
+        "sampled_prob": 0.9986793398857117,
+        "entropy": 0.01565081998705864,
+        "top_k": [
+          {
+            "text": " gate",
+            "prob": 0.9986793398857117
+          },
+          {
+            "text": " fence",
+            "prob": 0.0005029239691793919
+          },
+          {
+            "text": " entrance",
+            "prob": 0.00013965695688966662
+          },
+          {
+            "text": " driveway",
+            "prob": 7.022392674116418e-05
+          },
+          {
+            "text": " exit",
+            "prob": 5.821767626912333e-05
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " blocking",
+        "sampled_prob": 0.9570838212966919,
+        "entropy": 0.24567684531211853,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.9570838212966919
+          },
+          {
+            "text": " ahead",
+            "prob": 0.017529601231217384
+          },
+          {
+            "text": " with",
+            "prob": 0.012824930250644684
+          },
+          {
+            "text": " marked",
+            "prob": 0.005181740038096905
+          },
+          {
+            "text": " since",
+            "prob": 0.004432177636772394
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " the",
+        "sampled_prob": 0.9495255351066589,
+        "entropy": 0.2710728943347931,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9495255351066589
+          },
+          {
+            "text": " straight",
+            "prob": 0.023770907893776894
+          },
+          {
+            "text": " forward",
+            "prob": 0.01970677264034748
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0031180642545223236
+          },
+          {
+            "text": " our",
+            "prob": 0.0007406052900478244
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " lane",
+        "sampled_prob": 0.4947117269039154,
+        "entropy": 1.5583608150482178,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.4947117269039154
+          },
+          {
+            "text": " path",
+            "prob": 0.23368528485298157
+          },
+          {
+            "text": " forward",
+            "prob": 0.12508271634578705
+          },
+          {
+            "text": " driveway",
+            "prob": 0.06489205360412598
+          },
+          {
+            "text": " way",
+            "prob": 0.04060840979218483
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.8894152641296387,
+        "entropy": 0.39677688479423523,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.8894152641296387
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.09978961944580078
+          },
+          {
+            "text": ".",
+            "prob": 0.006581839174032211
+          },
+          {
+            "text": " since",
+            "prob": 0.0025774852838367224
+          },
+          {
+            "text": " with",
+            "prob": 0.001009357743896544
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.6536110043525696,
+      "entropy": 1.4975788593292236,
+      "alternatives": [
+        {
+          "token": "Stop",
+          "token_prob": 0.12090587615966797,
+          "d_curvature_mean": 0.0011781981447711587,
+          "d_curvature_max": 0.003959275782108307,
+          "endpoint_shift_m": 0.19968539476394653,
+          "traj_ade_m": 0.07201483845710754,
+          "forced_cot": {
+            "cot": [
+              "Stop right to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.04311031848192215,
+          "d_curvature_mean": 0.0009013275266624987,
+          "d_curvature_max": 0.0022041350603103638,
+          "endpoint_shift_m": 0.02971387282013893,
+          "traj_ade_m": 0.016564395278692245,
+          "forced_cot": {
+            "cot": [
+              "Change right to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.036874208599328995,
+          "d_curvature_mean": 0.0012186975218355656,
+          "d_curvature_max": 0.003857232630252838,
+          "endpoint_shift_m": 0.16046729683876038,
+          "traj_ade_m": 0.05324206501245499,
+          "forced_cot": {
+            "cot": [
+              "Ad right to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.0357397086918354,
+          "d_curvature_mean": 0.0019251873018220067,
+          "d_curvature_max": 0.005347058176994324,
+          "endpoint_shift_m": 0.26653188467025757,
+          "traj_ade_m": 0.08961121737957001,
+          "forced_cot": {
+            "cot": [
+              "Slow right to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9985837936401367,
+      "entropy": 0.01077677495777607,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0014103502035140991,
+          "d_curvature_mean": 0.0002949704648926854,
+          "d_curvature_max": 0.0007959455251693726,
+          "endpoint_shift_m": 0.011967486701905727,
+          "traj_ade_m": 0.005642713513225317,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.600543555468903e-06,
+          "d_curvature_mean": 0.00011886557331308722,
+          "d_curvature_max": 0.0004898086190223694,
+          "endpoint_shift_m": 0.08191157132387161,
+          "traj_ade_m": 0.030559733510017395,
+          "forced_cot": {
+            "cot": [
+              "Turn to to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 1.4429339501020877e-07,
+          "d_curvature_mean": 4.8630754463374615e-05,
+          "d_curvature_max": 0.00016327202320098877,
+          "endpoint_shift_m": 0.014478419907391071,
+          "traj_ade_m": 0.006770556792616844,
+          "forced_cot": {
+            "cot": [
+              "Turn adjacent to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 1.4205632226094167e-07,
+          "d_curvature_mean": 4.321010783314705e-05,
+          "d_curvature_max": 0.0001632794737815857,
+          "endpoint_shift_m": 0.04846565052866936,
+          "traj_ade_m": 0.022955965250730515,
+          "forced_cot": {
+            "cot": [
+              "Turn front to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.49959680438041687,
+      "entropy": 1.4729593992233276,
+      "alternatives": [
+        {
+          "token": " because",
+          "token_prob": 0.17265604436397552,
+          "d_curvature_mean": 0.0005434604245238006,
+          "d_curvature_max": 0.001693911850452423,
+          "endpoint_shift_m": 0.07119397819042206,
+          "traj_ade_m": 0.028171345591545105,
+          "forced_cot": {
+            "cot": [
+              "Turn right because avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.15236841142177582,
+          "d_curvature_mean": 0.0006503670010715723,
+          "d_curvature_max": 0.0019184127449989319,
+          "endpoint_shift_m": 0.04923853650689125,
+          "traj_ade_m": 0.01763693243265152,
+          "forced_cot": {
+            "cot": [
+              "Turn right since avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.08681689947843552,
+          "d_curvature_mean": 7.406348595395684e-05,
+          "d_curvature_max": 0.0001632794737815857,
+          "endpoint_shift_m": 0.002281345659866929,
+          "traj_ade_m": 0.001421507797203958,
+          "forced_cot": {
+            "cot": [
+              "Turn right at avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.06351660192012787,
+          "d_curvature_mean": 0.00013456871965900064,
+          "d_curvature_max": 0.0002449303865432739,
+          "endpoint_shift_m": 0.029703978449106216,
+          "traj_ade_m": 0.010933584533631802,
+          "forced_cot": {
+            "cot": [
+              "Turn right into avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " avoid",
+      "sampled_prob": 0.13523149490356445,
+      "entropy": 2.070645809173584,
+      "alternatives": [
+        {
+          "token": " enter",
+          "token_prob": 0.4165423512458801,
+          "d_curvature_mean": 0.0005784581298939884,
+          "d_curvature_max": 0.0015510693192481995,
+          "endpoint_shift_m": 0.016995299607515335,
+          "traj_ade_m": 0.004721126053482294,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " proceed",
+          "token_prob": 0.15323738753795624,
+          "d_curvature_mean": 0.0007897188770584762,
+          "d_curvature_max": 0.0029388368129730225,
+          "endpoint_shift_m": 0.07052040845155716,
+          "traj_ade_m": 0.017315510660409927,
+          "forced_cot": {
+            "cot": [
+              "Turn right to proceed the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bypass",
+          "token_prob": 0.14395318925380707,
+          "d_curvature_mean": 0.00022234406787902117,
+          "d_curvature_max": 0.0008367449045181274,
+          "endpoint_shift_m": 0.031985826790332794,
+          "traj_ade_m": 0.00997319445014,
+          "forced_cot": {
+            "cot": [
+              "Turn right to bypass the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " continue",
+          "token_prob": 0.054638464003801346,
+          "d_curvature_mean": 0.0007371017127297819,
+          "d_curvature_max": 0.0022857636213302612,
+          "endpoint_shift_m": 0.02443554438650608,
+          "traj_ade_m": 0.008382430300116539,
+          "forced_cot": {
+            "cot": [
+              "Turn right to continue the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.9903528094291687,
+      "entropy": 0.08814389258623123,
+      "alternatives": [
+        {
+          "token": " stopping",
+          "token_prob": 0.002306107897311449,
+          "d_curvature_mean": 0.0002499266411177814,
+          "d_curvature_max": 0.0005918517708778381,
+          "endpoint_shift_m": 0.029813550412654877,
+          "traj_ade_m": 0.014212227426469326,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid stopping closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.0021663878578692675,
+          "d_curvature_mean": 0.000644068990368396,
+          "d_curvature_max": 0.001632697880268097,
+          "endpoint_shift_m": 0.019491875544190407,
+          "traj_ade_m": 0.004577010404318571,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid entering closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0007724494789727032,
+          "d_curvature_mean": 0.00030676828464493155,
+          "d_curvature_max": 0.0009898096323013306,
+          "endpoint_shift_m": 0.051990583539009094,
+          "traj_ade_m": 0.016369549557566643,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid since closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0005830753943882883,
+          "d_curvature_mean": 6.545247742906213e-05,
+          "d_curvature_max": 0.00020409375429153442,
+          "endpoint_shift_m": 0.011363615281879902,
+          "traj_ade_m": 0.004839689005166292,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid stopped closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " closed",
+      "sampled_prob": 0.9932617545127869,
+      "entropy": 0.06200619786977768,
+      "alternatives": [
+        {
+          "token": " fence",
+          "token_prob": 0.0018584526842460036,
+          "d_curvature_mean": 0.00023278576554730535,
+          "d_curvature_max": 0.0006530880928039551,
+          "endpoint_shift_m": 0.04740532115101814,
+          "traj_ade_m": 0.018560785800218582,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the fence gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " gate",
+          "token_prob": 0.0013178401859477162,
+          "d_curvature_mean": 9.279546793550253e-05,
+          "d_curvature_max": 0.000346943736076355,
+          "endpoint_shift_m": 0.038298673927783966,
+          "traj_ade_m": 0.015395769849419594,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the gate gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stop",
+          "token_prob": 0.0009344887803308666,
+          "d_curvature_mean": 0.0002626811619848013,
+          "d_curvature_max": 0.0007245093584060669,
+          "endpoint_shift_m": 0.04958857595920563,
+          "traj_ade_m": 0.014506129547953606,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the stop gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0009057374554686248,
+          "d_curvature_mean": 0.0003454320249147713,
+          "d_curvature_max": 0.0008367672562599182,
+          "endpoint_shift_m": 0.039067186415195465,
+          "traj_ade_m": 0.011266041547060013,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the stopped gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " gate",
+      "sampled_prob": 0.9986793398857117,
+      "entropy": 0.01565081998705864,
+      "alternatives": [
+        {
+          "token": " fence",
+          "token_prob": 0.0005029239691793919,
+          "d_curvature_mean": 5.883484845981002e-05,
+          "d_curvature_max": 0.00018368661403656006,
+          "endpoint_shift_m": 0.007276232820004225,
+          "traj_ade_m": 0.0022894353605806828,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed fence blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entrance",
+          "token_prob": 0.00013965695688966662,
+          "d_curvature_mean": 0.00015577510930597782,
+          "d_curvature_max": 0.000408172607421875,
+          "endpoint_shift_m": 0.03143583610653877,
+          "traj_ade_m": 0.012775876559317112,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed entrance blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " driveway",
+          "token_prob": 7.022392674116418e-05,
+          "d_curvature_mean": 7.67719466239214e-05,
+          "d_curvature_max": 0.00027551501989364624,
+          "endpoint_shift_m": 0.016820168122649193,
+          "traj_ade_m": 0.006828233599662781,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed driveway blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " exit",
+          "token_prob": 5.821767626912333e-05,
+          "d_curvature_mean": 0.00018120603635907173,
+          "d_curvature_max": 0.000530630350112915,
+          "endpoint_shift_m": 0.025857560336589813,
+          "traj_ade_m": 0.012124831788241863,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed exit blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9570838212966919,
+      "entropy": 0.24567684531211853,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.017529601231217384,
+          "d_curvature_mean": 0.00012141460319980979,
+          "d_curvature_max": 0.00024490803480148315,
+          "endpoint_shift_m": 0.008107799105346203,
+          "traj_ade_m": 0.004789179656654596,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate ahead the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.012824930250644684,
+          "d_curvature_mean": 0.00030772178433835506,
+          "d_curvature_max": 0.0006326660513877869,
+          "endpoint_shift_m": 0.023522401228547096,
+          "traj_ade_m": 0.008967327885329723,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate with the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marked",
+          "token_prob": 0.005181740038096905,
+          "d_curvature_mean": 0.00028237199876457453,
+          "d_curvature_max": 0.0008367672562599182,
+          "endpoint_shift_m": 0.045769188553094864,
+          "traj_ade_m": 0.017146427184343338,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate marked the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.004432177636772394,
+          "d_curvature_mean": 0.00027081399457529187,
+          "d_curvature_max": 0.0006326735019683838,
+          "endpoint_shift_m": 0.062478967010974884,
+          "traj_ade_m": 0.025453120470046997,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate since the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9495255351066589,
+      "entropy": 0.2710728943347931,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.023770907893776894,
+          "d_curvature_mean": 0.0003671159502118826,
+          "d_curvature_max": 0.0007755309343338013,
+          "endpoint_shift_m": 0.0126290712505579,
+          "traj_ade_m": 0.006971668917685747,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking straight lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " forward",
+          "token_prob": 0.01970677264034748,
+          "d_curvature_mean": 9.439006680622697e-05,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.01258630957454443,
+          "traj_ade_m": 0.007228253409266472,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking forward lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0031180642545223236,
+          "d_curvature_mean": 0.00013656466035172343,
+          "d_curvature_max": 0.0003265291452407837,
+          "endpoint_shift_m": 0.0018115078564733267,
+          "traj_ade_m": 0.0016204171115532517,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking ahead lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0007406052900478244,
+          "d_curvature_mean": 0.00011352339060977101,
+          "d_curvature_max": 0.00036735087633132935,
+          "endpoint_shift_m": 0.036796681582927704,
+          "traj_ade_m": 0.010994222946465015,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.4947117269039154,
+      "entropy": 1.5583608150482178,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.23368528485298157,
+          "d_curvature_mean": 8.633971447125077e-05,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.017621619626879692,
+          "traj_ade_m": 0.007066863588988781,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " forward",
+          "token_prob": 0.12508271634578705,
+          "d_curvature_mean": 0.00016685918672010303,
+          "d_curvature_max": 0.00038776546716690063,
+          "endpoint_shift_m": 0.03230619803071022,
+          "traj_ade_m": 0.01118313055485487,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the forward ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " driveway",
+          "token_prob": 0.06489205360412598,
+          "d_curvature_mean": 6.816280074417591e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.015980064868927002,
+          "traj_ade_m": 0.005732873920351267,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the driveway ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " way",
+          "token_prob": 0.04060840979218483,
+          "d_curvature_mean": 8.594035170972347e-05,
+          "d_curvature_max": 0.00022449344396591187,
+          "endpoint_shift_m": 0.006373609881848097,
+          "traj_ade_m": 0.002194872358813882,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the way ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.8894152641296387,
+      "entropy": 0.39677688479423523,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.09978961944580078,
+          "d_curvature_mean": 0.0010810222011059523,
+          "d_curvature_max": 0.0035919174551963806,
+          "endpoint_shift_m": 0.07678698748350143,
+          "traj_ade_m": 0.0352887287735939,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.006581839174032211,
+          "d_curvature_mean": 0.00036432594060897827,
+          "d_curvature_max": 0.00081634521484375,
+          "endpoint_shift_m": 0.029004909098148346,
+          "traj_ade_m": 0.011828908696770668,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0025774852838367224,
+          "d_curvature_mean": 0.00028970808489248157,
+          "d_curvature_max": 0.0008877664804458618,
+          "endpoint_shift_m": 0.011030594818294048,
+          "traj_ade_m": 0.006074218545109034,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the lane since"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.001009357743896544,
+          "d_curvature_mean": 0.0005682530463673174,
+          "d_curvature_max": 0.0015510544180870056,
+          "endpoint_shift_m": 0.011396287940442562,
+          "traj_ade_m": 0.0038269413635134697,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the closed gate blocking the lane with"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.6536110043525696,
+      "entropy": 1.4975788593292236,
+      "alternatives": [
+        {
+          "token": "Stop",
+          "token_prob": 0.12090587615966797,
+          "d_curvature_mean": 0.0011632121168076992,
+          "d_curvature_max": 0.004469484090805054,
+          "endpoint_shift_m": 0.24218052625656128,
+          "traj_ade_m": 0.0918765440583229,
+          "forced_cot": {
+            "cot": [
+              "Stop for the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.04311031848192215,
+          "d_curvature_mean": 0.0035291784442961216,
+          "d_curvature_max": 0.010194115340709686,
+          "endpoint_shift_m": 0.4997413754463196,
+          "traj_ade_m": 0.14666016399860382,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the right into the building\u2019s access lane due to the closed gate blocking forward travel and cones/curb constraining the entry, then proceed slowly along the narrow driveway."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.036874208599328995,
+          "d_curvature_mean": 0.0007197245140559971,
+          "d_curvature_max": 0.00169391930103302,
+          "endpoint_shift_m": 0.0987437441945076,
+          "traj_ade_m": 0.03997579589486122,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since cones constrict the driveway ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.0357397086918354,
+          "d_curvature_mean": 0.001548025757074356,
+          "d_curvature_max": 0.004816427826881409,
+          "endpoint_shift_m": 0.25963449478149414,
+          "traj_ade_m": 0.0971914753317833,
+          "forced_cot": {
+            "cot": [
+              "Slow down for the closed gate blocking the driveway ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9985837936401367,
+      "entropy": 0.01077677495777607,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0014103502035140991,
+          "d_curvature_mean": 0.002054056618362665,
+          "d_curvature_max": 0.006403200328350067,
+          "endpoint_shift_m": 0.09816112369298935,
+          "traj_ade_m": 0.02611255645751953,
+          "forced_cot": {
+            "cot": [
+              "Turn left to enter the parking garage since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.600543555468903e-06,
+          "d_curvature_mean": 0.00019731128122657537,
+          "d_curvature_max": 0.0008571594953536987,
+          "endpoint_shift_m": 0.06738849729299545,
+          "traj_ade_m": 0.02681899257004261,
+          "forced_cot": {
+            "cot": [
+              "Turn to avoid the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 1.4429339501020877e-07,
+          "d_curvature_mean": 0.0005160346627235413,
+          "d_curvature_max": 0.001163281500339508,
+          "endpoint_shift_m": 0.02680427022278309,
+          "traj_ade_m": 0.011996396817266941,
+          "forced_cot": {
+            "cot": [
+              "Turn adjacent to the building since a closed gate with a stop sign blocks forward travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " front",
+          "token_prob": 1.4205632226094167e-07,
+          "d_curvature_mean": 0.0018832546193152666,
+          "d_curvature_max": 0.005653195083141327,
+          "endpoint_shift_m": 0.04966301843523979,
+          "traj_ade_m": 0.007180141285061836,
+          "forced_cot": {
+            "cot": [
+              "Turn front to enter the building since the closed gate blocks the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.49959680438041687,
+      "entropy": 1.4729593992233276,
+      "alternatives": [
+        {
+          "token": " because",
+          "token_prob": 0.17265604436397552,
+          "d_curvature_mean": 0.0005660221795551479,
+          "d_curvature_max": 0.001949019730091095,
+          "endpoint_shift_m": 0.02299255132675171,
+          "traj_ade_m": 0.0054992204532027245,
+          "forced_cot": {
+            "cot": [
+              "Turn right because a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.15236841142177582,
+          "d_curvature_mean": 0.00047665333840996027,
+          "d_curvature_max": 0.0013979822397232056,
+          "endpoint_shift_m": 0.01992133818566799,
+          "traj_ade_m": 0.012321795336902142,
+          "forced_cot": {
+            "cot": [
+              "Turn right since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.08681689947843552,
+          "d_curvature_mean": 0.0009234927129000425,
+          "d_curvature_max": 0.0024898499250411987,
+          "endpoint_shift_m": 0.06665443629026413,
+          "traj_ade_m": 0.030142931267619133,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the gate since a stop sign is posted ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.06351660192012787,
+          "d_curvature_mean": 0.0010188384912908077,
+          "d_curvature_max": 0.002979658544063568,
+          "endpoint_shift_m": 0.04304990917444229,
+          "traj_ade_m": 0.015169139951467514,
+          "forced_cot": {
+            "cot": [
+              "Turn right into the driveway since a closed gate with a stop sign blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " avoid",
+      "sampled_prob": 0.13523149490356445,
+      "entropy": 2.070645809173584,
+      "alternatives": [
+        {
+          "token": " enter",
+          "token_prob": 0.4165423512458801,
+          "d_curvature_mean": 0.0016712365904822946,
+          "d_curvature_max": 0.005377672612667084,
+          "endpoint_shift_m": 0.08944273740053177,
+          "traj_ade_m": 0.02419884316623211,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " proceed",
+          "token_prob": 0.15323738753795624,
+          "d_curvature_mean": 0.0011129501508548856,
+          "d_curvature_max": 0.003642931580543518,
+          "endpoint_shift_m": 0.023269951343536377,
+          "traj_ade_m": 0.004734499845653772,
+          "forced_cot": {
+            "cot": [
+              "Turn right to proceed since the gate blocks the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bypass",
+          "token_prob": 0.14395318925380707,
+          "d_curvature_mean": 0.0002329458948224783,
+          "d_curvature_max": 0.00081634521484375,
+          "endpoint_shift_m": 0.028900915756821632,
+          "traj_ade_m": 0.008750521577894688,
+          "forced_cot": {
+            "cot": [
+              "Turn right to bypass the closed gate blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " continue",
+          "token_prob": 0.054638464003801346,
+          "d_curvature_mean": 0.0004899671766906977,
+          "d_curvature_max": 0.0013979822397232056,
+          "endpoint_shift_m": 0.07544886320829391,
+          "traj_ade_m": 0.02962294965982437,
+          "forced_cot": {
+            "cot": [
+              "Turn right to continue since a closed gate with a stop sign blocks going straight"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.9903528094291687,
+      "entropy": 0.08814389258623123,
+      "alternatives": [
+        {
+          "token": " stopping",
+          "token_prob": 0.002306107897311449,
+          "d_curvature_mean": 0.0009859129786491394,
+          "d_curvature_max": 0.0022449567914009094,
+          "endpoint_shift_m": 0.08059200644493103,
+          "traj_ade_m": 0.02289351262152195,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter stopping for the closed gate blocking straight ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.0021663878578692675,
+          "d_curvature_mean": 0.0022061257623136044,
+          "d_curvature_max": 0.006566464900970459,
+          "endpoint_shift_m": 0.07396898418664932,
+          "traj_ade_m": 0.01280204951763153,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter entering the parking garage since the gate is closed ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0007724494789727032,
+          "d_curvature_mean": 0.0013207424199208617,
+          "d_curvature_max": 0.00414295494556427,
+          "endpoint_shift_m": 0.021292997524142265,
+          "traj_ade_m": 0.006665382534265518,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter since the gate blocks the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0005830753943882883,
+          "d_curvature_mean": 0.0007454732549376786,
+          "d_curvature_max": 0.0015918835997581482,
+          "endpoint_shift_m": 0.07717856764793396,
+          "traj_ade_m": 0.028196854516863823,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter stopped traffic since a closed gate with a stop sign blocks forward travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " closed",
+      "sampled_prob": 0.9932617545127869,
+      "entropy": 0.06200619786977768,
+      "alternatives": [
+        {
+          "token": " fence",
+          "token_prob": 0.0018584526842460036,
+          "d_curvature_mean": 0.0015056562842801213,
+          "d_curvature_max": 0.004745006561279297,
+          "endpoint_shift_m": 0.07679083198308945,
+          "traj_ade_m": 0.021739410236477852,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the fence since the closed gate blocks the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " gate",
+          "token_prob": 0.0013178401859477162,
+          "d_curvature_mean": 0.001512871589511633,
+          "d_curvature_max": 0.005061335861682892,
+          "endpoint_shift_m": 0.12964116036891937,
+          "traj_ade_m": 0.04106367006897926,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the gate since the closed gate with a stop sign blocks forward travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stop",
+          "token_prob": 0.0009344887803308666,
+          "d_curvature_mean": 0.0009189466363750398,
+          "d_curvature_max": 0.0028469935059547424,
+          "endpoint_shift_m": 0.03715803101658821,
+          "traj_ade_m": 0.012042874470353127,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the stop-controlled gate since a stop sign is directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0009057374554686248,
+          "d_curvature_mean": 0.0004832706181332469,
+          "d_curvature_max": 0.0017449334263801575,
+          "endpoint_shift_m": 0.011142762377858162,
+          "traj_ade_m": 0.003978324588388205,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the stopped gate since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " gate",
+      "sampled_prob": 0.9986793398857117,
+      "entropy": 0.01565081998705864,
+      "alternatives": [
+        {
+          "token": " fence",
+          "token_prob": 0.0005029239691793919,
+          "d_curvature_mean": 0.0014862819807603955,
+          "d_curvature_max": 0.004642955958843231,
+          "endpoint_shift_m": 0.051765527576208115,
+          "traj_ade_m": 0.012176750227808952,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking fence since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entrance",
+          "token_prob": 0.00013965695688966662,
+          "d_curvature_mean": 0.0017892622854560614,
+          "d_curvature_max": 0.005275629460811615,
+          "endpoint_shift_m": 0.05856051668524742,
+          "traj_ade_m": 0.012092075310647488,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking entrance since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " driveway",
+          "token_prob": 7.022392674116418e-05,
+          "d_curvature_mean": 0.0015334781492128968,
+          "d_curvature_max": 0.00486745685338974,
+          "endpoint_shift_m": 0.0716349184513092,
+          "traj_ade_m": 0.020000865682959557,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking driveway since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " exit",
+          "token_prob": 5.821767626912333e-05,
+          "d_curvature_mean": 0.0013778622960671782,
+          "d_curvature_max": 0.004500091075897217,
+          "endpoint_shift_m": 0.04927273094654083,
+          "traj_ade_m": 0.009037422016263008,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking exit since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9570838212966919,
+      "entropy": 0.24567684531211853,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.017529601231217384,
+          "d_curvature_mean": 0.0018314357148483396,
+          "d_curvature_max": 0.006081759929656982,
+          "endpoint_shift_m": 0.09642279148101807,
+          "traj_ade_m": 0.02845808118581772,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage ahead since the gate is closed with a stop sign blocking forward travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.012824930250644684,
+          "d_curvature_mean": 0.0017851582961156964,
+          "d_curvature_max": 0.005663394927978516,
+          "endpoint_shift_m": 0.15612846612930298,
+          "traj_ade_m": 0.03794632852077484,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage with an open gate"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marked",
+          "token_prob": 0.005181740038096905,
+          "d_curvature_mean": 0.0012945934431627393,
+          "d_curvature_max": 0.003449060022830963,
+          "endpoint_shift_m": 0.09194789081811905,
+          "traj_ade_m": 0.029364220798015594,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage marked by cones"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.004432177636772394,
+          "d_curvature_mean": 0.0016712365904822946,
+          "d_curvature_max": 0.005377672612667084,
+          "endpoint_shift_m": 0.08944273740053177,
+          "traj_ade_m": 0.02419884316623211,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9495255351066589,
+      "entropy": 0.2710728943347931,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.023770907893776894,
+          "d_curvature_mean": 0.0017941257683560252,
+          "d_curvature_max": 0.005642987787723541,
+          "endpoint_shift_m": 0.0874316468834877,
+          "traj_ade_m": 0.02880956046283245,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since straight is blocked by a closed gate with a stop sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " forward",
+          "token_prob": 0.01970677264034748,
+          "d_curvature_mean": 0.001550098997540772,
+          "d_curvature_max": 0.004765406250953674,
+          "endpoint_shift_m": 0.1299804300069809,
+          "traj_ade_m": 0.04441818222403526,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since forward is blocked by a closed gate"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0031180642545223236,
+          "d_curvature_mean": 0.001493180519901216,
+          "d_curvature_max": 0.004704184830188751,
+          "endpoint_shift_m": 0.12019851803779602,
+          "traj_ade_m": 0.038862716406583786,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since ahead is blocked by a closed gate"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0007406052900478244,
+          "d_curvature_mean": 0.0019743763841688633,
+          "d_curvature_max": 0.006326667964458466,
+          "endpoint_shift_m": 0.07156697660684586,
+          "traj_ade_m": 0.024612685665488243,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since our lane is blocked by a closed gate with a stop sign ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.4947117269039154,
+      "entropy": 1.5583608150482178,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.23368528485298157,
+          "d_curvature_mean": 0.002717736177146435,
+          "d_curvature_max": 0.007530786097049713,
+          "endpoint_shift_m": 0.17753969132900238,
+          "traj_ade_m": 0.05247434228658676,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a path is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " forward",
+          "token_prob": 0.12508271634578705,
+          "d_curvature_mean": 0.0013673780485987663,
+          "d_curvature_max": 0.0045409128069877625,
+          "endpoint_shift_m": 0.06919199228286743,
+          "traj_ade_m": 0.023183129727840424,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a forward gate with a stop sign blocks straight travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " driveway",
+          "token_prob": 0.06489205360412598,
+          "d_curvature_mean": 0.001887560705654323,
+          "d_curvature_max": 0.006071567535400391,
+          "endpoint_shift_m": 0.057982850819826126,
+          "traj_ade_m": 0.015914443880319595,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a driveway gate is directly ahead with a stop sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " way",
+          "token_prob": 0.04060840979218483,
+          "d_curvature_mean": 0.0018999979365617037,
+          "d_curvature_max": 0.005857281386852264,
+          "endpoint_shift_m": 0.050159864127635956,
+          "traj_ade_m": 0.013998262584209442,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a way gate with a stop sign blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.8894152641296387,
+      "entropy": 0.39677688479423523,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.09978961944580078,
+          "d_curvature_mean": 0.002177585382014513,
+          "d_curvature_max": 0.006102174520492554,
+          "endpoint_shift_m": 0.10150094330310822,
+          "traj_ade_m": 0.024822428822517395,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.006581839174032211,
+          "d_curvature_mean": 0.0016158699290826917,
+          "d_curvature_max": 0.0045102983713150024,
+          "endpoint_shift_m": 0.045735858380794525,
+          "traj_ade_m": 0.012542246840894222,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0025774852838367224,
+          "d_curvature_mean": 0.0018848087638616562,
+          "d_curvature_max": 0.006163403391838074,
+          "endpoint_shift_m": 0.10140329599380493,
+          "traj_ade_m": 0.02413005568087101,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed since gate blocks the forward path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.001009357743896544,
+          "d_curvature_mean": 0.001634683576412499,
+          "d_curvature_max": 0.00495930016040802,
+          "endpoint_shift_m": 0.05853044241666794,
+          "traj_ade_m": 0.01659170538187027,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the parking garage since a closed with a stop sign blocks straight travel"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

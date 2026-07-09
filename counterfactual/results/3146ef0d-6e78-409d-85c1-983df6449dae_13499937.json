@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Turn right to navigate past the construction island blocking the center of the lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 1.049774550550085,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Turn",
+        "sampled_prob": 0.7295175194740295,
+        "entropy": 0.9098594188690186,
+        "top_k": [
+          {
+            "text": "Turn",
+            "prob": 0.7295175194740295
+          },
+          {
+            "text": "Ad",
+            "prob": 0.19634698331356049
+          },
+          {
+            "text": "Y",
+            "prob": 0.02575511857867241
+          },
+          {
+            "text": "Slow",
+            "prob": 0.023450303822755814
+          },
+          {
+            "text": "Change",
+            "prob": 0.007378965150564909
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " right",
+        "sampled_prob": 0.9995666146278381,
+        "entropy": 0.0038158537354320288,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9995666146278381
+          },
+          {
+            "text": " left",
+            "prob": 0.0004305558686610311
+          },
+          {
+            "text": " to",
+            "prob": 1.4587459418180515e-06
+          },
+          {
+            "text": " traffic",
+            "prob": 1.0733527489037442e-07
+          },
+          {
+            "text": " lane",
+            "prob": 1.0242003867233507e-07
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.21729187667369843,
+        "entropy": 0.6647947430610657,
+        "top_k": [
+          {
+            "text": " at",
+            "prob": 0.7584231495857239
+          },
+          {
+            "text": " to",
+            "prob": 0.21729187667369843
+          },
+          {
+            "text": " since",
+            "prob": 0.014786898158490658
+          },
+          {
+            "text": " because",
+            "prob": 0.006359765771776438
+          },
+          {
+            "text": " into",
+            "prob": 0.00044652557699009776
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " navigate",
+        "sampled_prob": 0.36836910247802734,
+        "entropy": 2.113833427429199,
+        "top_k": [
+          {
+            "text": " navigate",
+            "prob": 0.36836910247802734
+          },
+          {
+            "text": " bypass",
+            "prob": 0.269504576921463
+          },
+          {
+            "text": " follow",
+            "prob": 0.18522761762142181
+          },
+          {
+            "text": " comply",
+            "prob": 0.04264181852340698
+          },
+          {
+            "text": " enter",
+            "prob": 0.022824520245194435
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " past",
+        "sampled_prob": 0.07193580269813538,
+        "entropy": 1.1237484216690063,
+        "top_k": [
+          {
+            "text": " around",
+            "prob": 0.5658189654350281
+          },
+          {
+            "text": " the",
+            "prob": 0.32239392399787903
+          },
+          {
+            "text": " past",
+            "prob": 0.07193580269813538
+          },
+          {
+            "text": " between",
+            "prob": 0.010692304000258446
+          },
+          {
+            "text": " because",
+            "prob": 0.010363336652517319
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " the",
+        "sampled_prob": 0.9349622130393982,
+        "entropy": 0.27484798431396484,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9349622130393982
+          },
+          {
+            "text": " construction",
+            "prob": 0.0597701333463192
+          },
+          {
+            "text": " road",
+            "prob": 0.002246236428618431
+          },
+          {
+            "text": " lane",
+            "prob": 0.0005679375026375055
+          },
+          {
+            "text": " work",
+            "prob": 0.00039033734356053174
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " construction",
+        "sampled_prob": 0.6502186059951782,
+        "entropy": 1.7257699966430664,
+        "top_k": [
+          {
+            "text": " construction",
+            "prob": 0.6502186059951782
+          },
+          {
+            "text": " keep",
+            "prob": 0.10614527016878128
+          },
+          {
+            "text": " work",
+            "prob": 0.07070799171924591
+          },
+          {
+            "text": " road",
+            "prob": 0.032372478395700455
+          },
+          {
+            "text": " round",
+            "prob": 0.022249257192015648
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " island",
+        "sampled_prob": 0.5074108242988586,
+        "entropy": 1.4722567796707153,
+        "top_k": [
+          {
+            "text": " island",
+            "prob": 0.5074108242988586
+          },
+          {
+            "text": " barric",
+            "prob": 0.28911393880844116
+          },
+          {
+            "text": " barrier",
+            "prob": 0.09097374975681305
+          },
+          {
+            "text": " barriers",
+            "prob": 0.0708504244685173
+          },
+          {
+            "text": " cones",
+            "prob": 0.01086526457220316
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " blocking",
+        "sampled_prob": 0.9116756916046143,
+        "entropy": 0.47996899485588074,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.9116756916046143
+          },
+          {
+            "text": " since",
+            "prob": 0.03218609094619751
+          },
+          {
+            "text": " ahead",
+            "prob": 0.018921224400401115
+          },
+          {
+            "text": " that",
+            "prob": 0.017774848267436028
+          },
+          {
+            "text": " at",
+            "prob": 0.006960729602724314
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " the",
+        "sampled_prob": 0.9546494483947754,
+        "entropy": 0.27376359701156616,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9546494483947754
+          },
+          {
+            "text": " straight",
+            "prob": 0.02708132192492485
+          },
+          {
+            "text": " a",
+            "prob": 0.009359054267406464
+          },
+          {
+            "text": " part",
+            "prob": 0.0012276407796889544
+          },
+          {
+            "text": " going",
+            "prob": 0.0007682379218749702
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " center",
+        "sampled_prob": 0.5557966232299805,
+        "entropy": 1.6462621688842773,
+        "top_k": [
+          {
+            "text": " center",
+            "prob": 0.5557966232299805
+          },
+          {
+            "text": " straight",
+            "prob": 0.1495906263589859
+          },
+          {
+            "text": " through",
+            "prob": 0.1405273824930191
+          },
+          {
+            "text": " lane",
+            "prob": 0.04026177152991295
+          },
+          {
+            "text": " path",
+            "prob": 0.0244199987500906
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " of",
+        "sampled_prob": 0.7006465792655945,
+        "entropy": 0.9102938771247864,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.7006465792655945
+          },
+          {
+            "text": " path",
+            "prob": 0.20073860883712769
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.078610360622406
+          },
+          {
+            "text": " ahead",
+            "prob": 0.006868897471576929
+          },
+          {
+            "text": ".",
+            "prob": 0.005349502433091402
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " the",
+        "sampled_prob": 0.8492201566696167,
+        "entropy": 0.4520662724971771,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.8492201566696167
+          },
+          {
+            "text": " our",
+            "prob": 0.147572323679924
+          },
+          {
+            "text": " a",
+            "prob": 0.0006222386728040874
+          },
+          {
+            "text": " entry",
+            "prob": 0.0005665547796525061
+          },
+          {
+            "text": " travel",
+            "prob": 0.0002761167415883392
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " lane",
+        "sampled_prob": 0.19254536926746368,
+        "entropy": 2.645562171936035,
+        "top_k": [
+          {
+            "text": " intersection",
+            "prob": 0.19865740835666656
+          },
+          {
+            "text": " lane",
+            "prob": 0.19254536926746368
+          },
+          {
+            "text": " junction",
+            "prob": 0.16992069780826569
+          },
+          {
+            "text": " roadway",
+            "prob": 0.09681788831949234
+          },
+          {
+            "text": " entry",
+            "prob": 0.0802648514509201
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.7295175194740295,
+      "entropy": 0.9098594188690186,
+      "alternatives": [
+        {
+          "token": "Ad",
+          "token_prob": 0.19634698331356049,
+          "d_curvature_mean": 0.0005380076472647488,
+          "d_curvature_max": 0.0011224672198295593,
+          "endpoint_shift_m": 0.22453565895557404,
+          "traj_ade_m": 0.08323341608047485,
+          "forced_cot": {
+            "cot": [
+              "Ad right to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.02575511857867241,
+          "d_curvature_mean": 0.000598262413404882,
+          "d_curvature_max": 0.0011428892612457275,
+          "endpoint_shift_m": 0.2849539518356323,
+          "traj_ade_m": 0.09960735589265823,
+          "forced_cot": {
+            "cot": [
+              "Y right to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.023450303822755814,
+          "d_curvature_mean": 0.0007643471471965313,
+          "d_curvature_max": 0.0023673996329307556,
+          "endpoint_shift_m": 0.38153237104415894,
+          "traj_ade_m": 0.13207148015499115,
+          "forced_cot": {
+            "cot": [
+              "Slow right to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.007378965150564909,
+          "d_curvature_mean": 0.0008363509550690651,
+          "d_curvature_max": 0.001224525272846222,
+          "endpoint_shift_m": 0.21603013575077057,
+          "traj_ade_m": 0.060745883733034134,
+          "forced_cot": {
+            "cot": [
+              "Change right to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9995666146278381,
+      "entropy": 0.0038158537354320288,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0004305558686610311,
+          "d_curvature_mean": 0.0002929501933977008,
+          "d_curvature_max": 0.0006122589111328125,
+          "endpoint_shift_m": 0.06516964733600616,
+          "traj_ade_m": 0.019745949655771255,
+          "forced_cot": {
+            "cot": [
+              "Turn left to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.4587459418180515e-06,
+          "d_curvature_mean": 0.0001959553628694266,
+          "d_curvature_max": 0.0004081651568412781,
+          "endpoint_shift_m": 0.06894585490226746,
+          "traj_ade_m": 0.01682450994849205,
+          "forced_cot": {
+            "cot": [
+              "Turn to to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 1.0733527489037442e-07,
+          "d_curvature_mean": 0.00034251174656674266,
+          "d_curvature_max": 0.0009796135127544403,
+          "endpoint_shift_m": 0.06549293547868729,
+          "traj_ade_m": 0.017596108838915825,
+          "forced_cot": {
+            "cot": [
+              "Turn traffic to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 1.0242003867233507e-07,
+          "d_curvature_mean": 0.0007450919947586954,
+          "d_curvature_max": 0.001693911850452423,
+          "endpoint_shift_m": 0.1328801065683365,
+          "traj_ade_m": 0.034884851425886154,
+          "forced_cot": {
+            "cot": [
+              "Turn lane to navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.21729187667369843,
+      "entropy": 0.6647947430610657,
+      "alternatives": [
+        {
+          "token": " at",
+          "token_prob": 0.7584231495857239,
+          "d_curvature_mean": 0.00013411068357527256,
+          "d_curvature_max": 0.0003673657774925232,
+          "endpoint_shift_m": 0.019706452265381813,
+          "traj_ade_m": 0.007096446584910154,
+          "forced_cot": {
+            "cot": [
+              "Turn right at navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.014786898158490658,
+          "d_curvature_mean": 0.0006113447016105056,
+          "d_curvature_max": 0.0015510544180870056,
+          "endpoint_shift_m": 0.15954101085662842,
+          "traj_ade_m": 0.037521932274103165,
+          "forced_cot": {
+            "cot": [
+              "Turn right since navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.006359765771776438,
+          "d_curvature_mean": 0.00026415192405693233,
+          "d_curvature_max": 0.0006734952330589294,
+          "endpoint_shift_m": 0.011840098537504673,
+          "traj_ade_m": 0.012894129380583763,
+          "forced_cot": {
+            "cot": [
+              "Turn right because navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.00044652557699009776,
+          "d_curvature_mean": 0.00012852073996327817,
+          "d_curvature_max": 0.0004285760223865509,
+          "endpoint_shift_m": 0.04769628122448921,
+          "traj_ade_m": 0.016617760062217712,
+          "forced_cot": {
+            "cot": [
+              "Turn right into navigate past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " navigate",
+      "sampled_prob": 0.36836910247802734,
+      "entropy": 2.113833427429199,
+      "alternatives": [
+        {
+          "token": " bypass",
+          "token_prob": 0.269504576921463,
+          "d_curvature_mean": 0.0006488460348919034,
+          "d_curvature_max": 0.0012653358280658722,
+          "endpoint_shift_m": 0.14683333039283752,
+          "traj_ade_m": 0.055055610835552216,
+          "forced_cot": {
+            "cot": [
+              "Turn right to bypass past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.18522761762142181,
+          "d_curvature_mean": 6.079376908019185e-05,
+          "d_curvature_max": 0.00022449344396591187,
+          "endpoint_shift_m": 0.034836895763874054,
+          "traj_ade_m": 0.01178455539047718,
+          "forced_cot": {
+            "cot": [
+              "Turn right to follow past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " comply",
+          "token_prob": 0.04264181852340698,
+          "d_curvature_mean": 0.00046133011346682906,
+          "d_curvature_max": 0.00081634521484375,
+          "endpoint_shift_m": 0.10051608085632324,
+          "traj_ade_m": 0.044022466987371445,
+          "forced_cot": {
+            "cot": [
+              "Turn right to comply past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.022824520245194435,
+          "d_curvature_mean": 0.00018176011508330703,
+          "d_curvature_max": 0.0004898086190223694,
+          "endpoint_shift_m": 0.029715849086642265,
+          "traj_ade_m": 0.009605394676327705,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter past the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " past",
+      "sampled_prob": 0.07193580269813538,
+      "entropy": 1.1237484216690063,
+      "alternatives": [
+        {
+          "token": " around",
+          "token_prob": 0.5658189654350281,
+          "d_curvature_mean": 0.00025424023624509573,
+          "d_curvature_max": 0.0004591904580593109,
+          "endpoint_shift_m": 0.0914323627948761,
+          "traj_ade_m": 0.03546878322958946,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate around the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.32239392399787903,
+          "d_curvature_mean": 0.0002524785522837192,
+          "d_curvature_max": 0.0005714371800422668,
+          "endpoint_shift_m": 0.044485315680503845,
+          "traj_ade_m": 0.02383701130747795,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate the the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " between",
+          "token_prob": 0.010692304000258446,
+          "d_curvature_mean": 0.0001561145472805947,
+          "d_curvature_max": 0.00037501007318496704,
+          "endpoint_shift_m": 0.03156590834259987,
+          "traj_ade_m": 0.016932085156440735,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate between the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.010363336652517319,
+          "d_curvature_mean": 0.000535737257450819,
+          "d_curvature_max": 0.0010918639600276947,
+          "endpoint_shift_m": 0.16619950532913208,
+          "traj_ade_m": 0.0639575645327568,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate because the construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.9349622130393982,
+      "entropy": 0.27484798431396484,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.0597701333463192,
+          "d_curvature_mean": 0.0001499455247540027,
+          "d_curvature_max": 0.00035013630986213684,
+          "endpoint_shift_m": 0.029707321897149086,
+          "traj_ade_m": 0.009426623582839966,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past construction construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.002246236428618431,
+          "d_curvature_mean": 0.0002178113500121981,
+          "d_curvature_max": 0.000408172607421875,
+          "endpoint_shift_m": 0.04587675258517265,
+          "traj_ade_m": 0.022358501330018044,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past road construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0005679375026375055,
+          "d_curvature_mean": 0.00012872961815446615,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.02606094814836979,
+          "traj_ade_m": 0.009447579272091389,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past lane construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.00039033734356053174,
+          "d_curvature_mean": 0.00024305572151206434,
+          "d_curvature_max": 0.0004490017890930176,
+          "endpoint_shift_m": 0.10309389978647232,
+          "traj_ade_m": 0.03786451369524002,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past work construction island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " construction",
+      "sampled_prob": 0.6502186059951782,
+      "entropy": 1.7257699966430664,
+      "alternatives": [
+        {
+          "token": " keep",
+          "token_prob": 0.10614527016878128,
+          "d_curvature_mean": 0.00011569930939003825,
+          "d_curvature_max": 0.0002640374004840851,
+          "endpoint_shift_m": 0.02888094261288643,
+          "traj_ade_m": 0.011233841069042683,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the keep island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.07070799171924591,
+          "d_curvature_mean": 8.684652857482433e-05,
+          "d_curvature_max": 0.00020408257842063904,
+          "endpoint_shift_m": 0.013512509874999523,
+          "traj_ade_m": 0.0050854869186878204,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the work island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.032372478395700455,
+          "d_curvature_mean": 0.00013295980170369148,
+          "d_curvature_max": 0.00028571486473083496,
+          "endpoint_shift_m": 0.031464677304029465,
+          "traj_ade_m": 0.010117705911397934,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the road island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.022249257192015648,
+          "d_curvature_mean": 0.00033227322273887694,
+          "d_curvature_max": 0.0007347092032432556,
+          "endpoint_shift_m": 0.07417664676904678,
+          "traj_ade_m": 0.023303557187318802,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the round island blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " island",
+      "sampled_prob": 0.5074108242988586,
+      "entropy": 1.4722567796707153,
+      "alternatives": [
+        {
+          "token": " barric",
+          "token_prob": 0.28911393880844116,
+          "d_curvature_mean": 0.0002942534920293838,
+          "d_curvature_max": 0.0005918480455875397,
+          "endpoint_shift_m": 0.1371675282716751,
+          "traj_ade_m": 0.046269550919532776,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction barric blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barrier",
+          "token_prob": 0.09097374975681305,
+          "d_curvature_mean": 0.0001229152549058199,
+          "d_curvature_max": 0.00024490803480148315,
+          "endpoint_shift_m": 0.026681743562221527,
+          "traj_ade_m": 0.01110895536839962,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction barrier blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.0708504244685173,
+          "d_curvature_mean": 0.0001303486933466047,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.05299169197678566,
+          "traj_ade_m": 0.020175430923700333,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction barriers blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.01086526457220316,
+          "d_curvature_mean": 0.00016387173673138022,
+          "d_curvature_max": 0.000377558171749115,
+          "endpoint_shift_m": 0.08898428827524185,
+          "traj_ade_m": 0.03252391517162323,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction cones blocking the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9116756916046143,
+      "entropy": 0.47996899485588074,
+      "alternatives": [
+        {
+          "token": " since",
+          "token_prob": 0.03218609094619751,
+          "d_curvature_mean": 8.377706399187446e-05,
+          "d_curvature_max": 0.0002449154853820801,
+          "endpoint_shift_m": 0.0632319450378418,
+          "traj_ade_m": 0.01646772027015686,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island since the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.018921224400401115,
+          "d_curvature_mean": 0.00024095270782709122,
+          "d_curvature_max": 0.0005510337650775909,
+          "endpoint_shift_m": 0.14023497700691223,
+          "traj_ade_m": 0.04410167038440704,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island ahead the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 0.017774848267436028,
+          "d_curvature_mean": 0.00024286078405566514,
+          "d_curvature_max": 0.0004898011684417725,
+          "endpoint_shift_m": 0.06977609544992447,
+          "traj_ade_m": 0.016165371984243393,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island that the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.006960729602724314,
+          "d_curvature_mean": 0.0002333780867047608,
+          "d_curvature_max": 0.0005063898861408234,
+          "endpoint_shift_m": 0.15323014557361603,
+          "traj_ade_m": 0.05445929244160652,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island at the center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9546494483947754,
+      "entropy": 0.27376359701156616,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.02708132192492485,
+          "d_curvature_mean": 0.00021977702272124588,
+          "d_curvature_max": 0.00036735832691192627,
+          "endpoint_shift_m": 0.054987940937280655,
+          "traj_ade_m": 0.019157227128744125,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking straight center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.009359054267406464,
+          "d_curvature_mean": 4.061957588419318e-05,
+          "d_curvature_max": 0.00012245774269104004,
+          "endpoint_shift_m": 0.06353912502527237,
+          "traj_ade_m": 0.014454128220677376,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking a center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 0.0012276407796889544,
+          "d_curvature_mean": 0.00014853011816740036,
+          "d_curvature_max": 0.0003877636045217514,
+          "endpoint_shift_m": 0.14006537199020386,
+          "traj_ade_m": 0.04588430002331734,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking part center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " going",
+          "token_prob": 0.0007682379218749702,
+          "d_curvature_mean": 0.00024610725813545287,
+          "d_curvature_max": 0.0005306266248226166,
+          "endpoint_shift_m": 0.03698357194662094,
+          "traj_ade_m": 0.017201129347085953,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking going center of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " center",
+      "sampled_prob": 0.5557966232299805,
+      "entropy": 1.6462621688842773,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.1495906263589859,
+          "d_curvature_mean": 0.00010688567999750376,
+          "d_curvature_max": 0.0002653151750564575,
+          "endpoint_shift_m": 0.08582129329442978,
+          "traj_ade_m": 0.03183924779295921,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the straight of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.1405273824930191,
+          "d_curvature_mean": 0.00011949945474043489,
+          "d_curvature_max": 0.0002857297658920288,
+          "endpoint_shift_m": 0.040084756910800934,
+          "traj_ade_m": 0.02198442630469799,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the through of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.04026177152991295,
+          "d_curvature_mean": 0.0002771109575405717,
+          "d_curvature_max": 0.0005306228995323181,
+          "endpoint_shift_m": 0.02349296770989895,
+          "traj_ade_m": 0.010584156960248947,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the lane of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.0244199987500906,
+          "d_curvature_mean": 0.0001722172019071877,
+          "d_curvature_max": 0.00036735832691192627,
+          "endpoint_shift_m": 0.03063170425593853,
+          "traj_ade_m": 0.022041449323296547,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the path of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " of",
+      "sampled_prob": 0.7006465792655945,
+      "entropy": 0.9102938771247864,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.20073860883712769,
+          "d_curvature_mean": 0.00032754946732893586,
+          "d_curvature_max": 0.0007143057882785797,
+          "endpoint_shift_m": 0.06227859482169151,
+          "traj_ade_m": 0.015006622299551964,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center path the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.078610360622406,
+          "d_curvature_mean": 0.002101380378007889,
+          "d_curvature_max": 0.00391845777630806,
+          "endpoint_shift_m": 0.437650591135025,
+          "traj_ade_m": 0.14132057130336761,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.006868897471576929,
+          "d_curvature_mean": 0.0003747634473256767,
+          "d_curvature_max": 0.0009183920919895172,
+          "endpoint_shift_m": 0.07235266268253326,
+          "traj_ade_m": 0.014798590913414955,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center ahead the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.005349502433091402,
+          "d_curvature_mean": 0.00041014989255927503,
+          "d_curvature_max": 0.0010204389691352844,
+          "endpoint_shift_m": 0.05169118940830231,
+          "traj_ade_m": 0.023638632148504257,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center. the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " the",
+      "sampled_prob": 0.8492201566696167,
+      "entropy": 0.4520662724971771,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.147572323679924,
+          "d_curvature_mean": 0.000151968706632033,
+          "d_curvature_max": 0.0004081800580024719,
+          "endpoint_shift_m": 0.08002303540706635,
+          "traj_ade_m": 0.02683934196829796,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0006222386728040874,
+          "d_curvature_mean": 0.000232033955398947,
+          "d_curvature_max": 0.0005000121891498566,
+          "endpoint_shift_m": 0.020275451242923737,
+          "traj_ade_m": 0.012772168032824993,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of a lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0005665547796525061,
+          "d_curvature_mean": 0.00015940243611112237,
+          "d_curvature_max": 0.00034693628549575806,
+          "endpoint_shift_m": 0.06755610555410385,
+          "traj_ade_m": 0.02676493115723133,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of entry lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 0.0002761167415883392,
+          "d_curvature_mean": 0.00027266491088084877,
+          "d_curvature_max": 0.0006122663617134094,
+          "endpoint_shift_m": 0.07212633639574051,
+          "traj_ade_m": 0.025967294350266457,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of travel lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.19254536926746368,
+      "entropy": 2.645562171936035,
+      "alternatives": [
+        {
+          "token": " intersection",
+          "token_prob": 0.19865740835666656,
+          "d_curvature_mean": 0.0002145931066479534,
+          "d_curvature_max": 0.00042858347296714783,
+          "endpoint_shift_m": 0.04191945120692253,
+          "traj_ade_m": 0.014917612075805664,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of the intersection"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " junction",
+          "token_prob": 0.16992069780826569,
+          "d_curvature_mean": 0.00021884753368794918,
+          "d_curvature_max": 0.0004489906132221222,
+          "endpoint_shift_m": 0.029500063508749008,
+          "traj_ade_m": 0.01260739378631115,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of the junction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadway",
+          "token_prob": 0.09681788831949234,
+          "d_curvature_mean": 2.9491871828213334e-05,
+          "d_curvature_max": 8.164346218109131e-05,
+          "endpoint_shift_m": 0.03166915848851204,
+          "traj_ade_m": 0.011812152341008186,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of the roadway"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0802648514509201,
+          "d_curvature_mean": 0.00014685600763186812,
+          "d_curvature_max": 0.0002857297658920288,
+          "endpoint_shift_m": 0.028770500794053078,
+          "traj_ade_m": 0.006745142862200737,
+          "forced_cot": {
+            "cot": [
+              "Turn right to navigate past the construction island blocking the center of the entry"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.7295175194740295,
+      "entropy": 0.9098594188690186,
+      "alternatives": [
+        {
+          "token": "Ad",
+          "token_prob": 0.19634698331356049,
+          "d_curvature_mean": 0.0005778151098638773,
+          "d_curvature_max": 0.0011428892612457275,
+          "endpoint_shift_m": 0.09304779022932053,
+          "traj_ade_m": 0.026573926210403442,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction barriers narrow the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.02575511857867241,
+          "d_curvature_mean": 0.00033481945865787566,
+          "d_curvature_max": 0.0008979886770248413,
+          "endpoint_shift_m": 0.31514179706573486,
+          "traj_ade_m": 0.12718383967876434,
+          "forced_cot": {
+            "cot": [
+              "Yield to the traffic in the roundabout since a car is circulating ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.023450303822755814,
+          "d_curvature_mean": 0.0007485627429559827,
+          "d_curvature_max": 0.00186866894364357,
+          "endpoint_shift_m": 0.15182019770145416,
+          "traj_ade_m": 0.04884627088904381,
+          "forced_cot": {
+            "cot": [
+              "Slow down for the roundabout since the entry is yield controlled"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.007378965150564909,
+          "d_curvature_mean": 0.0010245152516290545,
+          "d_curvature_max": 0.002040863037109375,
+          "endpoint_shift_m": 0.4127136170864105,
+          "traj_ade_m": 0.10841140151023865,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the right and yield because of the channelized right-turn slip lane with a pedestrian crossing and potential cross-traffic, then proceed once clear after merging onto the main road."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9995666146278381,
+      "entropy": 0.0038158537354320288,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0004305558686610311,
+          "d_curvature_mean": 0.001059036934748292,
+          "d_curvature_max": 0.0022041350603103638,
+          "endpoint_shift_m": 0.19606900215148926,
+          "traj_ade_m": 0.055368684232234955,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.4587459418180515e-06,
+          "d_curvature_mean": 0.00038657564437016845,
+          "d_curvature_max": 0.0010204315185546875,
+          "endpoint_shift_m": 0.21536000072956085,
+          "traj_ade_m": 0.0803440734744072,
+          "forced_cot": {
+            "cot": [
+              "Turn to the right to bypass the roundabout since construction barriers close the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 1.0733527489037442e-07,
+          "d_curvature_mean": 0.0012087052455171943,
+          "d_curvature_max": 0.002591896802186966,
+          "endpoint_shift_m": 0.18632745742797852,
+          "traj_ade_m": 0.04751043766736984,
+          "forced_cot": {
+            "cot": [
+              "Turn traffic at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 1.0242003867233507e-07,
+          "d_curvature_mean": 0.0012065069749951363,
+          "d_curvature_max": 0.002511538565158844,
+          "endpoint_shift_m": 0.13630281388759613,
+          "traj_ade_m": 0.035508811473846436,
+          "forced_cot": {
+            "cot": [
+              "Turn lane to navigate the roundabout since construction barriers block the through path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.21729187667369843,
+      "entropy": 0.6647947430610657,
+      "alternatives": [
+        {
+          "token": " at",
+          "token_prob": 0.7584231495857239,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.014786898158490658,
+          "d_curvature_mean": 0.0004658856778405607,
+          "d_curvature_max": 0.0009592026472091675,
+          "endpoint_shift_m": 0.020086444914340973,
+          "traj_ade_m": 0.020527055487036705,
+          "forced_cot": {
+            "cot": [
+              "Turn right since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.006359765771776438,
+          "d_curvature_mean": 0.0009499576408416033,
+          "d_curvature_max": 0.0017551407217979431,
+          "endpoint_shift_m": 0.3176460564136505,
+          "traj_ade_m": 0.12987205386161804,
+          "forced_cot": {
+            "cot": [
+              "Turn right because construction barricades block the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.00044652557699009776,
+          "d_curvature_mean": 0.0006505642086267471,
+          "d_curvature_max": 0.0011836998164653778,
+          "endpoint_shift_m": 0.04608779773116112,
+          "traj_ade_m": 0.026724286377429962,
+          "forced_cot": {
+            "cot": [
+              "Turn right into the side street since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " navigate",
+      "sampled_prob": 0.36836910247802734,
+      "entropy": 2.113833427429199,
+      "alternatives": [
+        {
+          "token": " bypass",
+          "token_prob": 0.269504576921463,
+          "d_curvature_mean": 0.0009680765797384083,
+          "d_curvature_max": 0.0019184090197086334,
+          "endpoint_shift_m": 0.20823341608047485,
+          "traj_ade_m": 0.0986432358622551,
+          "forced_cot": {
+            "cot": [
+              "Turn right at bypass since the roundabout is closed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.18522761762142181,
+          "d_curvature_mean": 0.00041843033977784216,
+          "d_curvature_max": 0.0008864998817443848,
+          "endpoint_shift_m": 0.011602490209043026,
+          "traj_ade_m": 0.016474829986691475,
+          "forced_cot": {
+            "cot": [
+              "Turn right at follow the keep-right sign since construction barriers direct traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " comply",
+          "token_prob": 0.04264181852340698,
+          "d_curvature_mean": 0.0005968650220893323,
+          "d_curvature_max": 0.0014490075409412384,
+          "endpoint_shift_m": 0.24472276866436005,
+          "traj_ade_m": 0.055922120809555054,
+          "forced_cot": {
+            "cot": [
+              "Turn right at comply with the yield sign since the intersection is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.022824520245194435,
+          "d_curvature_mean": 0.0009543652413412929,
+          "d_curvature_max": 0.00175514817237854,
+          "endpoint_shift_m": 0.13746513426303864,
+          "traj_ade_m": 0.03834647312760353,
+          "forced_cot": {
+            "cot": [
+              "Turn right at enter since the roundabout is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " past",
+      "sampled_prob": 0.07193580269813538,
+      "entropy": 1.1237484216690063,
+      "alternatives": [
+        {
+          "token": " around",
+          "token_prob": 0.5658189654350281,
+          "d_curvature_mean": 0.0007589301094412804,
+          "d_curvature_max": 0.0014796219766139984,
+          "endpoint_shift_m": 0.023275284096598625,
+          "traj_ade_m": 0.019591864198446274,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the aroundabout since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.32239392399787903,
+          "d_curvature_mean": 0.0007439674809575081,
+          "d_curvature_max": 0.0015102364122867584,
+          "endpoint_shift_m": 0.08190806210041046,
+          "traj_ade_m": 0.034144774079322815,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the the roundabout since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " between",
+          "token_prob": 0.010692304000258446,
+          "d_curvature_mean": 0.0005387507262639701,
+          "d_curvature_max": 0.0014490112662315369,
+          "endpoint_shift_m": 0.03716909512877464,
+          "traj_ade_m": 0.015430068597197533,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the between-way intersection since the keep-right island directs traffic to pass to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.010363336652517319,
+          "d_curvature_mean": 0.00033085793256759644,
+          "d_curvature_max": 0.0007347166538238525,
+          "endpoint_shift_m": 0.0978948175907135,
+          "traj_ade_m": 0.04800105839967728,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the because the keep-right sign directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.9349622130393982,
+      "entropy": 0.27484798431396484,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.0597701333463192,
+          "d_curvature_mean": 0.0005491384654305875,
+          "d_curvature_max": 0.0011837035417556763,
+          "endpoint_shift_m": 0.08095291256904602,
+          "traj_ade_m": 0.036348678171634674,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the round construction entrance since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.002246236428618431,
+          "d_curvature_mean": 0.0010208995081484318,
+          "d_curvature_max": 0.0022041350603103638,
+          "endpoint_shift_m": 0.12854371964931488,
+          "traj_ade_m": 0.0371939018368721,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the round road since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0005679375026375055,
+          "d_curvature_mean": 0.0010735460091382265,
+          "d_curvature_max": 0.0022283680737018585,
+          "endpoint_shift_m": 0.12774363160133362,
+          "traj_ade_m": 0.041546646505594254,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the round lane since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.00039033734356053174,
+          "d_curvature_mean": 0.0005800709477625787,
+          "d_curvature_max": 0.001132674515247345,
+          "endpoint_shift_m": 0.011982467025518417,
+          "traj_ade_m": 0.017463289201259613,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the round work zone since the keep-right island directs traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " construction",
+      "sampled_prob": 0.6502186059951782,
+      "entropy": 1.7257699966430664,
+      "alternatives": [
+        {
+          "token": " keep",
+          "token_prob": 0.10614527016878128,
+          "d_curvature_mean": 0.0009880238212645054,
+          "d_curvature_max": 0.0017347335815429688,
+          "endpoint_shift_m": 0.060680508613586426,
+          "traj_ade_m": 0.033788084983825684,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout keep-right sign since the intersection is yield controlled"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.07070799171924591,
+          "d_curvature_mean": 0.0005268913810141385,
+          "d_curvature_max": 0.0007755383849143982,
+          "endpoint_shift_m": 0.12407641857862473,
+          "traj_ade_m": 0.03935503959655762,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout work zone since construction barriers direct traffic to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.032372478395700455,
+          "d_curvature_mean": 0.0003775868390221149,
+          "d_curvature_max": 0.00081634521484375,
+          "endpoint_shift_m": 0.1371338814496994,
+          "traj_ade_m": 0.06693866103887558,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout roadwork barricades blocking the through lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " round",
+          "token_prob": 0.022249257192015648,
+          "d_curvature_mean": 0.0008212915272451937,
+          "d_curvature_max": 0.0013469606637954712,
+          "endpoint_shift_m": 0.08488251268863678,
+          "traj_ade_m": 0.04206809028983116,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout roundabout since the lane bends right with a keep-right island ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " island",
+      "sampled_prob": 0.5074108242988586,
+      "entropy": 1.4722567796707153,
+      "alternatives": [
+        {
+          "token": " barric",
+          "token_prob": 0.28911393880844116,
+          "d_curvature_mean": 0.0002594002871774137,
+          "d_curvature_max": 0.0008571520447731018,
+          "endpoint_shift_m": 0.14842823147773743,
+          "traj_ade_m": 0.07426456362009048,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since barricades block straight ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barrier",
+          "token_prob": 0.09097374975681305,
+          "d_curvature_mean": 0.0006302456604316831,
+          "d_curvature_max": 0.0013265609741210938,
+          "endpoint_shift_m": 0.09638404846191406,
+          "traj_ade_m": 0.027461446821689606,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since barrier islands block straight ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.0708504244685173,
+          "d_curvature_mean": 0.0003830748610198498,
+          "d_curvature_max": 0.0007347017526626587,
+          "endpoint_shift_m": 0.11663448065519333,
+          "traj_ade_m": 0.0534815713763237,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since barriers block the straight path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.01086526457220316,
+          "d_curvature_mean": 0.0008586418116465211,
+          "d_curvature_max": 0.0018469803035259247,
+          "endpoint_shift_m": 0.08446073532104492,
+          "traj_ade_m": 0.027258064597845078,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since cones and keep-right signs guide the exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9116756916046143,
+      "entropy": 0.47996899485588074,
+      "alternatives": [
+        {
+          "token": " since",
+          "token_prob": 0.03218609094619751,
+          "d_curvature_mean": 0.0011368105188012123,
+          "d_curvature_max": 0.0021849945187568665,
+          "endpoint_shift_m": 0.10612134635448456,
+          "traj_ade_m": 0.03680518642067909,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the since the roundabout is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.018921224400401115,
+          "d_curvature_mean": 0.0005714911967515945,
+          "d_curvature_max": 0.0009183958172798157,
+          "endpoint_shift_m": 0.029219865798950195,
+          "traj_ade_m": 0.033184222877025604,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the ahead traffic has cleared"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 0.017774848267436028,
+          "d_curvature_mean": 0.0009647536789998412,
+          "d_curvature_max": 0.0018571838736534119,
+          "endpoint_shift_m": 0.10875371843576431,
+          "traj_ade_m": 0.036218613386154175,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the that is the correct exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.006960729602724314,
+          "d_curvature_mean": 0.0007173758931457996,
+          "d_curvature_max": 0.0015306472778320312,
+          "endpoint_shift_m": 0.18636922538280487,
+          "traj_ade_m": 0.06075426936149597,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the at the roundabout entrance requires a right exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9546494483947754,
+      "entropy": 0.27376359701156616,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.02708132192492485,
+          "d_curvature_mean": 0.00041061610681936145,
+          "d_curvature_max": 0.0007959417998790741,
+          "endpoint_shift_m": 0.0950588658452034,
+          "traj_ade_m": 0.03491049259901047,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry straight ahead is closed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.009359054267406464,
+          "d_curvature_mean": 0.0005529954796656966,
+          "d_curvature_max": 0.0010918639600276947,
+          "endpoint_shift_m": 0.01830998808145523,
+          "traj_ade_m": 0.0192871131002903,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry a keep-right sign directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 0.0012276407796889544,
+          "d_curvature_mean": 0.000721566379070282,
+          "d_curvature_max": 0.0012959502637386322,
+          "endpoint_shift_m": 0.18682649731636047,
+          "traj_ade_m": 0.05053567513823509,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry part is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " going",
+          "token_prob": 0.0007682379218749702,
+          "d_curvature_mean": 0.0005365278921090066,
+          "d_curvature_max": 0.0010000206530094147,
+          "endpoint_shift_m": 0.1549907922744751,
+          "traj_ade_m": 0.04781075567007065,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry going straight is closed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " center",
+      "sampled_prob": 0.5557966232299805,
+      "entropy": 1.6462621688842773,
+      "alternatives": [
+        {
+          "token": " straight",
+          "token_prob": 0.1495906263589859,
+          "d_curvature_mean": 0.000733525026589632,
+          "d_curvature_max": 0.0013265684247016907,
+          "endpoint_shift_m": 0.04637155309319496,
+          "traj_ade_m": 0.027547601610422134,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is straight and clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.1405273824930191,
+          "d_curvature_mean": 0.0007807643851265311,
+          "d_curvature_max": 0.0012245327234268188,
+          "endpoint_shift_m": 0.16539426147937775,
+          "traj_ade_m": 0.05920451134443283,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is through a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.04026177152991295,
+          "d_curvature_mean": 0.0008247301448136568,
+          "d_curvature_max": 0.0014081969857215881,
+          "endpoint_shift_m": 0.13971364498138428,
+          "traj_ade_m": 0.052769068628549576,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is lane controlled by a yield sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.0244199987500906,
+          "d_curvature_mean": 0.0007902256911620498,
+          "d_curvature_max": 0.0015306510031223297,
+          "endpoint_shift_m": 0.14732161164283752,
+          "traj_ade_m": 0.04844672232866287,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is path controlled by a yield sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " of",
+      "sampled_prob": 0.7006465792655945,
+      "entropy": 0.9102938771247864,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.20073860883712769,
+          "d_curvature_mean": 0.0010170221794396639,
+          "d_curvature_max": 0.002102091908454895,
+          "endpoint_shift_m": 0.2171001434326172,
+          "traj_ade_m": 0.06186315044760704,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.078610360622406,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.006868897471576929,
+          "d_curvature_mean": 0.0006846406031399965,
+          "d_curvature_max": 0.0013877898454666138,
+          "endpoint_shift_m": 0.11822137981653214,
+          "traj_ade_m": 0.036808233708143234,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.005349502433091402,
+          "d_curvature_mean": 0.0005906448932364583,
+          "d_curvature_max": 0.0012653470039367676,
+          "endpoint_shift_m": 0.09135554730892181,
+          "traj_ade_m": 0.03897710144519806,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " the",
+      "sampled_prob": 0.8492201566696167,
+      "entropy": 0.4520662724971771,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.147572323679924,
+          "d_curvature_mean": 0.0032981012482196093,
+          "d_curvature_max": 0.006632808595895767,
+          "endpoint_shift_m": 0.721972644329071,
+          "traj_ade_m": 0.2424885630607605,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0006222386728040874,
+          "d_curvature_mean": 0.002622109604999423,
+          "d_curvature_max": 0.004612356424331665,
+          "endpoint_shift_m": 0.5863263607025146,
+          "traj_ade_m": 0.21199065446853638,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0005665547796525061,
+          "d_curvature_mean": 0.002957410179078579,
+          "d_curvature_max": 0.0052246153354644775,
+          "endpoint_shift_m": 0.8274903893470764,
+          "traj_ade_m": 0.2926507294178009,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " travel",
+          "token_prob": 0.0002761167415883392,
+          "d_curvature_mean": 0.003068220103159547,
+          "d_curvature_max": 0.005816467106342316,
+          "endpoint_shift_m": 0.5848737359046936,
+          "traj_ade_m": 0.20429672300815582,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.19254536926746368,
+      "entropy": 2.645562171936035,
+      "alternatives": [
+        {
+          "token": " intersection",
+          "token_prob": 0.19865740835666656,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " junction",
+          "token_prob": 0.16992069780826569,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadway",
+          "token_prob": 0.09681788831949234,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entry",
+          "token_prob": 0.0802648514509201,
+          "d_curvature_mean": 0.000714033143594861,
+          "d_curvature_max": 0.0013469718396663666,
+          "endpoint_shift_m": 0.12705491483211517,
+          "traj_ade_m": 0.03780902922153473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the roundabout since the entry is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

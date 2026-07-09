@@ -1,0 +1,2610 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the stopped truck blocking the right side of our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 13,
+    "mean_entropy": 0.34633205875825995,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.1257891058921814,
+        "entropy": 1.5255076885223389,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.5637476444244385
+          },
+          {
+            "text": "Keep",
+            "prob": 0.1257891058921814
+          },
+          {
+            "text": "Lane",
+            "prob": 0.08645350486040115
+          },
+          {
+            "text": "Slow",
+            "prob": 0.06733005493879318
+          },
+          {
+            "text": "Dec",
+            "prob": 0.05759044736623764
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.9930917024612427,
+        "entropy": 0.044854190200567245,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9930917024612427
+          },
+          {
+            "text": " lane",
+            "prob": 0.005905138794332743
+          },
+          {
+            "text": " at",
+            "prob": 0.0008507159654982388
+          },
+          {
+            "text": " speed",
+            "prob": 0.00010160353122046217
+          },
+          {
+            "text": " left",
+            "prob": 8.604869435657747e-06
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.996896505355835,
+        "entropy": 0.022782165557146072,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.996896505355835
+          },
+          {
+            "text": " from",
+            "prob": 0.0028000774327665567
+          },
+          {
+            "text": " since",
+            "prob": 9.286550630349666e-05
+          },
+          {
+            "text": " for",
+            "prob": 5.291316847433336e-05
+          },
+          {
+            "text": " due",
+            "prob": 4.251692371326499e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9995026588439941,
+        "entropy": 0.00577265489846468,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9995026588439941
+          },
+          {
+            "text": " our",
+            "prob": 0.00029589750920422375
+          },
+          {
+            "text": " follow",
+            "prob": 1.4278616617957596e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 1.3413519809546415e-05
+          },
+          {
+            "text": " it",
+            "prob": 1.0446458873047959e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " stopped",
+        "sampled_prob": 0.231478750705719,
+        "entropy": 0.6181989312171936,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.7589896321296692
+          },
+          {
+            "text": " stopped",
+            "prob": 0.231478750705719
+          },
+          {
+            "text": " bus",
+            "prob": 0.0035148197785019875
+          },
+          {
+            "text": " cut",
+            "prob": 0.0024156977888196707
+          },
+          {
+            "text": " cyclist",
+            "prob": 0.000630172376986593
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " truck",
+        "sampled_prob": 0.9241434335708618,
+        "entropy": 0.46821457147598267,
+        "top_k": [
+          {
+            "text": " truck",
+            "prob": 0.9241434335708618
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.014937386848032475
+          },
+          {
+            "text": " work",
+            "prob": 0.013182197697460651
+          },
+          {
+            "text": " delivery",
+            "prob": 0.011633248999714851
+          },
+          {
+            "text": " service",
+            "prob": 0.011275331489741802
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " blocking",
+        "sampled_prob": 0.8553293943405151,
+        "entropy": 0.5002254843711853,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.8553293943405151
+          },
+          {
+            "text": " since",
+            "prob": 0.12322188913822174
+          },
+          {
+            "text": " ahead",
+            "prob": 0.012987490743398666
+          },
+          {
+            "text": " because",
+            "prob": 0.0054139913991093636
+          },
+          {
+            "text": " in",
+            "prob": 0.0015511345118284225
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " the",
+        "sampled_prob": 0.955165445804596,
+        "entropy": 0.30716460943222046,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.955165445804596
+          },
+          {
+            "text": " our",
+            "prob": 0.01592889241874218
+          },
+          {
+            "text": " part",
+            "prob": 0.009076009504497051
+          },
+          {
+            "text": " a",
+            "prob": 0.008009551092982292
+          },
+          {
+            "text": " it",
+            "prob": 0.0023676184937357903
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " right",
+        "sampled_prob": 0.9824114441871643,
+        "entropy": 0.09309419989585876,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9824114441871643
+          },
+          {
+            "text": " lane",
+            "prob": 0.01690332219004631
+          },
+          {
+            "text": " ego",
+            "prob": 0.00026481077657081187
+          },
+          {
+            "text": " same",
+            "prob": 0.00021953583927825093
+          },
+          {
+            "text": " curb",
+            "prob": 2.9710943636018783e-05
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " side",
+        "sampled_prob": 0.4805032014846802,
+        "entropy": 0.7626145482063293,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.5114930272102356
+          },
+          {
+            "text": " side",
+            "prob": 0.4805032014846802
+          },
+          {
+            "text": " edge",
+            "prob": 0.002090355148538947
+          },
+          {
+            "text": "most",
+            "prob": 0.0013924764934927225
+          },
+          {
+            "text": " of",
+            "prob": 0.000598896702285856
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " of",
+        "sampled_prob": 0.9734306931495667,
+        "entropy": 0.14964401721954346,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.9734306931495667
+          },
+          {
+            "text": " ahead",
+            "prob": 0.017829004675149918
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0051080952398478985
+          },
+          {
+            "text": " since",
+            "prob": 0.002910505048930645
+          },
+          {
+            "text": " lane",
+            "prob": 0.00012013088417006657
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " our",
+        "sampled_prob": 0.9998496770858765,
+        "entropy": 0.0014878183137625456,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9998496770858765
+          },
+          {
+            "text": " the",
+            "prob": 0.00014883825497236103
+          },
+          {
+            "text": " lane",
+            "prob": 4.450183155313425e-07
+          },
+          {
+            "text": " your",
+            "prob": 1.914000193892207e-07
+          },
+          {
+            "text": " it",
+            "prob": 1.4447631713210285e-07
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " lane",
+        "sampled_prob": 0.9997846484184265,
+        "entropy": 0.0027558845467865467,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9997846484184265
+          },
+          {
+            "text": " path",
+            "prob": 0.0001123417096096091
+          },
+          {
+            "text": " right",
+            "prob": 1.0127911082236096e-05
+          },
+          {
+            "text": " current",
+            "prob": 5.092634182801703e-06
+          },
+          {
+            "text": " approach",
+            "prob": 4.028605417261133e-06
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.1257891058921814,
+      "entropy": 1.5255076885223389,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.5637476444244385,
+          "d_curvature_mean": 0.00010175880015594885,
+          "d_curvature_max": 0.0005006487481296062,
+          "endpoint_shift_m": 0.2977970838546753,
+          "traj_ade_m": 0.1216583177447319,
+          "forced_cot": {
+            "cot": [
+              "N distance to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.08645350486040115,
+          "d_curvature_mean": 0.00010848284000530839,
+          "d_curvature_max": 0.0003788340836763382,
+          "endpoint_shift_m": 0.3420722186565399,
+          "traj_ade_m": 0.1217769905924797,
+          "forced_cot": {
+            "cot": [
+              "Lane distance to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.06733005493879318,
+          "d_curvature_mean": 5.484915163833648e-05,
+          "d_curvature_max": 0.00018368195742368698,
+          "endpoint_shift_m": 0.042243592441082,
+          "traj_ade_m": 0.01409895345568657,
+          "forced_cot": {
+            "cot": [
+              "Slow distance to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.05759044736623764,
+          "d_curvature_mean": 4.4648997572949156e-05,
+          "d_curvature_max": 0.00023469887673854828,
+          "endpoint_shift_m": 0.14479705691337585,
+          "traj_ade_m": 0.06527567654848099,
+          "forced_cot": {
+            "cot": [
+              "Dec distance to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9930917024612427,
+      "entropy": 0.044854190200567245,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.005905138794332743,
+          "d_curvature_mean": 0.00019330167560838163,
+          "d_curvature_max": 0.0011218367144465446,
+          "endpoint_shift_m": 0.6624327301979065,
+          "traj_ade_m": 0.20740669965744019,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0008507159654982388,
+          "d_curvature_mean": 0.0001287306658923626,
+          "d_curvature_max": 0.0007155770435929298,
+          "endpoint_shift_m": 0.7124682068824768,
+          "traj_ade_m": 0.2493419051170349,
+          "forced_cot": {
+            "cot": [
+              "Keep at to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00010160353122046217,
+          "d_curvature_mean": 0.0009946892969310284,
+          "d_curvature_max": 0.004635309334844351,
+          "endpoint_shift_m": 2.761432647705078,
+          "traj_ade_m": 0.9082168340682983,
+          "forced_cot": {
+            "cot": [
+              "Keep speed to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 8.604869435657747e-06,
+          "d_curvature_mean": 0.0005660374881699681,
+          "d_curvature_max": 0.002524293027818203,
+          "endpoint_shift_m": 1.40120267868042,
+          "traj_ade_m": 0.49092167615890503,
+          "forced_cot": {
+            "cot": [
+              "Keep left to the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.996896505355835,
+      "entropy": 0.022782165557146072,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0028000774327665567,
+          "d_curvature_mean": 0.0001871851709438488,
+          "d_curvature_max": 0.0007257824763655663,
+          "endpoint_shift_m": 0.43315190076828003,
+          "traj_ade_m": 0.17178574204444885,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 9.286550630349666e-05,
+          "d_curvature_mean": 0.0003890944935847074,
+          "d_curvature_max": 0.0016939174383878708,
+          "endpoint_shift_m": 0.8595080375671387,
+          "traj_ade_m": 0.30951693654060364,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 5.291316847433336e-05,
+          "d_curvature_mean": 0.00020926962315570563,
+          "d_curvature_max": 0.0008877729997038841,
+          "endpoint_shift_m": 0.6147290468215942,
+          "traj_ade_m": 0.2252039611339569,
+          "forced_cot": {
+            "cot": [
+              "Keep distance for the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.251692371326499e-05,
+          "d_curvature_mean": 0.0013057400938123465,
+          "d_curvature_max": 0.005912124644964933,
+          "endpoint_shift_m": 2.7768664360046387,
+          "traj_ade_m": 0.9686865210533142,
+          "forced_cot": {
+            "cot": [
+              "Keep distance due the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995026588439941,
+      "entropy": 0.00577265489846468,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.00029589750920422375,
+          "d_curvature_mean": 9.70321852946654e-05,
+          "d_curvature_max": 0.00035077519714832306,
+          "endpoint_shift_m": 0.22743742167949677,
+          "traj_ade_m": 0.07695835828781128,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 1.4278616617957596e-05,
+          "d_curvature_mean": 0.0002728561812546104,
+          "d_curvature_max": 0.0012181401252746582,
+          "endpoint_shift_m": 0.6101518273353577,
+          "traj_ade_m": 0.20789676904678345,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 1.3413519809546415e-05,
+          "d_curvature_mean": 0.00018058918067254126,
+          "d_curvature_max": 0.0008877748623490334,
+          "endpoint_shift_m": 0.5735749006271362,
+          "traj_ade_m": 0.1880953460931778,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 1.0446458873047959e-05,
+          "d_curvature_mean": 0.00016927265096455812,
+          "d_curvature_max": 0.0005841962993144989,
+          "endpoint_shift_m": 0.1654251366853714,
+          "traj_ade_m": 0.05930862948298454,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to it stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.231478750705719,
+      "entropy": 0.6181989312171936,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.7589896321296692,
+          "d_curvature_mean": 7.435020961565897e-05,
+          "d_curvature_max": 0.00028572045266628265,
+          "endpoint_shift_m": 0.07559462636709213,
+          "traj_ade_m": 0.015410220250487328,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bus",
+          "token_prob": 0.0035148197785019875,
+          "d_curvature_mean": 5.459125532070175e-05,
+          "d_curvature_max": 0.00021428894251585007,
+          "endpoint_shift_m": 0.024936018511652946,
+          "traj_ade_m": 0.012977588921785355,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the bus truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cut",
+          "token_prob": 0.0024156977888196707,
+          "d_curvature_mean": 3.954310523113236e-05,
+          "d_curvature_max": 0.00015625357627868652,
+          "endpoint_shift_m": 0.12827938795089722,
+          "traj_ade_m": 0.048066671937704086,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.000630172376986593,
+          "d_curvature_mean": 8.658867591293529e-05,
+          "d_curvature_max": 0.0002857185900211334,
+          "endpoint_shift_m": 0.03575634956359863,
+          "traj_ade_m": 0.009156305342912674,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cyclist truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " truck",
+      "sampled_prob": 0.9241434335708618,
+      "entropy": 0.46821457147598267,
+      "alternatives": [
+        {
+          "token": " vehicle",
+          "token_prob": 0.014937386848032475,
+          "d_curvature_mean": 2.9673690733034164e-05,
+          "d_curvature_max": 0.0001607174053788185,
+          "endpoint_shift_m": 0.07460065186023712,
+          "traj_ade_m": 0.022742919623851776,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.013182197697460651,
+          "d_curvature_mean": 0.00012370322656352073,
+          "d_curvature_max": 0.00048215407878160477,
+          "endpoint_shift_m": 0.1597800850868225,
+          "traj_ade_m": 0.0465640164911747,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped work blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " delivery",
+          "token_prob": 0.011633248999714851,
+          "d_curvature_mean": 7.801361789461225e-05,
+          "d_curvature_max": 0.0003794734366238117,
+          "endpoint_shift_m": 0.2156774252653122,
+          "traj_ade_m": 0.07160164415836334,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped delivery blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " service",
+          "token_prob": 0.011275331489741802,
+          "d_curvature_mean": 8.898274245439097e-05,
+          "d_curvature_max": 0.0004174206405878067,
+          "endpoint_shift_m": 0.21106687188148499,
+          "traj_ade_m": 0.07281836122274399,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped service blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.8553293943405151,
+      "entropy": 0.5002254843711853,
+      "alternatives": [
+        {
+          "token": " since",
+          "token_prob": 0.12322188913822174,
+          "d_curvature_mean": 8.733476715860888e-05,
+          "d_curvature_max": 0.0004017958417534828,
+          "endpoint_shift_m": 0.07430882006883621,
+          "traj_ade_m": 0.03489263728260994,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck since the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.012987490743398666,
+          "d_curvature_mean": 7.34123750589788e-05,
+          "d_curvature_max": 0.00028316769748926163,
+          "endpoint_shift_m": 0.07192373275756836,
+          "traj_ade_m": 0.04710514843463898,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck ahead the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0054139913991093636,
+          "d_curvature_mean": 9.78237803792581e-05,
+          "d_curvature_max": 0.0004961853846907616,
+          "endpoint_shift_m": 0.1281597763299942,
+          "traj_ade_m": 0.05381914600729942,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck because the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0015511345118284225,
+          "d_curvature_mean": 3.003580786753446e-05,
+          "d_curvature_max": 0.00017347466200590134,
+          "endpoint_shift_m": 0.01414620690047741,
+          "traj_ade_m": 0.011251627467572689,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck in the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.955165445804596,
+      "entropy": 0.30716460943222046,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.01592889241874218,
+          "d_curvature_mean": 1.3797256542602554e-05,
+          "d_curvature_max": 4.0815677493810654e-05,
+          "endpoint_shift_m": 0.038246508687734604,
+          "traj_ade_m": 0.009854246862232685,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking our right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 0.009076009504497051,
+          "d_curvature_mean": 0.0002037987724179402,
+          "d_curvature_max": 0.0008482327684760094,
+          "endpoint_shift_m": 0.2998116612434387,
+          "traj_ade_m": 0.1087881326675415,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking part right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.008009551092982292,
+          "d_curvature_mean": 3.90266977774445e-05,
+          "d_curvature_max": 0.00013265665620565414,
+          "endpoint_shift_m": 0.08135921508073807,
+          "traj_ade_m": 0.029026644304394722,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking a right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0023676184937357903,
+          "d_curvature_mean": 4.139181328355335e-05,
+          "d_curvature_max": 0.0002012168988585472,
+          "endpoint_shift_m": 0.08181430399417877,
+          "traj_ade_m": 0.020312905311584473,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking it right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " right",
+      "sampled_prob": 0.9824114441871643,
+      "entropy": 0.09309419989585876,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.01690332219004631,
+          "d_curvature_mean": 5.3712086810264736e-05,
+          "d_curvature_max": 0.00016327016055583954,
+          "endpoint_shift_m": 0.1281479448080063,
+          "traj_ade_m": 0.030770188197493553,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the lane side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.00026481077657081187,
+          "d_curvature_mean": 3.203253436367959e-05,
+          "d_curvature_max": 0.00015306659042835236,
+          "endpoint_shift_m": 0.06438238173723221,
+          "traj_ade_m": 0.01812700182199478,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the ego side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 0.00021953583927825093,
+          "d_curvature_mean": 1.8398353859083727e-05,
+          "d_curvature_max": 0.00011511752381920815,
+          "endpoint_shift_m": 0.14315994083881378,
+          "traj_ade_m": 0.04912704601883888,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the same side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curb",
+          "token_prob": 2.9710943636018783e-05,
+          "d_curvature_mean": 3.836052565020509e-05,
+          "d_curvature_max": 0.0001664571464061737,
+          "endpoint_shift_m": 0.0267631858587265,
+          "traj_ade_m": 0.004979741759598255,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the curb side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " side",
+      "sampled_prob": 0.4805032014846802,
+      "entropy": 0.7626145482063293,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.5114930272102356,
+          "d_curvature_mean": 5.423850961960852e-05,
+          "d_curvature_max": 0.0001237671822309494,
+          "endpoint_shift_m": 0.0966474711894989,
+          "traj_ade_m": 0.044627994298934937,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right lane of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " edge",
+          "token_prob": 0.002090355148538947,
+          "d_curvature_mean": 1.014648842101451e-05,
+          "d_curvature_max": 4.942668601870537e-05,
+          "endpoint_shift_m": 0.0680539608001709,
+          "traj_ade_m": 0.018942341208457947,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "most",
+          "token_prob": 0.0013924764934927225,
+          "d_curvature_mean": 1.840746153902728e-05,
+          "d_curvature_max": 6.632786244153976e-05,
+          "endpoint_shift_m": 0.031143857166171074,
+          "traj_ade_m": 0.013342740014195442,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the rightmost of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " of",
+          "token_prob": 0.000598896702285856,
+          "d_curvature_mean": 1.2661512300837785e-05,
+          "d_curvature_max": 6.122700870037079e-05,
+          "endpoint_shift_m": 0.03154584392905235,
+          "traj_ade_m": 0.020737404003739357,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right of of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " of",
+      "sampled_prob": 0.9734306931495667,
+      "entropy": 0.14964401721954346,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.017829004675149918,
+          "d_curvature_mean": 1.7316306184511632e-05,
+          "d_curvature_max": 5.1019247621297836e-05,
+          "endpoint_shift_m": 0.04669998958706856,
+          "traj_ade_m": 0.01823902502655983,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side ahead our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0051080952398478985,
+          "d_curvature_mean": 8.030571189010516e-05,
+          "d_curvature_max": 0.00029592588543891907,
+          "endpoint_shift_m": 0.25196802616119385,
+          "traj_ade_m": 0.06694403290748596,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.002910505048930645,
+          "d_curvature_mean": 8.104620792437345e-05,
+          "d_curvature_max": 0.00045090261846780777,
+          "endpoint_shift_m": 0.20583288371562958,
+          "traj_ade_m": 0.05304801091551781,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side since our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.00012013088417006657,
+          "d_curvature_mean": 6.147887324914336e-05,
+          "d_curvature_max": 0.0002755178138613701,
+          "endpoint_shift_m": 0.16901887953281403,
+          "traj_ade_m": 0.07098343968391418,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side lane our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998496770858765,
+      "entropy": 0.0014878183137625456,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00014883825497236103,
+          "d_curvature_mean": 6.080368621041998e-05,
+          "d_curvature_max": 0.00026531144976615906,
+          "endpoint_shift_m": 0.07462416589260101,
+          "traj_ade_m": 0.02833039127290249,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.450183155313425e-07,
+          "d_curvature_mean": 5.9613499615807086e-05,
+          "d_curvature_max": 0.0002653123810887337,
+          "endpoint_shift_m": 0.1191105768084526,
+          "traj_ade_m": 0.05501119792461395,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of lane lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 1.914000193892207e-07,
+          "d_curvature_mean": 3.5082946851616725e-05,
+          "d_curvature_max": 0.00012244842946529388,
+          "endpoint_shift_m": 0.036382898688316345,
+          "traj_ade_m": 0.009892537258565426,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 1.4447631713210285e-07,
+          "d_curvature_mean": 5.3673673392040655e-05,
+          "d_curvature_max": 0.00023469794541597366,
+          "endpoint_shift_m": 0.0369209460914135,
+          "traj_ade_m": 0.017069287598133087,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of it lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9997846484184265,
+      "entropy": 0.0027558845467865467,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.0001123417096096091,
+          "d_curvature_mean": 1.392199283145601e-05,
+          "d_curvature_max": 7.940176874399185e-05,
+          "endpoint_shift_m": 0.019486060366034508,
+          "traj_ade_m": 0.0054315198212862015,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 1.0127911082236096e-05,
+          "d_curvature_mean": 8.11667850939557e-05,
+          "d_curvature_max": 0.00044580036774277687,
+          "endpoint_shift_m": 0.2453581839799881,
+          "traj_ade_m": 0.1053183376789093,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of our right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 5.092634182801703e-06,
+          "d_curvature_mean": 6.389179907273501e-05,
+          "d_curvature_max": 0.0003252662718296051,
+          "endpoint_shift_m": 0.1129416823387146,
+          "traj_ade_m": 0.033074118196964264,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of our current"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approach",
+          "token_prob": 4.028605417261133e-06,
+          "d_curvature_mean": 4.270267891115509e-05,
+          "d_curvature_max": 0.0001926058903336525,
+          "endpoint_shift_m": 0.11529050022363663,
+          "traj_ade_m": 0.04725414142012596,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped truck blocking the right side of our approach"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.1257891058921814,
+      "entropy": 1.5255076885223389,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.5637476444244385,
+          "d_curvature_mean": 0.00010364026093157008,
+          "d_curvature_max": 0.00037756096571683884,
+          "endpoint_shift_m": 0.12399011105298996,
+          "traj_ade_m": 0.08427833765745163,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the stopped truck blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.08645350486040115,
+          "d_curvature_mean": 0.0028069240506738424,
+          "d_curvature_max": 0.01199644710868597,
+          "endpoint_shift_m": 4.057284355163574,
+          "traj_ade_m": 1.6383872032165527,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the right lane and a red traffic light ahead, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.06733005493879318,
+          "d_curvature_mean": 0.00019627815345302224,
+          "d_curvature_max": 0.0011441591195762157,
+          "endpoint_shift_m": 0.3720525801181793,
+          "traj_ade_m": 0.1268359273672104,
+          "forced_cot": {
+            "cot": [
+              "Slow down to keep distance to the stopped truck blocking the right lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.05759044736623764,
+          "d_curvature_mean": 0.00020790455164387822,
+          "d_curvature_max": 0.0009285937994718552,
+          "endpoint_shift_m": 0.9603705406188965,
+          "traj_ade_m": 0.2457885444164276,
+          "forced_cot": {
+            "cot": [
+              "Decelerate to maintain a safe distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9930917024612427,
+      "entropy": 0.044854190200567245,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.005905138794332743,
+          "d_curvature_mean": 0.0002210484817624092,
+          "d_curvature_max": 0.0010140519589185715,
+          "endpoint_shift_m": 0.34420526027679443,
+          "traj_ade_m": 0.11825016140937805,
+          "forced_cot": {
+            "cot": [
+              "Lane lane to the left to bypass the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0008507159654982388,
+          "d_curvature_mean": 0.0014750511618331075,
+          "d_curvature_max": 0.006663419306278229,
+          "endpoint_shift_m": 3.4933907985687256,
+          "traj_ade_m": 1.1632496118545532,
+          "forced_cot": {
+            "cot": [
+              "Lane at reduced speed to pass a stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00010160353122046217,
+          "d_curvature_mean": 0.0012471475638449192,
+          "d_curvature_max": 0.005556249525398016,
+          "endpoint_shift_m": 2.58038592338562,
+          "traj_ade_m": 0.9235873818397522,
+          "forced_cot": {
+            "cot": [
+              "Lane speed adaptation due to stopped trucks blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 8.604869435657747e-06,
+          "d_curvature_mean": 0.00028777698753401637,
+          "d_curvature_max": 0.0010752789676189423,
+          "endpoint_shift_m": 0.36974942684173584,
+          "traj_ade_m": 0.13410259783267975,
+          "forced_cot": {
+            "cot": [
+              "Lane left to bypass the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.996896505355835,
+      "entropy": 0.022782165557146072,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0028000774327665567,
+          "d_curvature_mean": 0.0021151890978217125,
+          "d_curvature_max": 0.006191787775605917,
+          "endpoint_shift_m": 3.89034366607666,
+          "traj_ade_m": 1.8168528079986572,
+          "forced_cot": {
+            "cot": [
+              "Lane change from the left due to a stopped truck blocking the right lane, then merge back right after clearing it, because remaining in the right lane would lead to a blockage and the left lane is available for a safe pass; decelerate slightly for a controlled merge, then accelerate after completing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 9.286550630349666e-05,
+          "d_curvature_mean": 0.00026118551613762975,
+          "d_curvature_max": 0.001183697022497654,
+          "endpoint_shift_m": 0.4274209439754486,
+          "traj_ade_m": 0.15916745364665985,
+          "forced_cot": {
+            "cot": [
+              "Lane change since the right lane is blocked by a stopped truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 5.291316847433336e-05,
+          "d_curvature_mean": 0.0070726326666772366,
+          "d_curvature_max": 0.020525023341178894,
+          "endpoint_shift_m": 7.513015270233154,
+          "traj_ade_m": 3.039534091949463,
+          "forced_cot": {
+            "cot": [
+              "Lane change for a left due to a stopped truck blocking the right lane, then merge back right after clearing it, because remaining in the right lane would lead to a blockage and the left lane is available for passing; after merging, reduce speed for the signal-controlled intersection and lead vehicles ahead, including a bus in our lane, to maintain a safe following gap."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.251692371326499e-05,
+          "d_curvature_mean": 0.0008079867693595588,
+          "d_curvature_max": 0.003897649236023426,
+          "endpoint_shift_m": 1.9690133333206177,
+          "traj_ade_m": 0.737315833568573,
+          "forced_cot": {
+            "cot": [
+              "Lane change due to a stopped truck blocking the right lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995026588439941,
+      "entropy": 0.00577265489846468,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.00029589750920422375,
+          "d_curvature_mean": 0.0005860002129338682,
+          "d_curvature_max": 0.002666833810508251,
+          "endpoint_shift_m": 0.5520905256271362,
+          "traj_ade_m": 0.2275802046060562,
+          "forced_cot": {
+            "cot": [
+              "Lane change to our left due to a stopped truck blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 1.4278616617957596e-05,
+          "d_curvature_mean": 9.236257756128907e-05,
+          "d_curvature_max": 0.0003507724031805992,
+          "endpoint_shift_m": 0.11909227073192596,
+          "traj_ade_m": 0.07855653762817383,
+          "forced_cot": {
+            "cot": [
+              "Lane change to follow the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 1.3413519809546415e-05,
+          "d_curvature_mean": 0.0013913764851167798,
+          "d_curvature_max": 0.006449128035455942,
+          "endpoint_shift_m": 3.240954875946045,
+          "traj_ade_m": 1.0752007961273193,
+          "forced_cot": {
+            "cot": [
+              "Lane change to maintain speed past a stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 1.0446458873047959e-05,
+          "d_curvature_mean": 0.002282575471326709,
+          "d_curvature_max": 0.006709335371851921,
+          "endpoint_shift_m": 3.3880679607391357,
+          "traj_ade_m": 1.8079487085342407,
+          "forced_cot": {
+            "cot": [
+              "Lane change to it left due to a stopped truck blocking the right lane, then merge back right after clearing it, because remaining in the right lane would lead to a blockage and the left lane is available for passing; decelerate slightly for a safe merge after merging left, keeping clear of the stopped truck with cones, then continue through as conditions allow by proceeding under green signals after completing it by changing lanes."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.231478750705719,
+      "entropy": 0.6181989312171936,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.7589896321296692,
+          "d_curvature_mean": 0.0002807625278364867,
+          "d_curvature_max": 0.001071454957127571,
+          "endpoint_shift_m": 0.641169011592865,
+          "traj_ade_m": 0.17662420868873596,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the lead bus since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bus",
+          "token_prob": 0.0035148197785019875,
+          "d_curvature_mean": 0.00019218916713725775,
+          "d_curvature_max": 0.0006530769169330597,
+          "endpoint_shift_m": 0.09946941584348679,
+          "traj_ade_m": 0.035318464040756226,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the bus lane to avoid the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cut",
+          "token_prob": 0.0024156977888196707,
+          "d_curvature_mean": 0.0003130438271909952,
+          "d_curvature_max": 0.0018345452845096588,
+          "endpoint_shift_m": 1.209451675415039,
+          "traj_ade_m": 0.4778936803340912,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the cut-in vehicle from the right since it is entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.000630172376986593,
+          "d_curvature_mean": 0.00010954261961160228,
+          "d_curvature_max": 0.00046429596841335297,
+          "endpoint_shift_m": 0.05449523776769638,
+          "traj_ade_m": 0.021446384489536285,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the cyclist to bypass the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " truck",
+      "sampled_prob": 0.9241434335708618,
+      "entropy": 0.46821457147598267,
+      "alternatives": [
+        {
+          "token": " vehicle",
+          "token_prob": 0.014937386848032475,
+          "d_curvature_mean": 0.00013010216935072094,
+          "d_curvature_max": 0.0005000121891498566,
+          "endpoint_shift_m": 0.4568882882595062,
+          "traj_ade_m": 0.16932740807533264,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left vehicle since a stopped truck blocks the right lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.013182197697460651,
+          "d_curvature_mean": 0.00018789421301335096,
+          "d_curvature_max": 0.0007551182061433792,
+          "endpoint_shift_m": 0.475469172000885,
+          "traj_ade_m": 0.20630000531673431,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left work zone to bypass the stopped truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " delivery",
+          "token_prob": 0.011633248999714851,
+          "d_curvature_mean": 0.00030617762240581214,
+          "d_curvature_max": 0.0013061519712209702,
+          "endpoint_shift_m": 0.1441713124513626,
+          "traj_ade_m": 0.0578484982252121,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left delivery truck blocking the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " service",
+          "token_prob": 0.011275331489741802,
+          "d_curvature_mean": 0.010031874291598797,
+          "d_curvature_max": 0.02976503036916256,
+          "endpoint_shift_m": 9.34348201751709,
+          "traj_ade_m": 3.686680793762207,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left service road to bypass the stopped truck blocking the right lane, then slow for the red traffic signal ahead, since the right side is blocked by a work zone with a person standing nearby and left-lane traffic (bus) is slowing for the light, so merging left is required for a safe, continuous path."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.8553293943405151,
+      "entropy": 0.5002254843711853,
+      "alternatives": [
+        {
+          "token": " since",
+          "token_prob": 0.12322188913822174,
+          "d_curvature_mean": 0.00032694562105461955,
+          "d_curvature_max": 0.0013469681143760681,
+          "endpoint_shift_m": 0.3854302763938904,
+          "traj_ade_m": 0.1391470730304718,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due since the right lane is blocked by a stopped truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.012987490743398666,
+          "d_curvature_mean": 0.005641932599246502,
+          "d_curvature_max": 0.021004626527428627,
+          "endpoint_shift_m": 6.64741849899292,
+          "traj_ade_m": 2.53357195854187,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due ahead being obstructed by stopped trucks and a person with cones blocking the right side, then slow for the signalized intersection and lead bus ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0054139913991093636,
+          "d_curvature_mean": 0.006364759989082813,
+          "d_curvature_max": 0.021540353074669838,
+          "endpoint_shift_m": 6.729738235473633,
+          "traj_ade_m": 2.567002296447754,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due because a stopped truck is blocking the right lane ahead, then slow for the red traffic signal behind the lead bus after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0015511345118284225,
+          "d_curvature_mean": 0.007248658686876297,
+          "d_curvature_max": 0.0231628380715847,
+          "endpoint_shift_m": 7.092750549316406,
+          "traj_ade_m": 2.740553617477417,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due in the right lane being partially blocked by a stopped truck and cones, then slow for the red traffic light ahead and maintain a safe gap to the lead bus after merging left."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.955165445804596,
+      "entropy": 0.30716460943222046,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.01592889241874218,
+          "d_curvature_mean": 0.0025888043455779552,
+          "d_curvature_max": 0.012389631941914558,
+          "endpoint_shift_m": 4.746450901031494,
+          "traj_ade_m": 1.922436237335205,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to our right lane being blocked by a stopped truck with cones and a person standing beside it, then merge back right after clearing it while decelerating for traffic ahead and the signalized intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " part",
+          "token_prob": 0.009076009504497051,
+          "d_curvature_mean": 0.0006175276939757168,
+          "d_curvature_max": 0.0020267521031200886,
+          "endpoint_shift_m": 2.2740068435668945,
+          "traj_ade_m": 1.2735798358917236,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to part of the right lane being blocked by a stopped truck and cones, then merge back right after clearing it; slow slightly for a safe merge after the pass, then accelerate once established in the right lane with the green signal ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.008009551092982292,
+          "d_curvature_mean": 0.0028069240506738424,
+          "d_curvature_max": 0.01199644710868597,
+          "endpoint_shift_m": 4.057284355163574,
+          "traj_ade_m": 1.6383872032165527,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the right lane and a red traffic light ahead, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0023676184937357903,
+          "d_curvature_mean": 0.006946365814656019,
+          "d_curvature_max": 0.022601604461669922,
+          "endpoint_shift_m": 7.136737823486328,
+          "traj_ade_m": 2.756519317626953,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to it being a bus-only lane with a stopped truck blocking it, then merge into the through lane and slow for the red signal ahead and following traffic."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " right",
+      "sampled_prob": 0.9824114441871643,
+      "entropy": 0.09309419989585876,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.01690332219004631,
+          "d_curvature_mean": 0.0003847754851449281,
+          "d_curvature_max": 0.0015714652836322784,
+          "endpoint_shift_m": 0.03753737732768059,
+          "traj_ade_m": 0.015668636187911034,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a lane blockage by a stopped truck ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.00026481077657081187,
+          "d_curvature_mean": 0.0030537438578903675,
+          "d_curvature_max": 0.014912648126482964,
+          "endpoint_shift_m": 4.7107672691345215,
+          "traj_ade_m": 1.7491346597671509,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a ego-lane obstruction ahead from a stopped truck and cones, then merge back right after clearing it, then slow for the red signal."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 0.00021953583927825093,
+          "d_curvature_mean": 0.006291905418038368,
+          "d_curvature_max": 0.02313222549855709,
+          "endpoint_shift_m": 6.728413105010986,
+          "traj_ade_m": 2.497140645980835,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a same-lane truck blocking the right side, then slow to merge behind the bus for the red signal ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curb",
+          "token_prob": 2.9710943636018783e-05,
+          "d_curvature_mean": 0.006363221909850836,
+          "d_curvature_max": 0.020596453920006752,
+          "endpoint_shift_m": 6.4520182609558105,
+          "traj_ade_m": 2.5174121856689453,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a curb-lane truck blocking the right side of our lane and to align with the through traffic, then slow for the red signal and lead bus ahead; later merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " side",
+      "sampled_prob": 0.4805032014846802,
+      "entropy": 0.7626145482063293,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.5114930272102356,
+          "d_curvature_mean": 0.006934144999831915,
+          "d_curvature_max": 0.020907683297991753,
+          "endpoint_shift_m": 7.8274712562561035,
+          "traj_ade_m": 3.1804702281951904,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped lane blocking the right side, then merge back right after clearing it, because a stationary truck with cones narrows/obstructs our lane ahead and we need to maintain safe flow with traffic in our surroundings, including the bus in our lane and vehicles approaching from behind; then slow for the red signal ahead after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " edge",
+          "token_prob": 0.002090355148538947,
+          "d_curvature_mean": 0.0015285923145711422,
+          "d_curvature_max": 0.007224975619465113,
+          "endpoint_shift_m": 2.8225691318511963,
+          "traj_ade_m": 1.2092206478118896,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped edge vehicle blocking the right lane, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "most",
+          "token_prob": 0.0013924764934927225,
+          "d_curvature_mean": 0.005427350755780935,
+          "d_curvature_max": 0.01992807164788246,
+          "endpoint_shift_m": 6.104127883911133,
+          "traj_ade_m": 2.2777156829833984,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stoppedmost-lane truck blocking the right side, then merge into the center lane and slow for the red traffic light behind the bus."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " of",
+          "token_prob": 0.000598896702285856,
+          "d_curvature_mean": 0.006581651046872139,
+          "d_curvature_max": 0.022030161693692207,
+          "endpoint_shift_m": 6.697004795074463,
+          "traj_ade_m": 2.546546459197998,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped of a truck blocking the right lane, then slow for the red traffic light ahead and merge behind the bus after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " of",
+      "sampled_prob": 0.9734306931495667,
+      "entropy": 0.14964401721954346,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.017829004675149918,
+          "d_curvature_mean": 0.001648114644922316,
+          "d_curvature_max": 0.0075655425898730755,
+          "endpoint_shift_m": 2.9203038215637207,
+          "traj_ade_m": 1.249220371246338,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck ahead blocking the right lane, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0051080952398478985,
+          "d_curvature_mean": 0.0007452042191289365,
+          "d_curvature_max": 0.003413342870771885,
+          "endpoint_shift_m": 0.8816546201705933,
+          "traj_ade_m": 0.36461111903190613,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.002910505048930645,
+          "d_curvature_mean": 0.0003948890953324735,
+          "d_curvature_max": 0.0016837110742926598,
+          "endpoint_shift_m": 0.0603310689330101,
+          "traj_ade_m": 0.022870074957609177,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck since the right lane is blocked ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.00012013088417006657,
+          "d_curvature_mean": 0.006506981328129768,
+          "d_curvature_max": 0.022081179544329643,
+          "endpoint_shift_m": 6.615751266479492,
+          "traj_ade_m": 2.5040040016174316,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck lane blocking the right side of our lane and to merge into a safe gap behind the bus, then slow for the red signal ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998496770858765,
+      "entropy": 0.0014878183137625456,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00014883825497236103,
+          "d_curvature_mean": 0.0028069240506738424,
+          "d_curvature_max": 0.01199644710868597,
+          "endpoint_shift_m": 4.057284355163574,
+          "traj_ade_m": 1.6383872032165527,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the right lane and a red traffic light ahead, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.450183155313425e-07,
+          "d_curvature_mean": 0.0006794335786253214,
+          "d_curvature_max": 0.003046625293791294,
+          "endpoint_shift_m": 0.7490144968032837,
+          "traj_ade_m": 0.32702648639678955,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 1.914000193892207e-07,
+          "d_curvature_mean": 0.00045278744073584676,
+          "d_curvature_max": 0.0020000478252768517,
+          "endpoint_shift_m": 0.2628365457057953,
+          "traj_ade_m": 0.13618840277194977,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking your lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 1.4447631713210285e-07,
+          "d_curvature_mean": 0.008238439448177814,
+          "d_curvature_max": 0.02513227052986622,
+          "endpoint_shift_m": 9.533076286315918,
+          "traj_ade_m": 3.7661728858947754,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking it lane ahead, then merge back right after clearing it, because remaining in our lane would be obstructed while a safe gap exists in the left through-lane; after merging, slow for the red signal and lead bus ahead, and give space to a person standing beside a stopped van further ahead, which requires additional deceleration after merging left."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9997846484184265,
+      "entropy": 0.0027558845467865467,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.0001123417096096091,
+          "d_curvature_mean": 0.0028925063088536263,
+          "d_curvature_max": 0.01128182653337717,
+          "endpoint_shift_m": 2.7381348609924316,
+          "traj_ade_m": 0.987830400466919,
+          "forced_cot": {
+            "cot": [
+              ""
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3503><i3496><i3613><i3500><i3500><i3614><i3500><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3613><i3499><i3500><i3612><i3499><i3500><i3612><i3499><i3499><i3612><i3499><i3500><i3612><i3499><i3500><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Lane change to the left due to a stopped truck blocking the path ahead in our lane, then merge into the center through lane and slow for the red traffic light while maintaining separation from the bus lane users on the left and the roadside worker with cones on the right, preparing for a subsequent right-lane merge after clearing the obstruction;"
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 1.0127911082236096e-05,
+          "d_curvature_mean": 0.0028069240506738424,
+          "d_curvature_max": 0.01199644710868597,
+          "endpoint_shift_m": 4.057284355163574,
+          "traj_ade_m": 1.6383872032165527,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the right lane and a red traffic light ahead, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 5.092634182801703e-06,
+          "d_curvature_mean": 0.00157790572848171,
+          "d_curvature_max": 0.007311710622161627,
+          "endpoint_shift_m": 2.9207892417907715,
+          "traj_ade_m": 1.2460393905639648,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the current right lane, then merge back right after clearing it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approach",
+          "token_prob": 4.028605417261133e-06,
+          "d_curvature_mean": 0.006279302295297384,
+          "d_curvature_max": 0.02021889202296734,
+          "endpoint_shift_m": 6.38308048248291,
+          "traj_ade_m": 2.4671571254730225,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to a stopped truck blocking the approach lane ahead, then merge into the through lane and slow for the signal-controlled intersection and bus-lane restriction."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

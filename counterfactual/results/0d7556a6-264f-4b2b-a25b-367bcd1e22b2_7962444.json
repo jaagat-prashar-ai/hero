@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Yield to the oncoming motorcycle since it is occupying our lane ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 0.7176745756973446,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Y",
+        "sampled_prob": 0.724595844745636,
+        "entropy": 0.9340898990631104,
+        "top_k": [
+          {
+            "text": "Y",
+            "prob": 0.724595844745636
+          },
+          {
+            "text": "N",
+            "prob": 0.11828702688217163
+          },
+          {
+            "text": "Keep",
+            "prob": 0.11112038046121597
+          },
+          {
+            "text": "Slow",
+            "prob": 0.034965574741363525
+          },
+          {
+            "text": "Maint",
+            "prob": 0.0028701492119580507
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "ield",
+        "sampled_prob": 1.0,
+        "entropy": 1.858790824371681e-06,
+        "top_k": [
+          {
+            "text": "ield",
+            "prob": 1.0
+          },
+          {
+            "text": "ain",
+            "prob": 2.061153470123145e-09
+          },
+          {
+            "text": "apt",
+            "prob": 1.5558403454463132e-09
+          },
+          {
+            "text": " to",
+            "prob": 1.004526017922558e-09
+          },
+          {
+            "text": "ate",
+            "prob": 5.547519665860534e-10
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.4290215075016022,
+        "entropy": 0.8010110259056091,
+        "top_k": [
+          {
+            "text": " due",
+            "prob": 0.5508745312690735
+          },
+          {
+            "text": " to",
+            "prob": 0.4290215075016022
+          },
+          {
+            "text": " by",
+            "prob": 0.008904057554900646
+          },
+          {
+            "text": " at",
+            "prob": 0.0057488917373120785
+          },
+          {
+            "text": " because",
+            "prob": 0.0032756193540990353
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9742987751960754,
+        "entropy": 0.2023409903049469,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9742987751960754
+          },
+          {
+            "text": " an",
+            "prob": 0.00656477315351367
+          },
+          {
+            "text": " on",
+            "prob": 0.0036254122387617826
+          },
+          {
+            "text": " pedestrians",
+            "prob": 0.0035138700623065233
+          },
+          {
+            "text": " a",
+            "prob": 0.0030055723618716
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " on",
+        "sampled_prob": 0.6127496957778931,
+        "entropy": 1.7314727306365967,
+        "top_k": [
+          {
+            "text": " on",
+            "prob": 0.6127496957778931
+          },
+          {
+            "text": " lead",
+            "prob": 0.1000286415219307
+          },
+          {
+            "text": " motorcycle",
+            "prob": 0.07318251579999924
+          },
+          {
+            "text": " slow",
+            "prob": 0.05699460208415985
+          },
+          {
+            "text": " motor",
+            "prob": 0.044387441128492355
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": "coming",
+        "sampled_prob": 0.9999821186065674,
+        "entropy": 0.0003843190206680447,
+        "top_k": [
+          {
+            "text": "coming",
+            "prob": 0.9999821186065674
+          },
+          {
+            "text": "-road",
+            "prob": 5.539076255445252e-07
+          },
+          {
+            "text": "pass",
+            "prob": 3.1560705338051775e-07
+          },
+          {
+            "text": "cycl",
+            "prob": 2.873634628031141e-07
+          },
+          {
+            "text": "-of",
+            "prob": 1.914253715540326e-07
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " motorcycle",
+        "sampled_prob": 0.8604528903961182,
+        "entropy": 0.5304492115974426,
+        "top_k": [
+          {
+            "text": " motorcycle",
+            "prob": 0.8604528903961182
+          },
+          {
+            "text": " scooter",
+            "prob": 0.11644963920116425
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.009264676831662655
+          },
+          {
+            "text": " motor",
+            "prob": 0.0065696388483047485
+          },
+          {
+            "text": " car",
+            "prob": 0.0016099592903628945
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " since",
+        "sampled_prob": 0.5159074664115906,
+        "entropy": 1.5224653482437134,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.5159074664115906
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.25941455364227295
+          },
+          {
+            "text": " in",
+            "prob": 0.06357227265834808
+          },
+          {
+            "text": " ahead",
+            "prob": 0.03298085927963257
+          },
+          {
+            "text": " blocking",
+            "prob": 0.03196614235639572
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " it",
+        "sampled_prob": 0.980083703994751,
+        "entropy": 0.1113668829202652,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.980083703994751
+          },
+          {
+            "text": " the",
+            "prob": 0.017950858920812607
+          },
+          {
+            "text": " our",
+            "prob": 0.0004935594042763114
+          },
+          {
+            "text": " they",
+            "prob": 0.00024054167442955077
+          },
+          {
+            "text": " a",
+            "prob": 0.0002057461824733764
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " is",
+        "sampled_prob": 0.8246630430221558,
+        "entropy": 0.839154064655304,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.8246630430221558
+          },
+          {
+            "text": " occupies",
+            "prob": 0.12646618485450745
+          },
+          {
+            "text": " approaching",
+            "prob": 0.005732919555157423
+          },
+          {
+            "text": " approaches",
+            "prob": 0.005219882354140282
+          },
+          {
+            "text": " has",
+            "prob": 0.0027940019499510527
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " occupying",
+        "sampled_prob": 0.3826766014099121,
+        "entropy": 1.4158222675323486,
+        "top_k": [
+          {
+            "text": " approaching",
+            "prob": 0.4615961015224457
+          },
+          {
+            "text": " occupying",
+            "prob": 0.3826766014099121
+          },
+          {
+            "text": " entering",
+            "prob": 0.06247023865580559
+          },
+          {
+            "text": " coming",
+            "prob": 0.01789802312850952
+          },
+          {
+            "text": " blocking",
+            "prob": 0.017347360029816628
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " our",
+        "sampled_prob": 0.9946562051773071,
+        "entropy": 0.03457513451576233,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9946562051773071
+          },
+          {
+            "text": " the",
+            "prob": 0.005219476763159037
+          },
+          {
+            "text": " and",
+            "prob": 2.2007921870681457e-05
+          },
+          {
+            "text": " a",
+            "prob": 1.3772204511042219e-05
+          },
+          {
+            "text": " one",
+            "prob": 7.605734026583377e-06
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " lane",
+        "sampled_prob": 0.5722312331199646,
+        "entropy": 1.1775678396224976,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.5722312331199646
+          },
+          {
+            "text": " narrow",
+            "prob": 0.2703029215335846
+          },
+          {
+            "text": " path",
+            "prob": 0.12768206000328064
+          },
+          {
+            "text": " single",
+            "prob": 0.011156734079122543
+          },
+          {
+            "text": " position",
+            "prob": 0.0011759110493585467
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " ahead",
+        "sampled_prob": 0.755046546459198,
+        "entropy": 0.7467424869537354,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.755046546459198
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.2032180279493332
+          },
+          {
+            "text": " in",
+            "prob": 0.02280043065547943
+          },
+          {
+            "text": " on",
+            "prob": 0.00653243251144886
+          },
+          {
+            "text": ".",
+            "prob": 0.0037220679223537445
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.724595844745636,
+      "entropy": 0.9340898990631104,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.11828702688217163,
+          "d_curvature_mean": 6.702730024699122e-05,
+          "d_curvature_max": 0.00017857365310192108,
+          "endpoint_shift_m": 0.20400288701057434,
+          "traj_ade_m": 0.08389931917190552,
+          "forced_cot": {
+            "cot": [
+              "Nield to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.11112038046121597,
+          "d_curvature_mean": 3.955761712859385e-05,
+          "d_curvature_max": 0.00011957995593547821,
+          "endpoint_shift_m": 0.04802720993757248,
+          "traj_ade_m": 0.026498422026634216,
+          "forced_cot": {
+            "cot": [
+              "Keepield to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.034965574741363525,
+          "d_curvature_mean": 5.946454621152952e-05,
+          "d_curvature_max": 0.0001450902782380581,
+          "endpoint_shift_m": 0.17309264838695526,
+          "traj_ade_m": 0.06636195629835129,
+          "forced_cot": {
+            "cot": [
+              "Slowield to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.0028701492119580507,
+          "d_curvature_mean": 4.103879473404959e-05,
+          "d_curvature_max": 0.0001250011846423149,
+          "endpoint_shift_m": 0.12011449784040451,
+          "traj_ade_m": 0.06759992986917496,
+          "forced_cot": {
+            "cot": [
+              "Maintield to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 1.858790824371681e-06,
+      "alternatives": [
+        {
+          "token": "ain",
+          "token_prob": 2.061153470123145e-09,
+          "d_curvature_mean": 0.00012761502875946462,
+          "d_curvature_max": 0.00034694327041506767,
+          "endpoint_shift_m": 0.8510866761207581,
+          "traj_ade_m": 0.38950854539871216,
+          "forced_cot": {
+            "cot": [
+              "Yain to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.5558403454463132e-09,
+          "d_curvature_mean": 3.696399289765395e-05,
+          "d_curvature_max": 0.00012181419879198074,
+          "endpoint_shift_m": 0.034442320466041565,
+          "traj_ade_m": 0.01677727699279785,
+          "forced_cot": {
+            "cot": [
+              "Yapt to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.004526017922558e-09,
+          "d_curvature_mean": 3.937595829484053e-05,
+          "d_curvature_max": 0.0001224519219249487,
+          "endpoint_shift_m": 0.3404102921485901,
+          "traj_ade_m": 0.13417626917362213,
+          "forced_cot": {
+            "cot": [
+              "Y to to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 7.99554109107703e-05,
+          "d_curvature_max": 0.00018367520533502102,
+          "endpoint_shift_m": 0.34718388319015503,
+          "traj_ade_m": 0.14716577529907227,
+          "forced_cot": {
+            "cot": [
+              "Yate to the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.4290215075016022,
+      "entropy": 0.8010110259056091,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.5508745312690735,
+          "d_curvature_mean": 9.986576333176345e-05,
+          "d_curvature_max": 0.00031633442267775536,
+          "endpoint_shift_m": 0.5728529691696167,
+          "traj_ade_m": 0.26090267300605774,
+          "forced_cot": {
+            "cot": [
+              "Yield due the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " by",
+          "token_prob": 0.008904057554900646,
+          "d_curvature_mean": 7.775062840664759e-05,
+          "d_curvature_max": 0.0002040867693722248,
+          "endpoint_shift_m": 0.1394578069448471,
+          "traj_ade_m": 0.09337891638278961,
+          "forced_cot": {
+            "cot": [
+              "Yield by the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0057488917373120785,
+          "d_curvature_mean": 7.474797166651115e-05,
+          "d_curvature_max": 0.00024489942006766796,
+          "endpoint_shift_m": 0.5734954476356506,
+          "traj_ade_m": 0.24700066447257996,
+          "forced_cot": {
+            "cot": [
+              "Yield at the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0032756193540990353,
+          "d_curvature_mean": 0.0001536128984298557,
+          "d_curvature_max": 0.0005325376987457275,
+          "endpoint_shift_m": 0.6925941705703735,
+          "traj_ade_m": 0.2950519919395447,
+          "forced_cot": {
+            "cot": [
+              "Yield because the oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9742987751960754,
+      "entropy": 0.2023409903049469,
+      "alternatives": [
+        {
+          "token": " an",
+          "token_prob": 0.00656477315351367,
+          "d_curvature_mean": 0.00010823341290233657,
+          "d_curvature_max": 0.00033674342557787895,
+          "endpoint_shift_m": 0.6014593839645386,
+          "traj_ade_m": 0.2544589340686798,
+          "forced_cot": {
+            "cot": [
+              "Yield to an oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.0036254122387617826,
+          "d_curvature_mean": 8.881621761247516e-05,
+          "d_curvature_max": 0.0001734732650220394,
+          "endpoint_shift_m": 0.15890836715698242,
+          "traj_ade_m": 0.06563277542591095,
+          "forced_cot": {
+            "cot": [
+              "Yield to on oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrians",
+          "token_prob": 0.0035138700623065233,
+          "d_curvature_mean": 9.393406799063087e-05,
+          "d_curvature_max": 0.00027041323482990265,
+          "endpoint_shift_m": 0.06229814141988754,
+          "traj_ade_m": 0.01846260204911232,
+          "forced_cot": {
+            "cot": [
+              "Yield to pedestrians oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0030055723618716,
+          "d_curvature_mean": 0.00011267943773418665,
+          "d_curvature_max": 0.0003061301540583372,
+          "endpoint_shift_m": 0.6223662495613098,
+          "traj_ade_m": 0.26568445563316345,
+          "forced_cot": {
+            "cot": [
+              "Yield to a oncoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " on",
+      "sampled_prob": 0.6127496957778931,
+      "entropy": 1.7314727306365967,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.1000286415219307,
+          "d_curvature_mean": 3.398609987925738e-05,
+          "d_curvature_max": 0.0001326564233750105,
+          "endpoint_shift_m": 0.09871148318052292,
+          "traj_ade_m": 0.02861257642507553,
+          "forced_cot": {
+            "cot": [
+              "Yield to the leadcoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motorcycle",
+          "token_prob": 0.07318251579999924,
+          "d_curvature_mean": 8.539665577700362e-05,
+          "d_curvature_max": 0.00028572045266628265,
+          "endpoint_shift_m": 0.14591084420681,
+          "traj_ade_m": 0.062151048332452774,
+          "forced_cot": {
+            "cot": [
+              "Yield to the motorcyclecoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.05699460208415985,
+          "d_curvature_mean": 5.864485865458846e-05,
+          "d_curvature_max": 0.00018367823213338852,
+          "endpoint_shift_m": 0.14606675505638123,
+          "traj_ade_m": 0.03619183972477913,
+          "forced_cot": {
+            "cot": [
+              "Yield to the slowcoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.044387441128492355,
+          "d_curvature_mean": 2.5447461666772142e-05,
+          "d_curvature_max": 7.366249337792397e-05,
+          "endpoint_shift_m": 0.005877141375094652,
+          "traj_ade_m": 0.00350542226806283,
+          "forced_cot": {
+            "cot": [
+              "Yield to the motorcoming motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": "coming",
+      "sampled_prob": 0.9999821186065674,
+      "entropy": 0.0003843190206680447,
+      "alternatives": [
+        {
+          "token": "-road",
+          "token_prob": 5.539076255445252e-07,
+          "d_curvature_mean": 0.00013002203195355833,
+          "d_curvature_max": 0.0005134046077728271,
+          "endpoint_shift_m": 0.4064815938472748,
+          "traj_ade_m": 0.1633952111005783,
+          "forced_cot": {
+            "cot": [
+              "Yield to the on-road motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "pass",
+          "token_prob": 3.1560705338051775e-07,
+          "d_curvature_mean": 0.00011282887135166675,
+          "d_curvature_max": 0.0003877650015056133,
+          "endpoint_shift_m": 0.07992803305387497,
+          "traj_ade_m": 0.048520173877477646,
+          "forced_cot": {
+            "cot": [
+              "Yield to the onpass motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "cycl",
+          "token_prob": 2.873634628031141e-07,
+          "d_curvature_mean": 0.00011931826156796888,
+          "d_curvature_max": 0.0004033898003399372,
+          "endpoint_shift_m": 0.4480840265750885,
+          "traj_ade_m": 0.19604995846748352,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncycl motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-of",
+          "token_prob": 1.914253715540326e-07,
+          "d_curvature_mean": 0.00010346389899495989,
+          "d_curvature_max": 0.00032940786331892014,
+          "endpoint_shift_m": 0.13515017926692963,
+          "traj_ade_m": 0.05978119373321533,
+          "forced_cot": {
+            "cot": [
+              "Yield to the on-of motorcycle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " motorcycle",
+      "sampled_prob": 0.8604528903961182,
+      "entropy": 0.5304492115974426,
+      "alternatives": [
+        {
+          "token": " scooter",
+          "token_prob": 0.11644963920116425,
+          "d_curvature_mean": 1.627839810680598e-05,
+          "d_curvature_max": 7.143104448914528e-05,
+          "endpoint_shift_m": 0.09573740512132645,
+          "traj_ade_m": 0.04073218256235123,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming scooter since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.009264676831662655,
+          "d_curvature_mean": 5.2472732932073995e-05,
+          "d_curvature_max": 0.00012245308607816696,
+          "endpoint_shift_m": 0.0158360805362463,
+          "traj_ade_m": 0.007909060455858707,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming vehicle since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.0065696388483047485,
+          "d_curvature_mean": 6.752579065505415e-05,
+          "d_curvature_max": 0.00016327109187841415,
+          "endpoint_shift_m": 0.21477194130420685,
+          "traj_ade_m": 0.10527129471302032,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motor since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.0016099592903628945,
+          "d_curvature_mean": 6.736318027833477e-05,
+          "d_curvature_max": 0.00014286115765571594,
+          "endpoint_shift_m": 0.022278446704149246,
+          "traj_ade_m": 0.006606636568903923,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming car since it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.5159074664115906,
+      "entropy": 1.5224653482437134,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.25941455364227295,
+          "d_curvature_mean": 0.00014906938304193318,
+          "d_curvature_max": 0.00044899038039147854,
+          "endpoint_shift_m": 0.3573680520057678,
+          "traj_ade_m": 0.12637224793434143,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.06357227265834808,
+          "d_curvature_mean": 8.194419206120074e-05,
+          "d_curvature_max": 0.00029337406158447266,
+          "endpoint_shift_m": 0.13187085092067719,
+          "traj_ade_m": 0.08796098828315735,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle in it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.03298085927963257,
+          "d_curvature_mean": 0.0001133581463363953,
+          "d_curvature_max": 0.0003520478494465351,
+          "endpoint_shift_m": 0.3462674021720886,
+          "traj_ade_m": 0.14649346470832825,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle ahead it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.03196614235639572,
+          "d_curvature_mean": 0.00011268465459579602,
+          "d_curvature_max": 0.00024888990446925163,
+          "endpoint_shift_m": 0.10859420895576477,
+          "traj_ade_m": 0.08080670982599258,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle blocking it is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " it",
+      "sampled_prob": 0.980083703994751,
+      "entropy": 0.1113668829202652,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.017950858920812607,
+          "d_curvature_mean": 4.579871165333316e-05,
+          "d_curvature_max": 0.00011224951595067978,
+          "endpoint_shift_m": 0.13933497667312622,
+          "traj_ade_m": 0.05323810130357742,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since the is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0004935594042763114,
+          "d_curvature_mean": 9.694541222415864e-05,
+          "d_curvature_max": 0.00029847631230950356,
+          "endpoint_shift_m": 0.10364389419555664,
+          "traj_ade_m": 0.026202019304037094,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since our is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " they",
+          "token_prob": 0.00024054167442955077,
+          "d_curvature_mean": 3.2455478503834456e-05,
+          "d_curvature_max": 7.143127731978893e-05,
+          "endpoint_shift_m": 0.11128374934196472,
+          "traj_ade_m": 0.05194475129246712,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since they is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0002057461824733764,
+          "d_curvature_mean": 5.024930942454375e-05,
+          "d_curvature_max": 0.0001760241575539112,
+          "endpoint_shift_m": 0.1243288442492485,
+          "traj_ade_m": 0.05478644371032715,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since a is occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " is",
+      "sampled_prob": 0.8246630430221558,
+      "entropy": 0.839154064655304,
+      "alternatives": [
+        {
+          "token": " occupies",
+          "token_prob": 0.12646618485450745,
+          "d_curvature_mean": 3.232577728340402e-05,
+          "d_curvature_max": 0.00010204454883933067,
+          "endpoint_shift_m": 0.046312589198350906,
+          "traj_ade_m": 0.02170722931623459,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it occupies occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaching",
+          "token_prob": 0.005732919555157423,
+          "d_curvature_mean": 7.40474060876295e-05,
+          "d_curvature_max": 0.0002551092766225338,
+          "endpoint_shift_m": 0.11261477321386337,
+          "traj_ade_m": 0.048922084271907806,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it approaching occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaches",
+          "token_prob": 0.005219882354140282,
+          "d_curvature_mean": 4.55027911812067e-05,
+          "d_curvature_max": 0.00017347466200590134,
+          "endpoint_shift_m": 0.037853024899959564,
+          "traj_ade_m": 0.012420007027685642,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it approaches occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.0027940019499510527,
+          "d_curvature_mean": 4.2191204556729645e-05,
+          "d_curvature_max": 0.00013664085417985916,
+          "endpoint_shift_m": 0.077674001455307,
+          "traj_ade_m": 0.0277068130671978,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it has occupying our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " occupying",
+      "sampled_prob": 0.3826766014099121,
+      "entropy": 1.4158222675323486,
+      "alternatives": [
+        {
+          "token": " approaching",
+          "token_prob": 0.4615961015224457,
+          "d_curvature_mean": 3.1727970053907484e-05,
+          "d_curvature_max": 8.163647726178169e-05,
+          "endpoint_shift_m": 0.12413027882575989,
+          "traj_ade_m": 0.05015488713979721,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is approaching our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.06247023865580559,
+          "d_curvature_mean": 2.8468037271522917e-05,
+          "d_curvature_max": 0.000122452387586236,
+          "endpoint_shift_m": 0.14423814415931702,
+          "traj_ade_m": 0.05799931287765503,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " coming",
+          "token_prob": 0.01789802312850952,
+          "d_curvature_mean": 2.5850997189991176e-05,
+          "d_curvature_max": 7.398054003715515e-05,
+          "endpoint_shift_m": 0.12841208279132843,
+          "traj_ade_m": 0.05335744470357895,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is coming our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.017347360029816628,
+          "d_curvature_mean": 4.933865420753136e-05,
+          "d_curvature_max": 0.00010204587306361645,
+          "endpoint_shift_m": 0.18980632722377777,
+          "traj_ade_m": 0.07020879536867142,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9946562051773071,
+      "entropy": 0.03457513451576233,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.005219476763159037,
+          "d_curvature_mean": 2.7160896934219636e-05,
+          "d_curvature_max": 8.163716120179743e-05,
+          "endpoint_shift_m": 0.019715677946805954,
+          "traj_ade_m": 0.007310930173844099,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 2.2007921870681457e-05,
+          "d_curvature_mean": 9.890853834804147e-05,
+          "d_curvature_max": 0.0002162829041481018,
+          "endpoint_shift_m": 0.22611452639102936,
+          "traj_ade_m": 0.08452492952346802,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying and lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 1.3772204511042219e-05,
+          "d_curvature_mean": 5.7451583415968344e-05,
+          "d_curvature_max": 0.0001354464329779148,
+          "endpoint_shift_m": 0.0688667893409729,
+          "traj_ade_m": 0.02291722036898136,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying a lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " one",
+          "token_prob": 7.605734026583377e-06,
+          "d_curvature_mean": 5.9981677622999996e-05,
+          "d_curvature_max": 0.00013265595771372318,
+          "endpoint_shift_m": 0.14905713498592377,
+          "traj_ade_m": 0.05409292131662369,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying one lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.5722312331199646,
+      "entropy": 1.1775678396224976,
+      "alternatives": [
+        {
+          "token": " narrow",
+          "token_prob": 0.2703029215335846,
+          "d_curvature_mean": 2.958416735054925e-05,
+          "d_curvature_max": 7.143290713429451e-05,
+          "endpoint_shift_m": 0.12226922065019608,
+          "traj_ade_m": 0.0340660884976387,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our narrow ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.12768206000328064,
+          "d_curvature_mean": 2.45517076109536e-05,
+          "d_curvature_max": 0.00010204268619418144,
+          "endpoint_shift_m": 0.011321984231472015,
+          "traj_ade_m": 0.004467087797820568,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " single",
+          "token_prob": 0.011156734079122543,
+          "d_curvature_mean": 3.790436312556267e-05,
+          "d_curvature_max": 8.673593401908875e-05,
+          "endpoint_shift_m": 0.10760734230279922,
+          "traj_ade_m": 0.06834815442562103,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our single ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " position",
+          "token_prob": 0.0011759110493585467,
+          "d_curvature_mean": 3.628573176683858e-05,
+          "d_curvature_max": 0.00010714586824178696,
+          "endpoint_shift_m": 0.02656662091612816,
+          "traj_ade_m": 0.015400674194097519,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our position ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.755046546459198,
+      "entropy": 0.7467424869537354,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.2032180279493332,
+          "d_curvature_mean": 7.856161391828209e-05,
+          "d_curvature_max": 0.0002755152527242899,
+          "endpoint_shift_m": 0.5356820821762085,
+          "traj_ade_m": 0.2995482087135315,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.02280043065547943,
+          "d_curvature_mean": 2.7836391382152215e-05,
+          "d_curvature_max": 9.183958172798157e-05,
+          "endpoint_shift_m": 0.09792357683181763,
+          "traj_ade_m": 0.03032323159277439,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our lane in"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.00653243251144886,
+          "d_curvature_mean": 1.4027269571670331e-05,
+          "d_curvature_max": 5.10229729115963e-05,
+          "endpoint_shift_m": 0.05727049335837364,
+          "traj_ade_m": 0.015057321637868881,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our lane on"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0037220679223537445,
+          "d_curvature_mean": 7.288590131793171e-05,
+          "d_curvature_max": 0.00017347466200590134,
+          "endpoint_shift_m": 0.2502215504646301,
+          "traj_ade_m": 0.11279343068599701,
+          "forced_cot": {
+            "cot": [
+              "Yield to the oncoming motorcycle since it is occupying our lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.724595844745636,
+      "entropy": 0.9340898990631104,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.11828702688217163,
+          "d_curvature_mean": 0.0003828541375696659,
+          "d_curvature_max": 0.001244927290827036,
+          "endpoint_shift_m": 1.2718816995620728,
+          "traj_ade_m": 0.5983941555023193,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase clearance from the pedestrian walking close to our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Keep",
+          "token_prob": 0.11112038046121597,
+          "d_curvature_mean": 0.00016993115423247218,
+          "d_curvature_max": 0.00048470497131347656,
+          "endpoint_shift_m": 0.6565399169921875,
+          "traj_ade_m": 0.3132355809211731,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.034965574741363525,
+          "d_curvature_mean": 0.00029306375654414296,
+          "d_curvature_max": 0.0010714512318372726,
+          "endpoint_shift_m": 0.6573696732521057,
+          "traj_ade_m": 0.26611050963401794,
+          "forced_cot": {
+            "cot": [
+              "Slow down due to the lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.0028701492119580507,
+          "d_curvature_mean": 0.00034145425888709724,
+          "d_curvature_max": 0.0008393046446144581,
+          "endpoint_shift_m": 1.5983470678329468,
+          "traj_ade_m": 0.7942938804626465,
+          "forced_cot": {
+            "cot": [
+              "Maintain low speed due to the slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 1.858790824371681e-06,
+      "alternatives": [
+        {
+          "token": "ain",
+          "token_prob": 2.061153470123145e-09,
+          "d_curvature_mean": 0.0003263235848862678,
+          "d_curvature_max": 0.0008114026859402657,
+          "endpoint_shift_m": 1.492171049118042,
+          "traj_ade_m": 0.7273508310317993,
+          "forced_cot": {
+            "cot": [
+              "Yain low speed due to the slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.5558403454463132e-09,
+          "d_curvature_mean": 0.0002907359739765525,
+          "d_curvature_max": 0.0008877762593328953,
+          "endpoint_shift_m": 1.09145987033844,
+          "traj_ade_m": 0.45756906270980835,
+          "forced_cot": {
+            "cot": [
+              "Yapt speed due to the slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.004526017922558e-09,
+          "d_curvature_mean": 0.00033986676135100424,
+          "d_curvature_max": 0.0009183879010379314,
+          "endpoint_shift_m": 1.3672744035720825,
+          "traj_ade_m": 0.6355563402175903,
+          "forced_cot": {
+            "cot": [
+              "Y to the left to give clearance to the pedestrian walking at the right edge ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 5.547519665860534e-10,
+          "d_curvature_mean": 0.00024891694192774594,
+          "d_curvature_max": 0.0007347080390900373,
+          "endpoint_shift_m": 0.22125956416130066,
+          "traj_ade_m": 0.06037655472755432,
+          "forced_cot": {
+            "cot": [
+              "Yate deceleration due to the slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.4290215075016022,
+      "entropy": 0.8010110259056091,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.5508745312690735,
+          "d_curvature_mean": 0.00016553541354369372,
+          "d_curvature_max": 0.0006148102693259716,
+          "endpoint_shift_m": 0.540763795375824,
+          "traj_ade_m": 0.2491682916879654,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " by",
+          "token_prob": 0.008904057554900646,
+          "d_curvature_mean": 0.0001808920642361045,
+          "d_curvature_max": 0.0006020530126988888,
+          "endpoint_shift_m": 0.2992643117904663,
+          "traj_ade_m": 0.0895303413271904,
+          "forced_cot": {
+            "cot": [
+              "Yield by slowing down due to the oncoming motorcycle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0057488917373120785,
+          "d_curvature_mean": 0.000285650952719152,
+          "d_curvature_max": 0.0007645259611308575,
+          "endpoint_shift_m": 0.9598915576934814,
+          "traj_ade_m": 0.4672049582004547,
+          "forced_cot": {
+            "cot": [
+              "Yield at low speed due to the slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0032756193540990353,
+          "d_curvature_mean": 0.00020004594989586622,
+          "d_curvature_max": 0.0005178693681955338,
+          "endpoint_shift_m": 0.27710890769958496,
+          "traj_ade_m": 0.12487734854221344,
+          "forced_cot": {
+            "cot": [
+              "Yield because of an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9742987751960754,
+      "entropy": 0.2023409903049469,
+      "alternatives": [
+        {
+          "token": " an",
+          "token_prob": 0.00656477315351367,
+          "d_curvature_mean": 0.00019248804892413318,
+          "d_curvature_max": 0.0005714413709938526,
+          "endpoint_shift_m": 0.57619708776474,
+          "traj_ade_m": 0.24392129480838776,
+          "forced_cot": {
+            "cot": [
+              "Yield due an oncoming motorcycle occupying our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.0036254122387617826,
+          "d_curvature_mean": 0.00024427950847893953,
+          "d_curvature_max": 0.0006403210572898388,
+          "endpoint_shift_m": 0.6369456648826599,
+          "traj_ade_m": 0.3316463232040405,
+          "forced_cot": {
+            "cot": [
+              "Yield due on a slow motorcycle ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrians",
+          "token_prob": 0.0035138700623065233,
+          "d_curvature_mean": 0.00021855054365005344,
+          "d_curvature_max": 0.0009490014053881168,
+          "endpoint_shift_m": 0.15142092108726501,
+          "traj_ade_m": 0.07769535481929779,
+          "forced_cot": {
+            "cot": [
+              "Yield due pedestrians blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0030055723618716,
+          "d_curvature_mean": 0.00025585759431123734,
+          "d_curvature_max": 0.0007729772478342056,
+          "endpoint_shift_m": 0.6063096523284912,
+          "traj_ade_m": 0.2729821801185608,
+          "forced_cot": {
+            "cot": [
+              "Yield due a slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " on",
+      "sampled_prob": 0.6127496957778931,
+      "entropy": 1.7314727306365967,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.1000286415219307,
+          "d_curvature_mean": 0.0002456467191223055,
+          "d_curvature_max": 0.0007015466690063477,
+          "endpoint_shift_m": 0.81858891248703,
+          "traj_ade_m": 0.3839067220687866,
+          "forced_cot": {
+            "cot": [
+              "Yield due to lead motorcycle ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motorcycle",
+          "token_prob": 0.07318251579999924,
+          "d_curvature_mean": 0.0002395969640929252,
+          "d_curvature_max": 0.0006530764512717724,
+          "endpoint_shift_m": 0.8105157613754272,
+          "traj_ade_m": 0.34424999356269836,
+          "forced_cot": {
+            "cot": [
+              "Yield due to motorcycle merging into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.05699460208415985,
+          "d_curvature_mean": 0.00023991336638573557,
+          "d_curvature_max": 0.0007653236389160156,
+          "endpoint_shift_m": 0.6273666620254517,
+          "traj_ade_m": 0.26998400688171387,
+          "forced_cot": {
+            "cot": [
+              "Yield due to slow lead motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.044387441128492355,
+          "d_curvature_mean": 0.0002625741472002119,
+          "d_curvature_max": 0.0007321592420339584,
+          "endpoint_shift_m": 0.9417428374290466,
+          "traj_ade_m": 0.4102597236633301,
+          "forced_cot": {
+            "cot": [
+              "Yield due to motorcyclist entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": "coming",
+      "sampled_prob": 0.9999821186065674,
+      "entropy": 0.0003843190206680447,
+      "alternatives": [
+        {
+          "token": "-road",
+          "token_prob": 5.539076255445252e-07,
+          "d_curvature_mean": 0.00030558687285520136,
+          "d_curvature_max": 0.0011326787061989307,
+          "endpoint_shift_m": 0.5241497755050659,
+          "traj_ade_m": 0.24778057634830475,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an-road worker walking into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "pass",
+          "token_prob": 3.1560705338051775e-07,
+          "d_curvature_mean": 0.00022264699509833008,
+          "d_curvature_max": 0.0006862408481538296,
+          "endpoint_shift_m": 0.6451352834701538,
+          "traj_ade_m": 0.2670111656188965,
+          "forced_cot": {
+            "cot": [
+              "Yield due to anpass in the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "cycl",
+          "token_prob": 2.873634628031141e-07,
+          "d_curvature_mean": 0.00022926603560335934,
+          "d_curvature_max": 0.0007015476003289223,
+          "endpoint_shift_m": 0.7215271592140198,
+          "traj_ade_m": 0.29331156611442566,
+          "forced_cot": {
+            "cot": [
+              "Yield due to ancyclist approaching head-on"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-of",
+          "token_prob": 1.914253715540326e-07,
+          "d_curvature_mean": 0.00027521306765265763,
+          "d_curvature_max": 0.0007882830686867237,
+          "endpoint_shift_m": 0.7099618315696716,
+          "traj_ade_m": 0.31860464811325073,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an-of-lane motorcyclist ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " motorcycle",
+      "sampled_prob": 0.8604528903961182,
+      "entropy": 0.5304492115974426,
+      "alternatives": [
+        {
+          "token": " scooter",
+          "token_prob": 0.11644963920116425,
+          "d_curvature_mean": 0.00024083940661512315,
+          "d_curvature_max": 0.0007015466690063477,
+          "endpoint_shift_m": 0.706271767616272,
+          "traj_ade_m": 0.312452107667923,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an on scooter entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.009264676831662655,
+          "d_curvature_mean": 0.0001878889452200383,
+          "d_curvature_max": 0.0005102143622934818,
+          "endpoint_shift_m": 0.5209746956825256,
+          "traj_ade_m": 0.20366621017456055,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an on vehicle approaching head-on"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.0065696388483047485,
+          "d_curvature_mean": 0.00023473857436329126,
+          "d_curvature_max": 0.0006556268781423569,
+          "endpoint_shift_m": 0.9053402543067932,
+          "traj_ade_m": 0.4037832021713257,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an on motorcyclist merging into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.0016099592903628945,
+          "d_curvature_mean": 0.0001662574359215796,
+          "d_curvature_max": 0.0005612373352050781,
+          "endpoint_shift_m": 0.42759862542152405,
+          "traj_ade_m": 0.2114679217338562,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an on car ahead blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.5159074664115906,
+      "entropy": 1.5224653482437134,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.25941455364227295,
+          "d_curvature_mean": 0.0003196151810698211,
+          "d_curvature_max": 0.000959204975515604,
+          "endpoint_shift_m": 0.8190749287605286,
+          "traj_ade_m": 0.32541823387145996,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.06357227265834808,
+          "d_curvature_mean": 0.0002246456133434549,
+          "d_curvature_max": 0.0007194043137133121,
+          "endpoint_shift_m": 0.8220022320747375,
+          "traj_ade_m": 0.3678480386734009,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming in the same lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.03298085927963257,
+          "d_curvature_mean": 0.0002932749630417675,
+          "d_curvature_max": 0.0009285924024879932,
+          "endpoint_shift_m": 0.7739570736885071,
+          "traj_ade_m": 0.31511053442955017,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.03196614235639572,
+          "d_curvature_mean": 0.00020382271031849086,
+          "d_curvature_max": 0.0006224624812602997,
+          "endpoint_shift_m": 0.4611111581325531,
+          "traj_ade_m": 0.1925724297761917,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming blocking motorcycle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " it",
+      "sampled_prob": 0.980083703994751,
+      "entropy": 0.1113668829202652,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.017950858920812607,
+          "d_curvature_mean": 0.0001856364106060937,
+          "d_curvature_max": 0.0006569027900695801,
+          "endpoint_shift_m": 0.5825514197349548,
+          "traj_ade_m": 0.254203736782074,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle the ego must give way to"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0004935594042763114,
+          "d_curvature_mean": 0.00019678485114127398,
+          "d_curvature_max": 0.0006428719498217106,
+          "endpoint_shift_m": 0.4304766058921814,
+          "traj_ade_m": 0.21856483817100525,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle ouring slowly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " they",
+          "token_prob": 0.00024054167442955077,
+          "d_curvature_mean": 0.00015216530300676823,
+          "d_curvature_max": 0.0004183775745332241,
+          "endpoint_shift_m": 0.5781463384628296,
+          "traj_ade_m": 0.24581745266914368,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle they are sharing our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0002057461824733764,
+          "d_curvature_mean": 0.00018901769362855703,
+          "d_curvature_max": 0.0006250143051147461,
+          "endpoint_shift_m": 0.5646337270736694,
+          "traj_ade_m": 0.24398165941238403,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle a short distance ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " is",
+      "sampled_prob": 0.8246630430221558,
+      "entropy": 0.839154064655304,
+      "alternatives": [
+        {
+          "token": " occupies",
+          "token_prob": 0.12646618485450745,
+          "d_curvature_mean": 0.0001737787388265133,
+          "d_curvature_max": 0.00036734994500875473,
+          "endpoint_shift_m": 0.4880944490432739,
+          "traj_ade_m": 0.2419987916946411,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking occupies our narrow lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaching",
+          "token_prob": 0.005732919555157423,
+          "d_curvature_mean": 0.00017655978444963694,
+          "d_curvature_max": 0.00046684686094522476,
+          "endpoint_shift_m": 0.48073360323905945,
+          "traj_ade_m": 0.22147296369075775,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking approaching space"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " approaches",
+          "token_prob": 0.005219882354140282,
+          "d_curvature_mean": 0.00016176057397387922,
+          "d_curvature_max": 0.0005714423023164272,
+          "endpoint_shift_m": 0.3222615122795105,
+          "traj_ade_m": 0.12768861651420593,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking approaches"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.0027940019499510527,
+          "d_curvature_mean": 0.00018182964413426816,
+          "d_curvature_max": 0.00046684732660651207,
+          "endpoint_shift_m": 0.5176855325698853,
+          "traj_ade_m": 0.2616858184337616,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking has40 speed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " occupying",
+      "sampled_prob": 0.3826766014099121,
+      "entropy": 1.4158222675323486,
+      "alternatives": [
+        {
+          "token": " approaching",
+          "token_prob": 0.4615961015224457,
+          "d_curvature_mean": 0.00015874227392487228,
+          "d_curvature_max": 0.00048470497131347656,
+          "endpoint_shift_m": 0.4041560888290405,
+          "traj_ade_m": 0.21528339385986328,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the approaching narrow lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.06247023865580559,
+          "d_curvature_mean": 0.00016579825023654848,
+          "d_curvature_max": 0.0006046053022146225,
+          "endpoint_shift_m": 0.38986098766326904,
+          "traj_ade_m": 0.1815958023071289,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the entering space"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " coming",
+          "token_prob": 0.01789802312850952,
+          "d_curvature_mean": 0.00015265097317751497,
+          "d_curvature_max": 0.0005357265472412109,
+          "endpoint_shift_m": 0.4004606604576111,
+          "traj_ade_m": 0.20207084715366364,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the coming space"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocking",
+          "token_prob": 0.017347360029816628,
+          "d_curvature_mean": 0.00016056708409450948,
+          "d_curvature_max": 0.0003954954445362091,
+          "endpoint_shift_m": 0.45476964116096497,
+          "traj_ade_m": 0.23003245890140533,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the blocking narrow lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9946562051773071,
+      "entropy": 0.03457513451576233,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.005219476763159037,
+          "d_curvature_mean": 0.0001555422495584935,
+          "d_curvature_max": 0.000678586307913065,
+          "endpoint_shift_m": 0.3313794434070587,
+          "traj_ade_m": 0.1653934121131897,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane the ego is using"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 2.2007921870681457e-05,
+          "d_curvature_mean": 0.00012423736916389316,
+          "d_curvature_max": 0.00043878424912691116,
+          "endpoint_shift_m": 0.6060892939567566,
+          "traj_ade_m": 0.29859212040901184,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane and requiring lower speed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 1.3772204511042219e-05,
+          "d_curvature_mean": 0.00013639728422276676,
+          "d_curvature_max": 0.0005637886933982372,
+          "endpoint_shift_m": 0.4949161112308502,
+          "traj_ade_m": 0.2572751045227051,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane a low-speed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " one",
+          "token_prob": 7.605734026583377e-06,
+          "d_curvature_mean": 0.00016629205492790788,
+          "d_curvature_max": 0.0005000089295208454,
+          "endpoint_shift_m": 0.426256388425827,
+          "traj_ade_m": 0.20732426643371582,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane one-way street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.5722312331199646,
+      "entropy": 1.1775678396224976,
+      "alternatives": [
+        {
+          "token": " narrow",
+          "token_prob": 0.2703029215335846,
+          "d_curvature_mean": 0.0005426508723758161,
+          "d_curvature_max": 0.002224542433395982,
+          "endpoint_shift_m": 1.7603007555007935,
+          "traj_ade_m": 0.8520379066467285,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3503><i3496><i3552><i3499><i3500><i3552><i3499><i3500><i3552><i3499><i3499><i3553><i3499><i3499><i3553><i3499><i3499><i3553><i3500><i3500><i3554><i3499><i3500><i3554><i3499><i3500><i3554><i3500><i3500><i3556><i3499><i3500><i3556><i3499><i3500><i3555><i3500><i3500><i3555><i3499><i3500><i3556><i3499><i3500><i3556><i3500><i3500><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Yield due to an oncoming motorcycle blocking the lane<|cot_end|> narrow alley shown"
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.12768206000328064,
+          "d_curvature_mean": 0.00021221644419711083,
+          "d_curvature_max": 0.0004617455415427685,
+          "endpoint_shift_m": 0.4842151701450348,
+          "traj_ade_m": 0.185664564371109,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " single",
+          "token_prob": 0.011156734079122543,
+          "d_curvature_mean": 0.00028422483592294157,
+          "d_curvature_max": 0.001178597565740347,
+          "endpoint_shift_m": 0.37120726704597473,
+          "traj_ade_m": 0.2242925763130188,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              "<|im_start|>system\nYou are a driving assistant that generates safe and accurate actions.<|im_end|>\n<|im_start|>user\nFront left camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front right camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>Front telephoto camera: frame 0 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 1 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 2 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|>frame 3 <|vision_start|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|image_pad|><|vision_end|><|traj_history_start|><i3000><i3503><i3496><i3552><i3499><i3500><i3552><i3499><i3500><i3552><i3499><i3499><i3553><i3499><i3499><i3553><i3499><i3499><i3553><i3500><i3500><i3554><i3499><i3500><i3554><i3499><i3500><i3554><i3500><i3500><i3556><i3499><i3500><i3556><i3499><i3500><i3555><i3500><i3500><i3555><i3499><i3500><i3556><i3499><i3500><i3556><i3500><i3500><|traj_history_end|>output the chain-of-thought reasoning of the driving process, then output the future trajectory.<|im_end|>\n<|im_start|>assistant\n<|cot_start|>Yield due to an oncoming motorcycle blocking the lane<|cot_end|> single-lane alley"
+            ]
+          }
+        },
+        {
+          "token": " position",
+          "token_prob": 0.0011759110493585467,
+          "d_curvature_mean": 0.00023788303951732814,
+          "d_curvature_max": 0.0005306245293468237,
+          "endpoint_shift_m": 0.5084356069564819,
+          "traj_ade_m": 0.19127993285655975,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.755046546459198,
+      "entropy": 0.7467424869537354,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.2032180279493332,
+          "d_curvature_mean": 0.00016553541354369372,
+          "d_curvature_max": 0.0006148102693259716,
+          "endpoint_shift_m": 0.540763795375824,
+          "traj_ade_m": 0.2491682916879654,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.02280043065547943,
+          "d_curvature_mean": 0.00016553541354369372,
+          "d_curvature_max": 0.0006148102693259716,
+          "endpoint_shift_m": 0.540763795375824,
+          "traj_ade_m": 0.2491682916879654,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.00653243251144886,
+          "d_curvature_mean": 0.00016553541354369372,
+          "d_curvature_max": 0.0006148102693259716,
+          "endpoint_shift_m": 0.540763795375824,
+          "traj_ade_m": 0.2491682916879654,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0037220679223537445,
+          "d_curvature_mean": 0.00016553541354369372,
+          "d_curvature_max": 0.0006148102693259716,
+          "endpoint_shift_m": 0.540763795375824,
+          "traj_ade_m": 0.2491682916879654,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming motorcycle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

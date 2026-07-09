@@ -1,0 +1,2610 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Nudge left due to cones blocking the right side of our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 13,
+    "mean_entropy": 0.23586167391622062,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "N",
+        "sampled_prob": 0.6854170560836792,
+        "entropy": 1.2900124788284302,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.6854170560836792
+          },
+          {
+            "text": "Create",
+            "prob": 0.0871409922838211
+          },
+          {
+            "text": "Wait",
+            "prob": 0.07224242389202118
+          },
+          {
+            "text": "Lane",
+            "prob": 0.07224242389202118
+          },
+          {
+            "text": "Maint",
+            "prob": 0.033074989914894104
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "udge",
+        "sampled_prob": 1.0,
+        "entropy": 4.7625459131950265e-08,
+        "top_k": [
+          {
+            "text": "udge",
+            "prob": 1.0
+          },
+          {
+            "text": "apt",
+            "prob": 3.8127509482954736e-10
+          },
+          {
+            "text": "ain",
+            "prob": 1.0923714710564525e-10
+          },
+          {
+            "text": "ield",
+            "prob": 3.658985961441097e-11
+          },
+          {
+            "text": "eler",
+            "prob": 3.129696501957824e-11
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " left",
+        "sampled_prob": 0.9875320792198181,
+        "entropy": 0.07283081114292145,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.9875320792198181
+          },
+          {
+            "text": " to",
+            "prob": 0.01030582282692194
+          },
+          {
+            "text": " right",
+            "prob": 0.0021602176129817963
+          },
+          {
+            "text": " due",
+            "prob": 4.002020546067797e-07
+          },
+          {
+            "text": " for",
+            "prob": 3.317791765766742e-07
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " due",
+        "sampled_prob": 0.9460633993148804,
+        "entropy": 0.21469691395759583,
+        "top_k": [
+          {
+            "text": " due",
+            "prob": 0.9460633993148804
+          },
+          {
+            "text": " to",
+            "prob": 0.053373247385025024
+          },
+          {
+            "text": " because",
+            "prob": 0.00015958311269059777
+          },
+          {
+            "text": " for",
+            "prob": 8.541868737665936e-05
+          },
+          {
+            "text": " within",
+            "prob": 6.863584712846205e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " to",
+        "sampled_prob": 0.9999898672103882,
+        "entropy": 0.0001421620836481452,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9999898672103882
+          },
+          {
+            "text": " for",
+            "prob": 6.144150120235281e-06
+          },
+          {
+            "text": " from",
+            "prob": 1.9947135569964303e-06
+          },
+          {
+            "text": " due",
+            "prob": 3.1560949764752877e-07
+          },
+          {
+            "text": " left",
+            "prob": 2.6164946120843524e-07
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " cones",
+        "sampled_prob": 0.7789580821990967,
+        "entropy": 0.8498098850250244,
+        "top_k": [
+          {
+            "text": " cones",
+            "prob": 0.7789580821990967
+          },
+          {
+            "text": " the",
+            "prob": 0.10542050749063492
+          },
+          {
+            "text": " construction",
+            "prob": 0.07245438545942307
+          },
+          {
+            "text": " road",
+            "prob": 0.015669358894228935
+          },
+          {
+            "text": " work",
+            "prob": 0.009503946639597416
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " blocking",
+        "sampled_prob": 0.9991770386695862,
+        "entropy": 0.009065981954336166,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.9991770386695862
+          },
+          {
+            "text": " closing",
+            "prob": 0.0002452277403790504
+          },
+          {
+            "text": " narrowing",
+            "prob": 0.00017941244004759938
+          },
+          {
+            "text": " enc",
+            "prob": 7.716432446613908e-05
+          },
+          {
+            "text": " intr",
+            "prob": 7.248917972901836e-05
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " the",
+        "sampled_prob": 0.9953967928886414,
+        "entropy": 0.05081271380186081,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9953967928886414
+          },
+          {
+            "text": " part",
+            "prob": 0.0008797579212114215
+          },
+          {
+            "text": " our",
+            "prob": 0.0003554543072823435
+          },
+          {
+            "text": " it",
+            "prob": 0.00034451810643076897
+          },
+          {
+            "text": " right",
+            "prob": 0.00033391843317076564
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " right",
+        "sampled_prob": 0.9994271993637085,
+        "entropy": 0.005378339439630508,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9994271993637085
+          },
+          {
+            "text": " lane",
+            "prob": 0.00048781567602418363
+          },
+          {
+            "text": " ego",
+            "prob": 2.505785960238427e-05
+          },
+          {
+            "text": " left",
+            "prob": 1.5198359506030101e-05
+          },
+          {
+            "text": " current",
+            "prob": 9.510890777164605e-06
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " side",
+        "sampled_prob": 0.986056923866272,
+        "entropy": 0.08358479291200638,
+        "top_k": [
+          {
+            "text": " side",
+            "prob": 0.986056923866272
+          },
+          {
+            "text": " lane",
+            "prob": 0.01095410343259573
+          },
+          {
+            "text": " edge",
+            "prob": 0.002601827494800091
+          },
+          {
+            "text": " lanes",
+            "prob": 9.477155981585383e-05
+          },
+          {
+            "text": " curb",
+            "prob": 2.2510219423566014e-05
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " of",
+        "sampled_prob": 0.8545473217964172,
+        "entropy": 0.4797159433364868,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.8545473217964172
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.13104908168315887
+          },
+          {
+            "text": " ahead",
+            "prob": 0.010105418972671032
+          },
+          {
+            "text": ".",
+            "prob": 0.0028061734046787024
+          },
+          {
+            "text": " from",
+            "prob": 0.0001850872067734599
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " our",
+        "sampled_prob": 0.9992305040359497,
+        "entropy": 0.006397319957613945,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9992305040359497
+          },
+          {
+            "text": " the",
+            "prob": 0.0007553949835710227
+          },
+          {
+            "text": " lane",
+            "prob": 5.418075943453005e-06
+          },
+          {
+            "text": " your",
+            "prob": 2.480576085872599e-06
+          },
+          {
+            "text": " my",
+            "prob": 1.4582553831132827e-06
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " lane",
+        "sampled_prob": 0.9996938705444336,
+        "entropy": 0.0037543708458542824,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9996938705444336
+          },
+          {
+            "text": " path",
+            "prob": 0.00012728826550301164
+          },
+          {
+            "text": " vehicle",
+            "prob": 3.7626341509167105e-05
+          },
+          {
+            "text": " current",
+            "prob": 1.5202414942905307e-05
+          },
+          {
+            "text": " ego",
+            "prob": 1.1839652870548889e-05
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.6854170560836792,
+      "entropy": 1.2900124788284302,
+      "alternatives": [
+        {
+          "token": "Create",
+          "token_prob": 0.0871409922838211,
+          "d_curvature_mean": 3.774256038013846e-05,
+          "d_curvature_max": 0.00016582012176513672,
+          "endpoint_shift_m": 0.09450095891952515,
+          "traj_ade_m": 0.029726602137088776,
+          "forced_cot": {
+            "cot": [
+              "Createudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Wait",
+          "token_prob": 0.07224242389202118,
+          "d_curvature_mean": 7.238771650008857e-05,
+          "d_curvature_max": 0.00029464997351169586,
+          "endpoint_shift_m": 0.17215052247047424,
+          "traj_ade_m": 0.06393719464540482,
+          "forced_cot": {
+            "cot": [
+              "Waitudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.07224242389202118,
+          "d_curvature_mean": 4.3703068513423204e-05,
+          "d_curvature_max": 0.0002056802622973919,
+          "endpoint_shift_m": 0.1048603504896164,
+          "traj_ade_m": 0.03943024203181267,
+          "forced_cot": {
+            "cot": [
+              "Laneudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.033074989914894104,
+          "d_curvature_mean": 4.574137710733339e-05,
+          "d_curvature_max": 0.0002458598464727402,
+          "endpoint_shift_m": 0.1580265313386917,
+          "traj_ade_m": 0.05717090889811516,
+          "forced_cot": {
+            "cot": [
+              "Maintudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 4.7625459131950265e-08,
+      "alternatives": [
+        {
+          "token": "apt",
+          "token_prob": 3.8127509482954736e-10,
+          "d_curvature_mean": 5.194339246372692e-05,
+          "d_curvature_max": 0.00016008084639906883,
+          "endpoint_shift_m": 0.10303281992673874,
+          "traj_ade_m": 0.02906041592359543,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 1.0923714710564525e-10,
+          "d_curvature_mean": 9.026289626490325e-05,
+          "d_curvature_max": 0.00031856540590524673,
+          "endpoint_shift_m": 0.24795429408550262,
+          "traj_ade_m": 0.08825156092643738,
+          "forced_cot": {
+            "cot": [
+              "Nain left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ield",
+          "token_prob": 3.658985961441097e-11,
+          "d_curvature_mean": 0.00019505202362779528,
+          "d_curvature_max": 0.000635058619081974,
+          "endpoint_shift_m": 0.5010274648666382,
+          "traj_ade_m": 0.1855001449584961,
+          "forced_cot": {
+            "cot": [
+              "Nield left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "eler",
+          "token_prob": 3.129696501957824e-11,
+          "d_curvature_mean": 2.9416700272122398e-05,
+          "d_curvature_max": 0.00010204268619418144,
+          "endpoint_shift_m": 0.10079597681760788,
+          "traj_ade_m": 0.02973993681371212,
+          "forced_cot": {
+            "cot": [
+              "Neler left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9875320792198181,
+      "entropy": 0.07283081114292145,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01030582282692194,
+          "d_curvature_mean": 0.00020409567514434457,
+          "d_curvature_max": 0.0006266091950237751,
+          "endpoint_shift_m": 0.16262604296207428,
+          "traj_ade_m": 0.0619388148188591,
+          "forced_cot": {
+            "cot": [
+              "Nudge to due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0021602176129817963,
+          "d_curvature_mean": 7.598311640322208e-05,
+          "d_curvature_max": 0.0002497658133506775,
+          "endpoint_shift_m": 0.06771985441446304,
+          "traj_ade_m": 0.02769588492810726,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.002020546067797e-07,
+          "d_curvature_mean": 8.058051753323525e-05,
+          "d_curvature_max": 0.0001658187247812748,
+          "endpoint_shift_m": 0.2021193504333496,
+          "traj_ade_m": 0.055213648825883865,
+          "forced_cot": {
+            "cot": [
+              "Nudge due due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.317791765766742e-07,
+          "d_curvature_mean": 0.00018732072203420103,
+          "d_curvature_max": 0.00047513842582702637,
+          "endpoint_shift_m": 0.14873887598514557,
+          "traj_ade_m": 0.04800364375114441,
+          "forced_cot": {
+            "cot": [
+              "Nudge for due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.9460633993148804,
+      "entropy": 0.21469691395759583,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.053373247385025024,
+          "d_curvature_mean": 4.2608317016856745e-05,
+          "d_curvature_max": 0.00010204128921031952,
+          "endpoint_shift_m": 0.05313967913389206,
+          "traj_ade_m": 0.014002559706568718,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00015958311269059777,
+          "d_curvature_mean": 3.764579014386982e-05,
+          "d_curvature_max": 8.1636942923069e-05,
+          "endpoint_shift_m": 0.05846460536122322,
+          "traj_ade_m": 0.021292012184858322,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 8.541868737665936e-05,
+          "d_curvature_mean": 6.392874638549984e-05,
+          "d_curvature_max": 0.00014286022633314133,
+          "endpoint_shift_m": 0.11728162318468094,
+          "traj_ade_m": 0.038545671850442886,
+          "forced_cot": {
+            "cot": [
+              "Nudge left for to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 6.863584712846205e-05,
+          "d_curvature_mean": 0.00011215650738449767,
+          "d_curvature_max": 0.00022449437528848648,
+          "endpoint_shift_m": 0.13623657822608948,
+          "traj_ade_m": 0.04156489670276642,
+          "forced_cot": {
+            "cot": [
+              "Nudge left within to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999898672103882,
+      "entropy": 0.0001421620836481452,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 6.144150120235281e-06,
+          "d_curvature_mean": 1.963575959962327e-05,
+          "d_curvature_max": 7.142964750528336e-05,
+          "endpoint_shift_m": 0.06264229118824005,
+          "traj_ade_m": 0.021245619282126427,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 1.9947135569964303e-06,
+          "d_curvature_mean": 1.9587308997870423e-05,
+          "d_curvature_max": 7.143057882785797e-05,
+          "endpoint_shift_m": 0.05398401990532875,
+          "traj_ade_m": 0.01616993173956871,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 3.1560949764752877e-07,
+          "d_curvature_mean": 2.2959795387578197e-05,
+          "d_curvature_max": 7.14324414730072e-05,
+          "endpoint_shift_m": 0.032830845564603806,
+          "traj_ade_m": 0.011549580842256546,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due due cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 2.6164946120843524e-07,
+          "d_curvature_mean": 5.477354352478869e-05,
+          "d_curvature_max": 0.00016326922923326492,
+          "endpoint_shift_m": 0.05027009919285774,
+          "traj_ade_m": 0.012596603482961655,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due left cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " cones",
+      "sampled_prob": 0.7789580821990967,
+      "entropy": 0.8498098850250244,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.10542050749063492,
+          "d_curvature_mean": 3.133543214062229e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.03618767857551575,
+          "traj_ade_m": 0.014569357968866825,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 0.07245438545942307,
+          "d_curvature_mean": 1.574508860358037e-05,
+          "d_curvature_max": 4.081800580024719e-05,
+          "endpoint_shift_m": 0.01576179638504982,
+          "traj_ade_m": 0.006395841017365456,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to construction blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.015669358894228935,
+          "d_curvature_mean": 4.9654066970106214e-05,
+          "d_curvature_max": 9.184004738926888e-05,
+          "endpoint_shift_m": 0.04356200620532036,
+          "traj_ade_m": 0.02846406027674675,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to road blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.009503946639597416,
+          "d_curvature_mean": 2.576131737441756e-05,
+          "d_curvature_max": 7.143011316657066e-05,
+          "endpoint_shift_m": 0.03237234055995941,
+          "traj_ade_m": 0.012328062206506729,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to work blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9991770386695862,
+      "entropy": 0.009065981954336166,
+      "alternatives": [
+        {
+          "token": " closing",
+          "token_prob": 0.0002452277403790504,
+          "d_curvature_mean": 6.041490451025311e-06,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.019408686086535454,
+          "traj_ade_m": 0.010831601917743683,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones closing the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 0.00017941244004759938,
+          "d_curvature_mean": 3.309307066956535e-05,
+          "d_curvature_max": 0.00011479761451482773,
+          "endpoint_shift_m": 0.027985746040940285,
+          "traj_ade_m": 0.0072198063135147095,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones narrowing the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enc",
+          "token_prob": 7.716432446613908e-05,
+          "d_curvature_mean": 1.970493030967191e-05,
+          "d_curvature_max": 7.589440792798996e-05,
+          "endpoint_shift_m": 0.014714176766574383,
+          "traj_ade_m": 0.005622523836791515,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones enc the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intr",
+          "token_prob": 7.248917972901836e-05,
+          "d_curvature_mean": 3.180372732458636e-05,
+          "d_curvature_max": 7.684994488954544e-05,
+          "endpoint_shift_m": 0.04684043675661087,
+          "traj_ade_m": 0.017275087535381317,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones intr the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.9953967928886414,
+      "entropy": 0.05081271380186081,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.0008797579212114215,
+          "d_curvature_mean": 7.15036439942196e-05,
+          "d_curvature_max": 0.00020153354853391647,
+          "endpoint_shift_m": 0.15839239954948425,
+          "traj_ade_m": 0.051722511649131775,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking part right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0003554543072823435,
+          "d_curvature_mean": 4.763709512189962e-05,
+          "d_curvature_max": 8.673593401908875e-05,
+          "endpoint_shift_m": 0.02028665877878666,
+          "traj_ade_m": 0.012306689284741879,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking our right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00034451810643076897,
+          "d_curvature_mean": 3.580838529160246e-05,
+          "d_curvature_max": 0.00010013021528720856,
+          "endpoint_shift_m": 0.013075249269604683,
+          "traj_ade_m": 0.004419810138642788,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking it right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.00033391843317076564,
+          "d_curvature_mean": 2.825496267178096e-05,
+          "d_curvature_max": 8.099712431430817e-05,
+          "endpoint_shift_m": 0.02279823087155819,
+          "traj_ade_m": 0.009015531279146671,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking right right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " right",
+      "sampled_prob": 0.9994271993637085,
+      "entropy": 0.005378339439630508,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.00048781567602418363,
+          "d_curvature_mean": 2.889646748371888e-05,
+          "d_curvature_max": 9.183771908283234e-05,
+          "endpoint_shift_m": 0.07772362232208252,
+          "traj_ade_m": 0.02956235408782959,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the lane side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 2.505785960238427e-05,
+          "d_curvature_mean": 2.3003392925602384e-05,
+          "d_curvature_max": 6.122654303908348e-05,
+          "endpoint_shift_m": 0.057330042123794556,
+          "traj_ade_m": 0.02408304437994957,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the ego side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.5198359506030101e-05,
+          "d_curvature_mean": 3.5154109355062246e-05,
+          "d_curvature_max": 8.291006088256836e-05,
+          "endpoint_shift_m": 0.10730969160795212,
+          "traj_ade_m": 0.037608321756124496,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 9.510890777164605e-06,
+          "d_curvature_mean": 1.98488705791533e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.10578949004411697,
+          "traj_ade_m": 0.04150202125310898,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the current side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " side",
+      "sampled_prob": 0.986056923866272,
+      "entropy": 0.08358479291200638,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.01095410343259573,
+          "d_curvature_mean": 3.9358001231448725e-05,
+          "d_curvature_max": 8.163508027791977e-05,
+          "endpoint_shift_m": 0.043646689504384995,
+          "traj_ade_m": 0.012904221192002296,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right lane of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " edge",
+          "token_prob": 0.002601827494800091,
+          "d_curvature_mean": 8.84422661329154e-06,
+          "d_curvature_max": 2.8060749173164368e-05,
+          "endpoint_shift_m": 0.011965403333306313,
+          "traj_ade_m": 0.005252135917544365,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lanes",
+          "token_prob": 9.477155981585383e-05,
+          "d_curvature_mean": 4.6291945182019845e-05,
+          "d_curvature_max": 0.00010204408317804337,
+          "endpoint_shift_m": 0.04930748790502548,
+          "traj_ade_m": 0.014562024734914303,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right lanes of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curb",
+          "token_prob": 2.2510219423566014e-05,
+          "d_curvature_mean": 1.459281975257909e-05,
+          "d_curvature_max": 4.081986844539642e-05,
+          "endpoint_shift_m": 0.007216980215162039,
+          "traj_ade_m": 0.007195963524281979,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right curb of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " of",
+      "sampled_prob": 0.8545473217964172,
+      "entropy": 0.4797159433364868,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.13104908168315887,
+          "d_curvature_mean": 0.00011386675760149956,
+          "d_curvature_max": 0.0004107234999537468,
+          "endpoint_shift_m": 0.44893181324005127,
+          "traj_ade_m": 0.1539747714996338,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.010105418972671032,
+          "d_curvature_mean": 1.5294008335331455e-05,
+          "d_curvature_max": 4.081893712282181e-05,
+          "endpoint_shift_m": 0.027645818889141083,
+          "traj_ade_m": 0.01018074806779623,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side ahead our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0028061734046787024,
+          "d_curvature_mean": 6.887414201628417e-05,
+          "d_curvature_max": 0.00016326876357197762,
+          "endpoint_shift_m": 0.06425468623638153,
+          "traj_ade_m": 0.03147647902369499,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side. our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0001850872067734599,
+          "d_curvature_mean": 1.5007091860752553e-05,
+          "d_curvature_max": 3.5715289413928986e-05,
+          "endpoint_shift_m": 0.02377450093626976,
+          "traj_ade_m": 0.013002054765820503,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side from our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9992305040359497,
+      "entropy": 0.006397319957613945,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.0007553949835710227,
+          "d_curvature_mean": 2.4905160898924805e-05,
+          "d_curvature_max": 7.143011316657066e-05,
+          "endpoint_shift_m": 0.01953054964542389,
+          "traj_ade_m": 0.009221676737070084,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 5.418075943453005e-06,
+          "d_curvature_mean": 2.893861528718844e-05,
+          "d_curvature_max": 6.632786244153976e-05,
+          "endpoint_shift_m": 0.03366059809923172,
+          "traj_ade_m": 0.012382379733026028,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of lane lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.480576085872599e-06,
+          "d_curvature_mean": 9.394173503096681e-06,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.024929320439696312,
+          "traj_ade_m": 0.008963441476225853,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 1.4582553831132827e-06,
+          "d_curvature_mean": 2.998498166562058e-05,
+          "d_curvature_max": 6.12279400229454e-05,
+          "endpoint_shift_m": 0.0017170660430565476,
+          "traj_ade_m": 0.004268725402653217,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9996938705444336,
+      "entropy": 0.0037543708458542824,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.00012728826550301164,
+          "d_curvature_mean": 1.3149172445992008e-05,
+          "d_curvature_max": 4.081800580024719e-05,
+          "endpoint_shift_m": 0.01206562202423811,
+          "traj_ade_m": 0.004163683392107487,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 3.7626341509167105e-05,
+          "d_curvature_mean": 2.421959288767539e-05,
+          "d_curvature_max": 6.122607737779617e-05,
+          "endpoint_shift_m": 0.04882661625742912,
+          "traj_ade_m": 0.016982313245534897,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 1.5202414942905307e-05,
+          "d_curvature_mean": 1.5431054634973407e-05,
+          "d_curvature_max": 4.336796700954437e-05,
+          "endpoint_shift_m": 0.022254353389143944,
+          "traj_ade_m": 0.0103154256939888,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our current"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 1.1839652870548889e-05,
+          "d_curvature_mean": 1.4744695363333449e-05,
+          "d_curvature_max": 3.571482375264168e-05,
+          "endpoint_shift_m": 0.016423875465989113,
+          "traj_ade_m": 0.0071157654747366905,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our ego"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.6854170560836792,
+      "entropy": 1.2900124788284302,
+      "alternatives": [
+        {
+          "token": "Create",
+          "token_prob": 0.0871409922838211,
+          "d_curvature_mean": 0.0006447661435231566,
+          "d_curvature_max": 0.0012675272300839424,
+          "endpoint_shift_m": 0.7822041511535645,
+          "traj_ade_m": 0.24927277863025665,
+          "forced_cot": {
+            "cot": [
+              "Create a usable gap to merge left because cones and work trucks block our lane ahead and a car is alongside in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Wait",
+          "token_prob": 0.07224242389202118,
+          "d_curvature_mean": 0.00076198426540941,
+          "d_curvature_max": 0.0017869514413177967,
+          "endpoint_shift_m": 1.0321792364120483,
+          "traj_ade_m": 0.3702814280986786,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work trucks block our lane ahead and a car is alongside in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.07224242389202118,
+          "d_curvature_mean": 0.0012983089545741677,
+          "d_curvature_max": 0.0034933839924633503,
+          "endpoint_shift_m": 1.4706066846847534,
+          "traj_ade_m": 0.5041335821151733,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to roadwork blocking the current lane ahead with cones and a utility truck blocking forward progress."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.033074989914894104,
+          "d_curvature_mean": 0.0007874614093452692,
+          "d_curvature_max": 0.0021403548307716846,
+          "endpoint_shift_m": 1.579846739768982,
+          "traj_ade_m": 0.5954688191413879,
+          "forced_cot": {
+            "cot": [
+              "Maintain lane and wait for a gap to merge left because cones and work trucks are blocking our lane ahead while a bus and a minivan are occupying the left lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 4.7625459131950265e-08,
+      "alternatives": [
+        {
+          "token": "apt",
+          "token_prob": 3.8127509482954736e-10,
+          "d_curvature_mean": 0.00042912139906547964,
+          "d_curvature_max": 0.0019470318220555782,
+          "endpoint_shift_m": 1.0394177436828613,
+          "traj_ade_m": 0.3342054486274719,
+          "forced_cot": {
+            "cot": [
+              "Waitapt speed to maintain a safe distance from the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 1.0923714710564525e-10,
+          "d_curvature_mean": 0.0008614888065494597,
+          "d_curvature_max": 0.00219504302367568,
+          "endpoint_shift_m": 1.6056983470916748,
+          "traj_ade_m": 0.5994611382484436,
+          "forced_cot": {
+            "cot": [
+              "Waitain lane and wait for a gap to merge left because cones and work trucks are blocking our lane ahead while a bus and a minivan are occupying the left lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ield",
+          "token_prob": 3.658985961441097e-11,
+          "d_curvature_mean": 0.0008869597222656012,
+          "d_curvature_max": 0.00219647865742445,
+          "endpoint_shift_m": 1.2126020193099976,
+          "traj_ade_m": 0.43430525064468384,
+          "forced_cot": {
+            "cot": [
+              "Waitield for a gap because a car is coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "eler",
+          "token_prob": 3.129696501957824e-11,
+          "d_curvature_mean": 0.00158607866615057,
+          "d_curvature_max": 0.004558777902275324,
+          "endpoint_shift_m": 3.736898899078369,
+          "traj_ade_m": 1.365427851676941,
+          "forced_cot": {
+            "cot": [
+              "Waitelerate slightly to create a gap for merging left because cones and work trucks are blocking our right lane ahead and a minivan is occupying the left lane alongside, preventing an immediate merge left."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9875320792198181,
+      "entropy": 0.07283081114292145,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01030582282692194,
+          "d_curvature_mean": 0.0007869181572459638,
+          "d_curvature_max": 0.0020187003538012505,
+          "endpoint_shift_m": 1.2829864025115967,
+          "traj_ade_m": 0.44613492488861084,
+          "forced_cot": {
+            "cot": [
+              "Wait for to merge left because a bus is occupying the left lane and our lane is obstructed by cones and work trucks ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0021602176129817963,
+          "d_curvature_mean": 0.0005067220190539956,
+          "d_curvature_max": 0.0013909763656556606,
+          "endpoint_shift_m": 1.0437062978744507,
+          "traj_ade_m": 0.3516576886177063,
+          "forced_cot": {
+            "cot": [
+              "Wait for right\u2011lane traffic to clear for a merge to the right because a work truck and cones block our lane ahead and a car is coming up in our right lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 4.002020546067797e-07,
+          "d_curvature_mean": 0.0005772715085186064,
+          "d_curvature_max": 0.0016843494959175587,
+          "endpoint_shift_m": 0.7925009727478027,
+          "traj_ade_m": 0.2818650007247925,
+          "forced_cot": {
+            "cot": [
+              "Wait for due to a vehicle coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.317791765766742e-07,
+          "d_curvature_mean": 0.0008673601550981402,
+          "d_curvature_max": 0.002015193458646536,
+          "endpoint_shift_m": 1.0966813564300537,
+          "traj_ade_m": 0.39108824729919434,
+          "forced_cot": {
+            "cot": [
+              "Wait for for a gap because a car is coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.9460633993148804,
+      "entropy": 0.21469691395759583,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.053373247385025024,
+          "d_curvature_mean": 0.0006993067800067365,
+          "d_curvature_max": 0.0017338567413389683,
+          "endpoint_shift_m": 0.9065237045288086,
+          "traj_ade_m": 0.30117103457450867,
+          "forced_cot": {
+            "cot": [
+              "Wait for a to merge left because cones block our lane ahead and a car is coming from behind in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00015958311269059777,
+          "d_curvature_mean": 0.0008055549114942551,
+          "d_curvature_max": 0.0019595478661358356,
+          "endpoint_shift_m": 1.0155599117279053,
+          "traj_ade_m": 0.34977054595947266,
+          "forced_cot": {
+            "cot": [
+              "Wait for a because a car is coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 8.541868737665936e-05,
+          "d_curvature_mean": 0.0008565029129385948,
+          "d_curvature_max": 0.0019421675242483616,
+          "endpoint_shift_m": 1.0966962575912476,
+          "traj_ade_m": 0.38927555084228516,
+          "forced_cot": {
+            "cot": [
+              "Wait for a for a gap because a car is coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 6.863584712846205e-05,
+          "d_curvature_mean": 0.0006222566007636487,
+          "d_curvature_max": 0.0013256045058369637,
+          "endpoint_shift_m": 1.2550179958343506,
+          "traj_ade_m": 0.45596224069595337,
+          "forced_cot": {
+            "cot": [
+              "Wait for a within-lane gap to merge left because roadwork is blocking our lane ahead and a car is currently alongside in the left lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999898672103882,
+      "entropy": 0.0001421620836481452,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 6.144150120235281e-06,
+          "d_curvature_mean": 0.0008428500150330365,
+          "d_curvature_max": 0.0019799554720520973,
+          "endpoint_shift_m": 0.9718950986862183,
+          "traj_ade_m": 0.3493998050689697,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap for a left lane change because a car is coming from behind in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 1.9947135569964303e-06,
+          "d_curvature_mean": 0.000713241461198777,
+          "d_curvature_max": 0.002213698346167803,
+          "endpoint_shift_m": 1.0366978645324707,
+          "traj_ade_m": 0.3828108012676239,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap from the vehicles in left lane because cones and utility trucks block our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 3.1560949764752877e-07,
+          "d_curvature_mean": 0.000862237298861146,
+          "d_curvature_max": 0.0021840427070856094,
+          "endpoint_shift_m": 1.1238833665847778,
+          "traj_ade_m": 0.40528401732444763,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap due to a car coming from behind in the left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 2.6164946120843524e-07,
+          "d_curvature_mean": 0.0006867230404168367,
+          "d_curvature_max": 0.0017303088679909706,
+          "endpoint_shift_m": 1.1554611921310425,
+          "traj_ade_m": 0.4161814749240875,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap left because a car is coming from behind in that lane blocking an immediate merge to bypass the work vehicles blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " cones",
+      "sampled_prob": 0.7789580821990967,
+      "entropy": 0.8498098850250244,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.10542050749063492,
+          "d_curvature_mean": 0.000677775067742914,
+          "d_curvature_max": 0.0017542657442390919,
+          "endpoint_shift_m": 1.2712539434432983,
+          "traj_ade_m": 0.47409743070602417,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to the left because a car is coming from behind in that lane and our lane is obstructed ahead by cones and work trucks"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 0.07245438545942307,
+          "d_curvature_mean": 0.0005539474077522755,
+          "d_curvature_max": 0.0018136575818061829,
+          "endpoint_shift_m": 0.7448739409446716,
+          "traj_ade_m": 0.261449933052063,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to construction trucks blocking the right lane for a right lane change after clearing the intersection"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.015669358894228935,
+          "d_curvature_mean": 0.0005951913772150874,
+          "d_curvature_max": 0.001905855257064104,
+          "endpoint_shift_m": 0.8314493894577026,
+          "traj_ade_m": 0.2833899259567261,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to roadwork trucks blocking the right lane to merge right after clearing the intersection"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.009503946639597416,
+          "d_curvature_mean": 0.0007196175283752382,
+          "d_curvature_max": 0.001596816349774599,
+          "endpoint_shift_m": 0.9706459045410156,
+          "traj_ade_m": 0.3528693616390228,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to work left because cones and a truck block our lane ahead and a car is coming from behind in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9991770386695862,
+      "entropy": 0.009065981954336166,
+      "alternatives": [
+        {
+          "token": " closing",
+          "token_prob": 0.0002452277403790504,
+          "d_curvature_mean": 0.0007979314541444182,
+          "d_curvature_max": 0.0020662141032516956,
+          "endpoint_shift_m": 1.4736193418502808,
+          "traj_ade_m": 0.5206717252731323,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge closing to our left because our lane is blocked ahead by roadwork and a bus is occupying the left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 0.00017941244004759938,
+          "d_curvature_mean": 0.0006845293682999909,
+          "d_curvature_max": 0.001261269673705101,
+          "endpoint_shift_m": 1.1411784887313843,
+          "traj_ade_m": 0.4091307520866394,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge narrowing to our left because cones and utility trucks block our lane ahead and cars in our left lane are alongside preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enc",
+          "token_prob": 7.716432446613908e-05,
+          "d_curvature_mean": 0.0007573280017822981,
+          "d_curvature_max": 0.0015819873660802841,
+          "endpoint_shift_m": 1.4205151796340942,
+          "traj_ade_m": 0.5176593065261841,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge encroaching left because cones and utility trucks are blocking our lane ahead and a car is currently alongside in our left lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intr",
+          "token_prob": 7.248917972901836e-05,
+          "d_curvature_mean": 0.000739211100153625,
+          "d_curvature_max": 0.0021071908995509148,
+          "endpoint_shift_m": 1.7460075616836548,
+          "traj_ade_m": 0.6242313981056213,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge intruding into the left lane because a car is coming from behind in that lane and our lane is obstructed ahead by a work truck and cones"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " the",
+      "sampled_prob": 0.9953967928886414,
+      "entropy": 0.05081271380186081,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.0008797579212114215,
+          "d_curvature_mean": 0.0007025067461654544,
+          "d_curvature_max": 0.00137287937104702,
+          "endpoint_shift_m": 1.1232714653015137,
+          "traj_ade_m": 0.4209013879299164,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left part of our lane because cones and work trucks are blocking our lane ahead and a car is alongside in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0003554543072823435,
+          "d_curvature_mean": 0.0006530078244395554,
+          "d_curvature_max": 0.002280344720929861,
+          "endpoint_shift_m": 1.3279216289520264,
+          "traj_ade_m": 0.4844234585762024,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left our lane because our lane is blocked by a work truck and cones ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00034451810643076897,
+          "d_curvature_mean": 0.0006432720692828298,
+          "d_curvature_max": 0.0017389585264027119,
+          "endpoint_shift_m": 1.4739842414855957,
+          "traj_ade_m": 0.5170961618423462,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left it is blocking our lane because a car is coming from behind in the left lane and our lane is obstructed ahead by construction vehicles and cones"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.00033391843317076564,
+          "d_curvature_mean": 0.0007607754087075591,
+          "d_curvature_max": 0.0016159089282155037,
+          "endpoint_shift_m": 1.4149748086929321,
+          "traj_ade_m": 0.5175184607505798,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left right because cones and work trucks are blocking our lane ahead and a car is currently alongside in the left lane, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " right",
+      "sampled_prob": 0.9994271993637085,
+      "entropy": 0.005378339439630508,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.00048781567602418363,
+          "d_curvature_mean": 0.0008959355764091015,
+          "d_curvature_max": 0.001952851191163063,
+          "endpoint_shift_m": 1.0697308778762817,
+          "traj_ade_m": 0.3660469353199005,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because lane divider cones and a car alongside in the left lane block an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 2.505785960238427e-05,
+          "d_curvature_mean": 0.0007838239544071257,
+          "d_curvature_max": 0.0020469222217798233,
+          "endpoint_shift_m": 1.3497871160507202,
+          "traj_ade_m": 0.480377197265625,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because ego is crossing an intersection with a bus occupying the left lane and cones blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.5198359506030101e-05,
+          "d_curvature_mean": 0.0007222618442028761,
+          "d_curvature_max": 0.0019871313124895096,
+          "endpoint_shift_m": 1.4099528789520264,
+          "traj_ade_m": 0.4917230010032654,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because left-lane vehicles alongside block an immediate merge and our lane is obstructed ahead by cones and work trucks"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 9.510890777164605e-06,
+          "d_curvature_mean": 0.0006946160574443638,
+          "d_curvature_max": 0.0015641306526958942,
+          "endpoint_shift_m": 0.9310838580131531,
+          "traj_ade_m": 0.3313714563846588,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because current lane is closing ahead with construction vehicles and a car is coming from behind in the left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " side",
+      "sampled_prob": 0.986056923866272,
+      "entropy": 0.08358479291200638,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.01095410343259573,
+          "d_curvature_mean": 0.0007150913588702679,
+          "d_curvature_max": 0.0015340759418904781,
+          "endpoint_shift_m": 1.0619170665740967,
+          "traj_ade_m": 0.3711397647857666,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones lane change cannot start within our lane and a car is coming from behind in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " edge",
+          "token_prob": 0.002601827494800091,
+          "d_curvature_mean": 0.0012886729091405869,
+          "d_curvature_max": 0.003035144880414009,
+          "endpoint_shift_m": 1.5608105659484863,
+          "traj_ade_m": 0.5123975872993469,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones edge our lane into a work zone with a slow utility truck ahead, while a minivan is occupying the left lane alongside, blocking an immediate merge left."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lanes",
+          "token_prob": 9.477155981585383e-05,
+          "d_curvature_mean": 0.0007527184206992388,
+          "d_curvature_max": 0.0014353403821587563,
+          "endpoint_shift_m": 1.2097476720809937,
+          "traj_ade_m": 0.4302482604980469,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones lanes are narrowing our lane ahead and a car is coming from behind in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curb",
+          "token_prob": 2.2510219423566014e-05,
+          "d_curvature_mean": 0.0007518696365877986,
+          "d_curvature_max": 0.001699098851531744,
+          "endpoint_shift_m": 1.054753065109253,
+          "traj_ade_m": 0.37640464305877686,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones curb-side work trucks block our lane ahead and a car is alongside in the left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " of",
+      "sampled_prob": 0.8545473217964172,
+      "entropy": 0.4797159433364868,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.13104908168315887,
+          "d_curvature_mean": 0.000535832776222378,
+          "d_curvature_max": 0.0014903480187058449,
+          "endpoint_shift_m": 0.6502643823623657,
+          "traj_ade_m": 0.2318757027387619,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.010105418972671032,
+          "d_curvature_mean": 0.0007574183982796967,
+          "d_curvature_max": 0.0016309362836182117,
+          "endpoint_shift_m": 1.0065670013427734,
+          "traj_ade_m": 0.3597052991390228,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and ahead vehicles block our lane and a car is coming from behind in the left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0028061734046787024,
+          "d_curvature_mean": 0.0005857002688571811,
+          "d_curvature_max": 0.0016513443551957607,
+          "endpoint_shift_m": 0.7592266201972961,
+          "traj_ade_m": 0.269898921251297,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0001850872067734599,
+          "d_curvature_mean": 0.0007191771874204278,
+          "d_curvature_max": 0.0016764970496296883,
+          "endpoint_shift_m": 1.0390756130218506,
+          "traj_ade_m": 0.3821049630641937,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and from-lane utility trucks block our lane ahead and cars in the left lane are alongside, preventing an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9992305040359497,
+      "entropy": 0.006397319957613945,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.0007553949835710227,
+          "d_curvature_mean": 0.0007611560286022723,
+          "d_curvature_max": 0.0017384011298418045,
+          "endpoint_shift_m": 1.2862178087234497,
+          "traj_ade_m": 0.4721355438232422,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work the right lane while a van is alongside in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 5.418075943453005e-06,
+          "d_curvature_mean": 0.0007196660153567791,
+          "d_curvature_max": 0.0016098902560770512,
+          "endpoint_shift_m": 1.0144422054290771,
+          "traj_ade_m": 0.3656926155090332,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work lane block our lane ahead and a car is coming from behind in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 2.480576085872599e-06,
+          "d_curvature_mean": 0.0007410100079141557,
+          "d_curvature_max": 0.0015663630329072475,
+          "endpoint_shift_m": 1.1730070114135742,
+          "traj_ade_m": 0.4238887429237366,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work your lane is closing ahead while a car is alongside in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 1.4582553831132827e-06,
+          "d_curvature_mean": 0.0007520800572820008,
+          "d_curvature_max": 0.0014898297376930714,
+          "endpoint_shift_m": 1.215874195098877,
+          "traj_ade_m": 0.43008339405059814,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work my lane are closing ahead and a car is coming from behind in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9996938705444336,
+      "entropy": 0.0037543708458542824,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.00012728826550301164,
+          "d_curvature_mean": 0.0006269416771829128,
+          "d_curvature_max": 0.0012358389794826508,
+          "endpoint_shift_m": 1.2396807670593262,
+          "traj_ade_m": 0.44815218448638916,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work trucks path our lane to the right and a car is coming from behind in our left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 3.7626341509167105e-05,
+          "d_curvature_mean": 0.0007200919208116829,
+          "d_curvature_max": 0.001478270161896944,
+          "endpoint_shift_m": 1.0235501527786255,
+          "traj_ade_m": 0.3662998676300049,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work trucks vehicle are blocking our lane ahead and a car is coming from behind in our left lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " current",
+          "token_prob": 1.5202414942905307e-05,
+          "d_curvature_mean": 0.0007605049177072942,
+          "d_curvature_max": 0.0013912944123148918,
+          "endpoint_shift_m": 1.0163663625717163,
+          "traj_ade_m": 0.35477787256240845,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work trucks current lane end ahead and a car is alongside in the left lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 1.1839652870548889e-05,
+          "d_curvature_mean": 0.0007784105255268514,
+          "d_curvature_max": 0.001700852531939745,
+          "endpoint_shift_m": 1.0005327463150024,
+          "traj_ade_m": 0.35805007815361023,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap to merge left because cones and work trucks ego lane are blocked ahead and a car is coming from the left rear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
