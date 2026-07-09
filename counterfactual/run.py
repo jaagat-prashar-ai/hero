@@ -53,18 +53,24 @@ Full config reference (all keys optional, defaults shown):
     manifest_path:       "pref_pairs/configs/sample_clips_n100_unstratified.json"
     bucket:               "research-datasets-chicago"
     checkpoint:           "nvidia/Alpamayo-1.5-10B"
-    max_scenes:           1
+    max_scenes:           1        # null/omit to cover the whole manifest
     top_k_alternatives:   4
     reasoning_seed:       0   # seeds torch RNG before each of the 3 baseline generations
     diffusion_seed:       0   # passed to single_token_swap_sweep / counterfactual_sweep
     rollout_kwargs:       {}  # extra kwargs forwarded to _extended_rollout_prefix (temperature, top_p, top_k)
     outdir:               "/mnt/work/tmp/counterfactual_smoke"
+    resume:               false    # skip scenes already in this rank's results_path
+    rank / world_size:    auto-set by Lilypad via RANK/WORLD_SIZE env vars for
+                          num_gpus > 1 -- each replica owns scenes where
+                          hash(scene_id) % world_size == rank (see _scene_owner).
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -86,7 +92,52 @@ _DEFAULTS: dict[str, Any] = {
     "diffusion_seed": 0,
     "rollout_kwargs": {},
     "outdir": "/mnt/work/tmp/counterfactual_smoke",
+    "resume": False,
+    "rank": 0,
+    "world_size": 1,
 }
+
+
+def _distributed_context(cfg: dict[str, Any]) -> tuple[int, int, int]:
+    """Return (rank, world_size, local_rank) from Lilypad env vars or config.
+    Same pattern as masking/training/run.py and pref_pairs/training/run.py --
+    reimplemented here rather than imported, same independence rationale as
+    pref_pairs/rollout_harvester.py's load_alpamayo."""
+    rank = int(os.environ.get("RANK", cfg.get("rank", 0)))
+    world_size = int(os.environ.get("WORLD_SIZE", cfg.get("world_size", 1)))
+    local_rank = int(os.environ.get("LOCAL_RANK", rank))
+    return rank, world_size, local_rank
+
+
+def _scene_owner(scene_id: str, world_size: int) -> int:
+    """Stable scene->rank assignment so resume/requeue always maps a scene to
+    the same rank -- same hashing approach as pref_pairs.training.run._scene_owner."""
+    digest = hashlib.md5(scene_id.encode()).hexdigest()
+    return int(digest, 16) % world_size
+
+
+def _results_path(outdir: Path, rank: int, world_size: int) -> Path:
+    """Local per-rank marker file used ONLY for resume tracking (which
+    scenes this rank has already finished) -- NOT the real results output,
+    since outdir is not reliably reachable from the submitting workstation
+    (see module docstring's RESULT RETRIEVAL section). One line per
+    completed scene_id, written only after all 3 analyses succeed."""
+    if world_size <= 1:
+        return outdir / "counterfactual_done_scenes.jsonl"
+    return outdir / f"counterfactual_done_scenes_rank{rank:02d}.jsonl"
+
+
+def _load_done_scenes(path: Path) -> set[str]:
+    done: set[str] = set()
+    if not path.exists():
+        return done
+    with open(path) as fh:
+        for line in fh:
+            try:
+                done.add(json.loads(line)["scene_id"])
+            except Exception:
+                pass
+    return done
 
 
 def _load_model(checkpoint: str, device: str):
@@ -106,8 +157,13 @@ def _load_model(checkpoint: str, device: str):
     return model
 
 
-def _resolve_device() -> str:
-    return "cuda" if torch.cuda.is_available() else "cpu"
+def _resolve_device(local_rank: int) -> str:
+    """Per-rank GPU assignment, matching masking.training.run._resolve_device
+    and pref_pairs.training.run._resolve_device -- a plain "cuda" (device 0)
+    here would put every rank on the SAME GPU in a multi-GPU job."""
+    if torch.cuda.is_available():
+        return f"cuda:{local_rank}"
+    return "cpu"
 
 
 def _seed_reasoning_rng(seed: int) -> None:
@@ -148,13 +204,20 @@ def _position_result_to_json(position_result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def counterfactual_smoke_loop(training_fn_config: dict[str, Any], experiment_tracker: Any) -> None:
+def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tracker: Any) -> None:
     """Lilypad-compatible entrypoint. See module docstring for the full
-    config reference and retrieval instructions."""
+    config reference and retrieval instructions. Renamed from
+    counterfactual_smoke_loop once the 1-scene smoke test confirmed the
+    pipeline works -- same function, now also used for the full manifest
+    sweep across multiple GPUs (rank-sharded below), not just a single scene."""
     cfg = {**_DEFAULTS, **training_fn_config}
-    device = _resolve_device()
+    rank, world_size, local_rank = _distributed_context(cfg)
+    device = _resolve_device(local_rank)
     outdir = Path(cfg["outdir"])
     outdir.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Distributed context: rank=%d world_size=%d local_rank=%d device=%s",
+                rank, world_size, local_rank, device)
 
     from masking.data.wds_dataset import iter_clip_events_from_manifest
     from pref_pairs.rollout_harvester import build_tokenized_inputs
@@ -168,14 +231,30 @@ def counterfactual_smoke_loop(training_fn_config: dict[str, Any], experiment_tra
     rollout_kwargs = dict(cfg["rollout_kwargs"])
     max_scenes = cfg["max_scenes"]
 
+    results_path = _results_path(outdir, rank, world_size)
+    done_scenes: set[str] = set()
+    if cfg["resume"]:
+        done_scenes = _load_done_scenes(results_path)
+        logger.info("Resuming: %d scene(s) already done on rank %d", len(done_scenes), rank)
+
     n_done = 0
+    n_skipped_other_rank = 0
+    n_skipped_resume = 0
     for event in iter_clip_events_from_manifest(cfg["manifest_path"], cfg["bucket"]):
         if max_scenes is not None and n_done >= int(max_scenes):
             logger.info("Reached max_scenes=%s, stopping.", max_scenes)
             break
 
         scene_id = f"{event['clip_id']}_{event['t0_us']}"
-        logger.info("=== scene %s (%d/%s) ===", scene_id, n_done + 1, max_scenes)
+
+        if _scene_owner(scene_id, world_size) != rank:
+            n_skipped_other_rank += 1
+            continue
+        if scene_id in done_scenes:
+            n_skipped_resume += 1
+            continue
+
+        logger.info("=== scene %s (rank %d, %d done so far) ===", scene_id, rank, n_done)
         data = build_tokenized_inputs(model, event["model_inputs"], device)
 
         # --- 1. Pure logit inspection: every reasoning token's top-K alternatives ---
@@ -265,6 +344,17 @@ def counterfactual_smoke_loop(training_fn_config: dict[str, Any], experiment_tra
             "counterfactual_sweep": [_position_result_to_json(p) for p in sweep_b["positions"]],
         }, default=str, indent=2))
 
+        # Resume marker: written only after all 3 analyses succeeded for
+        # this scene, so a scene present here means genuinely done, not
+        # partially processed (same atomicity convention as
+        # pref_pairs.training.run._load_done_scenes).
+        with open(results_path, "a") as fh:
+            fh.write(json.dumps({"scene_id": scene_id}) + "\n")
+
         n_done += 1
 
-    logger.info("Done: %d scene(s) processed.", n_done)
+    logger.info(
+        "Done rank %d/%d: %d scene(s) processed, %d skipped (resume), "
+        "%d skipped (other rank's shard).",
+        rank, world_size, n_done, n_skipped_resume, n_skipped_other_rank,
+    )

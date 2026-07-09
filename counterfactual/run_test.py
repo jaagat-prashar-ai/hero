@@ -9,7 +9,7 @@ rather than importing those classes directly -- counterfactual.py imports
 gap as rollout_harvester_test.py's alpamayo1_5 dependency). This is a
 data-shape stand-in for a plain value container, not a fake model: real
 verification of the actual model-touching code (_load_model,
-counterfactual_smoke_loop) is exclusively the Lilypad smoke test, per this
+counterfactual_sweep_loop) is exclusively the real Lilypad run, per this
 project's standing "no fake model tests" preference.
 """
 

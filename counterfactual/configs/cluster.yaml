@@ -1,8 +1,8 @@
-name: counterfactual-smoke-test
+name: counterfactual-full-sweep
 model_identifier: other.training.alpamayo15.default.v1
 workload_variant_config:
   workload_type: "training"
-  training_fn: counterfactual.run.counterfactual_smoke_loop
+  training_fn: counterfactual.run.counterfactual_sweep_loop
   training_fn_config:
     # ── Scene selection ──────────────────────────────────────────────────────
     # Reuses pref_pairs' Task 3 manifest for no reason other than it's a
@@ -15,18 +15,23 @@ workload_variant_config:
     # ── Model ─────────────────────────────────────────────────────────────────
     checkpoint: "nvidia/Alpamayo-1.5-10B"
 
-    # ── Smoke-test scope ──────────────────────────────────────────────────────
-    # This code (counterfactual/counterfactual.py) has NEVER been run against
-    # the real model before this config -- max_scenes deliberately capped at 1
-    # to confirm it works end-to-end before scaling up. position_selection is
+    # ── Sweep scope ───────────────────────────────────────────────────────────
+    # A 1-scene, 1-GPU smoke test (see git history for that version of this
+    # file) confirmed counterfactual.py's CounterfactualTokenAnalyzer runs
+    # correctly against the real model, catching and fixing two real bugs
+    # along the way (a missing torch.autocast wrapper, and a KV-cache
+    # off-by-one in _reforward_with_single_swap). This config now covers the
+    # FULL manifest (null = no cap) across all 8 GPUs. position_selection is
     # hardcoded to "all" inside run.py (every reasoning token position, not a
     # heuristic subset) -- top_k_alternatives below is the only real cost knob.
-    max_scenes: 1
+    max_scenes: null
 
     # Runner-up tokens tested per position, ranked purely by logit probability.
     # Option B (counterfactual_sweep) cost scales as
-    # n_reasoning_tokens * top_k_alternatives FULL VLM regenerations -- kept
-    # modest for the first real run. Raise once the smoke test's timing is known.
+    # n_reasoning_tokens * top_k_alternatives FULL VLM regenerations. Measured
+    # from the smoke test: ~122s/scene total (Option A + Option B) at
+    # top_k_alternatives=4 on one A100 -- ~16 scenes/GPU across 8 GPUs for
+    # this manifest's 123 scenes, so ~33 min wall clock plus model-load time.
     top_k_alternatives: 4
 
     # Seeds torch's RNG before each of the 3 analyses' baseline generation call,
@@ -39,17 +44,26 @@ workload_variant_config:
     # seed= parameter.
     diffusion_seed: 0
 
+    # Resume from an interrupted run (skips scene_ids already in this rank's
+    # results_path) -- real risk here given prior full runs on this queue
+    # (pref-pairs-fixed-reasoning-cluster-f6kq5o) hit multiple preemption
+    # cycles before completing.
+    resume: true
+
+    # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ─────
+    # With num_gpus: 8 each replica owns scenes where hash(scene_id) % 8 == rank.
+
     # ── Output ────────────────────────────────────────────────────────────────
-    outdir: "/mnt/work/tmp/counterfactual_smoke"
+    outdir: "/mnt/work/tmp/counterfactual_sweep"
 
   experiment_tracker:
     wandb:
       entity: research
-      project: counterfactual-token-smoke
+      project: counterfactual-token-sweep
 
 cluster_resources:
   gpu_machine_type: a100.8
-  num_gpus: 1
+  num_gpus: 8
   customer_resource: research
   preemptible: always
   allowed_regions:

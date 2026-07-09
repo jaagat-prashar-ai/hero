@@ -304,11 +304,30 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         # Split into prompt portion and generated portion.
         # fused_input_ids is the prompt AFTER fuse_traj_tokens was applied —
         # using it here avoids having to re-run the trajectory fusion step.
+        #
+        # IMPORTANT: slice to prefill_seq_len, NOT the full sequences tensor.
+        # sequences includes the token that triggered StopAfterEOS (here,
+        # <|traj_future_start|>) -- that token was SAMPLED (so it's in
+        # sequences) but never FED BACK INTO the model (generation stopped
+        # immediately after sampling it), so it was never cached. That's why
+        # prefill_seq_len = prompt_cache.get_seq_length() is exactly one
+        # token shorter than sequences.shape[1] -- confirmed empirically via
+        # a live smoke test (full_seq_len=3103, orig_sequences_len=3103,
+        # prefill_seq_len=3102). If this reforward fed the FULL sequences
+        # tensor through the model, the resulting cache would be one token
+        # LONGER than prefill_seq_len, and _denoise_with_mask's reused
+        # position_ids/attention_mask_base (built for prefill_seq_len) would
+        # then misalign by exactly one position -- this is exactly the
+        # "expanded size ... must match existing size" crash this fix
+        # resolves. Slicing to prefill_seq_len reproduces the ORIGINAL
+        # cache's exact length convention, so _denoise_with_mask's reused
+        # fields stay valid.
         fused_prompt = prefix["fused_input_ids"]        # (1, prompt_len)
-        modified_gen = sequences[:, prompt_len:]        # (1, n_generated_tokens)
+        n_forward_tokens = prefix["prefill_seq_len"] - prompt_len
+        modified_gen = sequences[:, prompt_len:prompt_len + n_forward_tokens]
 
         # Concatenate into the full sequence the VLM will see.
-        full_seq = torch.cat([fused_prompt, modified_gen], dim=1)  # (1, full_seq_len)
+        full_seq = torch.cat([fused_prompt, modified_gen], dim=1)  # (1, prefill_seq_len)
 
         # --- Step 2: build the attention mask for the full sequence ---
         # generate_kwargs["attention_mask"] covers only the prompt (shape: 1 × prompt_len).
@@ -339,6 +358,24 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             use_cache=True,
             return_dict=True,
             **extra_inputs,
+        )
+
+        # Verify the invariant the slicing above depends on: this reforward's
+        # new cache must be exactly prefill_seq_len long, matching the
+        # ORIGINAL generate() call's cache length, so _denoise_with_mask's
+        # reused position_ids/attention_mask_base stay valid. A live smoke
+        # test caught this failing silently three layers deeper (inside the
+        # diffusion sampler's attention layer, as a bare tensor-expand
+        # RuntimeError) before the prompt_len-slicing fix above -- assert
+        # here instead so any future regression fails immediately and
+        # legibly, at the point that actually caused it.
+        new_cache_len = vlm_out.past_key_values.get_seq_length()
+        assert new_cache_len == prefix["prefill_seq_len"], (
+            f"_reforward_with_single_swap: new cache length {new_cache_len} != "
+            f"prefill_seq_len {prefix['prefill_seq_len']} -- position_ids/"
+            f"attention_mask_base reused from prefix will misalign in "
+            f"_denoise_with_mask. (full_seq_len={full_seq.shape[1]}, "
+            f"orig_sequences_len={prefix['sequences'].shape[1]})"
         )
 
         # --- Step 5: assemble the modified prefix ---
