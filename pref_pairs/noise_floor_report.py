@@ -112,7 +112,10 @@ def build_report_data(results_dir: str | Path) -> dict[str, Any]:
         cluster_stats = {}
         for col, (short, _, _) in METRICS.items():
             vals = sorted(r[col] for r in all_rows)
-            cluster_stats[short] = {"median": _median(vals), "p90": _percentile(vals, 0.9)}
+            cluster_stats[short] = {
+                "median": _median(vals), "p90": _percentile(vals, 0.9),
+                "min": vals[0], "max": vals[-1],
+            }
 
         clip_entries = []
         for clip_id, rows in sorted(clips.items()):
@@ -183,14 +186,25 @@ def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | No
         rows = ""
         for _, (short, label, unit) in METRICS.items():
             s = v["stats"][short]
-            med, p90 = s["median"], s["p90"]
-            pct = 100.0 if p90 <= 0 else max(6, min(100, (med / p90) * 100))
+            med, p90, mn, mx = s["median"], s["p90"], s["min"], s["max"]
+
+            def pct_of(x: float) -> float:
+                return 100.0 if mx <= 0 else max(0.0, min(100.0, (x / mx) * 100))
+
+            min_pct, med_pct, p90_pct = pct_of(mn), pct_of(med), pct_of(p90)
             rows += (
-                f'<div class="gauge-row"><span class="gauge-label">{_esc(label)}</span>'
-                f'<div class="gauge-track"><div class="gauge-fill" style="width:{pct:.0f}%"></div>'
-                f'<div class="gauge-p90-tick"></div></div>'
-                f'<span class="gauge-vals"><b>{_fmt(p90)}</b><i>{_esc(unit)}</i> '
-                f'<span class="gauge-med">med {_fmt(med)}</span></span></div>'
+                f'<div class="gauge-row">'
+                f'<div class="gauge-row-main"><span class="gauge-label">{_esc(label)}</span>'
+                f'<div class="gauge-track">'
+                f'<div class="gauge-range" style="left:{min_pct:.0f}%"></div>'
+                f'<div class="gauge-median-tick" style="left:{med_pct:.0f}%"></div>'
+                f'<div class="gauge-p90-tick" style="left:{p90_pct:.0f}%"></div>'
+                f'</div>'
+                f'<span class="gauge-vals"><b>{_fmt(p90)}</b><i>{_esc(unit)}</i></span></div>'
+                f'<div class="gauge-row-detail">'
+                f'<span>min {_fmt(mn)}</span><span>med {_fmt(med)}</span>'
+                f'<span class="gauge-p90-label">p90 {_fmt(p90)}</span><span>max {_fmt(mx)}</span>'
+                f'</div></div>'
             )
         low_n_note = " <em>low-n</em>" if n < 5 else ""
         return (
@@ -377,14 +391,17 @@ h1 {{ font: 600 2.15rem/1.15 var(--sans); margin: 0; letter-spacing: -0.01em; te
 .gauge-card h3 {{ font: 600 1rem/1.25 var(--sans); margin: 0; text-wrap: balance; }}
 .gauge-count {{ font: 0.72rem var(--mono); color: var(--ink-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }}
 .gauge-count em {{ color: var(--warn); font-style: normal; font-weight: 600; }}
-.gauge-row {{ display: grid; grid-template-columns: 6.4rem 1fr auto; align-items: center; gap: 0.6rem; margin: 0.42rem 0; }}
+.gauge-row {{ margin: 0.55rem 0; }}
+.gauge-row-main {{ display: grid; grid-template-columns: 6.4rem 1fr auto; align-items: center; gap: 0.6rem; }}
 .gauge-label {{ font-size: 0.74rem; color: var(--ink-dim); }}
 .gauge-track {{ position: relative; height: 6px; background: var(--line); border-radius: 4px; overflow: visible; }}
-.gauge-fill {{ position: absolute; inset: 0; width: 0; background: var(--teal); border-radius: 4px; }}
-.gauge-p90-tick {{ position: absolute; right: -1px; top: -3px; width: 2px; height: 12px; background: var(--accent); border-radius: 1px; }}
+.gauge-range {{ position: absolute; top: 0; bottom: 0; right: 0; background: color-mix(in srgb, var(--teal) 40%, transparent); border-radius: 4px; }}
+.gauge-median-tick {{ position: absolute; top: -3px; width: 2px; height: 12px; background: var(--teal); border-radius: 1px; transform: translateX(-1px); }}
+.gauge-p90-tick {{ position: absolute; top: -3px; width: 2px; height: 12px; background: var(--accent); border-radius: 1px; transform: translateX(-1px); }}
 .gauge-vals {{ font: 0.78rem var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }}
 .gauge-vals i {{ font-style: normal; color: var(--ink-dim); margin-right: 0.35rem; }}
-.gauge-med {{ color: var(--ink-dim); }}
+.gauge-row-detail {{ display: flex; gap: 0.7rem; margin: 0.25rem 0 0 6.4rem; font: 0.68rem var(--mono); color: var(--ink-dim); font-variant-numeric: tabular-nums; }}
+.gauge-p90-label {{ color: var(--accent); }}
 .tab-bar {{ display: flex; gap: 0.4rem; margin: 1.75rem 0 0; border-bottom: 1px solid var(--line); }}
 .tab-btn {{ font: 600 0.86rem var(--sans); color: var(--ink-dim); background: none; border: none; border-bottom: 2px solid transparent; padding: 0.7rem 0.2rem; margin-right: 1.4rem; cursor: pointer; }}
 .tab-btn:hover {{ color: var(--ink); }}
