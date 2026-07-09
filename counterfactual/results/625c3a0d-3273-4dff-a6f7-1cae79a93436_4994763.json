@@ -1,0 +1,2610 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Adapt speed for the right curve since the lane bends right ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 13,
+    "mean_entropy": 0.2788909170447351,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Ad",
+        "sampled_prob": 0.5750417113304138,
+        "entropy": 1.1115905046463013,
+        "top_k": [
+          {
+            "text": "Ad",
+            "prob": 0.5750417113304138
+          },
+          {
+            "text": "Keep",
+            "prob": 0.3276488482952118
+          },
+          {
+            "text": "Adjust",
+            "prob": 0.03563016280531883
+          },
+          {
+            "text": "Change",
+            "prob": 0.014852861873805523
+          },
+          {
+            "text": "Slow",
+            "prob": 0.013952972367405891
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "apt",
+        "sampled_prob": 1.0,
+        "entropy": 1.1774912991313613e-06,
+        "top_k": [
+          {
+            "text": "apt",
+            "prob": 1.0
+          },
+          {
+            "text": "eler",
+            "prob": 1.3440409674103648e-08
+          },
+          {
+            "text": "ain",
+            "prob": 1.0467402056235642e-08
+          },
+          {
+            "text": "ate",
+            "prob": 7.194133289090132e-09
+          },
+          {
+            "text": " speed",
+            "prob": 4.94445018262013e-09
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " speed",
+        "sampled_prob": 0.9999878406524658,
+        "entropy": 0.00021981561440043151,
+        "top_k": [
+          {
+            "text": " speed",
+            "prob": 0.9999878406524658
+          },
+          {
+            "text": " for",
+            "prob": 1.0348416026317864e-06
+          },
+          {
+            "text": "apt",
+            "prob": 1.0030029216068215e-06
+          },
+          {
+            "text": " the",
+            "prob": 6.083520247557317e-07
+          },
+          {
+            "text": " pace",
+            "prob": 4.1811381379375234e-07
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " for",
+        "sampled_prob": 0.9379985332489014,
+        "entropy": 0.2852294445037842,
+        "top_k": [
+          {
+            "text": " for",
+            "prob": 0.9379985332489014
+          },
+          {
+            "text": " to",
+            "prob": 0.0412127785384655
+          },
+          {
+            "text": " due",
+            "prob": 0.01718004234135151
+          },
+          {
+            "text": " since",
+            "prob": 0.0020518635865300894
+          },
+          {
+            "text": " because",
+            "prob": 0.0014102236600592732
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " the",
+        "sampled_prob": 0.7877688407897949,
+        "entropy": 1.2585079669952393,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.7877688407897949
+          },
+          {
+            "text": " reduced",
+            "prob": 0.08303022384643555
+          },
+          {
+            "text": " limited",
+            "prob": 0.05531005188822746
+          },
+          {
+            "text": " right",
+            "prob": 0.007968169637024403
+          },
+          {
+            "text": " slow",
+            "prob": 0.004986352752894163
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " right",
+        "sampled_prob": 0.9737197160720825,
+        "entropy": 0.1527807116508484,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9737197160720825
+          },
+          {
+            "text": " left",
+            "prob": 0.0157387126237154
+          },
+          {
+            "text": " curve",
+            "prob": 0.008967648260295391
+          },
+          {
+            "text": " upcoming",
+            "prob": 0.00025439259479753673
+          },
+          {
+            "text": " cur",
+            "prob": 0.0001642482093302533
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " curve",
+        "sampled_prob": 0.997393012046814,
+        "entropy": 0.021400421857833862,
+        "top_k": [
+          {
+            "text": " curve",
+            "prob": 0.997393012046814
+          },
+          {
+            "text": "-hand",
+            "prob": 0.0014086684677749872
+          },
+          {
+            "text": "ward",
+            "prob": 0.001030603889375925
+          },
+          {
+            "text": " road",
+            "prob": 2.009357740462292e-05
+          },
+          {
+            "text": " turn",
+            "prob": 1.1448974873928819e-05
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " since",
+        "sampled_prob": 0.9902945756912231,
+        "entropy": 0.06410737335681915,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9902945756912231
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0066725523211061954
+          },
+          {
+            "text": " because",
+            "prob": 0.002166260499507189
+          },
+          {
+            "text": " in",
+            "prob": 0.0003883891040459275
+          },
+          {
+            "text": " due",
+            "prob": 0.0001619046670384705
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " the",
+        "sampled_prob": 0.9713791608810425,
+        "entropy": 0.2100091129541397,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9713791608810425
+          },
+          {
+            "text": " visibility",
+            "prob": 0.01570088230073452
+          },
+          {
+            "text": " sight",
+            "prob": 0.0021923345047980547
+          },
+          {
+            "text": " a",
+            "prob": 0.0019961430225521326
+          },
+          {
+            "text": " it",
+            "prob": 0.0015067679341882467
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " lane",
+        "sampled_prob": 0.938161313533783,
+        "entropy": 0.3034226894378662,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.938161313533783
+          },
+          {
+            "text": " road",
+            "prob": 0.03872254490852356
+          },
+          {
+            "text": " roadway",
+            "prob": 0.01947091706097126
+          },
+          {
+            "text": " right",
+            "prob": 0.0002031972398981452
+          },
+          {
+            "text": " residential",
+            "prob": 0.0001879267510958016
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " bends",
+        "sampled_prob": 0.9984208345413208,
+        "entropy": 0.013934977352619171,
+        "top_k": [
+          {
+            "text": " bends",
+            "prob": 0.9984208345413208
+          },
+          {
+            "text": " curves",
+            "prob": 0.0008552810759283602
+          },
+          {
+            "text": " is",
+            "prob": 0.00048732449067756534
+          },
+          {
+            "text": " ahead",
+            "prob": 9.01459643500857e-05
+          },
+          {
+            "text": " turns",
+            "prob": 7.955352339195088e-05
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " right",
+        "sampled_prob": 0.9767795205116272,
+        "entropy": 0.1324714720249176,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9767795205116272
+          },
+          {
+            "text": " to",
+            "prob": 0.01578816957771778
+          },
+          {
+            "text": " ahead",
+            "prob": 0.006182736251503229
+          },
+          {
+            "text": " and",
+            "prob": 0.0005750840646214783
+          },
+          {
+            "text": " with",
+            "prob": 8.547861943952739e-05
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " ahead",
+        "sampled_prob": 0.9897931814193726,
+        "entropy": 0.07190625369548798,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9897931814193726
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.006265108939260244
+          },
+          {
+            "text": " with",
+            "prob": 0.0016343514434993267
+          },
+          {
+            "text": ".",
+            "prob": 0.0008218034636229277
+          },
+          {
+            "text": " and",
+            "prob": 0.0006203297525644302
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Ad",
+      "sampled_prob": 0.5750417113304138,
+      "entropy": 1.1115905046463013,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.3276488482952118,
+          "d_curvature_mean": 7.967355486471206e-06,
+          "d_curvature_max": 2.041005063802004e-05,
+          "endpoint_shift_m": 0.16640587151050568,
+          "traj_ade_m": 0.05968484282493591,
+          "forced_cot": {
+            "cot": [
+              "Keepapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Adjust",
+          "token_prob": 0.03563016280531883,
+          "d_curvature_mean": 1.9734794477699324e-05,
+          "d_curvature_max": 6.122805643826723e-05,
+          "endpoint_shift_m": 0.05299612134695053,
+          "traj_ade_m": 0.021023601293563843,
+          "forced_cot": {
+            "cot": [
+              "Adjustapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.014852861873805523,
+          "d_curvature_mean": 1.5702955352026038e-05,
+          "d_curvature_max": 4.9427966587245464e-05,
+          "endpoint_shift_m": 0.24541518092155457,
+          "traj_ade_m": 0.08642110228538513,
+          "forced_cot": {
+            "cot": [
+              "Changeapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.013952972367405891,
+          "d_curvature_mean": 1.6931684513110667e-05,
+          "d_curvature_max": 5.421019159257412e-05,
+          "endpoint_shift_m": 0.4390478730201721,
+          "traj_ade_m": 0.15846195816993713,
+          "forced_cot": {
+            "cot": [
+              "Slowapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "apt",
+      "sampled_prob": 1.0,
+      "entropy": 1.1774912991313613e-06,
+      "alternatives": [
+        {
+          "token": "eler",
+          "token_prob": 1.3440409674103648e-08,
+          "d_curvature_mean": 1.9173923647031188e-05,
+          "d_curvature_max": 5.1020761020481586e-05,
+          "endpoint_shift_m": 0.9055843949317932,
+          "traj_ade_m": 0.32549652457237244,
+          "forced_cot": {
+            "cot": [
+              "Adeler speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 1.0467402056235642e-08,
+          "d_curvature_mean": 8.53105666465126e-05,
+          "d_curvature_max": 0.00021735974587500095,
+          "endpoint_shift_m": 3.9585611820220947,
+          "traj_ade_m": 1.482964277267456,
+          "forced_cot": {
+            "cot": [
+              "Adain speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 7.194133289090132e-09,
+          "d_curvature_mean": 1.5662295481888577e-05,
+          "d_curvature_max": 3.6033918149769306e-05,
+          "endpoint_shift_m": 0.4757777452468872,
+          "traj_ade_m": 0.17401370406150818,
+          "forced_cot": {
+            "cot": [
+              "Adate speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 4.94445018262013e-09,
+          "d_curvature_mean": 8.272631930594798e-06,
+          "d_curvature_max": 2.3119122488424182e-05,
+          "endpoint_shift_m": 0.1966581791639328,
+          "traj_ade_m": 0.07674720138311386,
+          "forced_cot": {
+            "cot": [
+              "Ad speed speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " speed",
+      "sampled_prob": 0.9999878406524658,
+      "entropy": 0.00021981561440043151,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 1.0348416026317864e-06,
+          "d_curvature_mean": 5.4774232012277935e-06,
+          "d_curvature_max": 2.040871186181903e-05,
+          "endpoint_shift_m": 0.3000839054584503,
+          "traj_ade_m": 0.1049744188785553,
+          "forced_cot": {
+            "cot": [
+              "Adapt for for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.0030029216068215e-06,
+          "d_curvature_mean": 5.3733128879684955e-06,
+          "d_curvature_max": 2.0408653654158115e-05,
+          "endpoint_shift_m": 0.009898044168949127,
+          "traj_ade_m": 0.007704545743763447,
+          "forced_cot": {
+            "cot": [
+              "Adaptapt for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 6.083520247557317e-07,
+          "d_curvature_mean": 8.712322596693411e-06,
+          "d_curvature_max": 4.0813523810356855e-05,
+          "endpoint_shift_m": 0.026550162583589554,
+          "traj_ade_m": 0.008741667494177818,
+          "forced_cot": {
+            "cot": [
+              "Adapt the for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pace",
+          "token_prob": 4.1811381379375234e-07,
+          "d_curvature_mean": 5.4211841415963136e-06,
+          "d_curvature_max": 2.0409876015037298e-05,
+          "endpoint_shift_m": 0.018306702375411987,
+          "traj_ade_m": 0.005191432312130928,
+          "forced_cot": {
+            "cot": [
+              "Adapt pace for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " for",
+      "sampled_prob": 0.9379985332489014,
+      "entropy": 0.2852294445037842,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.0412127785384655,
+          "d_curvature_mean": 2.029247843893245e-05,
+          "d_curvature_max": 4.528136923909187e-05,
+          "endpoint_shift_m": 0.28703930974006653,
+          "traj_ade_m": 0.10671688616275787,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed to the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.01718004234135151,
+          "d_curvature_mean": 7.10197418811731e-05,
+          "d_curvature_max": 0.00022449495736509562,
+          "endpoint_shift_m": 3.9056129455566406,
+          "traj_ade_m": 1.4429200887680054,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed due the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0020518635865300894,
+          "d_curvature_mean": 1.3451872291625477e-05,
+          "d_curvature_max": 6.122339982539415e-05,
+          "endpoint_shift_m": 0.24506832659244537,
+          "traj_ade_m": 0.08983200788497925,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed since the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0014102236600592732,
+          "d_curvature_mean": 8.61467378854286e-06,
+          "d_curvature_max": 4.0817802073433995e-05,
+          "endpoint_shift_m": 0.06789500266313553,
+          "traj_ade_m": 0.020070593804121017,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed because the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.7877688407897949,
+      "entropy": 1.2585079669952393,
+      "alternatives": [
+        {
+          "token": " reduced",
+          "token_prob": 0.08303022384643555,
+          "d_curvature_mean": 1.1608393833739683e-05,
+          "d_curvature_max": 4.592008190229535e-05,
+          "endpoint_shift_m": 0.4204285144805908,
+          "traj_ade_m": 0.14295543730258942,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for reduced right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " limited",
+          "token_prob": 0.05531005188822746,
+          "d_curvature_mean": 7.594452199555235e-06,
+          "d_curvature_max": 3.061373718082905e-05,
+          "endpoint_shift_m": 0.010999931022524834,
+          "traj_ade_m": 0.008519313298165798,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for limited right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.007968169637024403,
+          "d_curvature_mean": 1.546158455312252e-05,
+          "d_curvature_max": 4.0817802073433995e-05,
+          "endpoint_shift_m": 0.19677427411079407,
+          "traj_ade_m": 0.06913381814956665,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for right right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.004986352752894163,
+          "d_curvature_mean": 1.6410429452662356e-05,
+          "d_curvature_max": 4.0822429582476616e-05,
+          "endpoint_shift_m": 0.5774205923080444,
+          "traj_ade_m": 0.21149253845214844,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for slow right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " right",
+      "sampled_prob": 0.9737197160720825,
+      "entropy": 0.1527807116508484,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0157387126237154,
+          "d_curvature_mean": 3.13006567012053e-05,
+          "d_curvature_max": 0.0001116099301725626,
+          "endpoint_shift_m": 0.3183431029319763,
+          "traj_ade_m": 0.10515306890010834,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the left curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curve",
+          "token_prob": 0.008967648260295391,
+          "d_curvature_mean": 1.1164174793520942e-05,
+          "d_curvature_max": 4.0815852116793394e-05,
+          "endpoint_shift_m": 0.20082330703735352,
+          "traj_ade_m": 0.08569961041212082,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the curve curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " upcoming",
+          "token_prob": 0.00025439259479753673,
+          "d_curvature_mean": 4.3665615521604195e-05,
+          "d_curvature_max": 0.00013361300807446241,
+          "endpoint_shift_m": 2.217430830001831,
+          "traj_ade_m": 0.7458735108375549,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the upcoming curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cur",
+          "token_prob": 0.0001642482093302533,
+          "d_curvature_mean": 1.2501504897954874e-05,
+          "d_curvature_max": 4.7514098696410656e-05,
+          "endpoint_shift_m": 0.09143802523612976,
+          "traj_ade_m": 0.024602431803941727,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the cur curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " curve",
+      "sampled_prob": 0.997393012046814,
+      "entropy": 0.021400421857833862,
+      "alternatives": [
+        {
+          "token": "-hand",
+          "token_prob": 0.0014086684677749872,
+          "d_curvature_mean": 7.475979145965539e-06,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.17158599197864532,
+          "traj_ade_m": 0.0634145736694336,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right-hand since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ward",
+          "token_prob": 0.001030603889375925,
+          "d_curvature_mean": 4.938154688716168e-06,
+          "d_curvature_max": 2.0409817807376385e-05,
+          "endpoint_shift_m": 0.06469463557004929,
+          "traj_ade_m": 0.01971638947725296,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the rightward since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 2.009357740462292e-05,
+          "d_curvature_mean": 7.125256615836406e-06,
+          "d_curvature_max": 4.0815444663167e-05,
+          "endpoint_shift_m": 0.17328406870365143,
+          "traj_ade_m": 0.0670846551656723,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right road since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turn",
+          "token_prob": 1.1448974873928819e-05,
+          "d_curvature_mean": 0.0002047822199529037,
+          "d_curvature_max": 0.0007127078133635223,
+          "endpoint_shift_m": 5.784029006958008,
+          "traj_ade_m": 2.008399486541748,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right turn since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.9902945756912231,
+      "entropy": 0.06410737335681915,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0066725523211061954,
+          "d_curvature_mean": 1.3469289115164429e-05,
+          "d_curvature_max": 5.325366510078311e-05,
+          "endpoint_shift_m": 0.19601987302303314,
+          "traj_ade_m": 0.06497842818498611,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve ahead the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.002166260499507189,
+          "d_curvature_mean": 4.971665475750342e-06,
+          "d_curvature_max": 2.0408770069479942e-05,
+          "endpoint_shift_m": 0.037431035190820694,
+          "traj_ade_m": 0.015774987637996674,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve because the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0003883891040459275,
+          "d_curvature_mean": 1.3038112228969112e-05,
+          "d_curvature_max": 4.719517892226577e-05,
+          "endpoint_shift_m": 0.18919609487056732,
+          "traj_ade_m": 0.06784658879041672,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve in the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.0001619046670384705,
+          "d_curvature_mean": 1.1863519830512814e-05,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.36724576354026794,
+          "traj_ade_m": 0.13544142246246338,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve due the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9713791608810425,
+      "entropy": 0.2100091129541397,
+      "alternatives": [
+        {
+          "token": " visibility",
+          "token_prob": 0.01570088230073452,
+          "d_curvature_mean": 1.3760818546870723e-05,
+          "d_curvature_max": 4.08175983466208e-05,
+          "endpoint_shift_m": 0.5349552035331726,
+          "traj_ade_m": 0.18758206069469452,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since visibility lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sight",
+          "token_prob": 0.0021923345047980547,
+          "d_curvature_mean": 4.791721494257217e-06,
+          "d_curvature_max": 2.0409468561410904e-05,
+          "endpoint_shift_m": 0.07927067577838898,
+          "traj_ade_m": 0.027272207662463188,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since sight lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0019961430225521326,
+          "d_curvature_mean": 1.5029427231638692e-05,
+          "d_curvature_max": 4.974618786945939e-05,
+          "endpoint_shift_m": 0.1430291086435318,
+          "traj_ade_m": 0.05543709546327591,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since a lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0015067679341882467,
+          "d_curvature_mean": 8.601366062066518e-06,
+          "d_curvature_max": 2.0409352146089077e-05,
+          "endpoint_shift_m": 0.1699581742286682,
+          "traj_ade_m": 0.06179523468017578,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since it lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.938161313533783,
+      "entropy": 0.3034226894378662,
+      "alternatives": [
+        {
+          "token": " road",
+          "token_prob": 0.03872254490852356,
+          "d_curvature_mean": 1.3261265848996118e-05,
+          "d_curvature_max": 3.731000469997525e-05,
+          "endpoint_shift_m": 0.23120653629302979,
+          "traj_ade_m": 0.0814274400472641,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the road bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadway",
+          "token_prob": 0.01947091706097126,
+          "d_curvature_mean": 1.2635948223760352e-05,
+          "d_curvature_max": 4.082015948370099e-05,
+          "endpoint_shift_m": 0.18224164843559265,
+          "traj_ade_m": 0.06258473545312881,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the roadway bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0002031972398981452,
+          "d_curvature_mean": 8.395851182285696e-06,
+          "d_curvature_max": 2.391589805483818e-05,
+          "endpoint_shift_m": 0.07455615699291229,
+          "traj_ade_m": 0.03295869380235672,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the right bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " residential",
+          "token_prob": 0.0001879267510958016,
+          "d_curvature_mean": 1.5074913790158462e-05,
+          "d_curvature_max": 4.0817802073433995e-05,
+          "endpoint_shift_m": 0.08939828723669052,
+          "traj_ade_m": 0.03940049558877945,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the residential bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " bends",
+      "sampled_prob": 0.9984208345413208,
+      "entropy": 0.013934977352619171,
+      "alternatives": [
+        {
+          "token": " curves",
+          "token_prob": 0.0008552810759283602,
+          "d_curvature_mean": 5.596290975518059e-06,
+          "d_curvature_max": 2.0408770069479942e-05,
+          "endpoint_shift_m": 0.07716774195432663,
+          "traj_ade_m": 0.026605665683746338,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane curves right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " is",
+          "token_prob": 0.00048732449067756534,
+          "d_curvature_mean": 7.873934919189196e-06,
+          "d_curvature_max": 4.08173946198076e-05,
+          "endpoint_shift_m": 0.314886212348938,
+          "traj_ade_m": 0.12409660220146179,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane is right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 9.01459643500857e-05,
+          "d_curvature_mean": 1.3342269085114822e-05,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.36331403255462646,
+          "traj_ade_m": 0.1281813085079193,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane ahead right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turns",
+          "token_prob": 7.955352339195088e-05,
+          "d_curvature_mean": 1.247045656782575e-05,
+          "d_curvature_max": 4.400598118081689e-05,
+          "endpoint_shift_m": 0.4655786156654358,
+          "traj_ade_m": 0.16348206996917725,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane turns right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " right",
+      "sampled_prob": 0.9767795205116272,
+      "entropy": 0.1324714720249176,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01578816957771778,
+          "d_curvature_mean": 8.901652108761482e-06,
+          "d_curvature_max": 2.041005063802004e-05,
+          "endpoint_shift_m": 0.17084474861621857,
+          "traj_ade_m": 0.067015141248703,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends to ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.006182736251503229,
+          "d_curvature_mean": 6.0542010942299385e-06,
+          "d_curvature_max": 2.0410283468663692e-05,
+          "endpoint_shift_m": 0.07296104729175568,
+          "traj_ade_m": 0.029105111956596375,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends ahead ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0005750840646214783,
+          "d_curvature_mean": 1.1903610356966965e-05,
+          "d_curvature_max": 4.0815852116793394e-05,
+          "endpoint_shift_m": 0.2024441510438919,
+          "traj_ade_m": 0.07405485212802887,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends and ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 8.547861943952739e-05,
+          "d_curvature_mean": 1.6669313481543213e-05,
+          "d_curvature_max": 6.12253206782043e-05,
+          "endpoint_shift_m": 0.45368775725364685,
+          "traj_ade_m": 0.16479052603244781,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends with ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9897931814193726,
+      "entropy": 0.07190625369548798,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.006265108939260244,
+          "d_curvature_mean": 7.419890607707202e-05,
+          "d_curvature_max": 0.0002394831390120089,
+          "endpoint_shift_m": 4.012942314147949,
+          "traj_ade_m": 1.349191427230835,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.0016343514434993267,
+          "d_curvature_mean": 9.864475941867568e-06,
+          "d_curvature_max": 4.0815444663167e-05,
+          "endpoint_shift_m": 0.2723502814769745,
+          "traj_ade_m": 0.09035463631153107,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right with"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0008218034636229277,
+          "d_curvature_mean": 0.00012439340935088694,
+          "d_curvature_max": 0.0004298571730032563,
+          "endpoint_shift_m": 4.341156005859375,
+          "traj_ade_m": 1.515336036682129,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0006203297525644302,
+          "d_curvature_mean": 1.242044527316466e-05,
+          "d_curvature_max": 4.0815444663167e-05,
+          "endpoint_shift_m": 0.31809160113334656,
+          "traj_ade_m": 0.10851886868476868,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right and"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Ad",
+      "sampled_prob": 0.5750417113304138,
+      "entropy": 1.1115905046463013,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.3276488482952118,
+          "d_curvature_mean": 7.300289871636778e-05,
+          "d_curvature_max": 0.00022848066873848438,
+          "endpoint_shift_m": 2.735370397567749,
+          "traj_ade_m": 1.0068979263305664,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Adjust",
+          "token_prob": 0.03563016280531883,
+          "d_curvature_mean": 3.114978244411759e-05,
+          "d_curvature_max": 8.673785487189889e-05,
+          "endpoint_shift_m": 2.588343858718872,
+          "traj_ade_m": 0.9626858234405518,
+          "forced_cot": {
+            "cot": [
+              "Adjust speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.014852861873805523,
+          "d_curvature_mean": 0.009836908429861069,
+          "d_curvature_max": 0.04160777106881142,
+          "endpoint_shift_m": 29.937437057495117,
+          "traj_ade_m": 10.270201683044434,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the right and slow to enter the right-turn lane because a right-turn pocket appears ahead, the oncoming vehicle has cleared, and the snowy, low-traction conditions call for a cautious merge and reduced speed for the upcoming right curve/intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.013952972367405891,
+          "d_curvature_mean": 7.203762652352452e-05,
+          "d_curvature_max": 0.00024562154430896044,
+          "endpoint_shift_m": 2.937110662460327,
+          "traj_ade_m": 1.0576481819152832,
+          "forced_cot": {
+            "cot": [
+              "Slow down for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "apt",
+      "sampled_prob": 1.0,
+      "entropy": 1.1774912991313613e-06,
+      "alternatives": [
+        {
+          "token": "eler",
+          "token_prob": 1.3440409674103648e-08,
+          "d_curvature_mean": 0.00010988665599143133,
+          "d_curvature_max": 0.00035539723467081785,
+          "endpoint_shift_m": 4.645769119262695,
+          "traj_ade_m": 1.6671167612075806,
+          "forced_cot": {
+            "cot": [
+              "Adelerate for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ain",
+          "token_prob": 1.0467402056235642e-08,
+          "d_curvature_mean": 9.918393334373832e-05,
+          "d_curvature_max": 0.000306128291413188,
+          "endpoint_shift_m": 5.0860137939453125,
+          "traj_ade_m": 1.8878346681594849,
+          "forced_cot": {
+            "cot": [
+              "Adain lane due to clear path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ate",
+          "token_prob": 7.194133289090132e-09,
+          "d_curvature_mean": 5.3023381042294204e-05,
+          "d_curvature_max": 0.00015609455294907093,
+          "endpoint_shift_m": 2.2060647010803223,
+          "traj_ade_m": 0.7618072628974915,
+          "forced_cot": {
+            "cot": [
+              "Adate deceleration for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 4.94445018262013e-09,
+          "d_curvature_mean": 8.70617077453062e-06,
+          "d_curvature_max": 2.0409876015037298e-05,
+          "endpoint_shift_m": 0.46725407242774963,
+          "traj_ade_m": 0.1748834252357483,
+          "forced_cot": {
+            "cot": [
+              "Ad speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " speed",
+      "sampled_prob": 0.9999878406524658,
+      "entropy": 0.00021981561440043151,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 1.0348416026317864e-06,
+          "d_curvature_mean": 7.809799171809573e-06,
+          "d_curvature_max": 2.0410283468663692e-05,
+          "endpoint_shift_m": 0.09745466709136963,
+          "traj_ade_m": 0.034893013536930084,
+          "forced_cot": {
+            "cot": [
+              "Adapt for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 1.0030029216068215e-06,
+          "d_curvature_mean": 6.55603435006924e-06,
+          "d_curvature_max": 2.0409817807376385e-05,
+          "endpoint_shift_m": 0.11915221065282822,
+          "traj_ade_m": 0.0475752130150795,
+          "forced_cot": {
+            "cot": [
+              "Adaptapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 6.083520247557317e-07,
+          "d_curvature_mean": 1.3935944480181206e-05,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.056167300790548325,
+          "traj_ade_m": 0.018343880772590637,
+          "forced_cot": {
+            "cot": [
+              "Adapt the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pace",
+          "token_prob": 4.1811381379375234e-07,
+          "d_curvature_mean": 5.694604624295607e-06,
+          "d_curvature_max": 2.0409119315445423e-05,
+          "endpoint_shift_m": 0.020965857431292534,
+          "traj_ade_m": 0.006022519897669554,
+          "forced_cot": {
+            "cot": [
+              "Adapt pace for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " for",
+      "sampled_prob": 0.9379985332489014,
+      "entropy": 0.2852294445037842,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.0412127785384655,
+          "d_curvature_mean": 8.630668162368238e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.33531808853149414,
+          "traj_ade_m": 0.12850631773471832,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed to follow the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.01718004234135151,
+          "d_curvature_mean": 8.23416339699179e-05,
+          "d_curvature_max": 0.00028855097480118275,
+          "endpoint_shift_m": 4.579748630523682,
+          "traj_ade_m": 1.7079355716705322,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed due to reduced visibility from fog"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0020518635865300894,
+          "d_curvature_mean": 2.1549732991843484e-05,
+          "d_curvature_max": 6.154482252895832e-05,
+          "endpoint_shift_m": 0.791743278503418,
+          "traj_ade_m": 0.28633973002433777,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed since the lane bends to the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0014102236600592732,
+          "d_curvature_mean": 1.6221483747358434e-05,
+          "d_curvature_max": 4.878966137766838e-05,
+          "endpoint_shift_m": 0.4203546941280365,
+          "traj_ade_m": 0.15194794535636902,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed because the lane bends to the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.7877688407897949,
+      "entropy": 1.2585079669952393,
+      "alternatives": [
+        {
+          "token": " reduced",
+          "token_prob": 0.08303022384643555,
+          "d_curvature_mean": 2.5195375201292336e-05,
+          "d_curvature_max": 9.694130858406425e-05,
+          "endpoint_shift_m": 0.7020878195762634,
+          "traj_ade_m": 0.2476549595594406,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for reduced visibility from sun glare ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " limited",
+          "token_prob": 0.05531005188822746,
+          "d_curvature_mean": 2.2762304070056416e-05,
+          "d_curvature_max": 8.163289749063551e-05,
+          "endpoint_shift_m": 0.18334975838661194,
+          "traj_ade_m": 0.054609544575214386,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for limited visibility since sun glare reduces forward sight distance"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.007968169637024403,
+          "d_curvature_mean": 7.895083399489522e-06,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.15274666249752045,
+          "traj_ade_m": 0.05879093334078789,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 0.004986352752894163,
+          "d_curvature_mean": 5.1414033805485815e-05,
+          "d_curvature_max": 0.00010204549471382052,
+          "endpoint_shift_m": 1.2298327684402466,
+          "traj_ade_m": 0.4062570035457611,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for slow traffic since the warning sign indicates reduced speed ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " right",
+      "sampled_prob": 0.9737197160720825,
+      "entropy": 0.1527807116508484,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0157387126237154,
+          "d_curvature_mean": 4.373212141217664e-05,
+          "d_curvature_max": 0.00015721051022410393,
+          "endpoint_shift_m": 0.18152813613414764,
+          "traj_ade_m": 0.0539904460310936,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the left curve since the lane bends left ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " curve",
+          "token_prob": 0.008967648260295391,
+          "d_curvature_mean": 1.4799097698414698e-05,
+          "d_curvature_max": 5.5166834499686956e-05,
+          "endpoint_shift_m": 0.010950949043035507,
+          "traj_ade_m": 0.014772498980164528,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " upcoming",
+          "token_prob": 0.00025439259479753673,
+          "d_curvature_mean": 0.00010534696775721386,
+          "d_curvature_max": 0.0003800313570536673,
+          "endpoint_shift_m": 3.512920379638672,
+          "traj_ade_m": 1.167251706123352,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the upcoming right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cur",
+          "token_prob": 0.0001642482093302533,
+          "d_curvature_mean": 2.2015119611751288e-05,
+          "d_curvature_max": 8.163601160049438e-05,
+          "endpoint_shift_m": 0.2931446433067322,
+          "traj_ade_m": 0.10234556347131729,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the curving lane since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " curve",
+      "sampled_prob": 0.997393012046814,
+      "entropy": 0.021400421857833862,
+      "alternatives": [
+        {
+          "token": "-hand",
+          "token_prob": 0.0014086684677749872,
+          "d_curvature_mean": 7.163888767536264e-06,
+          "d_curvature_max": 2.041005063802004e-05,
+          "endpoint_shift_m": 0.1467876136302948,
+          "traj_ade_m": 0.050662826746702194,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right-hand curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ward",
+          "token_prob": 0.001030603889375925,
+          "d_curvature_mean": 7.073511369526386e-06,
+          "d_curvature_max": 3.0611990951001644e-05,
+          "endpoint_shift_m": 0.20541876554489136,
+          "traj_ade_m": 0.07920641452074051,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the rightward curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 2.009357740462292e-05,
+          "d_curvature_mean": 1.1966410056629684e-05,
+          "d_curvature_max": 4.0817802073433995e-05,
+          "endpoint_shift_m": 0.07310763746500015,
+          "traj_ade_m": 0.02137274295091629,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right road curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turn",
+          "token_prob": 1.1448974873928819e-05,
+          "d_curvature_mean": 0.00021019710402470082,
+          "d_curvature_max": 0.0007203610148280859,
+          "endpoint_shift_m": 5.86197566986084,
+          "traj_ade_m": 2.034447193145752,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right turn since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.9902945756912231,
+      "entropy": 0.06410737335681915,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0066725523211061954,
+          "d_curvature_mean": 1.4146811736281961e-05,
+          "d_curvature_max": 4.1455263271927834e-05,
+          "endpoint_shift_m": 0.20329198241233826,
+          "traj_ade_m": 0.07209023088216782,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve ahead since the lane bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.002166260499507189,
+          "d_curvature_mean": 3.5490670597937424e-06,
+          "d_curvature_max": 2.0408770069479942e-05,
+          "endpoint_shift_m": 0.027558891102671623,
+          "traj_ade_m": 0.011634661816060543,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve because the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0003883891040459275,
+          "d_curvature_mean": 1.1968309991061687e-05,
+          "d_curvature_max": 4.081893712282181e-05,
+          "endpoint_shift_m": 0.1492304801940918,
+          "traj_ade_m": 0.05398964881896973,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve in the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.0001619046670384705,
+          "d_curvature_mean": 1.809011519071646e-05,
+          "d_curvature_max": 6.122613558545709e-05,
+          "endpoint_shift_m": 0.2918301522731781,
+          "traj_ade_m": 0.11299444735050201,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve due to limited visibility ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9713791608810425,
+      "entropy": 0.2100091129541397,
+      "alternatives": [
+        {
+          "token": " visibility",
+          "token_prob": 0.01570088230073452,
+          "d_curvature_mean": 1.155849895440042e-05,
+          "d_curvature_max": 3.061559982597828e-05,
+          "endpoint_shift_m": 0.015521705150604248,
+          "traj_ade_m": 0.006443480029702187,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since visibility is limited ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sight",
+          "token_prob": 0.0021923345047980547,
+          "d_curvature_mean": 1.2056147170369513e-05,
+          "d_curvature_max": 6.12253206782043e-05,
+          "endpoint_shift_m": 0.09830896556377411,
+          "traj_ade_m": 0.032582737505435944,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since sight distance is limited ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0019961430225521326,
+          "d_curvature_mean": 8.120983693515882e-05,
+          "d_curvature_max": 0.00020504306303337216,
+          "endpoint_shift_m": 1.20903742313385,
+          "traj_ade_m": 0.39706921577453613,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since a 20 mph curve advisory sign is visible ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0015067679341882467,
+          "d_curvature_mean": 1.5481840819120407e-05,
+          "d_curvature_max": 5.102099385112524e-05,
+          "endpoint_shift_m": 0.12459418922662735,
+          "traj_ade_m": 0.0432896614074707,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since it is a curve ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.938161313533783,
+      "entropy": 0.3034226894378662,
+      "alternatives": [
+        {
+          "token": " road",
+          "token_prob": 0.03872254490852356,
+          "d_curvature_mean": 1.3762602975475602e-05,
+          "d_curvature_max": 4.17736591771245e-05,
+          "endpoint_shift_m": 0.21172179281711578,
+          "traj_ade_m": 0.07430680841207504,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the road bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadway",
+          "token_prob": 0.01947091706097126,
+          "d_curvature_mean": 9.978994057746604e-06,
+          "d_curvature_max": 3.284512786194682e-05,
+          "endpoint_shift_m": 0.13274498283863068,
+          "traj_ade_m": 0.04604718089103699,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the roadway bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0002031972398981452,
+          "d_curvature_mean": 2.0528450477286242e-05,
+          "d_curvature_max": 6.12253206782043e-05,
+          "endpoint_shift_m": 0.3165453374385834,
+          "traj_ade_m": 0.10280542820692062,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the right curve warning sign indicates a bend ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " residential",
+          "token_prob": 0.0001879267510958016,
+          "d_curvature_mean": 9.376066373079084e-06,
+          "d_curvature_max": 4.0817802073433995e-05,
+          "endpoint_shift_m": 0.028845813125371933,
+          "traj_ade_m": 0.017569612711668015,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the residential lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " bends",
+      "sampled_prob": 0.9984208345413208,
+      "entropy": 0.013934977352619171,
+      "alternatives": [
+        {
+          "token": " curves",
+          "token_prob": 0.0008552810759283602,
+          "d_curvature_mean": 4.4875964704260696e-06,
+          "d_curvature_max": 2.0408653654158115e-05,
+          "endpoint_shift_m": 0.05498402565717697,
+          "traj_ade_m": 0.017813092097640038,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane curves right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " is",
+          "token_prob": 0.00048732449067756534,
+          "d_curvature_mean": 2.3014576072455384e-05,
+          "d_curvature_max": 8.163205347955227e-05,
+          "endpoint_shift_m": 0.7442505955696106,
+          "traj_ade_m": 0.2675853371620178,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 9.01459643500857e-05,
+          "d_curvature_mean": 4.9393124754715245e-06,
+          "d_curvature_max": 2.040949766524136e-05,
+          "endpoint_shift_m": 0.06622340530157089,
+          "traj_ade_m": 0.022256046533584595,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane ahead bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turns",
+          "token_prob": 7.955352339195088e-05,
+          "d_curvature_mean": 1.2719649021164514e-05,
+          "d_curvature_max": 4.464376252144575e-05,
+          "endpoint_shift_m": 0.47999635338783264,
+          "traj_ade_m": 0.16698004305362701,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane turns right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " right",
+      "sampled_prob": 0.9767795205116272,
+      "entropy": 0.1324714720249176,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01578816957771778,
+          "d_curvature_mean": 1.14263939394732e-05,
+          "d_curvature_max": 3.0613853596150875e-05,
+          "endpoint_shift_m": 0.25406980514526367,
+          "traj_ade_m": 0.09626227617263794,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends to the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.006182736251503229,
+          "d_curvature_mean": 9.2709633463528e-06,
+          "d_curvature_max": 2.5512155843898654e-05,
+          "endpoint_shift_m": 0.12435159087181091,
+          "traj_ade_m": 0.043192289769649506,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0005750840646214783,
+          "d_curvature_mean": 1.5700947187724523e-05,
+          "d_curvature_max": 6.122374907135963e-05,
+          "endpoint_shift_m": 0.30736997723579407,
+          "traj_ade_m": 0.11172299832105637,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends and sight is limited"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 8.547861943952739e-05,
+          "d_curvature_mean": 1.3322818631422706e-05,
+          "d_curvature_max": 4.0822080336511135e-05,
+          "endpoint_shift_m": 0.4280179440975189,
+          "traj_ade_m": 0.16670051217079163,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends with limited visibility ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9897931814193726,
+      "entropy": 0.07190625369548798,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.006265108939260244,
+          "d_curvature_mean": 7.262867256940808e-06,
+          "d_curvature_max": 2.0409119315445423e-05,
+          "endpoint_shift_m": 0.015179441310465336,
+          "traj_ade_m": 0.005643124226480722,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.0016343514434993267,
+          "d_curvature_mean": 1.3527907867683098e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.4187997281551361,
+          "traj_ade_m": 0.1647627055644989,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right with limited visibility ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0008218034636229277,
+          "d_curvature_mean": 0.00012427318142727017,
+          "d_curvature_max": 0.0004274653038010001,
+          "endpoint_shift_m": 4.346254825592041,
+          "traj_ade_m": 1.5155609846115112,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0006203297525644302,
+          "d_curvature_mean": 2.2763046217733063e-05,
+          "d_curvature_max": 6.122462218627334e-05,
+          "endpoint_shift_m": 0.7038324475288391,
+          "traj_ade_m": 0.2612888514995575,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right and is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

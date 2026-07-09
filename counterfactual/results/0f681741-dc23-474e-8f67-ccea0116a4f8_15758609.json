@@ -1,0 +1,3207 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Turn right at the intersection since the right-turn-only lane marking directs a right turn"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 16,
+    "mean_entropy": 0.9928956637741067,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Turn",
+        "sampled_prob": 0.48958510160446167,
+        "entropy": 1.7383638620376587,
+        "top_k": [
+          {
+            "text": "Turn",
+            "prob": 0.48958510160446167
+          },
+          {
+            "text": "Y",
+            "prob": 0.15405477583408356
+          },
+          {
+            "text": "Ad",
+            "prob": 0.07992257177829742
+          },
+          {
+            "text": "Stop",
+            "prob": 0.07053142786026001
+          },
+          {
+            "text": "Slow",
+            "prob": 0.06421958655118942
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " right",
+        "sampled_prob": 0.9998409748077393,
+        "entropy": 0.0015550004318356514,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9998409748077393
+          },
+          {
+            "text": " left",
+            "prob": 0.0001584361307322979
+          },
+          {
+            "text": " side",
+            "prob": 1.742701698503879e-07
+          },
+          {
+            "text": " to",
+            "prob": 1.6890844278805162e-07
+          },
+          {
+            "text": " lane",
+            "prob": 4.139279496939707e-08
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " at",
+        "sampled_prob": 0.9053964018821716,
+        "entropy": 0.39871591329574585,
+        "top_k": [
+          {
+            "text": " at",
+            "prob": 0.9053964018821716
+          },
+          {
+            "text": " to",
+            "prob": 0.05788005143404007
+          },
+          {
+            "text": " into",
+            "prob": 0.03297905996441841
+          },
+          {
+            "text": " and",
+            "prob": 0.0010274939704686403
+          },
+          {
+            "text": " since",
+            "prob": 0.0009067603386938572
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9984748959541321,
+        "entropy": 0.015701595693826675,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9984748959541321
+          },
+          {
+            "text": " our",
+            "prob": 0.0007787845097482204
+          },
+          {
+            "text": " low",
+            "prob": 0.0002096069947583601
+          },
+          {
+            "text": " reduced",
+            "prob": 0.00011943045683437958
+          },
+          {
+            "text": " side",
+            "prob": 2.9267694117152132e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " intersection",
+        "sampled_prob": 0.9156105518341064,
+        "entropy": 0.36129456758499146,
+        "top_k": [
+          {
+            "text": " intersection",
+            "prob": 0.9156105518341064
+          },
+          {
+            "text": " side",
+            "prob": 0.07060430943965912
+          },
+          {
+            "text": " junction",
+            "prob": 0.006567222997546196
+          },
+          {
+            "text": " split",
+            "prob": 0.003860671538859606
+          },
+          {
+            "text": " lane",
+            "prob": 0.00019523841910995543
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " since",
+        "sampled_prob": 0.9785264730453491,
+        "entropy": 0.12215094268321991,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9785264730453491
+          },
+          {
+            "text": " to",
+            "prob": 0.01395792979747057
+          },
+          {
+            "text": " because",
+            "prob": 0.006593259517103434
+          },
+          {
+            "text": " following",
+            "prob": 0.0003959560126531869
+          },
+          {
+            "text": " due",
+            "prob": 0.0002896876248996705
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " the",
+        "sampled_prob": 0.9311026334762573,
+        "entropy": 0.39695361256599426,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9311026334762573
+          },
+          {
+            "text": " no",
+            "prob": 0.031860578805208206
+          },
+          {
+            "text": " there",
+            "prob": 0.012092912569642067
+          },
+          {
+            "text": " cross",
+            "prob": 0.0060806977562606335
+          },
+          {
+            "text": " pedestrians",
+            "prob": 0.004885978065431118
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " right",
+        "sampled_prob": 0.39369815587997437,
+        "entropy": 2.01825213432312,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.39369815587997437
+          },
+          {
+            "text": " side",
+            "prob": 0.22432243824005127
+          },
+          {
+            "text": " lane",
+            "prob": 0.12007115036249161
+          },
+          {
+            "text": " intersection",
+            "prob": 0.10932602733373642
+          },
+          {
+            "text": " path",
+            "prob": 0.03778206929564476
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": "-turn",
+        "sampled_prob": 0.6123414039611816,
+        "entropy": 1.4709808826446533,
+        "top_k": [
+          {
+            "text": "-turn",
+            "prob": 0.6123414039611816
+          },
+          {
+            "text": " turn",
+            "prob": 0.19879813492298126
+          },
+          {
+            "text": " lane",
+            "prob": 0.0535057932138443
+          },
+          {
+            "text": " side",
+            "prob": 0.04038829356431961
+          },
+          {
+            "text": " split",
+            "prob": 0.01849110797047615
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": "-only",
+        "sampled_prob": 0.14147908985614777,
+        "entropy": 2.048107385635376,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.43578627705574036
+          },
+          {
+            "text": "-only",
+            "prob": 0.14147908985614777
+          },
+          {
+            "text": " path",
+            "prob": 0.13290730118751526
+          },
+          {
+            "text": " traffic",
+            "prob": 0.12101347744464874
+          },
+          {
+            "text": " slip",
+            "prob": 0.04182114079594612
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " lane",
+        "sampled_prob": 0.7027342915534973,
+        "entropy": 0.8908997178077698,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.7027342915534973
+          },
+          {
+            "text": " sign",
+            "prob": 0.25852152705192566
+          },
+          {
+            "text": " markings",
+            "prob": 0.006471958942711353
+          },
+          {
+            "text": " split",
+            "prob": 0.004734986461699009
+          },
+          {
+            "text": " marking",
+            "prob": 0.003925441764295101
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " marking",
+        "sampled_prob": 0.5131739377975464,
+        "entropy": 2.4503839015960693,
+        "top_k": [
+          {
+            "text": " marking",
+            "prob": 0.5131739377975464
+          },
+          {
+            "text": " markings",
+            "prob": 0.20096181333065033
+          },
+          {
+            "text": " directs",
+            "prob": 0.042123883962631226
+          },
+          {
+            "text": " requires",
+            "prob": 0.027197223156690598
+          },
+          {
+            "text": " indicates",
+            "prob": 0.02400146797299385
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " directs",
+        "sampled_prob": 0.5881351232528687,
+        "entropy": 1.7770774364471436,
+        "top_k": [
+          {
+            "text": " directs",
+            "prob": 0.5881351232528687
+          },
+          {
+            "text": " indicates",
+            "prob": 0.1909395158290863
+          },
+          {
+            "text": " requires",
+            "prob": 0.10220255702733994
+          },
+          {
+            "text": " dictates",
+            "prob": 0.02928152307868004
+          },
+          {
+            "text": " controls",
+            "prob": 0.006740990560501814
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " a",
+        "sampled_prob": 0.45645299553871155,
+        "entropy": 1.4783997535705566,
+        "top_k": [
+          {
+            "text": " a",
+            "prob": 0.45645299553871155
+          },
+          {
+            "text": " the",
+            "prob": 0.37841281294822693
+          },
+          {
+            "text": " our",
+            "prob": 0.033065345138311386
+          },
+          {
+            "text": " into",
+            "prob": 0.02828228659927845
+          },
+          {
+            "text": " an",
+            "prob": 0.024959031492471695
+          }
+        ]
+      },
+      {
+        "step": 14,
+        "col": 3100,
+        "sampled": " right",
+        "sampled_prob": 0.9917231202125549,
+        "entropy": 0.06849660724401474,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9917231202125549
+          },
+          {
+            "text": " split",
+            "prob": 0.005204085260629654
+          },
+          {
+            "text": " mandatory",
+            "prob": 0.0005152742378413677
+          },
+          {
+            "text": " turn",
+            "prob": 0.00046916253631934524
+          },
+          {
+            "text": " safe",
+            "prob": 0.00016728504851926118
+          }
+        ]
+      },
+      {
+        "step": 15,
+        "col": 3101,
+        "sampled": " turn",
+        "sampled_prob": 0.7837753295898438,
+        "entropy": 0.6489973068237305,
+        "top_k": [
+          {
+            "text": " turn",
+            "prob": 0.7837753295898438
+          },
+          {
+            "text": " split",
+            "prob": 0.19816944003105164
+          },
+          {
+            "text": "-turn",
+            "prob": 0.004660498350858688
+          },
+          {
+            "text": " exit",
+            "prob": 0.003304788377135992
+          },
+          {
+            "text": "-only",
+            "prob": 0.0026554721407592297
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.48958510160446167,
+      "entropy": 1.7383638620376587,
+      "alternatives": [
+        {
+          "token": "Y",
+          "token_prob": 0.15405477583408356,
+          "d_curvature_mean": 0.000491302227601409,
+          "d_curvature_max": 0.001285739243030548,
+          "endpoint_shift_m": 0.225362166762352,
+          "traj_ade_m": 0.09242600202560425,
+          "forced_cot": {
+            "cot": [
+              "Y right at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.07992257177829742,
+          "d_curvature_mean": 0.0006331264157779515,
+          "d_curvature_max": 0.00151023268699646,
+          "endpoint_shift_m": 0.2053219974040985,
+          "traj_ade_m": 0.08064834773540497,
+          "forced_cot": {
+            "cot": [
+              "Ad right at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.07053142786026001,
+          "d_curvature_mean": 0.005320195574313402,
+          "d_curvature_max": 0.018745332956314087,
+          "endpoint_shift_m": 3.5639612674713135,
+          "traj_ade_m": 1.0675246715545654,
+          "forced_cot": {
+            "cot": [
+              "Stop right at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.06421958655118942,
+          "d_curvature_mean": 0.0016545085236430168,
+          "d_curvature_max": 0.003612324595451355,
+          "endpoint_shift_m": 0.5695657730102539,
+          "traj_ade_m": 0.19647932052612305,
+          "forced_cot": {
+            "cot": [
+              "Slow right at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9998409748077393,
+      "entropy": 0.0015550004318356514,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0001584361307322979,
+          "d_curvature_mean": 0.0004047738912049681,
+          "d_curvature_max": 0.001224517822265625,
+          "endpoint_shift_m": 0.09116274863481522,
+          "traj_ade_m": 0.024106845259666443,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 1.742701698503879e-07,
+          "d_curvature_mean": 0.0010249551851302385,
+          "d_curvature_max": 0.0023469924926757812,
+          "endpoint_shift_m": 0.3151770830154419,
+          "traj_ade_m": 0.10579588264226913,
+          "forced_cot": {
+            "cot": [
+              "Turn side at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.6890844278805162e-07,
+          "d_curvature_mean": 0.0005170718068256974,
+          "d_curvature_max": 0.0010102242231369019,
+          "endpoint_shift_m": 0.14930498600006104,
+          "traj_ade_m": 0.05240318179130554,
+          "forced_cot": {
+            "cot": [
+              "Turn to at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.139279496939707e-08,
+          "d_curvature_mean": 6.682644016109407e-05,
+          "d_curvature_max": 0.00016327574849128723,
+          "endpoint_shift_m": 0.14441297948360443,
+          "traj_ade_m": 0.05633002147078514,
+          "forced_cot": {
+            "cot": [
+              "Turn lane at the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " at",
+      "sampled_prob": 0.9053964018821716,
+      "entropy": 0.39871591329574585,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05788005143404007,
+          "d_curvature_mean": 0.000772598956245929,
+          "d_curvature_max": 0.0014694258570671082,
+          "endpoint_shift_m": 0.15316559374332428,
+          "traj_ade_m": 0.04532612860202789,
+          "forced_cot": {
+            "cot": [
+              "Turn right to the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.03297905996441841,
+          "d_curvature_mean": 0.00010989655856974423,
+          "d_curvature_max": 0.0005102232098579407,
+          "endpoint_shift_m": 0.08864495158195496,
+          "traj_ade_m": 0.022829093039035797,
+          "forced_cot": {
+            "cot": [
+              "Turn right into the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0010274939704686403,
+          "d_curvature_mean": 0.0011441134847700596,
+          "d_curvature_max": 0.0031225308775901794,
+          "endpoint_shift_m": 0.26112738251686096,
+          "traj_ade_m": 0.10669025033712387,
+          "forced_cot": {
+            "cot": [
+              "Turn right and the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0009067603386938572,
+          "d_curvature_mean": 0.0011786601971834898,
+          "d_curvature_max": 0.0025000721216201782,
+          "endpoint_shift_m": 0.209761381149292,
+          "traj_ade_m": 0.054543670266866684,
+          "forced_cot": {
+            "cot": [
+              "Turn right since the intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9984748959541321,
+      "entropy": 0.015701595693826675,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0007787845097482204,
+          "d_curvature_mean": 0.00020769360708072782,
+          "d_curvature_max": 0.0006224587559700012,
+          "endpoint_shift_m": 0.11489784717559814,
+          "traj_ade_m": 0.03467780351638794,
+          "forced_cot": {
+            "cot": [
+              "Turn right at our intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " low",
+          "token_prob": 0.0002096069947583601,
+          "d_curvature_mean": 0.0010612544137984514,
+          "d_curvature_max": 0.0025306791067123413,
+          "endpoint_shift_m": 0.17035043239593506,
+          "traj_ade_m": 0.039675772190093994,
+          "forced_cot": {
+            "cot": [
+              "Turn right at low intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " reduced",
+          "token_prob": 0.00011943045683437958,
+          "d_curvature_mean": 0.0009621980716474354,
+          "d_curvature_max": 0.0022347494959831238,
+          "endpoint_shift_m": 0.15419740974903107,
+          "traj_ade_m": 0.0380265899002552,
+          "forced_cot": {
+            "cot": [
+              "Turn right at reduced intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 2.9267694117152132e-05,
+          "d_curvature_mean": 0.00020843168022111058,
+          "d_curvature_max": 0.0004413202404975891,
+          "endpoint_shift_m": 0.2106843888759613,
+          "traj_ade_m": 0.077455535531044,
+          "forced_cot": {
+            "cot": [
+              "Turn right at side intersection since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " intersection",
+      "sampled_prob": 0.9156105518341064,
+      "entropy": 0.36129456758499146,
+      "alternatives": [
+        {
+          "token": " side",
+          "token_prob": 0.07060430943965912,
+          "d_curvature_mean": 0.000652118818834424,
+          "d_curvature_max": 0.0013061538338661194,
+          "endpoint_shift_m": 0.3295857012271881,
+          "traj_ade_m": 0.11018911004066467,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the side since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " junction",
+          "token_prob": 0.006567222997546196,
+          "d_curvature_mean": 7.236670353449881e-05,
+          "d_curvature_max": 0.00019387155771255493,
+          "endpoint_shift_m": 0.00988268107175827,
+          "traj_ade_m": 0.005322838202118874,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the junction since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.003860671538859606,
+          "d_curvature_mean": 0.00015449945931322873,
+          "d_curvature_max": 0.00039796531200408936,
+          "endpoint_shift_m": 0.035246074199676514,
+          "traj_ade_m": 0.010048702359199524,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the split since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.00019523841910995543,
+          "d_curvature_mean": 0.0003172899014316499,
+          "d_curvature_max": 0.000724494457244873,
+          "endpoint_shift_m": 0.08202721923589706,
+          "traj_ade_m": 0.030033240094780922,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the lane since the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " since",
+      "sampled_prob": 0.9785264730453491,
+      "entropy": 0.12215094268321991,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01395792979747057,
+          "d_curvature_mean": 0.00014493369963020086,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.05771514028310776,
+          "traj_ade_m": 0.01764763332903385,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection to the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.006593259517103434,
+          "d_curvature_mean": 0.00032438605558127165,
+          "d_curvature_max": 0.0007347054779529572,
+          "endpoint_shift_m": 0.054933249950408936,
+          "traj_ade_m": 0.012320762500166893,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection because the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " following",
+          "token_prob": 0.0003959560126531869,
+          "d_curvature_mean": 0.000944701605476439,
+          "d_curvature_max": 0.0015102475881576538,
+          "endpoint_shift_m": 0.19537107646465302,
+          "traj_ade_m": 0.057555556297302246,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection following the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.0002896876248996705,
+          "d_curvature_mean": 0.0011540043633431196,
+          "d_curvature_max": 0.002102084457874298,
+          "endpoint_shift_m": 0.21814566850662231,
+          "traj_ade_m": 0.059506237506866455,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection due the right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " the",
+      "sampled_prob": 0.9311026334762573,
+      "entropy": 0.39695361256599426,
+      "alternatives": [
+        {
+          "token": " no",
+          "token_prob": 0.031860578805208206,
+          "d_curvature_mean": 0.0011668556835502386,
+          "d_curvature_max": 0.0023980289697647095,
+          "endpoint_shift_m": 0.22181007266044617,
+          "traj_ade_m": 0.06725429743528366,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since no right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.012092912569642067,
+          "d_curvature_mean": 0.0003503547632135451,
+          "d_curvature_max": 0.001438818871974945,
+          "endpoint_shift_m": 0.14738783240318298,
+          "traj_ade_m": 0.04119477793574333,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since there right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0060806977562606335,
+          "d_curvature_mean": 0.0005454717320390046,
+          "d_curvature_max": 0.0017653554677963257,
+          "endpoint_shift_m": 0.07389724999666214,
+          "traj_ade_m": 0.015352226793766022,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since cross right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrians",
+          "token_prob": 0.004885978065431118,
+          "d_curvature_mean": 0.0005889106541872025,
+          "d_curvature_max": 0.001663312315940857,
+          "endpoint_shift_m": 0.08641494065523148,
+          "traj_ade_m": 0.023399148136377335,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since pedestrians right-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " right",
+      "sampled_prob": 0.39369815587997437,
+      "entropy": 2.01825213432312,
+      "alternatives": [
+        {
+          "token": " side",
+          "token_prob": 0.22432243824005127,
+          "d_curvature_mean": 0.0008480795659124851,
+          "d_curvature_max": 0.0018061548471450806,
+          "endpoint_shift_m": 0.16090334951877594,
+          "traj_ade_m": 0.038655512034893036,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the side-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.12007115036249161,
+          "d_curvature_mean": 0.0004703942104242742,
+          "d_curvature_max": 0.0008061528205871582,
+          "endpoint_shift_m": 0.023895038291811943,
+          "traj_ade_m": 0.016898619011044502,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intersection",
+          "token_prob": 0.10932602733373642,
+          "d_curvature_mean": 0.0006533501436933875,
+          "d_curvature_max": 0.0014286041259765625,
+          "endpoint_shift_m": 0.10246705263853073,
+          "traj_ade_m": 0.022342506796121597,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the intersection-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.03778206929564476,
+          "d_curvature_mean": 0.0010270739439874887,
+          "d_curvature_max": 0.0019286200404167175,
+          "endpoint_shift_m": 0.17867296934127808,
+          "traj_ade_m": 0.041877273470163345,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the path-turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": "-turn",
+      "sampled_prob": 0.6123414039611816,
+      "entropy": 1.4709808826446533,
+      "alternatives": [
+        {
+          "token": " turn",
+          "token_prob": 0.19879813492298126,
+          "d_curvature_mean": 0.00013419069000519812,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.11890173703432083,
+          "traj_ade_m": 0.04005277156829834,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right turn-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0535057932138443,
+          "d_curvature_mean": 0.00019107226398773491,
+          "d_curvature_max": 0.0003979727625846863,
+          "endpoint_shift_m": 0.060937944799661636,
+          "traj_ade_m": 0.027050461620092392,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right lane-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 0.04038829356431961,
+          "d_curvature_mean": 0.0003282724064774811,
+          "d_curvature_max": 0.0009796246886253357,
+          "endpoint_shift_m": 0.049848053604364395,
+          "traj_ade_m": 0.015243833884596825,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right side-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.01849110797047615,
+          "d_curvature_mean": 0.0005241120816208422,
+          "d_curvature_max": 0.001408204436302185,
+          "endpoint_shift_m": 0.12276554852724075,
+          "traj_ade_m": 0.03842221200466156,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right split-only lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": "-only",
+      "sampled_prob": 0.14147908985614777,
+      "entropy": 2.048107385635376,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.43578627705574036,
+          "d_curvature_mean": 0.00041498785139992833,
+          "d_curvature_max": 0.0010612457990646362,
+          "endpoint_shift_m": 0.06422891467809677,
+          "traj_ade_m": 0.018037233501672745,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn lane lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.13290730118751526,
+          "d_curvature_mean": 0.0010972571326419711,
+          "d_curvature_max": 0.002479657530784607,
+          "endpoint_shift_m": 0.21694044768810272,
+          "traj_ade_m": 0.06153089553117752,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn path lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.12101347744464874,
+          "d_curvature_mean": 0.00035442065563984215,
+          "d_curvature_max": 0.00109187513589859,
+          "endpoint_shift_m": 0.07666609436273575,
+          "traj_ade_m": 0.02400074526667595,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn traffic lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slip",
+          "token_prob": 0.04182114079594612,
+          "d_curvature_mean": 0.0008073667413555086,
+          "d_curvature_max": 0.0016837194561958313,
+          "endpoint_shift_m": 0.16286757588386536,
+          "traj_ade_m": 0.052963171154260635,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn slip lane marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " lane",
+      "sampled_prob": 0.7027342915534973,
+      "entropy": 0.8908997178077698,
+      "alternatives": [
+        {
+          "token": " sign",
+          "token_prob": 0.25852152705192566,
+          "d_curvature_mean": 0.0001697255065664649,
+          "d_curvature_max": 0.0003265365958213806,
+          "endpoint_shift_m": 0.05854145064949989,
+          "traj_ade_m": 0.02360350638628006,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only sign marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " markings",
+          "token_prob": 0.006471958942711353,
+          "d_curvature_mean": 0.00042016958468593657,
+          "d_curvature_max": 0.0005714409053325653,
+          "endpoint_shift_m": 0.2218772917985916,
+          "traj_ade_m": 0.07379604130983353,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only markings marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.004734986461699009,
+          "d_curvature_mean": 0.0003142609784845263,
+          "d_curvature_max": 0.0006326735019683838,
+          "endpoint_shift_m": 0.0689585953950882,
+          "traj_ade_m": 0.02338067628443241,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only split marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marking",
+          "token_prob": 0.003925441764295101,
+          "d_curvature_mean": 0.00017458971706219018,
+          "d_curvature_max": 0.00036735832691192627,
+          "endpoint_shift_m": 0.02506375126540661,
+          "traj_ade_m": 0.012349022552371025,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only marking marking directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " marking",
+      "sampled_prob": 0.5131739377975464,
+      "entropy": 2.4503839015960693,
+      "alternatives": [
+        {
+          "token": " markings",
+          "token_prob": 0.20096181333065033,
+          "d_curvature_mean": 7.358359289355576e-05,
+          "d_curvature_max": 0.0002040863037109375,
+          "endpoint_shift_m": 0.06293244659900665,
+          "traj_ade_m": 0.02260301634669304,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane markings directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directs",
+          "token_prob": 0.042123883962631226,
+          "d_curvature_mean": 0.0005680732429027557,
+          "d_curvature_max": 0.0010408461093902588,
+          "endpoint_shift_m": 0.11434408277273178,
+          "traj_ade_m": 0.03584958612918854,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane directs directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " requires",
+          "token_prob": 0.027197223156690598,
+          "d_curvature_mean": 0.0007164990529417992,
+          "d_curvature_max": 0.0011428892612457275,
+          "endpoint_shift_m": 0.14774741232395172,
+          "traj_ade_m": 0.04806624352931976,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane requires directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " indicates",
+          "token_prob": 0.02400146797299385,
+          "d_curvature_mean": 0.0005930652841925621,
+          "d_curvature_max": 0.0009796246886253357,
+          "endpoint_shift_m": 0.13172008097171783,
+          "traj_ade_m": 0.03953203931450844,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane indicates directs a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " directs",
+      "sampled_prob": 0.5881351232528687,
+      "entropy": 1.7770774364471436,
+      "alternatives": [
+        {
+          "token": " indicates",
+          "token_prob": 0.1909395158290863,
+          "d_curvature_mean": 0.00022975678439252079,
+          "d_curvature_max": 0.0005000084638595581,
+          "endpoint_shift_m": 0.0718970000743866,
+          "traj_ade_m": 0.02275676093995571,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking indicates a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " requires",
+          "token_prob": 0.10220255702733994,
+          "d_curvature_mean": 3.814636147581041e-05,
+          "d_curvature_max": 0.00012245029211044312,
+          "endpoint_shift_m": 0.044106025248765945,
+          "traj_ade_m": 0.018114203587174416,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking requires a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dictates",
+          "token_prob": 0.02928152307868004,
+          "d_curvature_mean": 0.00021921354345977306,
+          "d_curvature_max": 0.0005408376455307007,
+          "endpoint_shift_m": 0.02762618660926819,
+          "traj_ade_m": 0.008668080903589725,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking dictates a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 0.006740990560501814,
+          "d_curvature_mean": 0.00015719060320407152,
+          "d_curvature_max": 0.00036735832691192627,
+          "endpoint_shift_m": 0.04267432540655136,
+          "traj_ade_m": 0.016835160553455353,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking controls a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " a",
+      "sampled_prob": 0.45645299553871155,
+      "entropy": 1.4783997535705566,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.37841281294822693,
+          "d_curvature_mean": 0.00026471386081539094,
+          "d_curvature_max": 0.0007143020629882812,
+          "endpoint_shift_m": 0.060922786593437195,
+          "traj_ade_m": 0.026101481169462204,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs the right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.033065345138311386,
+          "d_curvature_mean": 0.0003719986998476088,
+          "d_curvature_max": 0.0009796246886253357,
+          "endpoint_shift_m": 0.08312487602233887,
+          "traj_ade_m": 0.02840769663453102,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs our right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.02828228659927845,
+          "d_curvature_mean": 0.0002468160819262266,
+          "d_curvature_max": 0.0007041022181510925,
+          "endpoint_shift_m": 0.06450430303812027,
+          "traj_ade_m": 0.02150871232151985,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs into right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.024959031492471695,
+          "d_curvature_mean": 0.00010040850611403584,
+          "d_curvature_max": 0.00020410120487213135,
+          "endpoint_shift_m": 0.021909423172473907,
+          "traj_ade_m": 0.00818687491118908,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs an right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " right",
+      "sampled_prob": 0.9917231202125549,
+      "entropy": 0.06849660724401474,
+      "alternatives": [
+        {
+          "token": " split",
+          "token_prob": 0.005204085260629654,
+          "d_curvature_mean": 0.00041722101741470397,
+          "d_curvature_max": 0.0009081810712814331,
+          "endpoint_shift_m": 0.07118397951126099,
+          "traj_ade_m": 0.01718088798224926,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a split turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " mandatory",
+          "token_prob": 0.0005152742378413677,
+          "d_curvature_mean": 0.0003557564050424844,
+          "d_curvature_max": 0.000724494457244873,
+          "endpoint_shift_m": 0.06167425960302353,
+          "traj_ade_m": 0.018179822713136673,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a mandatory turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turn",
+          "token_prob": 0.00046916253631934524,
+          "d_curvature_mean": 0.00010668771574273705,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.030183885246515274,
+          "traj_ade_m": 0.0132103580981493,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a turn turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " safe",
+          "token_prob": 0.00016728504851926118,
+          "d_curvature_mean": 0.0004086107073817402,
+          "d_curvature_max": 0.00090818852186203,
+          "endpoint_shift_m": 0.06980324536561966,
+          "traj_ade_m": 0.018081113696098328,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a safe turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": " turn",
+      "sampled_prob": 0.7837753295898438,
+      "entropy": 0.6489973068237305,
+      "alternatives": [
+        {
+          "token": " split",
+          "token_prob": 0.19816944003105164,
+          "d_curvature_mean": 0.00048072359641082585,
+          "d_curvature_max": 0.0010204240679740906,
+          "endpoint_shift_m": 0.08407114446163177,
+          "traj_ade_m": 0.020559078082442284,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a right split"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-turn",
+          "token_prob": 0.004660498350858688,
+          "d_curvature_mean": 0.00019340348080731928,
+          "d_curvature_max": 0.0005408450961112976,
+          "endpoint_shift_m": 0.06177391856908798,
+          "traj_ade_m": 0.02327168732881546,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a right-turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " exit",
+          "token_prob": 0.003304788377135992,
+          "d_curvature_mean": 0.00024352845503017306,
+          "d_curvature_max": 0.0004693940281867981,
+          "endpoint_shift_m": 0.051850222051143646,
+          "traj_ade_m": 0.01609950326383114,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a right exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-only",
+          "token_prob": 0.0026554721407592297,
+          "d_curvature_mean": 0.0004983720718882978,
+          "d_curvature_max": 0.0010816529393196106,
+          "endpoint_shift_m": 0.08538639545440674,
+          "traj_ade_m": 0.02386399917304516,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the right-turn-only lane marking directs a right-only"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.48958510160446167,
+      "entropy": 1.7383638620376587,
+      "alternatives": [
+        {
+          "token": "Y",
+          "token_prob": 0.15405477583408356,
+          "d_curvature_mean": 0.0019103381782770157,
+          "d_curvature_max": 0.004685059189796448,
+          "endpoint_shift_m": 0.7082110643386841,
+          "traj_ade_m": 0.23270446062088013,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrians since they are crossing our right-turn path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.07992257177829742,
+          "d_curvature_mean": 0.002592453733086586,
+          "d_curvature_max": 0.0048980712890625,
+          "endpoint_shift_m": 0.5758647322654724,
+          "traj_ade_m": 0.14993144571781158,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.07053142786026001,
+          "d_curvature_mean": 0.003465281566604972,
+          "d_curvature_max": 0.014969728887081146,
+          "endpoint_shift_m": 3.3981611728668213,
+          "traj_ade_m": 1.0156818628311157,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrians crossing the side street ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.06421958655118942,
+          "d_curvature_mean": 0.0006172218127176166,
+          "d_curvature_max": 0.001408204436302185,
+          "endpoint_shift_m": 0.8108794093132019,
+          "traj_ade_m": 0.25161248445510864,
+          "forced_cot": {
+            "cot": [
+              "Slow down for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " right",
+      "sampled_prob": 0.9998409748077393,
+      "entropy": 0.0015550004318356514,
+      "alternatives": [
+        {
+          "token": " left",
+          "token_prob": 0.0001584361307322979,
+          "d_curvature_mean": 0.002192313550040126,
+          "d_curvature_max": 0.005245015025138855,
+          "endpoint_shift_m": 0.2995503842830658,
+          "traj_ade_m": 0.056503795087337494,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since the lane markings indicate a left split ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 1.742701698503879e-07,
+          "d_curvature_mean": 0.0016940757632255554,
+          "d_curvature_max": 0.0051021575927734375,
+          "endpoint_shift_m": 0.23321451246738434,
+          "traj_ade_m": 0.056982286274433136,
+          "forced_cot": {
+            "cot": [
+              "Turn side street at the intersection since the right-turn lane is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.6890844278805162e-07,
+          "d_curvature_mean": 0.0013278918340802193,
+          "d_curvature_max": 0.002699047327041626,
+          "endpoint_shift_m": 0.2541006803512573,
+          "traj_ade_m": 0.06523571908473969,
+          "forced_cot": {
+            "cot": [
+              "Turn to the right to enter the side street since the intersection is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 4.139279496939707e-08,
+          "d_curvature_mean": 0.002528850920498371,
+          "d_curvature_max": 0.004326634109020233,
+          "endpoint_shift_m": 1.6493483781814575,
+          "traj_ade_m": 0.6905719041824341,
+          "forced_cot": {
+            "cot": [
+              "Turn lane to the right and yield because pedestrians are walking across the side-street entrance where the vehicle intends to turn, requiring the ego to slow before completing the rightward merge into the turn lane and then proceed once clear."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " at",
+      "sampled_prob": 0.9053964018821716,
+      "entropy": 0.39871591329574585,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05788005143404007,
+          "d_curvature_mean": 0.0016674887156113982,
+          "d_curvature_max": 0.0034949854016304016,
+          "endpoint_shift_m": 0.316745400428772,
+          "traj_ade_m": 0.07694768905639648,
+          "forced_cot": {
+            "cot": [
+              "Turn right to enter the side street since the lane splits to the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.03297905996441841,
+          "d_curvature_mean": 0.0011917620431631804,
+          "d_curvature_max": 0.003296002745628357,
+          "endpoint_shift_m": 0.20056594908237457,
+          "traj_ade_m": 0.05264243483543396,
+          "forced_cot": {
+            "cot": [
+              "Turn right into the side street since the right-turn lane is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0010274939704686403,
+          "d_curvature_mean": 0.0031546985264867544,
+          "d_curvature_max": 0.011479847133159637,
+          "endpoint_shift_m": 0.17573721706867218,
+          "traj_ade_m": 0.19837579131126404,
+          "forced_cot": {
+            "cot": [
+              "Turn right and merge into the side street because of the upcoming right-hand junction, with pedestrians and a slow vehicle ahead requiring a slow, cautious entry before accelerating after clearing them."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0009067603386938572,
+          "d_curvature_mean": 0.0007665409939363599,
+          "d_curvature_max": 0.0015548989176750183,
+          "endpoint_shift_m": 0.25569698214530945,
+          "traj_ade_m": 0.07308455556631088,
+          "forced_cot": {
+            "cot": [
+              "Turn right since the lane is right-turn-only"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9984748959541321,
+      "entropy": 0.015701595693826675,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0007787845097482204,
+          "d_curvature_mean": 0.0008399309008382261,
+          "d_curvature_max": 0.0029286518692970276,
+          "endpoint_shift_m": 0.15500004589557648,
+          "traj_ade_m": 0.039112724363803864,
+          "forced_cot": {
+            "cot": [
+              "Turn right at our side street since the right-turn lane is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " low",
+          "token_prob": 0.0002096069947583601,
+          "d_curvature_mean": 0.0017999359406530857,
+          "d_curvature_max": 0.003673553466796875,
+          "endpoint_shift_m": 0.3492569625377655,
+          "traj_ade_m": 0.1900893747806549,
+          "forced_cot": {
+            "cot": [
+              "Turn right at low speed because pedestrians are standing near the corner of the side street after the turn, requiring extra space and reduced speed for a safe entry into the residential street."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " reduced",
+          "token_prob": 0.00011943045683437958,
+          "d_curvature_mean": 0.007229257840663195,
+          "d_curvature_max": 0.014837067574262619,
+          "endpoint_shift_m": 1.2193551063537598,
+          "traj_ade_m": 0.2679237723350525,
+          "forced_cot": {
+            "cot": [
+              "Turn right at reduced speed due to pedestrians near the corner"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 2.9267694117152132e-05,
+          "d_curvature_mean": 0.0010317671112716198,
+          "d_curvature_max": 0.002362295985221863,
+          "endpoint_shift_m": 0.23967377841472626,
+          "traj_ade_m": 0.06483813375234604,
+          "forced_cot": {
+            "cot": [
+              "Turn right at side street since the lane splits to a right-turn entrance ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " intersection",
+      "sampled_prob": 0.9156105518341064,
+      "entropy": 0.36129456758499146,
+      "alternatives": [
+        {
+          "token": " side",
+          "token_prob": 0.07060430943965912,
+          "d_curvature_mean": 0.001039758324623108,
+          "d_curvature_max": 0.002857223153114319,
+          "endpoint_shift_m": 0.1720474660396576,
+          "traj_ade_m": 0.04628138989210129,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the side street since the right-turn lane is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " junction",
+          "token_prob": 0.006567222997546196,
+          "d_curvature_mean": 0.0010902767535299063,
+          "d_curvature_max": 0.0021224990487098694,
+          "endpoint_shift_m": 0.1878432333469391,
+          "traj_ade_m": 0.04412384703755379,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the junction since the lane markings indicate a right split ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.003860671538859606,
+          "d_curvature_mean": 0.001089440193027258,
+          "d_curvature_max": 0.0026123151183128357,
+          "endpoint_shift_m": 0.16616861522197723,
+          "traj_ade_m": 0.03954119607806206,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the split since the lane markings indicate a right-turn-only branch"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.00019523841910995543,
+          "d_curvature_mean": 0.0009500323794782162,
+          "d_curvature_max": 0.0017959550023078918,
+          "endpoint_shift_m": 0.18495367467403412,
+          "traj_ade_m": 0.04409630596637726,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the lane split since the right-turn lane markings indicate a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " since",
+      "sampled_prob": 0.9785264730453491,
+      "entropy": 0.12215094268321991,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.01395792979747057,
+          "d_curvature_mean": 0.0019470809493213892,
+          "d_curvature_max": 0.0038368329405784607,
+          "endpoint_shift_m": 0.388300359249115,
+          "traj_ade_m": 0.10697714984416962,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection to enter the side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.006593259517103434,
+          "d_curvature_mean": 0.0015353267081081867,
+          "d_curvature_max": 0.003142930567264557,
+          "endpoint_shift_m": 0.3003143072128296,
+          "traj_ade_m": 0.06803944706916809,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection because the lane markings indicate a right split into a side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " following",
+          "token_prob": 0.0003959560126531869,
+          "d_curvature_mean": 0.000228341348702088,
+          "d_curvature_max": 0.0006326735019683838,
+          "endpoint_shift_m": 0.07633616030216217,
+          "traj_ade_m": 0.028425706550478935,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection following the right-turn lane markings"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 0.0002896876248996705,
+          "d_curvature_mean": 0.000984751619398594,
+          "d_curvature_max": 0.001946471631526947,
+          "endpoint_shift_m": 0.1783001720905304,
+          "traj_ade_m": 0.04722496122121811,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection due to the right-turn lane split ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " the",
+      "sampled_prob": 0.9311026334762573,
+      "entropy": 0.39695361256599426,
+      "alternatives": [
+        {
+          "token": " no",
+          "token_prob": 0.031860578805208206,
+          "d_curvature_mean": 0.00173425511457026,
+          "d_curvature_max": 0.004683792591094971,
+          "endpoint_shift_m": 0.43351349234580994,
+          "traj_ade_m": 0.1315215826034546,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since no conflicting traffic is present"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.012092912569642067,
+          "d_curvature_mean": 0.0008778308401815593,
+          "d_curvature_max": 0.0029592588543891907,
+          "endpoint_shift_m": 0.21160291135311127,
+          "traj_ade_m": 0.056376680731773376,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since there is no conflicting traffic"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0060806977562606335,
+          "d_curvature_mean": 0.001163779990747571,
+          "d_curvature_max": 0.003857247531414032,
+          "endpoint_shift_m": 0.2707952558994293,
+          "traj_ade_m": 0.057350561022758484,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since cross traffic has cleared"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pedestrians",
+          "token_prob": 0.004885978065431118,
+          "d_curvature_mean": 0.001448857830837369,
+          "d_curvature_max": 0.0033776313066482544,
+          "endpoint_shift_m": 0.31909188628196716,
+          "traj_ade_m": 0.08567177504301071,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since pedestrians are standing near the corner ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " right",
+      "sampled_prob": 0.39369815587997437,
+      "entropy": 2.01825213432312,
+      "alternatives": [
+        {
+          "token": " side",
+          "token_prob": 0.22432243824005127,
+          "d_curvature_mean": 0.001892988570034504,
+          "d_curvature_max": 0.004316419363021851,
+          "endpoint_shift_m": 0.32597512006759644,
+          "traj_ade_m": 0.08384326100349426,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the side street is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.12007115036249161,
+          "d_curvature_mean": 0.0016844953643158078,
+          "d_curvature_max": 0.0033470094203948975,
+          "endpoint_shift_m": 0.3295050859451294,
+          "traj_ade_m": 0.07439224421977997,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " intersection",
+          "token_prob": 0.10932602733373642,
+          "d_curvature_mean": 0.0011232821270823479,
+          "d_curvature_max": 0.0033062100410461426,
+          "endpoint_shift_m": 0.2746817469596863,
+          "traj_ade_m": 0.07982580363750458,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the intersection is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.03778206929564476,
+          "d_curvature_mean": 0.0014968595933169127,
+          "d_curvature_max": 0.003734789788722992,
+          "endpoint_shift_m": 0.3123081624507904,
+          "traj_ade_m": 0.08447474986314774,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the path is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": "-turn",
+      "sampled_prob": 0.6123414039611816,
+      "entropy": 1.4709808826446533,
+      "alternatives": [
+        {
+          "token": " turn",
+          "token_prob": 0.19879813492298126,
+          "d_curvature_mean": 0.0011211605742573738,
+          "d_curvature_max": 0.0028368085622787476,
+          "endpoint_shift_m": 0.10531202703714371,
+          "traj_ade_m": 0.022379066795110703,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane turn is intended for our route"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0535057932138443,
+          "d_curvature_mean": 0.0005789750721305609,
+          "d_curvature_max": 0.0012321695685386658,
+          "endpoint_shift_m": 0.11695176362991333,
+          "traj_ade_m": 0.05033087357878685,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane lane markings indicate a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 0.04038829356431961,
+          "d_curvature_mean": 0.0017163623124361038,
+          "d_curvature_max": 0.003734789788722992,
+          "endpoint_shift_m": 0.28289738297462463,
+          "traj_ade_m": 0.06328950077295303,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane side street is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.01849110797047615,
+          "d_curvature_mean": 0.0009664256940595806,
+          "d_curvature_max": 0.0019388124346733093,
+          "endpoint_shift_m": 0.15520252287387848,
+          "traj_ade_m": 0.04467836767435074,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane split leads into a right-turn slip lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": "-only",
+      "sampled_prob": 0.14147908985614777,
+      "entropy": 2.048107385635376,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.43578627705574036,
+          "d_curvature_mean": 0.000767371675465256,
+          "d_curvature_max": 0.001602068543434143,
+          "endpoint_shift_m": 0.11968947947025299,
+          "traj_ade_m": 0.02403876930475235,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings lane split to a right-turn lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.13290730118751526,
+          "d_curvature_mean": 0.00047986183199100196,
+          "d_curvature_max": 0.0012449324131011963,
+          "endpoint_shift_m": 0.05285848677158356,
+          "traj_ade_m": 0.012383079156279564,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings path into a right-turn slip lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.12101347744464874,
+          "d_curvature_mean": 0.0005390894948504865,
+          "d_curvature_max": 0.0011837109923362732,
+          "endpoint_shift_m": 0.0828753113746643,
+          "traj_ade_m": 0.017348535358905792,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings traffic into a right-turn slip lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slip",
+          "token_prob": 0.04182114079594612,
+          "d_curvature_mean": 0.0009000780992209911,
+          "d_curvature_max": 0.0019592344760894775,
+          "endpoint_shift_m": 0.13406768441200256,
+          "traj_ade_m": 0.027233341708779335,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings slip right into a right-turn lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " lane",
+      "sampled_prob": 0.7027342915534973,
+      "entropy": 0.8908997178077698,
+      "alternatives": [
+        {
+          "token": " sign",
+          "token_prob": 0.25852152705192566,
+          "d_curvature_mean": 0.0016682064160704613,
+          "d_curvature_max": 0.003148011863231659,
+          "endpoint_shift_m": 0.29804930090904236,
+          "traj_ade_m": 0.06887197494506836,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate sign of a right-turn split ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " markings",
+          "token_prob": 0.006471958942711353,
+          "d_curvature_mean": 0.000825677125249058,
+          "d_curvature_max": 0.0017653554677963257,
+          "endpoint_shift_m": 0.13748374581336975,
+          "traj_ade_m": 0.028912005946040154,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate markings for a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " split",
+          "token_prob": 0.004734986461699009,
+          "d_curvature_mean": 0.0010559724178165197,
+          "d_curvature_max": 0.0020510777831077576,
+          "endpoint_shift_m": 0.1627805382013321,
+          "traj_ade_m": 0.04202188923954964,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate split to a right-turn lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marking",
+          "token_prob": 0.003925441764295101,
+          "d_curvature_mean": 0.0006824737065471709,
+          "d_curvature_max": 0.001408204436302185,
+          "endpoint_shift_m": 0.13860875368118286,
+          "traj_ade_m": 0.03277294710278511,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate marking for a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " marking",
+      "sampled_prob": 0.5131739377975464,
+      "entropy": 2.4503839015960693,
+      "alternatives": [
+        {
+          "token": " markings",
+          "token_prob": 0.20096181333065033,
+          "d_curvature_mean": 0.0008703815401531756,
+          "d_curvature_max": 0.0017347335815429688,
+          "endpoint_shift_m": 0.1870001256465912,
+          "traj_ade_m": 0.04452485591173172,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a markings for a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directs",
+          "token_prob": 0.042123883962631226,
+          "d_curvature_mean": 0.0011939748656004667,
+          "d_curvature_max": 0.002387814223766327,
+          "endpoint_shift_m": 0.18729938566684723,
+          "traj_ade_m": 0.050824739038944244,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a directs split into a right-turn lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " requires",
+          "token_prob": 0.027197223156690598,
+          "d_curvature_mean": 0.0008990111527964473,
+          "d_curvature_max": 0.0017347484827041626,
+          "endpoint_shift_m": 0.18646171689033508,
+          "traj_ade_m": 0.050889499485492706,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a requires a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " indicates",
+          "token_prob": 0.02400146797299385,
+          "d_curvature_mean": 0.000973875226918608,
+          "d_curvature_max": 0.0023674145340919495,
+          "endpoint_shift_m": 0.1462615430355072,
+          "traj_ade_m": 0.03250805288553238,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a indicates right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " directs",
+      "sampled_prob": 0.5881351232528687,
+      "entropy": 1.7770774364471436,
+      "alternatives": [
+        {
+          "token": " indicates",
+          "token_prob": 0.1909395158290863,
+          "d_curvature_mean": 0.001504384446889162,
+          "d_curvature_max": 0.003040879964828491,
+          "endpoint_shift_m": 0.25809746980667114,
+          "traj_ade_m": 0.05663925036787987,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right indicates a right split"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " requires",
+          "token_prob": 0.10220255702733994,
+          "d_curvature_mean": 0.0009663056116551161,
+          "d_curvature_max": 0.0020816847681999207,
+          "endpoint_shift_m": 0.16957101225852966,
+          "traj_ade_m": 0.04265512526035309,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right requires a right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " dictates",
+          "token_prob": 0.02928152307868004,
+          "d_curvature_mean": 0.0009030615910887718,
+          "d_curvature_max": 0.0021531209349632263,
+          "endpoint_shift_m": 0.15908026695251465,
+          "traj_ade_m": 0.03823002055287361,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right dictates turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " controls",
+          "token_prob": 0.006740990560501814,
+          "d_curvature_mean": 0.0010629326570779085,
+          "d_curvature_max": 0.002201579511165619,
+          "endpoint_shift_m": 0.22074808180332184,
+          "traj_ade_m": 0.05902249738574028,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right controls split"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " a",
+      "sampled_prob": 0.45645299553871155,
+      "entropy": 1.4783997535705566,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.37841281294822693,
+          "d_curvature_mean": 0.002001639688387513,
+          "d_curvature_max": 0.0039388686418533325,
+          "endpoint_shift_m": 0.33254319429397583,
+          "traj_ade_m": 0.0757773369550705,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split the vehicle is entering"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.033065345138311386,
+          "d_curvature_mean": 0.0013986561680212617,
+          "d_curvature_max": 0.002795986831188202,
+          "endpoint_shift_m": 0.23250238597393036,
+          "traj_ade_m": 0.04830668121576309,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split our intended path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.02828228659927845,
+          "d_curvature_mean": 0.0016844953643158078,
+          "d_curvature_max": 0.0033470094203948975,
+          "endpoint_shift_m": 0.3295050859451294,
+          "traj_ade_m": 0.07439224421977997,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.024959031492471695,
+          "d_curvature_mean": 0.0014267463702708483,
+          "d_curvature_max": 0.002979673445224762,
+          "endpoint_shift_m": 0.2511684000492096,
+          "traj_ade_m": 0.05993325263261795,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split an exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " right",
+      "sampled_prob": 0.9917231202125549,
+      "entropy": 0.06849660724401474,
+      "alternatives": [
+        {
+          "token": " split",
+          "token_prob": 0.005204085260629654,
+          "d_curvature_mean": 0.0017783499788492918,
+          "d_curvature_max": 0.003489881753921509,
+          "endpoint_shift_m": 0.2937922179698944,
+          "traj_ade_m": 0.06194700300693512,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into split"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " mandatory",
+          "token_prob": 0.0005152742378413677,
+          "d_curvature_mean": 0.0018199600744992495,
+          "d_curvature_max": 0.0035102814435958862,
+          "endpoint_shift_m": 0.2830738127231598,
+          "traj_ade_m": 0.06215367466211319,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into mandatory right-turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " turn",
+          "token_prob": 0.00046916253631934524,
+          "d_curvature_mean": 0.00115177221596241,
+          "d_curvature_max": 0.002285771071910858,
+          "endpoint_shift_m": 0.1822270154953003,
+          "traj_ade_m": 0.03704340383410454,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " safe",
+          "token_prob": 0.00016728504851926118,
+          "d_curvature_mean": 0.0031791222281754017,
+          "d_curvature_max": 0.006428718566894531,
+          "endpoint_shift_m": 0.5140809416770935,
+          "traj_ade_m": 0.11560364067554474,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into safe entry to the side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": " turn",
+      "sampled_prob": 0.7837753295898438,
+      "entropy": 0.6489973068237305,
+      "alternatives": [
+        {
+          "token": " split",
+          "token_prob": 0.19816944003105164,
+          "d_curvature_mean": 0.0018075191183015704,
+          "d_curvature_max": 0.0036531537771224976,
+          "endpoint_shift_m": 0.29222434759140015,
+          "traj_ade_m": 0.06651921570301056,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a split road"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-turn",
+          "token_prob": 0.004660498350858688,
+          "d_curvature_mean": 0.0010737886186689138,
+          "d_curvature_max": 0.002163313329219818,
+          "endpoint_shift_m": 0.1629370152950287,
+          "traj_ade_m": 0.04084694758057594,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a-turn lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " exit",
+          "token_prob": 0.003304788377135992,
+          "d_curvature_mean": 0.0013562801759690046,
+          "d_curvature_max": 0.0026531219482421875,
+          "endpoint_shift_m": 0.2443402111530304,
+          "traj_ade_m": 0.05695698782801628,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a exit"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "-only",
+          "token_prob": 0.0026554721407592297,
+          "d_curvature_mean": 0.001855566632002592,
+          "d_curvature_max": 0.0037551894783973694,
+          "endpoint_shift_m": 0.3389228284358978,
+          "traj_ade_m": 0.07040180265903473,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since the lane markings indicate a right split into a-only side street"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

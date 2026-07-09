@@ -1,0 +1,3008 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Nudge left due to the stopped vehicle blocking the right side of our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 15,
+    "mean_entropy": 0.32634156434562367,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "N",
+        "sampled_prob": 0.9951626062393188,
+        "entropy": 0.04504959285259247,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.9951626062393188
+          },
+          {
+            "text": "Keep",
+            "prob": 0.003167384769767523
+          },
+          {
+            "text": "Ad",
+            "prob": 0.00015284302935469896
+          },
+          {
+            "text": "Maint",
+            "prob": 0.00013916517491452396
+          },
+          {
+            "text": "Change",
+            "prob": 0.00010504738020244986
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "udge",
+        "sampled_prob": 1.0,
+        "entropy": 1.9231578107792302e-08,
+        "top_k": [
+          {
+            "text": "udge",
+            "prob": 1.0
+          },
+          {
+            "text": "apt",
+            "prob": 8.777450988262103e-11
+          },
+          {
+            "text": " to",
+            "prob": 5.323793142442135e-11
+          },
+          {
+            "text": " for",
+            "prob": 2.5946095966178362e-11
+          },
+          {
+            "text": " left",
+            "prob": 1.728382541255069e-11
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " left",
+        "sampled_prob": 0.9401220083236694,
+        "entropy": 0.24892385303974152,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.9401220083236694
+          },
+          {
+            "text": " to",
+            "prob": 0.05303805693984032
+          },
+          {
+            "text": " right",
+            "prob": 0.006743031553924084
+          },
+          {
+            "text": " due",
+            "prob": 1.429650183126796e-05
+          },
+          {
+            "text": " for",
+            "prob": 9.52352365857223e-06
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " due",
+        "sampled_prob": 0.8428298830986023,
+        "entropy": 0.4453045427799225,
+        "top_k": [
+          {
+            "text": " due",
+            "prob": 0.8428298830986023
+          },
+          {
+            "text": " to",
+            "prob": 0.15590785443782806
+          },
+          {
+            "text": " within",
+            "prob": 0.0005801405641250312
+          },
+          {
+            "text": " because",
+            "prob": 0.00019432273984421045
+          },
+          {
+            "text": " for",
+            "prob": 0.00011072176130255684
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " to",
+        "sampled_prob": 0.9999773502349854,
+        "entropy": 0.00030188245000317693,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9999773502349854
+          },
+          {
+            "text": " from",
+            "prob": 1.2218948540976271e-05
+          },
+          {
+            "text": " for",
+            "prob": 6.144073267932981e-06
+          },
+          {
+            "text": ",",
+            "prob": 7.811312912053836e-07
+          },
+          {
+            "text": " because",
+            "prob": 7.338049385907652e-07
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " the",
+        "sampled_prob": 0.5960507392883301,
+        "entropy": 1.1187751293182373,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.5960507392883301
+          },
+          {
+            "text": " stopped",
+            "prob": 0.2644959092140198
+          },
+          {
+            "text": " a",
+            "prob": 0.1102583110332489
+          },
+          {
+            "text": " cones",
+            "prob": 0.006621526088565588
+          },
+          {
+            "text": " an",
+            "prob": 0.0062203481793403625
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " stopped",
+        "sampled_prob": 0.9956934452056885,
+        "entropy": 0.039166729897260666,
+        "top_k": [
+          {
+            "text": " stopped",
+            "prob": 0.9956934452056885
+          },
+          {
+            "text": " stationary",
+            "prob": 0.0015444833552464843
+          },
+          {
+            "text": " parked",
+            "prob": 0.0009079549345187843
+          },
+          {
+            "text": " police",
+            "prob": 0.0005507025052793324
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.00044250188511796296
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " vehicle",
+        "sampled_prob": 0.48874595761299133,
+        "entropy": 1.1790268421173096,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.48874595761299133
+          },
+          {
+            "text": " police",
+            "prob": 0.4313167929649353
+          },
+          {
+            "text": " car",
+            "prob": 0.022858954966068268
+          },
+          {
+            "text": " emergency",
+            "prob": 0.020813314244151115
+          },
+          {
+            "text": " vehicles",
+            "prob": 0.010143598541617393
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " blocking",
+        "sampled_prob": 0.5480241179466248,
+        "entropy": 1.470462679862976,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.5480241179466248
+          },
+          {
+            "text": " enc",
+            "prob": 0.2755638360977173
+          },
+          {
+            "text": " on",
+            "prob": 0.09230232238769531
+          },
+          {
+            "text": " with",
+            "prob": 0.016548894345760345
+          },
+          {
+            "text": " stopped",
+            "prob": 0.00942927598953247
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " the",
+        "sampled_prob": 0.9894126057624817,
+        "entropy": 0.09950662404298782,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9894126057624817
+          },
+          {
+            "text": " part",
+            "prob": 0.003798519726842642
+          },
+          {
+            "text": " a",
+            "prob": 0.0009604161023162305
+          },
+          {
+            "text": " our",
+            "prob": 0.0008214874542318285
+          },
+          {
+            "text": " it",
+            "prob": 0.0005140737048350275
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " right",
+        "sampled_prob": 0.9941114783287048,
+        "entropy": 0.037781838327646255,
+        "top_k": [
+          {
+            "text": " right",
+            "prob": 0.9941114783287048
+          },
+          {
+            "text": " lane",
+            "prob": 0.005553061608225107
+          },
+          {
+            "text": " ego",
+            "prob": 0.0002764706441666931
+          },
+          {
+            "text": " left",
+            "prob": 2.066320666926913e-05
+          },
+          {
+            "text": " same",
+            "prob": 6.921306976437336e-06
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " side",
+        "sampled_prob": 0.9762484431266785,
+        "entropy": 0.12175312638282776,
+        "top_k": [
+          {
+            "text": " side",
+            "prob": 0.9762484431266785
+          },
+          {
+            "text": " edge",
+            "prob": 0.021568136289715767
+          },
+          {
+            "text": " lane",
+            "prob": 0.0018846028251573443
+          },
+          {
+            "text": " shoulder",
+            "prob": 7.307398482225835e-05
+          },
+          {
+            "text": " portion",
+            "prob": 3.7910282117081806e-05
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " of",
+        "sampled_prob": 0.9851347804069519,
+        "entropy": 0.08187628537416458,
+        "top_k": [
+          {
+            "text": " of",
+            "prob": 0.9851347804069519
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0140521926805377
+          },
+          {
+            "text": ".",
+            "prob": 0.0003744782879948616
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0003203082305844873
+          },
+          {
+            "text": " our",
+            "prob": 6.544721145473886e-06
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " our",
+        "sampled_prob": 0.999363362789154,
+        "entropy": 0.0054015545174479485,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.999363362789154
+          },
+          {
+            "text": " the",
+            "prob": 0.0006263276445679367
+          },
+          {
+            "text": " my",
+            "prob": 3.60969625035068e-06
+          },
+          {
+            "text": " your",
+            "prob": 1.8726858570516924e-06
+          },
+          {
+            "text": " lane",
+            "prob": 1.7592255971976556e-06
+          }
+        ]
+      },
+      {
+        "step": 14,
+        "col": 3100,
+        "sampled": " lane",
+        "sampled_prob": 0.9998705387115479,
+        "entropy": 0.0017927649896591902,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9998705387115479
+          },
+          {
+            "text": " ego",
+            "prob": 3.535292489686981e-05
+          },
+          {
+            "text": " path",
+            "prob": 2.282556306454353e-05
+          },
+          {
+            "text": " side",
+            "prob": 8.397055353270844e-06
+          },
+          {
+            "text": " car",
+            "prob": 4.784498287335737e-06
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9951626062393188,
+      "entropy": 0.04504959285259247,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.003167384769767523,
+          "d_curvature_mean": 1.4113267752691172e-05,
+          "d_curvature_max": 3.0614843126386404e-05,
+          "endpoint_shift_m": 0.07251430302858353,
+          "traj_ade_m": 0.027437731623649597,
+          "forced_cot": {
+            "cot": [
+              "Keepudge left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.00015284302935469896,
+          "d_curvature_mean": 1.482575316913426e-05,
+          "d_curvature_max": 4.081730730831623e-05,
+          "endpoint_shift_m": 0.015414617024362087,
+          "traj_ade_m": 0.004997921641916037,
+          "forced_cot": {
+            "cot": [
+              "Adudge left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.00013916517491452396,
+          "d_curvature_mean": 1.7042402760125697e-05,
+          "d_curvature_max": 5.102466093376279e-05,
+          "endpoint_shift_m": 0.0342501737177372,
+          "traj_ade_m": 0.008036482147872448,
+          "forced_cot": {
+            "cot": [
+              "Maintudge left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.00010504738020244986,
+          "d_curvature_mean": 4.361248647910543e-05,
+          "d_curvature_max": 0.00011224695481359959,
+          "endpoint_shift_m": 0.06783652305603027,
+          "traj_ade_m": 0.02439800277352333,
+          "forced_cot": {
+            "cot": [
+              "Changeudge left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 1.9231578107792302e-08,
+      "alternatives": [
+        {
+          "token": "apt",
+          "token_prob": 8.777450988262103e-11,
+          "d_curvature_mean": 2.8163511160528287e-05,
+          "d_curvature_max": 7.143145194277167e-05,
+          "endpoint_shift_m": 0.045608505606651306,
+          "traj_ade_m": 0.014383132569491863,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 5.323793142442135e-11,
+          "d_curvature_mean": 7.62463896535337e-05,
+          "d_curvature_max": 0.00018367491429671645,
+          "endpoint_shift_m": 0.22632531821727753,
+          "traj_ade_m": 0.07900889217853546,
+          "forced_cot": {
+            "cot": [
+              "N to left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 2.5946095966178362e-11,
+          "d_curvature_mean": 6.526369543280452e-05,
+          "d_curvature_max": 0.00014286214718595147,
+          "endpoint_shift_m": 0.08256592601537704,
+          "traj_ade_m": 0.03259214013814926,
+          "forced_cot": {
+            "cot": [
+              "N for left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.728382541255069e-11,
+          "d_curvature_mean": 9.386933379573748e-05,
+          "d_curvature_max": 0.00021429226035252213,
+          "endpoint_shift_m": 0.03494279459118843,
+          "traj_ade_m": 0.020434323698282242,
+          "forced_cot": {
+            "cot": [
+              "N left left due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9401220083236694,
+      "entropy": 0.24892385303974152,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05303805693984032,
+          "d_curvature_mean": 6.65031693642959e-05,
+          "d_curvature_max": 0.0001632704515941441,
+          "endpoint_shift_m": 0.1663522720336914,
+          "traj_ade_m": 0.05064377188682556,
+          "forced_cot": {
+            "cot": [
+              "Nudge to due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.006743031553924084,
+          "d_curvature_mean": 5.184767360333353e-05,
+          "d_curvature_max": 0.0001428578980267048,
+          "endpoint_shift_m": 0.08294662088155746,
+          "traj_ade_m": 0.017752207815647125,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 1.429650183126796e-05,
+          "d_curvature_mean": 6.478856812464073e-05,
+          "d_curvature_max": 0.00014286133227869868,
+          "endpoint_shift_m": 0.04107210412621498,
+          "traj_ade_m": 0.018515897914767265,
+          "forced_cot": {
+            "cot": [
+              "Nudge due due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 9.52352365857223e-06,
+          "d_curvature_mean": 6.448446947615594e-05,
+          "d_curvature_max": 0.00013265584129840136,
+          "endpoint_shift_m": 0.1836094856262207,
+          "traj_ade_m": 0.05755333602428436,
+          "forced_cot": {
+            "cot": [
+              "Nudge for due to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.8428298830986023,
+      "entropy": 0.4453045427799225,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.15590785443782806,
+          "d_curvature_mean": 1.5016319593996741e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.05607660487294197,
+          "traj_ade_m": 0.01813393086194992,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 0.0005801405641250312,
+          "d_curvature_mean": 4.071150760864839e-05,
+          "d_curvature_max": 0.00011734873987734318,
+          "endpoint_shift_m": 0.22149215638637543,
+          "traj_ade_m": 0.06509696692228317,
+          "forced_cot": {
+            "cot": [
+              "Nudge left within to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00019432273984421045,
+          "d_curvature_mean": 2.2587224520975724e-05,
+          "d_curvature_max": 6.122631020843983e-05,
+          "endpoint_shift_m": 0.016888808459043503,
+          "traj_ade_m": 0.006683186627924442,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 0.00011072176130255684,
+          "d_curvature_mean": 2.0462728571146727e-05,
+          "d_curvature_max": 5.102204158902168e-05,
+          "endpoint_shift_m": 0.05637102201581001,
+          "traj_ade_m": 0.01736377738416195,
+          "forced_cot": {
+            "cot": [
+              "Nudge left for to the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999773502349854,
+      "entropy": 0.00030188245000317693,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 1.2218948540976271e-05,
+          "d_curvature_mean": 7.598589036206249e-06,
+          "d_curvature_max": 2.041022526100278e-05,
+          "endpoint_shift_m": 0.012474235147237778,
+          "traj_ade_m": 0.004554383456707001,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.144073267932981e-06,
+          "d_curvature_mean": 7.113409083103761e-06,
+          "d_curvature_max": 2.0409876015037298e-05,
+          "endpoint_shift_m": 0.015053020790219307,
+          "traj_ade_m": 0.005323822610080242,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ",",
+          "token_prob": 7.811312912053836e-07,
+          "d_curvature_mean": 2.5218843802576885e-05,
+          "d_curvature_max": 6.12288131378591e-05,
+          "endpoint_shift_m": 0.03602401539683342,
+          "traj_ade_m": 0.013065323233604431,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due, the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 7.338049385907652e-07,
+          "d_curvature_mean": 1.493848867539782e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.04369454085826874,
+          "traj_ade_m": 0.014235102571547031,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.5960507392883301,
+      "entropy": 1.1187751293182373,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.2644959092140198,
+          "d_curvature_mean": 8.11380596132949e-06,
+          "d_curvature_max": 2.0409293938428164e-05,
+          "endpoint_shift_m": 0.012202556245028973,
+          "traj_ade_m": 0.005020719952881336,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to stopped stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.1102583110332489,
+          "d_curvature_mean": 1.500070902693551e-05,
+          "d_curvature_max": 5.1022914703935385e-05,
+          "endpoint_shift_m": 0.0204617902636528,
+          "traj_ade_m": 0.005674311891198158,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.006621526088565588,
+          "d_curvature_mean": 2.0508352463366464e-05,
+          "d_curvature_max": 6.122456397861242e-05,
+          "endpoint_shift_m": 0.06793520599603653,
+          "traj_ade_m": 0.02541106753051281,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.0062203481793403625,
+          "d_curvature_mean": 2.4243501684395596e-05,
+          "d_curvature_max": 5.102279828861356e-05,
+          "endpoint_shift_m": 0.020366579294204712,
+          "traj_ade_m": 0.007044521626085043,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to an stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.9956934452056885,
+      "entropy": 0.039166729897260666,
+      "alternatives": [
+        {
+          "token": " stationary",
+          "token_prob": 0.0015444833552464843,
+          "d_curvature_mean": 6.266488526307512e-06,
+          "d_curvature_max": 2.0410283468663692e-05,
+          "endpoint_shift_m": 0.050047073513269424,
+          "traj_ade_m": 0.015338264405727386,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stationary vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 0.0009079549345187843,
+          "d_curvature_mean": 5.096082986710826e-06,
+          "d_curvature_max": 2.0410167053341866e-05,
+          "endpoint_shift_m": 0.02613384835422039,
+          "traj_ade_m": 0.009691381826996803,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the parked vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " police",
+          "token_prob": 0.0005507025052793324,
+          "d_curvature_mean": 7.510733212257037e-06,
+          "d_curvature_max": 2.0409817807376385e-05,
+          "endpoint_shift_m": 0.1300206482410431,
+          "traj_ade_m": 0.03995242714881897,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the police vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.00044250188511796296,
+          "d_curvature_mean": 7.164520866353996e-06,
+          "d_curvature_max": 2.0409002900123596e-05,
+          "endpoint_shift_m": 0.10822230577468872,
+          "traj_ade_m": 0.03290516138076782,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the vehicle vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.48874595761299133,
+      "entropy": 1.1790268421173096,
+      "alternatives": [
+        {
+          "token": " police",
+          "token_prob": 0.4313167929649353,
+          "d_curvature_mean": 1.0833608939719852e-05,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.05056632310152054,
+          "traj_ade_m": 0.015434998087584972,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped police blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.022858954966068268,
+          "d_curvature_mean": 4.77847243018914e-06,
+          "d_curvature_max": 2.0409468561410904e-05,
+          "endpoint_shift_m": 0.025893520563840866,
+          "traj_ade_m": 0.010570374317467213,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " emergency",
+          "token_prob": 0.020813314244151115,
+          "d_curvature_mean": 9.264681466447655e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.012418845668435097,
+          "traj_ade_m": 0.0048518856056034565,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped emergency blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.010143598541617393,
+          "d_curvature_mean": 7.239296792249661e-06,
+          "d_curvature_max": 2.0410632714629173e-05,
+          "endpoint_shift_m": 0.0020208079367876053,
+          "traj_ade_m": 0.0023151268251240253,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.5480241179466248,
+      "entropy": 1.470462679862976,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.2755638360977173,
+          "d_curvature_mean": 1.2378855899441987e-05,
+          "d_curvature_max": 4.081800580024719e-05,
+          "endpoint_shift_m": 0.07502739876508713,
+          "traj_ade_m": 0.021739935502409935,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle enc the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.09230232238769531,
+          "d_curvature_mean": 8.637566679681186e-06,
+          "d_curvature_max": 3.06139700114727e-05,
+          "endpoint_shift_m": 0.019928323104977608,
+          "traj_ade_m": 0.005854772869497538,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle on the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.016548894345760345,
+          "d_curvature_mean": 1.3023262908973265e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.023339886218309402,
+          "traj_ade_m": 0.00793861597776413,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle with the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.00942927598953247,
+          "d_curvature_mean": 7.946300684125163e-06,
+          "d_curvature_max": 3.061373718082905e-05,
+          "endpoint_shift_m": 0.03564673289656639,
+          "traj_ade_m": 0.008791375905275345,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle stopped the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9894126057624817,
+      "entropy": 0.09950662404298782,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.003798519726842642,
+          "d_curvature_mean": 1.8210064808954485e-05,
+          "d_curvature_max": 4.113605245947838e-05,
+          "endpoint_shift_m": 0.056708093732595444,
+          "traj_ade_m": 0.022080833092331886,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking part right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0009604161023162305,
+          "d_curvature_mean": 1.1200418157386594e-05,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.04751916602253914,
+          "traj_ade_m": 0.0169058945029974,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking a right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0008214874542318285,
+          "d_curvature_mean": 8.676066499901935e-06,
+          "d_curvature_max": 3.061373718082905e-05,
+          "endpoint_shift_m": 0.022638432681560516,
+          "traj_ade_m": 0.006461096927523613,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking our right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0005140737048350275,
+          "d_curvature_mean": 2.0912601030431688e-05,
+          "d_curvature_max": 6.122875493019819e-05,
+          "endpoint_shift_m": 0.06471513956785202,
+          "traj_ade_m": 0.023498186841607094,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking it right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " right",
+      "sampled_prob": 0.9941114783287048,
+      "entropy": 0.037781838327646255,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.005553061608225107,
+          "d_curvature_mean": 1.4838302377029322e-05,
+          "d_curvature_max": 4.081882070749998e-05,
+          "endpoint_shift_m": 0.09021201729774475,
+          "traj_ade_m": 0.028542527928948402,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the lane side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.0002764706441666931,
+          "d_curvature_mean": 1.408332900609821e-05,
+          "d_curvature_max": 4.081730730831623e-05,
+          "endpoint_shift_m": 0.028462769463658333,
+          "traj_ade_m": 0.01035202108323574,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the ego side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 2.066320666926913e-05,
+          "d_curvature_mean": 1.1328723303449806e-05,
+          "d_curvature_max": 4.081684164702892e-05,
+          "endpoint_shift_m": 0.015766551718115807,
+          "traj_ade_m": 0.009405548684298992,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 6.921306976437336e-06,
+          "d_curvature_mean": 1.4879180525895208e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.01360740140080452,
+          "traj_ade_m": 0.004342552740126848,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the same side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " side",
+      "sampled_prob": 0.9762484431266785,
+      "entropy": 0.12175312638282776,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.021568136289715767,
+          "d_curvature_mean": 6.808263151469873e-06,
+          "d_curvature_max": 2.041022526100278e-05,
+          "endpoint_shift_m": 0.024630935862660408,
+          "traj_ade_m": 0.0076895346865057945,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0018846028251573443,
+          "d_curvature_mean": 1.3033964933129027e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.05202274024486542,
+          "traj_ade_m": 0.01705080457031727,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right lane of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " shoulder",
+          "token_prob": 7.307398482225835e-05,
+          "d_curvature_mean": 3.833650680462597e-06,
+          "d_curvature_max": 2.0409817807376385e-05,
+          "endpoint_shift_m": 0.013378748670220375,
+          "traj_ade_m": 0.004654449876397848,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right shoulder of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " portion",
+          "token_prob": 3.7910282117081806e-05,
+          "d_curvature_mean": 6.496188689197879e-06,
+          "d_curvature_max": 2.551102079451084e-05,
+          "endpoint_shift_m": 0.007219882681965828,
+          "traj_ade_m": 0.003102455521002412,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " of",
+      "sampled_prob": 0.9851347804069519,
+      "entropy": 0.08187628537416458,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0140521926805377,
+          "d_curvature_mean": 4.613418786902912e-05,
+          "d_curvature_max": 0.00013265549205243587,
+          "endpoint_shift_m": 0.2009786069393158,
+          "traj_ade_m": 0.05234365910291672,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0003744782879948616,
+          "d_curvature_mean": 2.463208875269629e-05,
+          "d_curvature_max": 6.632762961089611e-05,
+          "endpoint_shift_m": 0.07562851160764694,
+          "traj_ade_m": 0.02190370298922062,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side. our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0003203082305844873,
+          "d_curvature_mean": 1.5598508980474435e-05,
+          "d_curvature_max": 4.591955803334713e-05,
+          "endpoint_shift_m": 0.002276112325489521,
+          "traj_ade_m": 0.0023989062756299973,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side ahead our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 6.544721145473886e-06,
+          "d_curvature_mean": 8.721416634216439e-06,
+          "d_curvature_max": 2.041039988398552e-05,
+          "endpoint_shift_m": 0.014045489020645618,
+          "traj_ade_m": 0.004801271948963404,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side our our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " our",
+      "sampled_prob": 0.999363362789154,
+      "entropy": 0.0054015545174479485,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.0006263276445679367,
+          "d_curvature_mean": 1.154231904365588e-05,
+          "d_curvature_max": 3.061338793486357e-05,
+          "endpoint_shift_m": 0.018995672464370728,
+          "traj_ade_m": 0.008446691557765007,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 3.60969625035068e-06,
+          "d_curvature_mean": 1.1974572771578096e-05,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.03087409771978855,
+          "traj_ade_m": 0.008434721268713474,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 1.8726858570516924e-06,
+          "d_curvature_mean": 9.828804650169332e-06,
+          "d_curvature_max": 3.0613038688898087e-05,
+          "endpoint_shift_m": 0.05004969611763954,
+          "traj_ade_m": 0.016892287880182266,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 1.7592255971976556e-06,
+          "d_curvature_mean": 9.230445357388817e-06,
+          "d_curvature_max": 4.081684164702892e-05,
+          "endpoint_shift_m": 0.05226850137114525,
+          "traj_ade_m": 0.01774756982922554,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of lane lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9998705387115479,
+      "entropy": 0.0017927649896591902,
+      "alternatives": [
+        {
+          "token": " ego",
+          "token_prob": 3.535292489686981e-05,
+          "d_curvature_mean": 4.732555680675432e-06,
+          "d_curvature_max": 2.0412146113812923e-05,
+          "endpoint_shift_m": 0.04016551375389099,
+          "traj_ade_m": 0.013027488254010677,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our ego"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 2.282556306454353e-05,
+          "d_curvature_mean": 4.371764589450322e-06,
+          "d_curvature_max": 2.0409002900123596e-05,
+          "endpoint_shift_m": 0.018371202051639557,
+          "traj_ade_m": 0.005389249883592129,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 8.397055353270844e-06,
+          "d_curvature_mean": 5.338911705621285e-06,
+          "d_curvature_max": 2.5511253625154495e-05,
+          "endpoint_shift_m": 0.015467285178601742,
+          "traj_ade_m": 0.005675382912158966,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 4.784498287335737e-06,
+          "d_curvature_mean": 9.29696670937119e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.022415542975068092,
+          "traj_ade_m": 0.006779697258025408,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our car"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "N",
+      "sampled_prob": 0.9951626062393188,
+      "entropy": 0.04504959285259247,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.003167384769767523,
+          "d_curvature_mean": 3.8100057281553745e-05,
+          "d_curvature_max": 8.673639968037605e-05,
+          "endpoint_shift_m": 0.09321591258049011,
+          "traj_ade_m": 0.04243165999650955,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.00015284302935469896,
+          "d_curvature_mean": 8.488654566463083e-05,
+          "d_curvature_max": 0.00018367869779467583,
+          "endpoint_shift_m": 0.18255826830863953,
+          "traj_ade_m": 0.050154417753219604,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed to maintain a safe distance from the stopped emergency vehicle ahead since it partially blocks our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.00013916517491452396,
+          "d_curvature_mean": 0.00027114938711747527,
+          "d_curvature_max": 0.0007245067972689867,
+          "endpoint_shift_m": 0.3792325556278229,
+          "traj_ade_m": 0.14618362486362457,
+          "forced_cot": {
+            "cot": [
+              "Maintain lane with a slight left offset due to stopped emergency vehicles blocking the right side, then merge back right after clearing them since opposing traffic blocks any left maneuver and the lead vehicle is slow, requiring a pass with safe spacing."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.00010504738020244986,
+          "d_curvature_mean": 0.00033381249522790313,
+          "d_curvature_max": 0.0008673663251101971,
+          "endpoint_shift_m": 2.939751625061035,
+          "traj_ade_m": 0.9161887168884277,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the left and then merge back right due to stopped police vehicles blocking the right side of our lane; proceed once the opposing lane is clear and return to our lane after passing."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "udge",
+      "sampled_prob": 1.0,
+      "entropy": 1.9231578107792302e-08,
+      "alternatives": [
+        {
+          "token": "apt",
+          "token_prob": 8.777450988262103e-11,
+          "d_curvature_mean": 3.810600173892453e-05,
+          "d_curvature_max": 9.184138616546988e-05,
+          "endpoint_shift_m": 0.009728427976369858,
+          "traj_ade_m": 0.007508501410484314,
+          "forced_cot": {
+            "cot": [
+              "Napt left due to stopped emergency vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 5.323793142442135e-11,
+          "d_curvature_mean": 9.249182767234743e-05,
+          "d_curvature_max": 0.00020408909767866135,
+          "endpoint_shift_m": 0.2654971480369568,
+          "traj_ade_m": 0.08068498224020004,
+          "forced_cot": {
+            "cot": [
+              "N to the left to give clearance to the stopped emergency vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 2.5946095966178362e-11,
+          "d_curvature_mean": 9.132061677519232e-05,
+          "d_curvature_max": 0.0002040863037109375,
+          "endpoint_shift_m": 0.4025339186191559,
+          "traj_ade_m": 0.11294436454772949,
+          "forced_cot": {
+            "cot": [
+              "N forklane nudge to the left due to stopped emergency vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 1.728382541255069e-11,
+          "d_curvature_mean": 4.901929059997201e-05,
+          "d_curvature_max": 0.00012245302787050605,
+          "endpoint_shift_m": 0.04710989072918892,
+          "traj_ade_m": 0.017668310552835464,
+          "forced_cot": {
+            "cot": [
+              "N left due to stopped police vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " left",
+      "sampled_prob": 0.9401220083236694,
+      "entropy": 0.24892385303974152,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.05303805693984032,
+          "d_curvature_mean": 7.77051827753894e-05,
+          "d_curvature_max": 0.0001734747929731384,
+          "endpoint_shift_m": 0.15558794140815735,
+          "traj_ade_m": 0.0422329343855381,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase clearance from the stopped police vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.006743031553924084,
+          "d_curvature_mean": 5.708676326321438e-05,
+          "d_curvature_max": 0.00014286331133916974,
+          "endpoint_shift_m": 0.023844381794333458,
+          "traj_ade_m": 0.01116771437227726,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to the oncoming vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 1.429650183126796e-05,
+          "d_curvature_mean": 5.931759369559586e-05,
+          "d_curvature_max": 0.0001224540756084025,
+          "endpoint_shift_m": 0.05227270349860191,
+          "traj_ade_m": 0.020928554236888885,
+          "forced_cot": {
+            "cot": [
+              "Nudge due to the stopped police car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 9.52352365857223e-06,
+          "d_curvature_mean": 5.72659628232941e-05,
+          "d_curvature_max": 0.00015306433488149196,
+          "endpoint_shift_m": 0.1768842190504074,
+          "traj_ade_m": 0.05278044939041138,
+          "forced_cot": {
+            "cot": [
+              "Nudge for the stopped emergency vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " due",
+      "sampled_prob": 0.8428298830986023,
+      "entropy": 0.4453045427799225,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.15590785443782806,
+          "d_curvature_mean": 1.4331855709315278e-05,
+          "d_curvature_max": 4.3368665501475334e-05,
+          "endpoint_shift_m": 0.1612163633108139,
+          "traj_ade_m": 0.045548949390649796,
+          "forced_cot": {
+            "cot": [
+              "Nudge left to increase clearance to the stopped police car on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " within",
+          "token_prob": 0.0005801405641250312,
+          "d_curvature_mean": 5.571643487201072e-05,
+          "d_curvature_max": 0.00012755388161167502,
+          "endpoint_shift_m": 0.17225651443004608,
+          "traj_ade_m": 0.04564032703638077,
+          "forced_cot": {
+            "cot": [
+              "Nudge left within our lane to give clearance to the stopped police car with flashing lights ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00019432273984421045,
+          "d_curvature_mean": 9.984483767766505e-06,
+          "d_curvature_max": 3.061164170503616e-05,
+          "endpoint_shift_m": 0.035286061465740204,
+          "traj_ade_m": 0.011410122737288475,
+          "forced_cot": {
+            "cot": [
+              "Nudge left because of the stopped police car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 0.00011072176130255684,
+          "d_curvature_mean": 1.5370915207313374e-05,
+          "d_curvature_max": 6.12274743616581e-05,
+          "endpoint_shift_m": 0.19354330003261566,
+          "traj_ade_m": 0.056916914880275726,
+          "forced_cot": {
+            "cot": [
+              "Nudge left for increase clearance to the stopped police car on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9999773502349854,
+      "entropy": 0.00030188245000317693,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 1.2218948540976271e-05,
+          "d_curvature_mean": 1.0487173312867526e-05,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.01717478409409523,
+          "traj_ade_m": 0.007248927839100361,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due from the stopped police car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.144073267932981e-06,
+          "d_curvature_mean": 9.707546269055456e-06,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.018010878935456276,
+          "traj_ade_m": 0.006515659857541323,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due for the stopped police car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ",",
+          "token_prob": 7.811312912053836e-07,
+          "d_curvature_mean": 0.00037024763878434896,
+          "d_curvature_max": 0.0007959362119436264,
+          "endpoint_shift_m": 3.5735766887664795,
+          "traj_ade_m": 1.1027629375457764,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due, then merge back right, because stopped emergency vehicles blocking the right side of our lane require using the opposing lane when clear; once past them, return to our lane and accelerate to match traffic."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 7.338049385907652e-07,
+          "d_curvature_mean": 1.8368989913142286e-05,
+          "d_curvature_max": 6.122631020843983e-05,
+          "endpoint_shift_m": 0.06929590553045273,
+          "traj_ade_m": 0.02036188542842865,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due because of a stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.5960507392883301,
+      "entropy": 1.1187751293182373,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.2644959092140198,
+          "d_curvature_mean": 8.142324077198282e-06,
+          "d_curvature_max": 3.061426104977727e-05,
+          "endpoint_shift_m": 0.013726286590099335,
+          "traj_ade_m": 0.0035550976172089577,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to stopped police vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.1102583110332489,
+          "d_curvature_mean": 1.5416109818033874e-05,
+          "d_curvature_max": 4.0819228161126375e-05,
+          "endpoint_shift_m": 0.02031317912042141,
+          "traj_ade_m": 0.005603057332336903,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to a stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cones",
+          "token_prob": 0.006621526088565588,
+          "d_curvature_mean": 3.856952753267251e-05,
+          "d_curvature_max": 7.143081165850163e-05,
+          "endpoint_shift_m": 0.12497898936271667,
+          "traj_ade_m": 0.04195365309715271,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 0.0062203481793403625,
+          "d_curvature_mean": 2.365302134421654e-05,
+          "d_curvature_max": 6.122729973867536e-05,
+          "endpoint_shift_m": 0.02087857760488987,
+          "traj_ade_m": 0.0072905695997178555,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to an stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " stopped",
+      "sampled_prob": 0.9956934452056885,
+      "entropy": 0.039166729897260666,
+      "alternatives": [
+        {
+          "token": " stationary",
+          "token_prob": 0.0015444833552464843,
+          "d_curvature_mean": 6.8132526394037995e-06,
+          "d_curvature_max": 2.0410283468663692e-05,
+          "endpoint_shift_m": 0.052048660814762115,
+          "traj_ade_m": 0.01602095365524292,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stationary vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 0.0009079549345187843,
+          "d_curvature_mean": 4.547518528852379e-06,
+          "d_curvature_max": 2.0409119315445423e-05,
+          "endpoint_shift_m": 0.01965400017797947,
+          "traj_ade_m": 0.007530887145549059,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the parked vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " police",
+          "token_prob": 0.0005507025052793324,
+          "d_curvature_mean": 2.613130163808819e-05,
+          "d_curvature_max": 6.377650424838066e-05,
+          "endpoint_shift_m": 0.04486694186925888,
+          "traj_ade_m": 0.014389344491064548,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the police car stopped on the right shoulder"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.00044250188511796296,
+          "d_curvature_mean": 3.174103403580375e-05,
+          "d_curvature_max": 8.418550714850426e-05,
+          "endpoint_shift_m": 0.06834883242845535,
+          "traj_ade_m": 0.0225413516163826,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the vehicle stopped on the right shoulder"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.48874595761299133,
+      "entropy": 1.1790268421173096,
+      "alternatives": [
+        {
+          "token": " police",
+          "token_prob": 0.4313167929649353,
+          "d_curvature_mean": 9.686450539447833e-06,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.0233636312186718,
+          "traj_ade_m": 0.008177137933671474,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped police car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.022858954966068268,
+          "d_curvature_mean": 4.574865670292638e-06,
+          "d_curvature_max": 2.040993422269821e-05,
+          "endpoint_shift_m": 0.023903314024209976,
+          "traj_ade_m": 0.009850026108324528,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped car blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " emergency",
+          "token_prob": 0.020813314244151115,
+          "d_curvature_mean": 9.841419341682922e-06,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.0947122722864151,
+          "traj_ade_m": 0.02979675680398941,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped emergency vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.010143598541617393,
+          "d_curvature_mean": 6.63196715322556e-06,
+          "d_curvature_max": 2.0410632714629173e-05,
+          "endpoint_shift_m": 0.010685902088880539,
+          "traj_ade_m": 0.0026926249265670776,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicles blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.5480241179466248,
+      "entropy": 1.470462679862976,
+      "alternatives": [
+        {
+          "token": " enc",
+          "token_prob": 0.2755638360977173,
+          "d_curvature_mean": 1.0288123121426906e-05,
+          "d_curvature_max": 3.188860137015581e-05,
+          "endpoint_shift_m": 0.0980975553393364,
+          "traj_ade_m": 0.028321130201220512,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle encroaching from the right shoulder"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.09230232238769531,
+          "d_curvature_mean": 2.8911668778164312e-05,
+          "d_curvature_max": 7.653189823031425e-05,
+          "endpoint_shift_m": 0.11747671663761139,
+          "traj_ade_m": 0.03623027727007866,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle on the right shoulder"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " with",
+          "token_prob": 0.016548894345760345,
+          "d_curvature_mean": 3.08576891256962e-05,
+          "d_curvature_max": 0.00011479854583740234,
+          "endpoint_shift_m": 0.14748874306678772,
+          "traj_ade_m": 0.05171877145767212,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle with flashing lights blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.00942927598953247,
+          "d_curvature_mean": 2.3803271687938832e-05,
+          "d_curvature_max": 7.143081165850163e-05,
+          "endpoint_shift_m": 0.07568084448575974,
+          "traj_ade_m": 0.023032773286104202,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle stopped on the right shoulder"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " the",
+      "sampled_prob": 0.9894126057624817,
+      "entropy": 0.09950662404298782,
+      "alternatives": [
+        {
+          "token": " part",
+          "token_prob": 0.003798519726842642,
+          "d_curvature_mean": 1.8606853700475767e-05,
+          "d_curvature_max": 5.1022740080952644e-05,
+          "endpoint_shift_m": 0.03596770763397217,
+          "traj_ade_m": 0.014446127228438854,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking part of our lane on the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0009604161023162305,
+          "d_curvature_mean": 2.208484693255741e-05,
+          "d_curvature_max": 8.418620564043522e-05,
+          "endpoint_shift_m": 0.04803815111517906,
+          "traj_ade_m": 0.016543198376893997,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking a portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.0008214874542318285,
+          "d_curvature_mean": 3.396912507014349e-05,
+          "d_curvature_max": 0.00010204431600868702,
+          "endpoint_shift_m": 0.08611714094877243,
+          "traj_ade_m": 0.026253052055835724,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.0005140737048350275,
+          "d_curvature_mean": 3.2896834454732016e-05,
+          "d_curvature_max": 9.183818474411964e-05,
+          "endpoint_shift_m": 0.1160096675157547,
+          "traj_ade_m": 0.04177287966012955,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking it from the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " right",
+      "sampled_prob": 0.9941114783287048,
+      "entropy": 0.037781838327646255,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.005553061608225107,
+          "d_curvature_mean": 3.0022720238775946e-05,
+          "d_curvature_max": 9.183934889733791e-05,
+          "endpoint_shift_m": 0.029158281162381172,
+          "traj_ade_m": 0.009356589056551456,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 0.0002764706441666931,
+          "d_curvature_mean": 2.3543530915048905e-05,
+          "d_curvature_max": 8.16339161247015e-05,
+          "endpoint_shift_m": 0.038629114627838135,
+          "traj_ade_m": 0.01019427739083767,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the ego lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 2.066320666926913e-05,
+          "d_curvature_mean": 1.2010144018859137e-05,
+          "d_curvature_max": 4.081684164702892e-05,
+          "endpoint_shift_m": 0.015026235021650791,
+          "traj_ade_m": 0.008468376472592354,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " same",
+          "token_prob": 6.921306976437336e-06,
+          "d_curvature_mean": 2.322709042346105e-05,
+          "d_curvature_max": 7.143011316657066e-05,
+          "endpoint_shift_m": 0.02338152937591076,
+          "traj_ade_m": 0.007504651322960854,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the same lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " side",
+      "sampled_prob": 0.9762484431266785,
+      "entropy": 0.12175312638282776,
+      "alternatives": [
+        {
+          "token": " edge",
+          "token_prob": 0.021568136289715767,
+          "d_curvature_mean": 6.366071829688735e-06,
+          "d_curvature_max": 3.0613678973168135e-05,
+          "endpoint_shift_m": 0.0257958322763443,
+          "traj_ade_m": 0.008271907456219196,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right edge of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 0.0018846028251573443,
+          "d_curvature_mean": 1.0801958524098154e-05,
+          "d_curvature_max": 4.0819402784109116e-05,
+          "endpoint_shift_m": 0.01595914736390114,
+          "traj_ade_m": 0.0033646803349256516,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right lane edge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " shoulder",
+          "token_prob": 7.307398482225835e-05,
+          "d_curvature_mean": 3.5583593671617564e-06,
+          "d_curvature_max": 2.040871186181903e-05,
+          "endpoint_shift_m": 0.01319368090480566,
+          "traj_ade_m": 0.0042816633358597755,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right shoulder of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " portion",
+          "token_prob": 3.7910282117081806e-05,
+          "d_curvature_mean": 5.310397682478651e-06,
+          "d_curvature_max": 2.041022526100278e-05,
+          "endpoint_shift_m": 0.006523670628666878,
+          "traj_ade_m": 0.0022939955815672874,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right portion of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " of",
+      "sampled_prob": 0.9851347804069519,
+      "entropy": 0.08187628537416458,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0140521926805377,
+          "d_curvature_mean": 2.125969149346929e-05,
+          "d_curvature_max": 6.63271639496088e-05,
+          "endpoint_shift_m": 0.04099196568131447,
+          "traj_ade_m": 0.009265890344977379,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0003744782879948616,
+          "d_curvature_mean": 1.2022025657643098e-05,
+          "d_curvature_max": 3.061455208808184e-05,
+          "endpoint_shift_m": 0.0416891984641552,
+          "traj_ade_m": 0.009643742814660072,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0003203082305844873,
+          "d_curvature_mean": 1.3231687262305059e-05,
+          "d_curvature_max": 4.591885954141617e-05,
+          "endpoint_shift_m": 0.03847799450159073,
+          "traj_ade_m": 0.009632190689444542,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 6.544721145473886e-06,
+          "d_curvature_mean": 9.866900654742494e-06,
+          "d_curvature_max": 3.061245661228895e-05,
+          "endpoint_shift_m": 0.030764101073145866,
+          "traj_ade_m": 0.010246354155242443,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " our",
+      "sampled_prob": 0.999363362789154,
+      "entropy": 0.0054015545174479485,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.0006263276445679367,
+          "d_curvature_mean": 1.1443295079516247e-05,
+          "d_curvature_max": 3.061338793486357e-05,
+          "endpoint_shift_m": 0.016599172726273537,
+          "traj_ade_m": 0.007546158507466316,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 3.60969625035068e-06,
+          "d_curvature_mean": 1.0750114597612992e-05,
+          "d_curvature_max": 3.316369839012623e-05,
+          "endpoint_shift_m": 0.02405940741300583,
+          "traj_ade_m": 0.006362877786159515,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of my lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 1.8726858570516924e-06,
+          "d_curvature_mean": 1.1350941349519417e-05,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.05280762165784836,
+          "traj_ade_m": 0.017864279448986053,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of your lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 1.7592255971976556e-06,
+          "d_curvature_mean": 7.819129677955061e-06,
+          "d_curvature_max": 2.0410632714629173e-05,
+          "endpoint_shift_m": 0.006648814771324396,
+          "traj_ade_m": 0.0024698316119611263,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9998705387115479,
+      "entropy": 0.0017927649896591902,
+      "alternatives": [
+        {
+          "token": " ego",
+          "token_prob": 3.535292489686981e-05,
+          "d_curvature_mean": 9.144630894297734e-06,
+          "d_curvature_max": 3.0614202842116356e-05,
+          "endpoint_shift_m": 0.01831240952014923,
+          "traj_ade_m": 0.006539998110383749,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our ego lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 2.282556306454353e-05,
+          "d_curvature_mean": 4.029307092423551e-06,
+          "d_curvature_max": 2.040993422269821e-05,
+          "endpoint_shift_m": 0.028784822672605515,
+          "traj_ade_m": 0.008425602689385414,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " side",
+          "token_prob": 8.397055353270844e-06,
+          "d_curvature_mean": 2.8955470043001696e-05,
+          "d_curvature_max": 8.41852743178606e-05,
+          "endpoint_shift_m": 0.07931957393884659,
+          "traj_ade_m": 0.02711004763841629,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 4.784498287335737e-06,
+          "d_curvature_mean": 8.287253876915202e-06,
+          "d_curvature_max": 2.2959662601351738e-05,
+          "endpoint_shift_m": 0.013061225414276123,
+          "traj_ade_m": 0.0037080678157508373,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the stopped vehicle blocking the right side of our car"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

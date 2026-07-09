@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the lead vehicle since it is directly ahead in our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 0.23912281509754912,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.41066163778305054,
+        "entropy": 1.9935535192489624,
+        "top_k": [
+          {
+            "text": "Keep",
+            "prob": 0.41066163778305054
+          },
+          {
+            "text": "Change",
+            "prob": 0.13755442202091217
+          },
+          {
+            "text": "Ad",
+            "prob": 0.1333223134279251
+          },
+          {
+            "text": "Turn",
+            "prob": 0.10383152216672897
+          },
+          {
+            "text": "Merge",
+            "prob": 0.08343096822500229
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.9913612008094788,
+        "entropy": 0.0524868406355381,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9913612008094788
+          },
+          {
+            "text": " lane",
+            "prob": 0.008057303726673126
+          },
+          {
+            "text": " speed",
+            "prob": 0.00031241559190675616
+          },
+          {
+            "text": " at",
+            "prob": 0.0002285680966451764
+          },
+          {
+            "text": " a",
+            "prob": 7.121256658138009e-06
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.9990894794464111,
+        "entropy": 0.008250249549746513,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9990894794464111
+          },
+          {
+            "text": " from",
+            "prob": 0.0007095277542248368
+          },
+          {
+            "text": " for",
+            "prob": 6.199783820193261e-05
+          },
+          {
+            "text": " and",
+            "prob": 5.302956560626626e-05
+          },
+          {
+            "text": " since",
+            "prob": 2.9285707569215447e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9995777010917664,
+        "entropy": 0.005254310090094805,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9995777010917664
+          },
+          {
+            "text": " our",
+            "prob": 0.00018518182332627475
+          },
+          {
+            "text": " follow",
+            "prob": 2.6677973437472247e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 2.3543228962807916e-05
+          },
+          {
+            "text": " lead",
+            "prob": 1.5200648704194464e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lead",
+        "sampled_prob": 0.9840148091316223,
+        "entropy": 0.08910258114337921,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.9840148091316223
+          },
+          {
+            "text": " cut",
+            "prob": 0.014941475354135036
+          },
+          {
+            "text": " merging",
+            "prob": 0.00031994408345781267
+          },
+          {
+            "text": " stopped",
+            "prob": 0.0002652429393492639
+          },
+          {
+            "text": " vehicle",
+            "prob": 5.062250420451164e-05
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " vehicle",
+        "sampled_prob": 0.9992602467536926,
+        "entropy": 0.007500257343053818,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.9992602467536926
+          },
+          {
+            "text": " truck",
+            "prob": 0.00029582573915831745
+          },
+          {
+            "text": " vehicles",
+            "prob": 0.0002303893124917522
+          },
+          {
+            "text": " motorcycle",
+            "prob": 9.604055230738595e-05
+          },
+          {
+            "text": " construction",
+            "prob": 1.5195821106317453e-05
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " since",
+        "sampled_prob": 0.9966371059417725,
+        "entropy": 0.027678320184350014,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9966371059417725
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0014076009392738342
+          },
+          {
+            "text": " because",
+            "prob": 0.0012422035215422511
+          },
+          {
+            "text": " as",
+            "prob": 0.00021586257207673043
+          },
+          {
+            "text": " to",
+            "prob": 0.0001483600353822112
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " it",
+        "sampled_prob": 0.9829907417297363,
+        "entropy": 0.11381491273641586,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9829907417297363
+          },
+          {
+            "text": " a",
+            "prob": 0.007505226414650679
+          },
+          {
+            "text": " we",
+            "prob": 0.0037738652899861336
+          },
+          {
+            "text": " the",
+            "prob": 0.002593737095594406
+          },
+          {
+            "text": " traffic",
+            "prob": 0.0020200044382363558
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " is",
+        "sampled_prob": 0.996562659740448,
+        "entropy": 0.037239979952573776,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.996562659740448
+          },
+          {
+            "text": " controls",
+            "prob": 0.001096158754080534
+          },
+          {
+            "text": " merges",
+            "prob": 0.0003558706084731966
+          },
+          {
+            "text": " slows",
+            "prob": 0.0003343095304444432
+          },
+          {
+            "text": " sets",
+            "prob": 0.0001437847240595147
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " directly",
+        "sampled_prob": 0.954131543636322,
+        "entropy": 0.2630534768104553,
+        "top_k": [
+          {
+            "text": " directly",
+            "prob": 0.954131543636322
+          },
+          {
+            "text": " slowing",
+            "prob": 0.019802367314696312
+          },
+          {
+            "text": " ahead",
+            "prob": 0.008787247352302074
+          },
+          {
+            "text": " stopped",
+            "prob": 0.008000880479812622
+          },
+          {
+            "text": " moving",
+            "prob": 0.005673473235219717
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.9998123049736023,
+        "entropy": 0.0022559487260878086,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9998123049736023
+          },
+          {
+            "text": " in",
+            "prob": 9.609360859030858e-05
+          },
+          {
+            "text": " since",
+            "prob": 2.840521847247146e-05
+          },
+          {
+            "text": " directly",
+            "prob": 1.0449694855196867e-05
+          },
+          {
+            "text": " after",
+            "prob": 7.409943918901263e-06
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " in",
+        "sampled_prob": 0.9754188656806946,
+        "entropy": 0.16690391302108765,
+        "top_k": [
+          {
+            "text": " in",
+            "prob": 0.9754188656806946
+          },
+          {
+            "text": " after",
+            "prob": 0.012668479233980179
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.0036295803729444742
+          },
+          {
+            "text": " through",
+            "prob": 0.0018250675639137626
+          },
+          {
+            "text": " and",
+            "prob": 0.0008621008601039648
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " our",
+        "sampled_prob": 0.9794813990592957,
+        "entropy": 0.1019812673330307,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9794813990592957
+          },
+          {
+            "text": " the",
+            "prob": 0.02032848820090294
+          },
+          {
+            "text": " a",
+            "prob": 5.7098539400612935e-05
+          },
+          {
+            "text": " an",
+            "prob": 9.176570529234596e-06
+          },
+          {
+            "text": " slow",
+            "prob": 7.489698418794433e-06
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " lane",
+        "sampled_prob": 0.9351235628128052,
+        "entropy": 0.47864383459091187,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9351235628128052
+          },
+          {
+            "text": " path",
+            "prob": 0.02571124956011772
+          },
+          {
+            "text": " work",
+            "prob": 0.010718044824898243
+          },
+          {
+            "text": " right",
+            "prob": 0.00288472231477499
+          },
+          {
+            "text": " narrow",
+            "prob": 0.0019216393120586872
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.41066163778305054,
+      "entropy": 1.9935535192489624,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.13755442202091217,
+          "d_curvature_mean": 9.372201020596549e-05,
+          "d_curvature_max": 0.0003469465300440788,
+          "endpoint_shift_m": 0.4796721339225769,
+          "traj_ade_m": 0.10166385769844055,
+          "forced_cot": {
+            "cot": [
+              "Change distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.1333223134279251,
+          "d_curvature_mean": 5.4671505495207384e-05,
+          "d_curvature_max": 0.0002040863037109375,
+          "endpoint_shift_m": 0.18793414533138275,
+          "traj_ade_m": 0.053123652935028076,
+          "forced_cot": {
+            "cot": [
+              "Ad distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Turn",
+          "token_prob": 0.10383152216672897,
+          "d_curvature_mean": 4.6591609134338796e-05,
+          "d_curvature_max": 0.0001862281933426857,
+          "endpoint_shift_m": 0.2669871151447296,
+          "traj_ade_m": 0.0761154368519783,
+          "forced_cot": {
+            "cot": [
+              "Turn distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.08343096822500229,
+          "d_curvature_mean": 0.00013211513578426093,
+          "d_curvature_max": 0.0004693986847996712,
+          "endpoint_shift_m": 0.46173176169395447,
+          "traj_ade_m": 0.11625859141349792,
+          "forced_cot": {
+            "cot": [
+              "Merge distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9913612008094788,
+      "entropy": 0.0524868406355381,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.008057303726673126,
+          "d_curvature_mean": 0.00027587561635300517,
+          "d_curvature_max": 0.0008393051102757454,
+          "endpoint_shift_m": 0.8954166769981384,
+          "traj_ade_m": 0.29305166006088257,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00031241559190675616,
+          "d_curvature_mean": 4.614122008206323e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.1809334009885788,
+          "traj_ade_m": 0.03550256788730621,
+          "forced_cot": {
+            "cot": [
+              "Keep speed to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0002285680966451764,
+          "d_curvature_mean": 7.926011312520131e-05,
+          "d_curvature_max": 0.00025000981986522675,
+          "endpoint_shift_m": 0.292362242937088,
+          "traj_ade_m": 0.10712292045354843,
+          "forced_cot": {
+            "cot": [
+              "Keep at to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 7.121256658138009e-06,
+          "d_curvature_mean": 3.68886576325167e-05,
+          "d_curvature_max": 0.00014286115765571594,
+          "endpoint_shift_m": 0.11471162736415863,
+          "traj_ade_m": 0.041561905294656754,
+          "forced_cot": {
+            "cot": [
+              "Keep a to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9990894794464111,
+      "entropy": 0.008250249549746513,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0007095277542248368,
+          "d_curvature_mean": 8.155502291629091e-05,
+          "d_curvature_max": 0.00022449344396591187,
+          "endpoint_shift_m": 0.20497968792915344,
+          "traj_ade_m": 0.04648226127028465,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.199783820193261e-05,
+          "d_curvature_mean": 2.4758486688369885e-05,
+          "d_curvature_max": 7.143057882785797e-05,
+          "endpoint_shift_m": 0.0960097387433052,
+          "traj_ade_m": 0.022821445018053055,
+          "forced_cot": {
+            "cot": [
+              "Keep distance for the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 5.302956560626626e-05,
+          "d_curvature_mean": 8.983983570942655e-05,
+          "d_curvature_max": 0.00032653938978910446,
+          "endpoint_shift_m": 0.44942188262939453,
+          "traj_ade_m": 0.16011488437652588,
+          "forced_cot": {
+            "cot": [
+              "Keep distance and the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 2.9285707569215447e-05,
+          "d_curvature_mean": 9.027223131852224e-05,
+          "d_curvature_max": 0.00020408909767866135,
+          "endpoint_shift_m": 0.09689214080572128,
+          "traj_ade_m": 0.03788697347044945,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995777010917664,
+      "entropy": 0.005254310090094805,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.00018518182332627475,
+          "d_curvature_mean": 2.5022995032486506e-05,
+          "d_curvature_max": 8.163228631019592e-05,
+          "endpoint_shift_m": 0.01996869407594204,
+          "traj_ade_m": 0.006271748803555965,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 2.6677973437472247e-05,
+          "d_curvature_mean": 0.00012214295566082,
+          "d_curvature_max": 0.0003265403211116791,
+          "endpoint_shift_m": 0.5520836114883423,
+          "traj_ade_m": 0.16069786250591278,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 2.3543228962807916e-05,
+          "d_curvature_mean": 7.582248508697376e-05,
+          "d_curvature_max": 0.0002933768555521965,
+          "endpoint_shift_m": 0.3937855660915375,
+          "traj_ade_m": 0.13345840573310852,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 1.5200648704194464e-05,
+          "d_curvature_mean": 5.978846093057655e-05,
+          "d_curvature_max": 0.00016327016055583954,
+          "endpoint_shift_m": 0.15707974135875702,
+          "traj_ade_m": 0.05430462211370468,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to lead lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9840148091316223,
+      "entropy": 0.08910258114337921,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.014941475354135036,
+          "d_curvature_mean": 0.00018784859275911003,
+          "d_curvature_max": 0.0005204202607274055,
+          "endpoint_shift_m": 0.7869980335235596,
+          "traj_ade_m": 0.2377842664718628,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.00031994408345781267,
+          "d_curvature_mean": 0.00013384145859163254,
+          "d_curvature_max": 0.00033419206738471985,
+          "endpoint_shift_m": 0.9025248289108276,
+          "traj_ade_m": 0.2622624337673187,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the merging vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0002652429393492639,
+          "d_curvature_mean": 0.000617196608800441,
+          "d_curvature_max": 0.0023061688989400864,
+          "endpoint_shift_m": 2.4405391216278076,
+          "traj_ade_m": 0.7113181352615356,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 5.062250420451164e-05,
+          "d_curvature_mean": 0.00012762288679368794,
+          "d_curvature_max": 0.00038776546716690063,
+          "endpoint_shift_m": 0.31763312220573425,
+          "traj_ade_m": 0.1123901903629303,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the vehicle vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9992602467536926,
+      "entropy": 0.007500257343053818,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 0.00029582573915831745,
+          "d_curvature_mean": 9.74594076978974e-05,
+          "d_curvature_max": 0.00029847491532564163,
+          "endpoint_shift_m": 0.2067878246307373,
+          "traj_ade_m": 0.049068935215473175,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead truck since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.0002303893124917522,
+          "d_curvature_mean": 9.52148184296675e-05,
+          "d_curvature_max": 0.0003673546016216278,
+          "endpoint_shift_m": 0.2638504207134247,
+          "traj_ade_m": 0.055289771407842636,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicles since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motorcycle",
+          "token_prob": 9.604055230738595e-05,
+          "d_curvature_mean": 5.4297961469274014e-05,
+          "d_curvature_max": 0.00014286022633314133,
+          "endpoint_shift_m": 0.08783464878797531,
+          "traj_ade_m": 0.025929605588316917,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 1.5195821106317453e-05,
+          "d_curvature_mean": 0.00010871747508645058,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.1603814959526062,
+          "traj_ade_m": 0.039296507835388184,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead construction since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9966371059417725,
+      "entropy": 0.027678320184350014,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0014076009392738342,
+          "d_curvature_mean": 4.8072062782011926e-05,
+          "d_curvature_max": 0.0001836773008108139,
+          "endpoint_shift_m": 0.2713187336921692,
+          "traj_ade_m": 0.11177676916122437,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle ahead it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0012422035215422511,
+          "d_curvature_mean": 2.993803718709387e-05,
+          "d_curvature_max": 0.00012755859643220901,
+          "endpoint_shift_m": 0.0830535963177681,
+          "traj_ade_m": 0.023471016436815262,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle because it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.00021586257207673043,
+          "d_curvature_mean": 5.7374549214728177e-05,
+          "d_curvature_max": 0.00017347373068332672,
+          "endpoint_shift_m": 0.04063883796334267,
+          "traj_ade_m": 0.008586389943957329,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle as it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.0001483600353822112,
+          "d_curvature_mean": 7.11036118445918e-05,
+          "d_curvature_max": 0.0001811264082789421,
+          "endpoint_shift_m": 0.1773470938205719,
+          "traj_ade_m": 0.04476580023765564,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle to it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9829907417297363,
+      "entropy": 0.11381491273641586,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.007505226414650679,
+          "d_curvature_mean": 3.207567715435289e-05,
+          "d_curvature_max": 8.163601160049438e-05,
+          "endpoint_shift_m": 0.1393221765756607,
+          "traj_ade_m": 0.028219198808073997,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since a is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0037738652899861336,
+          "d_curvature_mean": 2.5979566999012604e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.5035397410392761,
+          "traj_ade_m": 0.1800922453403473,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since we is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.002593737095594406,
+          "d_curvature_mean": 4.2346764530520886e-05,
+          "d_curvature_max": 0.00013903435319662094,
+          "endpoint_shift_m": 0.1497732251882553,
+          "traj_ade_m": 0.03626056760549545,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since the is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0020200044382363558,
+          "d_curvature_mean": 6.789025792386383e-05,
+          "d_curvature_max": 0.00017060339450836182,
+          "endpoint_shift_m": 0.17027734220027924,
+          "traj_ade_m": 0.05432811751961708,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since traffic is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.996562659740448,
+      "entropy": 0.037239979952573776,
+      "alternatives": [
+        {
+          "token": " controls",
+          "token_prob": 0.001096158754080534,
+          "d_curvature_mean": 9.577276796335354e-05,
+          "d_curvature_max": 0.00020409002900123596,
+          "endpoint_shift_m": 0.2115360051393509,
+          "traj_ade_m": 0.07228973507881165,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it controls directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 0.0003558706084731966,
+          "d_curvature_mean": 7.053065928630531e-05,
+          "d_curvature_max": 0.00019387900829315186,
+          "endpoint_shift_m": 0.05000487342476845,
+          "traj_ade_m": 0.031943369656801224,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it merges directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slows",
+          "token_prob": 0.0003343095304444432,
+          "d_curvature_mean": 0.0015197426546365023,
+          "d_curvature_max": 0.005250120535492897,
+          "endpoint_shift_m": 7.495450973510742,
+          "traj_ade_m": 1.8623695373535156,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it slows directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sets",
+          "token_prob": 0.0001437847240595147,
+          "d_curvature_mean": 8.965904271462932e-05,
+          "d_curvature_max": 0.00018877163529396057,
+          "endpoint_shift_m": 0.18948844075202942,
+          "traj_ade_m": 0.06977597624063492,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it sets directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " directly",
+      "sampled_prob": 0.954131543636322,
+      "entropy": 0.2630534768104553,
+      "alternatives": [
+        {
+          "token": " slowing",
+          "token_prob": 0.019802367314696312,
+          "d_curvature_mean": 0.0012977313017472625,
+          "d_curvature_max": 0.004556223750114441,
+          "endpoint_shift_m": 7.005537986755371,
+          "traj_ade_m": 1.6532986164093018,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is slowing ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.008787247352302074,
+          "d_curvature_mean": 7.683657895540819e-05,
+          "d_curvature_max": 0.0002602115273475647,
+          "endpoint_shift_m": 0.21760864555835724,
+          "traj_ade_m": 0.06640230864286423,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is ahead ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.008000880479812622,
+          "d_curvature_mean": 0.001289504230953753,
+          "d_curvature_max": 0.004566429182887077,
+          "endpoint_shift_m": 6.031655788421631,
+          "traj_ade_m": 1.483325719833374,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.005673473235219717,
+          "d_curvature_mean": 8.920845721149817e-05,
+          "d_curvature_max": 0.00033164210617542267,
+          "endpoint_shift_m": 0.39956191182136536,
+          "traj_ade_m": 0.122399240732193,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is moving ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9998123049736023,
+      "entropy": 0.0022559487260878086,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 9.609360859030858e-05,
+          "d_curvature_mean": 4.6370863856282085e-05,
+          "d_curvature_max": 0.00015306472778320312,
+          "endpoint_shift_m": 0.12404967844486237,
+          "traj_ade_m": 0.027295764535665512,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly in in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 2.840521847247146e-05,
+          "d_curvature_mean": 5.272064299788326e-05,
+          "d_curvature_max": 0.00019388273358345032,
+          "endpoint_shift_m": 0.14641891419887543,
+          "traj_ade_m": 0.033058375120162964,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly since in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 1.0449694855196867e-05,
+          "d_curvature_mean": 2.8961301723029464e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.15092016756534576,
+          "traj_ade_m": 0.034444425255060196,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly directly in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " after",
+          "token_prob": 7.409943918901263e-06,
+          "d_curvature_mean": 4.7800982429180294e-05,
+          "d_curvature_max": 0.00013776402920484543,
+          "endpoint_shift_m": 0.22563043236732483,
+          "traj_ade_m": 0.05292530357837677,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly after in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " in",
+      "sampled_prob": 0.9754188656806946,
+      "entropy": 0.16690391302108765,
+      "alternatives": [
+        {
+          "token": " after",
+          "token_prob": 0.012668479233980179,
+          "d_curvature_mean": 0.00013377738650888205,
+          "d_curvature_max": 0.00033674295991659164,
+          "endpoint_shift_m": 0.3151887357234955,
+          "traj_ade_m": 0.10600234568119049,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead after our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0036295803729444742,
+          "d_curvature_mean": 0.0003417700936552137,
+          "d_curvature_max": 0.0009796135127544403,
+          "endpoint_shift_m": 0.42722785472869873,
+          "traj_ade_m": 0.08751153200864792,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0018250675639137626,
+          "d_curvature_mean": 0.00011044145503547043,
+          "d_curvature_max": 0.00026276521384716034,
+          "endpoint_shift_m": 0.24841125309467316,
+          "traj_ade_m": 0.08043727278709412,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead through our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0008621008601039648,
+          "d_curvature_mean": 0.00011524244473548606,
+          "d_curvature_max": 0.00028317421674728394,
+          "endpoint_shift_m": 0.16810722649097443,
+          "traj_ade_m": 0.0564035065472126,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead and our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " our",
+      "sampled_prob": 0.9794813990592957,
+      "entropy": 0.1019812673330307,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.02032848820090294,
+          "d_curvature_mean": 7.778387953294441e-05,
+          "d_curvature_max": 0.0002449033781886101,
+          "endpoint_shift_m": 0.13162197172641754,
+          "traj_ade_m": 0.03919464722275734,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 5.7098539400612935e-05,
+          "d_curvature_mean": 2.6445475668879226e-05,
+          "d_curvature_max": 8.163973689079285e-05,
+          "endpoint_shift_m": 0.015281799249351025,
+          "traj_ade_m": 0.00321503309533,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in a lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 9.176570529234596e-06,
+          "d_curvature_mean": 2.5849749363260344e-05,
+          "d_curvature_max": 8.163973689079285e-05,
+          "endpoint_shift_m": 0.04147535189986229,
+          "traj_ade_m": 0.01725962944328785,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in an lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 7.489698418794433e-06,
+          "d_curvature_mean": 6.711048627039418e-05,
+          "d_curvature_max": 0.00016327202320098877,
+          "endpoint_shift_m": 0.5752607583999634,
+          "traj_ade_m": 0.16621720790863037,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in slow lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9351235628128052,
+      "entropy": 0.47864383459091187,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.02571124956011772,
+          "d_curvature_mean": 3.705614653881639e-05,
+          "d_curvature_max": 0.00013775750994682312,
+          "endpoint_shift_m": 0.13789911568164825,
+          "traj_ade_m": 0.0480484738945961,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.010718044824898243,
+          "d_curvature_mean": 3.3099808206316084e-05,
+          "d_curvature_max": 0.00010204128921031952,
+          "endpoint_shift_m": 0.09789080917835236,
+          "traj_ade_m": 0.03799666091799736,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our work"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.00288472231477499,
+          "d_curvature_mean": 4.1432969737797976e-05,
+          "d_curvature_max": 0.0001415889710187912,
+          "endpoint_shift_m": 0.04267120361328125,
+          "traj_ade_m": 0.022151242941617966,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.0019216393120586872,
+          "d_curvature_mean": 6.584240327356383e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.17593346536159515,
+          "traj_ade_m": 0.06212328001856804,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our narrow"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.41066163778305054,
+      "entropy": 1.9935535192489624,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.13755442202091217,
+          "d_curvature_mean": 0.0003075257409363985,
+          "d_curvature_max": 0.0007857335731387138,
+          "endpoint_shift_m": 1.749773383140564,
+          "traj_ade_m": 0.3104083240032196,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the left due to work\u2011zone cones channelizing traffic and a slower lead vehicle in the right lane, then match speed with left\u2011lane traffic after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.1333223134279251,
+          "d_curvature_mean": 0.0001005475569400005,
+          "d_curvature_max": 0.00033674202859401703,
+          "endpoint_shift_m": 0.7405358552932739,
+          "traj_ade_m": 0.22562618553638458,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Turn",
+          "token_prob": 0.10383152216672897,
+          "d_curvature_mean": 0.00010354164260206744,
+          "d_curvature_max": 0.00047960318624973297,
+          "endpoint_shift_m": 1.2227349281311035,
+          "traj_ade_m": 0.38531985878944397,
+          "forced_cot": {
+            "cot": [
+              "Turn right to follow the work zone lane since construction cones direct a right curve"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.08343096822500229,
+          "d_curvature_mean": 0.0006744139245711267,
+          "d_curvature_max": 0.0016326922923326492,
+          "endpoint_shift_m": 1.835880160331726,
+          "traj_ade_m": 0.5609974265098572,
+          "forced_cot": {
+            "cot": [
+              "Merge left into the through lane due to a construction lane shift marked by cones and barrels, following the lead vehicle and adjusting speed for a safe gap before proceeding under a green signal."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9913612008094788,
+      "entropy": 0.0524868406355381,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.008057303726673126,
+          "d_curvature_mean": 0.0006222426891326904,
+          "d_curvature_max": 0.0013877861201763153,
+          "endpoint_shift_m": 0.4086761176586151,
+          "traj_ade_m": 0.4590504765510559,
+          "forced_cot": {
+            "cot": [
+              "Ad lane change to the left due to a construction lane shift marked by cones and a temporary signal, merging into the left through lane and then adjusting speed for traffic ahead after clearing the intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00031241559190675616,
+          "d_curvature_mean": 0.00011890942550962791,
+          "d_curvature_max": 0.00026435405015945435,
+          "endpoint_shift_m": 0.754690945148468,
+          "traj_ade_m": 0.23287558555603027,
+          "forced_cot": {
+            "cot": [
+              "Ad speed for the right curve since the lane is narrowed by construction barrels"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0002285680966451764,
+          "d_curvature_mean": 8.6398416897282e-05,
+          "d_curvature_max": 0.0002704169601202011,
+          "endpoint_shift_m": 1.1273163557052612,
+          "traj_ade_m": 0.3490573465824127,
+          "forced_cot": {
+            "cot": [
+              "Ad at speed for the right curve since construction cones narrow and guide our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 7.121256658138009e-06,
+          "d_curvature_mean": 0.0013939777854830027,
+          "d_curvature_max": 0.0037449831143021584,
+          "endpoint_shift_m": 5.769519329071045,
+          "traj_ade_m": 1.7451382875442505,
+          "forced_cot": {
+            "cot": [
+              "Ad a left lane change and then merge back right due to a right-lane closure marked by construction cones, following the lead vehicles into a safe gap and accelerating after clearing the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9990894794464111,
+      "entropy": 0.008250249549746513,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0007095277542248368,
+          "d_curvature_mean": 0.0002278034226037562,
+          "d_curvature_max": 0.0005892980843782425,
+          "endpoint_shift_m": 1.2949199676513672,
+          "traj_ade_m": 0.37827399373054504,
+          "forced_cot": {
+            "cot": [
+              "Adapt from the right curve because construction cones narrow and channelize our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 6.199783820193261e-05,
+          "d_curvature_mean": 0.00010092012962559238,
+          "d_curvature_max": 0.000377558171749115,
+          "endpoint_shift_m": 0.9636786580085754,
+          "traj_ade_m": 0.2990109920501709,
+          "forced_cot": {
+            "cot": [
+              "Adapt for the right curve since construction cones narrow and direct the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 5.302956560626626e-05,
+          "d_curvature_mean": 0.00036975814145989716,
+          "d_curvature_max": 0.001265333965420723,
+          "endpoint_shift_m": 0.4749816656112671,
+          "traj_ade_m": 0.1495540887117386,
+          "forced_cot": {
+            "cot": [
+              "Adapt and search for a gap to merge left because construction barrels are closing our current right lane and cars are already traveling in the left lane ahead, blocking an immediate merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 2.9285707569215447e-05,
+          "d_curvature_mean": 0.00012630352284759283,
+          "d_curvature_max": 0.0003265403211116791,
+          "endpoint_shift_m": 0.7641353607177734,
+          "traj_ade_m": 0.26964905858039856,
+          "forced_cot": {
+            "cot": [
+              "Adapt since the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995777010917664,
+      "entropy": 0.005254310090094805,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.00018518182332627475,
+          "d_curvature_mean": 0.00021191287669353187,
+          "d_curvature_max": 0.0004668477922677994,
+          "endpoint_shift_m": 1.1007455587387085,
+          "traj_ade_m": 0.3302547037601471,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed our right curve since construction cones narrow our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 2.6677973437472247e-05,
+          "d_curvature_mean": 0.0001983162946999073,
+          "d_curvature_max": 0.0004489896818995476,
+          "endpoint_shift_m": 1.3065519332885742,
+          "traj_ade_m": 0.4089864492416382,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed follow the right curve since construction cones narrow and guide the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 2.3543228962807916e-05,
+          "d_curvature_mean": 0.00019788890494965017,
+          "d_curvature_max": 0.0005510309711098671,
+          "endpoint_shift_m": 0.4077698290348053,
+          "traj_ade_m": 0.11395137757062912,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed maintain a safe distance from the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 1.5200648704194464e-05,
+          "d_curvature_mean": 0.00030949641950428486,
+          "d_curvature_max": 0.0008163433521986008,
+          "endpoint_shift_m": 0.490433007478714,
+          "traj_ade_m": 0.12593260407447815,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed lead to merge left into the construction lane because cones and a lead van are guiding traffic into that lane and we must slot in behind them after clearing the intersection."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9840148091316223,
+      "entropy": 0.08910258114337921,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.014941475354135036,
+          "d_curvature_mean": 0.0002023676788667217,
+          "d_curvature_max": 0.0005816416814923286,
+          "endpoint_shift_m": 0.08688800036907196,
+          "traj_ade_m": 0.029092170298099518,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for cut-in since construction cones constrict our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.00031994408345781267,
+          "d_curvature_mean": 0.0005046739825047553,
+          "d_curvature_max": 0.0014286041259765625,
+          "endpoint_shift_m": 1.4913767576217651,
+          "traj_ade_m": 0.47162890434265137,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for merging left into the main lane because construction barrels channelize traffic left and a white van is already in our intended merge path, requiring a safe gap before initiating the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.0002652429393492639,
+          "d_curvature_mean": 0.0006084706401452422,
+          "d_curvature_max": 0.0021633151918649673,
+          "endpoint_shift_m": 2.915597915649414,
+          "traj_ade_m": 0.6348167657852173,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for stopped traffic since the temporary traffic signal is red ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 5.062250420451164e-05,
+          "d_curvature_mean": 0.00023756205337122083,
+          "d_curvature_max": 0.0006211902946233749,
+          "endpoint_shift_m": 1.115584373474121,
+          "traj_ade_m": 0.3402867019176483,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for vehicle merge since the right lane is closed by construction barrels"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9992602467536926,
+      "entropy": 0.007500257343053818,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 0.00029582573915831745,
+          "d_curvature_mean": 0.00017475889762863517,
+          "d_curvature_max": 0.0005510319024324417,
+          "endpoint_shift_m": 0.47043362259864807,
+          "traj_ade_m": 0.1403401643037796,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the truck since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicles",
+          "token_prob": 0.0002303893124917522,
+          "d_curvature_mean": 0.0010523311793804169,
+          "d_curvature_max": 0.0037807002663612366,
+          "endpoint_shift_m": 5.817612648010254,
+          "traj_ade_m": 1.3482187986373901,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the vehicles queuing ahead since traffic is stopped after the right turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motorcycle",
+          "token_prob": 9.604055230738595e-05,
+          "d_curvature_mean": 8.970384806161746e-05,
+          "d_curvature_max": 0.00026786327362060547,
+          "endpoint_shift_m": 0.6814684271812439,
+          "traj_ade_m": 0.16729983687400818,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the motorcycle merging into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 1.5195821106317453e-05,
+          "d_curvature_mean": 0.0001735157857183367,
+          "d_curvature_max": 0.0005102129653096199,
+          "endpoint_shift_m": 0.9120264649391174,
+          "traj_ade_m": 0.2940681576728821,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the construction zone since cones constrict the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9966371059417725,
+      "entropy": 0.027678320184350014,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0014076009392738342,
+          "d_curvature_mean": 0.0001252083311555907,
+          "d_curvature_max": 0.0004285816103219986,
+          "endpoint_shift_m": 0.5102779269218445,
+          "traj_ade_m": 0.13307470083236694,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right ahead curve since construction barrels narrow and channelize our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0012422035215422511,
+          "d_curvature_mean": 0.00013591235619969666,
+          "d_curvature_max": 0.0003469511866569519,
+          "endpoint_shift_m": 0.6537525057792664,
+          "traj_ade_m": 0.1944299340248108,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right because construction cones narrow and curve the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.00021586257207673043,
+          "d_curvature_mean": 0.00013717508409172297,
+          "d_curvature_max": 0.0003265347331762314,
+          "endpoint_shift_m": 0.6731758117675781,
+          "traj_ade_m": 0.19346478581428528,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right as the lane is narrowed by construction barrels"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 0.0001483600353822112,
+          "d_curvature_mean": 0.00014210095105227083,
+          "d_curvature_max": 0.0004898067563772202,
+          "endpoint_shift_m": 0.4078476130962372,
+          "traj_ade_m": 0.10612347722053528,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right to follow the construction lane since cones narrow and create a right curve"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9829907417297363,
+      "entropy": 0.11381491273641586,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.007505226414650679,
+          "d_curvature_mean": 0.000207818258786574,
+          "d_curvature_max": 0.0004591941833496094,
+          "endpoint_shift_m": 0.8612797260284424,
+          "traj_ade_m": 0.2734795808792114,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve a set of construction cones narrows the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 0.0037738652899861336,
+          "d_curvature_mean": 8.399879152420908e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 1.4592242240905762,
+          "traj_ade_m": 0.4626046419143677,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve we are following"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.002593737095594406,
+          "d_curvature_mean": 0.00010227978782495484,
+          "d_curvature_max": 0.00028572604060173035,
+          "endpoint_shift_m": 0.9794844388961792,
+          "traj_ade_m": 0.2955651581287384,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve the work zone lane bends into"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0020200044382363558,
+          "d_curvature_mean": 0.00013288605259731412,
+          "d_curvature_max": 0.000306127592921257,
+          "endpoint_shift_m": 0.853531002998352,
+          "traj_ade_m": 0.2493085265159607,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve traffic cones narrowing our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.996562659740448,
+      "entropy": 0.037239979952573776,
+      "alternatives": [
+        {
+          "token": " controls",
+          "token_prob": 0.001096158754080534,
+          "d_curvature_mean": 7.712811202509329e-05,
+          "d_curvature_max": 0.0002908241003751755,
+          "endpoint_shift_m": 0.8281685709953308,
+          "traj_ade_m": 0.2756979167461395,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since controls are set by construction barrels"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 0.0003558706084731966,
+          "d_curvature_mean": 0.00010633591591613367,
+          "d_curvature_max": 0.00032653938978910446,
+          "endpoint_shift_m": 0.7985221743583679,
+          "traj_ade_m": 0.25936850905418396,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since merges are controlled by cones ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slows",
+          "token_prob": 0.0003343095304444432,
+          "d_curvature_mean": 0.0002885033027268946,
+          "d_curvature_max": 0.0008367523550987244,
+          "endpoint_shift_m": 0.08833564072847366,
+          "traj_ade_m": 0.05053027719259262,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since slows for construction cones narrow the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " sets",
+          "token_prob": 0.0001437847240595147,
+          "d_curvature_mean": 0.00011765614908654243,
+          "d_curvature_max": 0.0004489906132221222,
+          "endpoint_shift_m": 0.5365884900093079,
+          "traj_ade_m": 0.17213906347751617,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since sets of construction cones narrow and guide the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " directly",
+      "sampled_prob": 0.954131543636322,
+      "entropy": 0.2630534768104553,
+      "alternatives": [
+        {
+          "token": " slowing",
+          "token_prob": 0.019802367314696312,
+          "d_curvature_mean": 0.00028181500965729356,
+          "d_curvature_max": 0.0008367542177438736,
+          "endpoint_shift_m": 0.3670496344566345,
+          "traj_ade_m": 0.07705764472484589,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction slowing barrels narrow the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.008787247352302074,
+          "d_curvature_mean": 9.425143798580393e-05,
+          "d_curvature_max": 0.00024490803480148315,
+          "endpoint_shift_m": 0.6411423683166504,
+          "traj_ade_m": 0.19674010574817657,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction ahead bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.008000880479812622,
+          "d_curvature_mean": 0.00028343754820525646,
+          "d_curvature_max": 0.0008469587191939354,
+          "endpoint_shift_m": 0.2658476233482361,
+          "traj_ade_m": 0.08210928738117218,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction stopped trucks narrow the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.005673473235219717,
+          "d_curvature_mean": 0.00012207055988255888,
+          "d_curvature_max": 0.00038776546716690063,
+          "endpoint_shift_m": 0.7483540177345276,
+          "traj_ade_m": 0.21771961450576782,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction moving barrels narrow and channelize our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9998123049736023,
+      "entropy": 0.0022559487260878086,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 9.609360859030858e-05,
+          "d_curvature_mean": 0.00016695594240445644,
+          "d_curvature_max": 0.0004489896818995476,
+          "endpoint_shift_m": 0.7471300363540649,
+          "traj_ade_m": 0.20822572708129883,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones in our lane narrow our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 2.840521847247146e-05,
+          "d_curvature_mean": 0.00010399374150438234,
+          "d_curvature_max": 0.0003265403211116791,
+          "endpoint_shift_m": 0.6745510101318359,
+          "traj_ade_m": 0.19569195806980133,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 1.0449694855196867e-05,
+          "d_curvature_mean": 0.0002053544158115983,
+          "d_curvature_max": 0.0006530759856104851,
+          "endpoint_shift_m": 0.5206510424613953,
+          "traj_ade_m": 0.1419329047203064,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones directly ahead narrow our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " after",
+          "token_prob": 7.409943918901263e-06,
+          "d_curvature_mean": 0.00016360176960006356,
+          "d_curvature_max": 0.0003775600343942642,
+          "endpoint_shift_m": 0.6117817163467407,
+          "traj_ade_m": 0.18658295273780823,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones after the turn narrow the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " in",
+      "sampled_prob": 0.9754188656806946,
+      "entropy": 0.16690391302108765,
+      "alternatives": [
+        {
+          "token": " after",
+          "token_prob": 0.012668479233980179,
+          "d_curvature_mean": 0.00015333596093114465,
+          "d_curvature_max": 0.000357150100171566,
+          "endpoint_shift_m": 0.8332014083862305,
+          "traj_ade_m": 0.24913665652275085,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow after the turn"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.0036295803729444742,
+          "d_curvature_mean": 0.000147982471389696,
+          "d_curvature_max": 0.0003561973571777344,
+          "endpoint_shift_m": 0.585557222366333,
+          "traj_ade_m": 0.1955636888742447,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0018250675639137626,
+          "d_curvature_mean": 0.0001276496914215386,
+          "d_curvature_max": 0.00028572604060173035,
+          "endpoint_shift_m": 0.7769867777824402,
+          "traj_ade_m": 0.25968581438064575,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow through"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0008621008601039648,
+          "d_curvature_mean": 0.0001005475569400005,
+          "d_curvature_max": 0.00033674202859401703,
+          "endpoint_shift_m": 0.7405358552932739,
+          "traj_ade_m": 0.22562618553638458,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " our",
+      "sampled_prob": 0.9794813990592957,
+      "entropy": 0.1019812673330307,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.02032848820090294,
+          "d_curvature_mean": 0.00015685548714827746,
+          "d_curvature_max": 0.0004183761775493622,
+          "endpoint_shift_m": 0.48496368527412415,
+          "traj_ade_m": 0.13448502123355865,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and the lane bends right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 5.7098539400612935e-05,
+          "d_curvature_mean": 0.00025342745357193053,
+          "d_curvature_max": 0.0008750194683670998,
+          "endpoint_shift_m": 0.3582181930541992,
+          "traj_ade_m": 0.09205334633588791,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and a right curve sign indicates a reduced speed ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 9.176570529234596e-06,
+          "d_curvature_mean": 0.00016385706840083003,
+          "d_curvature_max": 0.0004898076876997948,
+          "endpoint_shift_m": 0.053715579211711884,
+          "traj_ade_m": 0.03226657211780548,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and an urban setting is ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 7.489698418794433e-06,
+          "d_curvature_mean": 0.00019409364904277027,
+          "d_curvature_max": 0.0005306228995323181,
+          "endpoint_shift_m": 0.35215964913368225,
+          "traj_ade_m": 0.08999375998973846,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and slow the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9351235628128052,
+      "entropy": 0.47864383459091187,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.02571124956011772,
+          "d_curvature_mean": 9.073793626157567e-05,
+          "d_curvature_max": 0.00027551501989364624,
+          "endpoint_shift_m": 0.8945329785346985,
+          "traj_ade_m": 0.28919726610183716,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 0.010718044824898243,
+          "d_curvature_mean": 7.911132706794888e-05,
+          "d_curvature_max": 0.0003010295331478119,
+          "endpoint_shift_m": 0.6760850548744202,
+          "traj_ade_m": 0.2078792154788971,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide work zone"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.00288472231477499,
+          "d_curvature_mean": 8.512713975505903e-05,
+          "d_curvature_max": 0.0002755112946033478,
+          "endpoint_shift_m": 0.886147141456604,
+          "traj_ade_m": 0.29303374886512756,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.0019216393120586872,
+          "d_curvature_mean": 0.00014770128473173827,
+          "d_curvature_max": 0.0003979671746492386,
+          "endpoint_shift_m": 0.5425146818161011,
+          "traj_ade_m": 0.16899216175079346,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since construction cones narrow and guide narrow lanes ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3406 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Yield to the pedestrian since they are walking across our lane at the crosswalk ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 17,
+    "mean_entropy": 0.5070390241051274,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Y",
+        "sampled_prob": 0.3646079897880554,
+        "entropy": 2.102081060409546,
+        "top_k": [
+          {
+            "text": "Y",
+            "prob": 0.3646079897880554
+          },
+          {
+            "text": "Stop",
+            "prob": 0.25854575634002686
+          },
+          {
+            "text": "Slow",
+            "prob": 0.08393752574920654
+          },
+          {
+            "text": "N",
+            "prob": 0.06335936486721039
+          },
+          {
+            "text": "Acceler",
+            "prob": 0.05091068148612976
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": "ield",
+        "sampled_prob": 1.0,
+        "entropy": 3.1167320457825554e-07,
+        "top_k": [
+          {
+            "text": "ield",
+            "prob": 1.0
+          },
+          {
+            "text": " distance",
+            "prob": 6.092758519926633e-10
+          },
+          {
+            "text": "apt",
+            "prob": 3.6954450610693357e-10
+          },
+          {
+            "text": " to",
+            "prob": 2.703645085588846e-10
+          },
+          {
+            "text": " at",
+            "prob": 1.9780291293791663e-10
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.8695070743560791,
+        "entropy": 0.547042727470398,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.8695070743560791
+          },
+          {
+            "text": " due",
+            "prob": 0.08087675273418427
+          },
+          {
+            "text": " the",
+            "prob": 0.023171579465270042
+          },
+          {
+            "text": " because",
+            "prob": 0.012402852065861225
+          },
+          {
+            "text": " at",
+            "prob": 0.009659351781010628
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9827234745025635,
+        "entropy": 0.1310356706380844,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9827234745025635
+          },
+          {
+            "text": " a",
+            "prob": 0.009634282439947128
+          },
+          {
+            "text": " maintain",
+            "prob": 0.0012637428008019924
+          },
+          {
+            "text": " cross",
+            "prob": 0.0008418341749347746
+          },
+          {
+            "text": " allow",
+            "prob": 0.0006556211155839264
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " pedestrian",
+        "sampled_prob": 0.8704025149345398,
+        "entropy": 0.6196330785751343,
+        "top_k": [
+          {
+            "text": " pedestrian",
+            "prob": 0.8704025149345398
+          },
+          {
+            "text": " cut",
+            "prob": 0.08096004277467728
+          },
+          {
+            "text": " cross",
+            "prob": 0.019229695200920105
+          },
+          {
+            "text": " light",
+            "prob": 0.005175602622330189
+          },
+          {
+            "text": " street",
+            "prob": 0.004290725104510784
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " since",
+        "sampled_prob": 0.8298496007919312,
+        "entropy": 0.6564419269561768,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.8298496007919312
+          },
+          {
+            "text": " in",
+            "prob": 0.10550353676080704
+          },
+          {
+            "text": " walking",
+            "prob": 0.03425198793411255
+          },
+          {
+            "text": " because",
+            "prob": 0.013839052990078926
+          },
+          {
+            "text": " crossing",
+            "prob": 0.012212920933961868
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " they",
+        "sampled_prob": 0.8292885422706604,
+        "entropy": 0.621432363986969,
+        "top_k": [
+          {
+            "text": " they",
+            "prob": 0.8292885422706604
+          },
+          {
+            "text": " a",
+            "prob": 0.12717552483081818
+          },
+          {
+            "text": " the",
+            "prob": 0.03643639758229256
+          },
+          {
+            "text": " it",
+            "prob": 0.00038024791865609586
+          },
+          {
+            "text": " you",
+            "prob": 0.0003152365970890969
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " are",
+        "sampled_prob": 0.9979344606399536,
+        "entropy": 0.022434290498495102,
+        "top_k": [
+          {
+            "text": " are",
+            "prob": 0.9979344606399536
+          },
+          {
+            "text": " begin",
+            "prob": 0.0007087074918672442
+          },
+          {
+            "text": " start",
+            "prob": 0.00024492276133969426
+          },
+          {
+            "text": " is",
+            "prob": 0.0002373872703174129
+          },
+          {
+            "text": " enter",
+            "prob": 0.00012706425331998616
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " walking",
+        "sampled_prob": 0.7416419386863708,
+        "entropy": 0.6765137314796448,
+        "top_k": [
+          {
+            "text": " walking",
+            "prob": 0.7416419386863708
+          },
+          {
+            "text": " crossing",
+            "prob": 0.24077588319778442
+          },
+          {
+            "text": " in",
+            "prob": 0.0075016021728515625
+          },
+          {
+            "text": " entering",
+            "prob": 0.004843397997319698
+          },
+          {
+            "text": " occupying",
+            "prob": 0.0013035829178988934
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " across",
+        "sampled_prob": 0.9430336952209473,
+        "entropy": 0.2953124940395355,
+        "top_k": [
+          {
+            "text": " across",
+            "prob": 0.9430336952209473
+          },
+          {
+            "text": " in",
+            "prob": 0.028477149084210396
+          },
+          {
+            "text": " through",
+            "prob": 0.02083432674407959
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0027328692376613617
+          },
+          {
+            "text": " into",
+            "prob": 0.0021959219593554735
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " our",
+        "sampled_prob": 0.8793445229530334,
+        "entropy": 0.3812120258808136,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.8793445229530334
+          },
+          {
+            "text": " the",
+            "prob": 0.11900633573532104
+          },
+          {
+            "text": " in",
+            "prob": 0.0007301003788597882
+          },
+          {
+            "text": " a",
+            "prob": 0.00024455299717374146
+          },
+          {
+            "text": " cross",
+            "prob": 0.00018459829152561724
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " lane",
+        "sampled_prob": 0.9228492975234985,
+        "entropy": 0.3054615557193756,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9228492975234985
+          },
+          {
+            "text": " path",
+            "prob": 0.07116249948740005
+          },
+          {
+            "text": " cross",
+            "prob": 0.0040147132240235806
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.0004365798376966268
+          },
+          {
+            "text": " crossing",
+            "prob": 0.0001937311317306012
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " at",
+        "sampled_prob": 0.15123160183429718,
+        "entropy": 1.1526309251785278,
+        "top_k": [
+          {
+            "text": " in",
+            "prob": 0.49586936831474304
+          },
+          {
+            "text": " ahead",
+            "prob": 0.32015731930732727
+          },
+          {
+            "text": " at",
+            "prob": 0.15123160183429718
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.024687880650162697
+          },
+          {
+            "text": ".",
+            "prob": 0.0019641555845737457
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " the",
+        "sampled_prob": 0.9850645661354065,
+        "entropy": 0.11340722441673279,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9850645661354065
+          },
+          {
+            "text": " ",
+            "prob": 0.006235178094357252
+          },
+          {
+            "text": " our",
+            "prob": 0.004285371396690607
+          },
+          {
+            "text": " a",
+            "prob": 0.0008438396616838872
+          },
+          {
+            "text": " close",
+            "prob": 0.0004660125123336911
+          }
+        ]
+      },
+      {
+        "step": 14,
+        "col": 3100,
+        "sampled": " cross",
+        "sampled_prob": 0.9536771178245544,
+        "entropy": 0.23350156843662262,
+        "top_k": [
+          {
+            "text": " cross",
+            "prob": 0.9536771178245544
+          },
+          {
+            "text": " intersection",
+            "prob": 0.034737687557935715
+          },
+          {
+            "text": " marked",
+            "prob": 0.008783062919974327
+          },
+          {
+            "text": " upcoming",
+            "prob": 0.0006987761589698493
+          },
+          {
+            "text": " stop",
+            "prob": 0.0002652255061548203
+          }
+        ]
+      },
+      {
+        "step": 15,
+        "col": 3101,
+        "sampled": "walk",
+        "sampled_prob": 0.9999995231628418,
+        "entropy": 9.102033800445497e-06,
+        "top_k": [
+          {
+            "text": "walk",
+            "prob": 0.9999995231628418
+          },
+          {
+            "text": "-",
+            "prob": 2.102432858919201e-07
+          },
+          {
+            "text": " street",
+            "prob": 1.357432637405509e-07
+          },
+          {
+            "text": " cross",
+            "prob": 8.764244086023609e-08
+          },
+          {
+            "text": "road",
+            "prob": 1.8954008140781298e-08
+          }
+        ]
+      },
+      {
+        "step": 16,
+        "col": 3102,
+        "sampled": " ahead",
+        "sampled_prob": 0.5554236769676208,
+        "entropy": 0.761513352394104,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.5554236769676208
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.4325644075870514
+          },
+          {
+            "text": ".",
+            "prob": 0.0067766387946903706
+          },
+          {
+            "text": " since",
+            "prob": 0.00351567380130291
+          },
+          {
+            "text": " at",
+            "prob": 0.00020463677356019616
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.3646079897880554,
+      "entropy": 2.102081060409546,
+      "alternatives": [
+        {
+          "token": "Stop",
+          "token_prob": 0.25854575634002686,
+          "d_curvature_mean": 0.0004973339382559061,
+          "d_curvature_max": 0.0020359992049634457,
+          "endpoint_shift_m": 5.027741432189941,
+          "traj_ade_m": 1.6457040309906006,
+          "forced_cot": {
+            "cot": [
+              "Stopield to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.08393752574920654,
+          "d_curvature_mean": 0.00012988656817469746,
+          "d_curvature_max": 0.0004949122667312622,
+          "endpoint_shift_m": 1.1990866661071777,
+          "traj_ade_m": 0.39477890729904175,
+          "forced_cot": {
+            "cot": [
+              "Slowield to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.06335936486721039,
+          "d_curvature_mean": 0.0001637324021430686,
+          "d_curvature_max": 0.0006323498673737049,
+          "endpoint_shift_m": 1.1553800106048584,
+          "traj_ade_m": 0.39259591698646545,
+          "forced_cot": {
+            "cot": [
+              "Nield to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Acceler",
+          "token_prob": 0.05091068148612976,
+          "d_curvature_mean": 0.00016141297237481922,
+          "d_curvature_max": 0.0005163936875760555,
+          "endpoint_shift_m": 1.242030382156372,
+          "traj_ade_m": 0.45382213592529297,
+          "forced_cot": {
+            "cot": [
+              "Accelerield to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 3.1167320457825554e-07,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 6.092758519926633e-10,
+          "d_curvature_mean": 5.8324774727225304e-05,
+          "d_curvature_max": 0.00025989022105932236,
+          "endpoint_shift_m": 0.34054943919181824,
+          "traj_ade_m": 0.127732053399086,
+          "forced_cot": {
+            "cot": [
+              "Y distance to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 3.6954450610693357e-10,
+          "d_curvature_mean": 0.00014210320659913123,
+          "d_curvature_max": 0.00047194957733154297,
+          "endpoint_shift_m": 1.363745093345642,
+          "traj_ade_m": 0.44106942415237427,
+          "forced_cot": {
+            "cot": [
+              "Yapt to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 2.703645085588846e-10,
+          "d_curvature_mean": 0.00010602011752780527,
+          "d_curvature_max": 0.00026563089340925217,
+          "endpoint_shift_m": 1.1110199689865112,
+          "traj_ade_m": 0.38130828738212585,
+          "forced_cot": {
+            "cot": [
+              "Y to to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 1.9780291293791663e-10,
+          "d_curvature_mean": 0.00019062671344727278,
+          "d_curvature_max": 0.0005510346964001656,
+          "endpoint_shift_m": 1.7277477979660034,
+          "traj_ade_m": 0.5850038528442383,
+          "forced_cot": {
+            "cot": [
+              "Y at to the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.8695070743560791,
+      "entropy": 0.547042727470398,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.08087675273418427,
+          "d_curvature_mean": 0.0004555661871563643,
+          "d_curvature_max": 0.0016285458113998175,
+          "endpoint_shift_m": 3.7505416870117188,
+          "traj_ade_m": 1.2786978483200073,
+          "forced_cot": {
+            "cot": [
+              "Yield due the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.023171579465270042,
+          "d_curvature_mean": 0.00016967042756732553,
+          "d_curvature_max": 0.00062947953119874,
+          "endpoint_shift_m": 1.0447465181350708,
+          "traj_ade_m": 0.3333112299442291,
+          "forced_cot": {
+            "cot": [
+              "Yield the the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.012402852065861225,
+          "d_curvature_mean": 0.00012453195813577622,
+          "d_curvature_max": 0.00028571905568242073,
+          "endpoint_shift_m": 0.20048493146896362,
+          "traj_ade_m": 0.057592861354351044,
+          "forced_cot": {
+            "cot": [
+              "Yield because the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.009659351781010628,
+          "d_curvature_mean": 1.7412883607903495e-05,
+          "d_curvature_max": 6.122700870037079e-05,
+          "endpoint_shift_m": 0.23041214048862457,
+          "traj_ade_m": 0.08746897429227829,
+          "forced_cot": {
+            "cot": [
+              "Yield at the pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9827234745025635,
+      "entropy": 0.1310356706380844,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.009634282439947128,
+          "d_curvature_mean": 0.00010530247527640313,
+          "d_curvature_max": 0.00037931324914097786,
+          "endpoint_shift_m": 0.8475414514541626,
+          "traj_ade_m": 0.30956655740737915,
+          "forced_cot": {
+            "cot": [
+              "Yield to a pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 0.0012637428008019924,
+          "d_curvature_mean": 2.3897238861536607e-05,
+          "d_curvature_max": 6.122817285358906e-05,
+          "endpoint_shift_m": 0.2842574417591095,
+          "traj_ade_m": 0.09316213428974152,
+          "forced_cot": {
+            "cot": [
+              "Yield to maintain pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0008418341749347746,
+          "d_curvature_mean": 0.00011914940841961652,
+          "d_curvature_max": 0.0001913309097290039,
+          "endpoint_shift_m": 0.27229514718055725,
+          "traj_ade_m": 0.0930180549621582,
+          "forced_cot": {
+            "cot": [
+              "Yield to cross pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " allow",
+          "token_prob": 0.0006556211155839264,
+          "d_curvature_mean": 0.000154157736687921,
+          "d_curvature_max": 0.00039287004619836807,
+          "endpoint_shift_m": 1.4196890592575073,
+          "traj_ade_m": 0.5057530403137207,
+          "forced_cot": {
+            "cot": [
+              "Yield to allow pedestrian since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " pedestrian",
+      "sampled_prob": 0.8704025149345398,
+      "entropy": 0.6196330785751343,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.08096004277467728,
+          "d_curvature_mean": 0.00026356667513027787,
+          "d_curvature_max": 0.0010153315961360931,
+          "endpoint_shift_m": 2.2171125411987305,
+          "traj_ade_m": 0.785979151725769,
+          "forced_cot": {
+            "cot": [
+              "Yield to the cut since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.019229695200920105,
+          "d_curvature_mean": 0.00021450611529871821,
+          "d_curvature_max": 0.0006989976391196251,
+          "endpoint_shift_m": 1.5357012748718262,
+          "traj_ade_m": 0.5494246482849121,
+          "forced_cot": {
+            "cot": [
+              "Yield to the cross since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " light",
+          "token_prob": 0.005175602622330189,
+          "d_curvature_mean": 0.0002219169691670686,
+          "d_curvature_max": 0.00033674295991659164,
+          "endpoint_shift_m": 0.04729488864541054,
+          "traj_ade_m": 0.015807554125785828,
+          "forced_cot": {
+            "cot": [
+              "Yield to the light since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " street",
+          "token_prob": 0.004290725104510784,
+          "d_curvature_mean": 0.00023056632198859006,
+          "d_curvature_max": 0.000658178236335516,
+          "endpoint_shift_m": 2.08266544342041,
+          "traj_ade_m": 0.7394126653671265,
+          "forced_cot": {
+            "cot": [
+              "Yield to the street since they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " since",
+      "sampled_prob": 0.8298496007919312,
+      "entropy": 0.6564419269561768,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.10550353676080704,
+          "d_curvature_mean": 7.652996282558888e-05,
+          "d_curvature_max": 0.00024896999821066856,
+          "endpoint_shift_m": 0.6923839449882507,
+          "traj_ade_m": 0.25928252935409546,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian in they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " walking",
+          "token_prob": 0.03425198793411255,
+          "d_curvature_mean": 8.45157919684425e-05,
+          "d_curvature_max": 0.00029082316905260086,
+          "endpoint_shift_m": 0.6644874811172485,
+          "traj_ade_m": 0.24759939312934875,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian walking they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.013839052990078926,
+          "d_curvature_mean": 4.477109177969396e-05,
+          "d_curvature_max": 0.00015091150999069214,
+          "endpoint_shift_m": 0.3414054811000824,
+          "traj_ade_m": 0.12180228531360626,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian because they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 0.012212920933961868,
+          "d_curvature_mean": 8.257618173956871e-05,
+          "d_curvature_max": 0.00031489739194512367,
+          "endpoint_shift_m": 0.5526824593544006,
+          "traj_ade_m": 0.1968511939048767,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian crossing they are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " they",
+      "sampled_prob": 0.8292885422706604,
+      "entropy": 0.621432363986969,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.12717552483081818,
+          "d_curvature_mean": 3.0523402529070154e-05,
+          "d_curvature_max": 8.673686534166336e-05,
+          "endpoint_shift_m": 0.23150098323822021,
+          "traj_ade_m": 0.07207340002059937,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since a are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.03643639758229256,
+          "d_curvature_mean": 2.2818978322902694e-05,
+          "d_curvature_max": 6.122700870037079e-05,
+          "endpoint_shift_m": 0.12984797358512878,
+          "traj_ade_m": 0.04881580173969269,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since the are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00038024791865609586,
+          "d_curvature_mean": 1.7741205738275312e-05,
+          "d_curvature_max": 5.102111026644707e-05,
+          "endpoint_shift_m": 0.060938142240047455,
+          "traj_ade_m": 0.02120175212621689,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since it are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " you",
+          "token_prob": 0.0003152365970890969,
+          "d_curvature_mean": 0.00010798679431900382,
+          "d_curvature_max": 0.0002449043095111847,
+          "endpoint_shift_m": 0.6506808996200562,
+          "traj_ade_m": 0.23200654983520508,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since you are walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " are",
+      "sampled_prob": 0.9979344606399536,
+      "entropy": 0.022434290498495102,
+      "alternatives": [
+        {
+          "token": " begin",
+          "token_prob": 0.0007087074918672442,
+          "d_curvature_mean": 0.0001148601368186064,
+          "d_curvature_max": 0.0004521794617176056,
+          "endpoint_shift_m": 0.9174261093139648,
+          "traj_ade_m": 0.31342068314552307,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they begin walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " start",
+          "token_prob": 0.00024492276133969426,
+          "d_curvature_mean": 0.00010093767195940018,
+          "d_curvature_max": 0.0003710617311298847,
+          "endpoint_shift_m": 0.8480749726295471,
+          "traj_ade_m": 0.29509302973747253,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they start walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " is",
+          "token_prob": 0.0002373872703174129,
+          "d_curvature_mean": 8.991783033707179e-06,
+          "d_curvature_max": 2.040993422269821e-05,
+          "endpoint_shift_m": 0.02819848246872425,
+          "traj_ade_m": 0.009755628183484077,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they is walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.00012706425331998616,
+          "d_curvature_mean": 5.338418122846633e-05,
+          "d_curvature_max": 0.0001428618561476469,
+          "endpoint_shift_m": 0.37996378540992737,
+          "traj_ade_m": 0.12624846398830414,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they enter walking across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " walking",
+      "sampled_prob": 0.7416419386863708,
+      "entropy": 0.6765137314796448,
+      "alternatives": [
+        {
+          "token": " crossing",
+          "token_prob": 0.24077588319778442,
+          "d_curvature_mean": 1.6301974028465338e-05,
+          "d_curvature_max": 6.122374907135963e-05,
+          "endpoint_shift_m": 0.1266891211271286,
+          "traj_ade_m": 0.044735558331012726,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are crossing across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0075016021728515625,
+          "d_curvature_mean": 3.9290738641284406e-05,
+          "d_curvature_max": 0.00011543557047843933,
+          "endpoint_shift_m": 0.11865987628698349,
+          "traj_ade_m": 0.04329609498381615,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are in across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.004843397997319698,
+          "d_curvature_mean": 8.514848013874143e-05,
+          "d_curvature_max": 0.0002423529513180256,
+          "endpoint_shift_m": 0.6830233931541443,
+          "traj_ade_m": 0.23440657556056976,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are entering across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.0013035829178988934,
+          "d_curvature_mean": 0.00010445307270856574,
+          "d_curvature_max": 0.0002347002737224102,
+          "endpoint_shift_m": 0.7937820553779602,
+          "traj_ade_m": 0.2834039330482483,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are occupying across our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " across",
+      "sampled_prob": 0.9430336952209473,
+      "entropy": 0.2953124940395355,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.028477149084210396,
+          "d_curvature_mean": 4.141090175835416e-05,
+          "d_curvature_max": 0.00010363711044192314,
+          "endpoint_shift_m": 0.26449182629585266,
+          "traj_ade_m": 0.08864276856184006,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking in our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.02083432674407959,
+          "d_curvature_mean": 1.0761950761661865e-05,
+          "d_curvature_max": 4.081730730831623e-05,
+          "endpoint_shift_m": 0.0387926809489727,
+          "traj_ade_m": 0.009979880414903164,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking through our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0027328692376613617,
+          "d_curvature_mean": 3.756301157409325e-05,
+          "d_curvature_max": 0.00012308871373534203,
+          "endpoint_shift_m": 0.22604133188724518,
+          "traj_ade_m": 0.08133413642644882,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking ahead our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.0021959219593554735,
+          "d_curvature_mean": 7.587802974740043e-05,
+          "d_curvature_max": 0.0002474547363817692,
+          "endpoint_shift_m": 0.6165038347244263,
+          "traj_ade_m": 0.20915217697620392,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking into our lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " our",
+      "sampled_prob": 0.8793445229530334,
+      "entropy": 0.3812120258808136,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.11900633573532104,
+          "d_curvature_mean": 4.007797542726621e-05,
+          "d_curvature_max": 0.00014995504170656204,
+          "endpoint_shift_m": 0.2719494104385376,
+          "traj_ade_m": 0.10216039419174194,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across the lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0007301003788597882,
+          "d_curvature_mean": 9.473357204115018e-05,
+          "d_curvature_max": 0.00023980112746357918,
+          "endpoint_shift_m": 0.6531403660774231,
+          "traj_ade_m": 0.22989551723003387,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across in lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.00024455299717374146,
+          "d_curvature_mean": 4.334154800744727e-05,
+          "d_curvature_max": 0.00010203849524259567,
+          "endpoint_shift_m": 0.04265563562512398,
+          "traj_ade_m": 0.008386405184864998,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across a lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.00018459829152561724,
+          "d_curvature_mean": 5.892676563235e-05,
+          "d_curvature_max": 0.00011479901149868965,
+          "endpoint_shift_m": 0.2805534601211548,
+          "traj_ade_m": 0.10294345021247864,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across cross lane at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9228492975234985,
+      "entropy": 0.3054615557193756,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.07116249948740005,
+          "d_curvature_mean": 1.1261363397352397e-05,
+          "d_curvature_max": 3.3163465559482574e-05,
+          "endpoint_shift_m": 0.08610676229000092,
+          "traj_ade_m": 0.026091918349266052,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our path at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0040147132240235806,
+          "d_curvature_mean": 3.132229903712869e-05,
+          "d_curvature_max": 9.183911606669426e-05,
+          "endpoint_shift_m": 0.14899906516075134,
+          "traj_ade_m": 0.055417366325855255,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our cross at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.0004365798376966268,
+          "d_curvature_mean": 1.0816162102855742e-05,
+          "d_curvature_max": 4.0818704292178154e-05,
+          "endpoint_shift_m": 0.07712215185165405,
+          "traj_ade_m": 0.0266374871134758,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our vehicle at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 0.0001937311317306012,
+          "d_curvature_mean": 3.230958100175485e-05,
+          "d_curvature_max": 0.00013520661741495132,
+          "endpoint_shift_m": 0.2360834777355194,
+          "traj_ade_m": 0.08176305890083313,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our crossing at the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " at",
+      "sampled_prob": 0.15123160183429718,
+      "entropy": 1.1526309251785278,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.49586936831474304,
+          "d_curvature_mean": 2.2266000087256543e-05,
+          "d_curvature_max": 8.78525897860527e-05,
+          "endpoint_shift_m": 0.1992327868938446,
+          "traj_ade_m": 0.07048408687114716,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.32015731930732727,
+          "d_curvature_mean": 2.7951649826718494e-05,
+          "d_curvature_max": 0.00011495733633637428,
+          "endpoint_shift_m": 0.2641058564186096,
+          "traj_ade_m": 0.10739487409591675,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane ahead the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.024687880650162697,
+          "d_curvature_mean": 0.000562186585739255,
+          "d_curvature_max": 0.0016959095373749733,
+          "endpoint_shift_m": 6.884264945983887,
+          "traj_ade_m": 2.220651388168335,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0019641555845737457,
+          "d_curvature_mean": 0.00021323047985788435,
+          "d_curvature_max": 0.0008316496387124062,
+          "endpoint_shift_m": 1.7415260076522827,
+          "traj_ade_m": 0.6214677691459656,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane. the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " the",
+      "sampled_prob": 0.9850645661354065,
+      "entropy": 0.11340722441673279,
+      "alternatives": [
+        {
+          "token": " ",
+          "token_prob": 0.006235178094357252,
+          "d_curvature_mean": 8.115053060464561e-05,
+          "d_curvature_max": 0.0003271745517849922,
+          "endpoint_shift_m": 0.7410710453987122,
+          "traj_ade_m": 0.2836301624774933,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at  crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.004285371396690607,
+          "d_curvature_mean": 4.5898937969468534e-05,
+          "d_curvature_max": 0.00014333799481391907,
+          "endpoint_shift_m": 0.3778238296508789,
+          "traj_ade_m": 0.1408424824476242,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at our crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0008438396616838872,
+          "d_curvature_mean": 2.1725412807427347e-05,
+          "d_curvature_max": 8.067721500992775e-05,
+          "endpoint_shift_m": 0.27439162135124207,
+          "traj_ade_m": 0.1085842028260231,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at a crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " close",
+          "token_prob": 0.0004660125123336911,
+          "d_curvature_mean": 3.473731339909136e-05,
+          "d_curvature_max": 8.163671009242535e-05,
+          "endpoint_shift_m": 0.029758399352431297,
+          "traj_ade_m": 0.03990325704216957,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at close crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " cross",
+      "sampled_prob": 0.9536771178245544,
+      "entropy": 0.23350156843662262,
+      "alternatives": [
+        {
+          "token": " intersection",
+          "token_prob": 0.034737687557935715,
+          "d_curvature_mean": 3.8745132769690827e-05,
+          "d_curvature_max": 0.00012277066707611084,
+          "endpoint_shift_m": 0.24672530591487885,
+          "traj_ade_m": 0.08239477872848511,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the intersectionwalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marked",
+          "token_prob": 0.008783062919974327,
+          "d_curvature_mean": 3.800026752287522e-05,
+          "d_curvature_max": 0.00010602828115224838,
+          "endpoint_shift_m": 0.26064610481262207,
+          "traj_ade_m": 0.09421589225530624,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the markedwalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " upcoming",
+          "token_prob": 0.0006987761589698493,
+          "d_curvature_mean": 0.00015953266120050102,
+          "d_curvature_max": 0.0005357270129024982,
+          "endpoint_shift_m": 1.4344817399978638,
+          "traj_ade_m": 0.4920753240585327,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the upcomingwalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stop",
+          "token_prob": 0.0002652255061548203,
+          "d_curvature_mean": 6.496862624771893e-05,
+          "d_curvature_max": 0.00026531191542744637,
+          "endpoint_shift_m": 0.5332112312316895,
+          "traj_ade_m": 0.18203920125961304,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the stopwalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": "walk",
+      "sampled_prob": 0.9999995231628418,
+      "entropy": 9.102033800445497e-06,
+      "alternatives": [
+        {
+          "token": "-",
+          "token_prob": 2.102432858919201e-07,
+          "d_curvature_mean": 3.226212356821634e-05,
+          "d_curvature_max": 8.163531310856342e-05,
+          "endpoint_shift_m": 0.16610513627529144,
+          "traj_ade_m": 0.050261907279491425,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the cross- ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " street",
+          "token_prob": 1.357432637405509e-07,
+          "d_curvature_mean": 2.872713412216399e-05,
+          "d_curvature_max": 9.741866961121559e-05,
+          "endpoint_shift_m": 0.17147718369960785,
+          "traj_ade_m": 0.05554476007819176,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the cross street ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 8.764244086023609e-08,
+          "d_curvature_mean": 3.379296322236769e-05,
+          "d_curvature_max": 0.00012245122343301773,
+          "endpoint_shift_m": 0.15557780861854553,
+          "traj_ade_m": 0.06092562526464462,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the cross cross ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "road",
+          "token_prob": 1.8954008140781298e-08,
+          "d_curvature_mean": 2.0575042071868666e-05,
+          "d_curvature_max": 7.54157081246376e-05,
+          "endpoint_shift_m": 0.11810776591300964,
+          "traj_ade_m": 0.039137162268161774,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the crossroad ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "col": 3102,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.5554236769676208,
+      "entropy": 0.761513352394104,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.4325644075870514,
+          "d_curvature_mean": 0.0005745916860178113,
+          "d_curvature_max": 0.001764071173965931,
+          "endpoint_shift_m": 7.030178546905518,
+          "traj_ade_m": 2.303762197494507,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the crosswalk"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0067766387946903706,
+          "d_curvature_mean": 0.00017118954565376043,
+          "d_curvature_max": 0.0006396817043423653,
+          "endpoint_shift_m": 1.5176194906234741,
+          "traj_ade_m": 0.541827917098999,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the crosswalk."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00351567380130291,
+          "d_curvature_mean": 8.823714597383514e-05,
+          "d_curvature_max": 0.00023980112746357918,
+          "endpoint_shift_m": 0.816292405128479,
+          "traj_ade_m": 0.28299087285995483,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the crosswalk since"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.00020463677356019616,
+          "d_curvature_mean": 0.00010301276051905006,
+          "d_curvature_max": 0.0003612958826124668,
+          "endpoint_shift_m": 0.9257415533065796,
+          "traj_ade_m": 0.33098044991493225,
+          "forced_cot": {
+            "cot": [
+              "Yield to the pedestrian since they are walking across our lane at the crosswalk at"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Y",
+      "sampled_prob": 0.3646079897880554,
+      "entropy": 2.102081060409546,
+      "alternatives": [
+        {
+          "token": "Stop",
+          "token_prob": 0.25854575634002686,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.08393752574920654,
+          "d_curvature_mean": 0.00021797876979690045,
+          "d_curvature_max": 0.0006428686901926994,
+          "endpoint_shift_m": 0.5603950023651123,
+          "traj_ade_m": 0.26311907172203064,
+          "forced_cot": {
+            "cot": [
+              "Slow down because of yellow traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.06335936486721039,
+          "d_curvature_mean": 0.001300728996284306,
+          "d_curvature_max": 0.003540896577760577,
+          "endpoint_shift_m": 12.845388412475586,
+          "traj_ade_m": 4.617659568786621,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to cones blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Acceler",
+          "token_prob": 0.05091068148612976,
+          "d_curvature_mean": 0.0008671040995977819,
+          "d_curvature_max": 0.002864223439246416,
+          "endpoint_shift_m": 8.569503784179688,
+          "traj_ade_m": 3.0410282611846924,
+          "forced_cot": {
+            "cot": [
+              "Accelerate to proceed through the intersection since the pedestrian has cleared ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": "ield",
+      "sampled_prob": 1.0,
+      "entropy": 3.1167320457825554e-07,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 6.092758519926633e-10,
+          "d_curvature_mean": 0.000647975888568908,
+          "d_curvature_max": 0.002915086690336466,
+          "endpoint_shift_m": 5.834185600280762,
+          "traj_ade_m": 1.8879539966583252,
+          "forced_cot": {
+            "cot": [
+              "Stop distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "apt",
+          "token_prob": 3.6954450610693357e-10,
+          "d_curvature_mean": 0.0005479662795551121,
+          "d_curvature_max": 0.0022102706134319305,
+          "endpoint_shift_m": 4.891724109649658,
+          "traj_ade_m": 1.5696927309036255,
+          "forced_cot": {
+            "cot": [
+              "Stopapt speed for the red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 2.703645085588846e-10,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 1.9780291293791663e-10,
+          "d_curvature_mean": 0.0006021803710609674,
+          "d_curvature_max": 0.002561600413173437,
+          "endpoint_shift_m": 4.108722686767578,
+          "traj_ade_m": 1.303500771522522,
+          "forced_cot": {
+            "cot": [
+              "Stop at the stop line for the stop sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.8695070743560791,
+      "entropy": 0.547042727470398,
+      "alternatives": [
+        {
+          "token": " due",
+          "token_prob": 0.08087675273418427,
+          "d_curvature_mean": 0.0005448010051622987,
+          "d_curvature_max": 0.002233149018138647,
+          "endpoint_shift_m": 5.016211032867432,
+          "traj_ade_m": 1.6556599140167236,
+          "forced_cot": {
+            "cot": [
+              "Stop to due to a pedestrian walking across the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.023171579465270042,
+          "d_curvature_mean": 0.0005991524667479098,
+          "d_curvature_max": 0.002542149741202593,
+          "endpoint_shift_m": 4.158528804779053,
+          "traj_ade_m": 1.3074243068695068,
+          "forced_cot": {
+            "cot": [
+              "Stop to the stop line for the stop sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.012402852065861225,
+          "d_curvature_mean": 0.0006064504850655794,
+          "d_curvature_max": 0.0026889964938163757,
+          "endpoint_shift_m": 6.513361930847168,
+          "traj_ade_m": 2.1577835083007812,
+          "forced_cot": {
+            "cot": [
+              "Stop to because of the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.009659351781010628,
+          "d_curvature_mean": 0.000677898817230016,
+          "d_curvature_max": 0.0032191425561904907,
+          "endpoint_shift_m": 6.131631851196289,
+          "traj_ade_m": 1.9993878602981567,
+          "forced_cot": {
+            "cot": [
+              "Stop to at the stop sign since the intersection is controlled by a stop sign"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9827234745025635,
+      "entropy": 0.1310356706380844,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.009634282439947128,
+          "d_curvature_mean": 0.00201777764596045,
+          "d_curvature_max": 0.0037960039917379618,
+          "endpoint_shift_m": 10.095809936523438,
+          "traj_ade_m": 3.5811471939086914,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield a gap for the pedestrian walking across our lane ahead, with a train blocking the left side and work trucks blocking the right side, leaving no safe path forward."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 0.0012637428008019924,
+          "d_curvature_mean": 0.0005291837733238935,
+          "d_curvature_max": 0.002272134181112051,
+          "endpoint_shift_m": 6.13271427154541,
+          "traj_ade_m": 1.990959644317627,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield maintain a safe distance from the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0008418341749347746,
+          "d_curvature_mean": 0.0005323131335899234,
+          "d_curvature_max": 0.0017962777055799961,
+          "endpoint_shift_m": 5.056701183319092,
+          "traj_ade_m": 1.6407573223114014,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield cross traffic since a train is crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " allow",
+          "token_prob": 0.0006556211155839264,
+          "d_curvature_mean": 0.0005169365322217345,
+          "d_curvature_max": 0.0021193078719079494,
+          "endpoint_shift_m": 4.335622310638428,
+          "traj_ade_m": 1.409958004951477,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield allow the pedestrian to cross ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " pedestrian",
+      "sampled_prob": 0.8704025149345398,
+      "entropy": 0.6196330785751343,
+      "alternatives": [
+        {
+          "token": " cut",
+          "token_prob": 0.08096004277467728,
+          "d_curvature_mean": 0.000601230189204216,
+          "d_curvature_max": 0.002716978546231985,
+          "endpoint_shift_m": 5.654685974121094,
+          "traj_ade_m": 1.8530628681182861,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to cut-in vehicle from the right since it is entering our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.019229695200920105,
+          "d_curvature_mean": 0.0006008844939060509,
+          "d_curvature_max": 0.002687799744307995,
+          "endpoint_shift_m": 5.249253749847412,
+          "traj_ade_m": 1.714370846748352,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to cross traffic since a vehicle is crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " light",
+          "token_prob": 0.005175602622330189,
+          "d_curvature_mean": 0.00048827502178028226,
+          "d_curvature_max": 0.001750995870679617,
+          "endpoint_shift_m": 4.400417804718018,
+          "traj_ade_m": 1.4286065101623535,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to light rail crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " street",
+          "token_prob": 0.004290725104510784,
+          "d_curvature_mean": 0.0004946794942952693,
+          "d_curvature_max": 0.0018931794911623001,
+          "endpoint_shift_m": 4.232525825500488,
+          "traj_ade_m": 1.3970296382904053,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to streetcar crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " since",
+      "sampled_prob": 0.8298496007919312,
+      "entropy": 0.6564419269561768,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.10550353676080704,
+          "d_curvature_mean": 0.0005410338053479791,
+          "d_curvature_max": 0.0021107778884470463,
+          "endpoint_shift_m": 6.622861862182617,
+          "traj_ade_m": 2.172395944595337,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the in-lane train blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " walking",
+          "token_prob": 0.03425198793411255,
+          "d_curvature_mean": 0.0005460603279061615,
+          "d_curvature_max": 0.0022295238450169563,
+          "endpoint_shift_m": 5.6821675300598145,
+          "traj_ade_m": 1.8555735349655151,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the walking pedestrian in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.013839052990078926,
+          "d_curvature_mean": 0.0015924344770610332,
+          "d_curvature_max": 0.002673530951142311,
+          "endpoint_shift_m": 10.30853271484375,
+          "traj_ade_m": 3.917140245437622,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the because a pedestrian is walking across the marked crosswalk directly ahead, blocking our path; cross-traffic is also entering from the right, so proceeding would be unsafe; after they clear, we can slowly accelerate to follow the streetcar ahead, as it does but we must maintain a safe gap."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 0.012212920933961868,
+          "d_curvature_mean": 0.0005542286671698093,
+          "d_curvature_max": 0.002355122473090887,
+          "endpoint_shift_m": 4.005424499511719,
+          "traj_ade_m": 1.3090530633926392,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the crossing vehicle from the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " they",
+      "sampled_prob": 0.8292885422706604,
+      "entropy": 0.621432363986969,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.12717552483081818,
+          "d_curvature_mean": 0.0007279717829078436,
+          "d_curvature_max": 0.0018252967856824398,
+          "endpoint_shift_m": 9.429668426513672,
+          "traj_ade_m": 3.3029606342315674,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian a bit further ahead who is walking across our lane in our path, blocking our intended straight trajectory at our current speed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.03643639758229256,
+          "d_curvature_mean": 0.0005467617302201688,
+          "d_curvature_max": 0.002227131277322769,
+          "endpoint_shift_m": 5.3305134773254395,
+          "traj_ade_m": 1.7126132249832153,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 0.00038024791865609586,
+          "d_curvature_mean": 0.0005213180556893349,
+          "d_curvature_max": 0.0019613010808825493,
+          "endpoint_shift_m": 5.21828556060791,
+          "traj_ade_m": 1.6795570850372314,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian it is crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " you",
+          "token_prob": 0.0003152365970890969,
+          "d_curvature_mean": 0.0005067531019449234,
+          "d_curvature_max": 0.00197899853810668,
+          "endpoint_shift_m": 4.6832661628723145,
+          "traj_ade_m": 1.505061149597168,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian you are crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " are",
+      "sampled_prob": 0.9979344606399536,
+      "entropy": 0.022434290498495102,
+      "alternatives": [
+        {
+          "token": " begin",
+          "token_prob": 0.0007087074918672442,
+          "d_curvature_mean": 0.0005254867137409747,
+          "d_curvature_max": 0.0020784116350114346,
+          "endpoint_shift_m": 5.567914962768555,
+          "traj_ade_m": 1.7862732410430908,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in begin crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " start",
+          "token_prob": 0.00024492276133969426,
+          "d_curvature_mean": 0.0005398471839725971,
+          "d_curvature_max": 0.002230520360171795,
+          "endpoint_shift_m": 5.884092330932617,
+          "traj_ade_m": 1.8881185054779053,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in start of crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " is",
+          "token_prob": 0.0002373872703174129,
+          "d_curvature_mean": 0.000555404694750905,
+          "d_curvature_max": 0.0022592986933887005,
+          "endpoint_shift_m": 5.769179344177246,
+          "traj_ade_m": 1.8564794063568115,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in is crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.00012706425331998616,
+          "d_curvature_mean": 0.0005336556350812316,
+          "d_curvature_max": 0.00220078369602561,
+          "endpoint_shift_m": 6.475855827331543,
+          "traj_ade_m": 2.10343861579895,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in enter the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " walking",
+      "sampled_prob": 0.7416419386863708,
+      "entropy": 0.6765137314796448,
+      "alternatives": [
+        {
+          "token": " crossing",
+          "token_prob": 0.24077588319778442,
+          "d_curvature_mean": 0.0005667512305080891,
+          "d_curvature_max": 0.002392194699496031,
+          "endpoint_shift_m": 5.765556335449219,
+          "traj_ade_m": 1.8740180730819702,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crossing ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0075016021728515625,
+          "d_curvature_mean": 0.0008581689326092601,
+          "d_curvature_max": 0.0021910578943789005,
+          "endpoint_shift_m": 10.442147254943848,
+          "traj_ade_m": 3.7490227222442627,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the in-lane crosswalk ahead; a car is pulling out from the right and construction cones narrow our lane, making it unsafe to proceed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.004843397997319698,
+          "d_curvature_mean": 0.000526888354215771,
+          "d_curvature_max": 0.0021986309438943863,
+          "endpoint_shift_m": 6.781959533691406,
+          "traj_ade_m": 2.241349220275879,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the entering crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupying",
+          "token_prob": 0.0013035829178988934,
+          "d_curvature_mean": 0.001522181904874742,
+          "d_curvature_max": 0.002704143524169922,
+          "endpoint_shift_m": 10.665245056152344,
+          "traj_ade_m": 3.8366270065307617,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the occupying crosswalk ahead; cross-traffic is moving through, so proceeding would be unsafe until it clears."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " across",
+      "sampled_prob": 0.9430336952209473,
+      "entropy": 0.2953124940395355,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.028477149084210396,
+          "d_curvature_mean": 0.0005502589046955109,
+          "d_curvature_max": 0.002327140886336565,
+          "endpoint_shift_m": 6.11699914932251,
+          "traj_ade_m": 1.9843521118164062,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the cross in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.02083432674407959,
+          "d_curvature_mean": 0.0005528430920094252,
+          "d_curvature_max": 0.002351058181375265,
+          "endpoint_shift_m": 6.175082206726074,
+          "traj_ade_m": 2.0030527114868164,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the cross through our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0027328692376613617,
+          "d_curvature_mean": 0.0005692598642781377,
+          "d_curvature_max": 0.0024137990549206734,
+          "endpoint_shift_m": 5.7726311683654785,
+          "traj_ade_m": 1.868428111076355,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the cross ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.0021959219593554735,
+          "d_curvature_mean": 0.0005319074261933565,
+          "d_curvature_max": 0.0022183223627507687,
+          "endpoint_shift_m": 6.458305835723877,
+          "traj_ade_m": 2.10638427734375,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the cross into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " our",
+      "sampled_prob": 0.8793445229530334,
+      "entropy": 0.3812120258808136,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.11900633573532104,
+          "d_curvature_mean": 0.0005308856489136815,
+          "d_curvature_max": 0.002254276070743799,
+          "endpoint_shift_m": 4.902740001678467,
+          "traj_ade_m": 1.564756155014038,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk the ego is entering"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0007301003788597882,
+          "d_curvature_mean": 0.0005441894754767418,
+          "d_curvature_max": 0.0023925132118165493,
+          "endpoint_shift_m": 6.459057331085205,
+          "traj_ade_m": 2.1030514240264893,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.00024455299717374146,
+          "d_curvature_mean": 0.0005255256546661258,
+          "d_curvature_max": 0.00231215450912714,
+          "endpoint_shift_m": 6.214583396911621,
+          "traj_ade_m": 2.0093235969543457,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk a short distance ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.00018459829152561724,
+          "d_curvature_mean": 0.0005404875264503062,
+          "d_curvature_max": 0.0023261848837137222,
+          "endpoint_shift_m": 6.13112211227417,
+          "traj_ade_m": 2.006638765335083,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9228492975234985,
+      "entropy": 0.3054615557193756,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.07116249948740005,
+          "d_curvature_mean": 0.000537620042450726,
+          "d_curvature_max": 0.002192493062466383,
+          "endpoint_shift_m": 6.0243000984191895,
+          "traj_ade_m": 1.9575226306915283,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 0.0040147132240235806,
+          "d_curvature_mean": 0.0005362310912460089,
+          "d_curvature_max": 0.002168017905205488,
+          "endpoint_shift_m": 6.0308427810668945,
+          "traj_ade_m": 1.9554767608642578,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead cross our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.0004365798376966268,
+          "d_curvature_mean": 0.0005354389431886375,
+          "d_curvature_max": 0.002209832426160574,
+          "endpoint_shift_m": 5.985993385314941,
+          "traj_ade_m": 1.9540892839431763,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " crossing",
+          "token_prob": 0.0001937311317306012,
+          "d_curvature_mean": 0.0005323547520674765,
+          "d_curvature_max": 0.0021956819109618664,
+          "endpoint_shift_m": 6.182507514953613,
+          "traj_ade_m": 2.0139427185058594,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead crossing our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " at",
+      "sampled_prob": 0.15123160183429718,
+      "entropy": 1.1526309251785278,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.49586936831474304,
+          "d_curvature_mean": 0.0006280232919380069,
+          "d_curvature_max": 0.0015809512697160244,
+          "endpoint_shift_m": 9.006097793579102,
+          "traj_ade_m": 2.979637861251831,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.32015731930732727,
+          "d_curvature_mean": 0.0006139487377367914,
+          "d_curvature_max": 0.0016384697519242764,
+          "endpoint_shift_m": 8.970556259155273,
+          "traj_ade_m": 3.0187063217163086,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.024687880650162697,
+          "d_curvature_mean": 0.000612684350926429,
+          "d_curvature_max": 0.0016599544323980808,
+          "endpoint_shift_m": 8.996231079101562,
+          "traj_ade_m": 3.0015342235565186,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0019641555845737457,
+          "d_curvature_mean": 0.0006264025578275323,
+          "d_curvature_max": 0.0015867713373154402,
+          "endpoint_shift_m": 8.95439624786377,
+          "traj_ade_m": 2.975656747817993,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " the",
+      "sampled_prob": 0.9850645661354065,
+      "entropy": 0.11340722441673279,
+      "alternatives": [
+        {
+          "token": " ",
+          "token_prob": 0.006235178094357252,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 0.004285371396690607,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0008438396616838872,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " close",
+          "token_prob": 0.0004660125123336911,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "col": 3100,
+      "sampled_token": " cross",
+      "sampled_prob": 0.9536771178245544,
+      "entropy": 0.23350156843662262,
+      "alternatives": [
+        {
+          "token": " intersection",
+          "token_prob": 0.034737687557935715,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " marked",
+          "token_prob": 0.008783062919974327,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " upcoming",
+          "token_prob": 0.0006987761589698493,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stop",
+          "token_prob": 0.0002652255061548203,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "col": 3101,
+      "sampled_token": "walk",
+      "sampled_prob": 0.9999995231628418,
+      "entropy": 9.102033800445497e-06,
+      "alternatives": [
+        {
+          "token": "-",
+          "token_prob": 2.102432858919201e-07,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " street",
+          "token_prob": 1.357432637405509e-07,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cross",
+          "token_prob": 8.764244086023609e-08,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "road",
+          "token_prob": 1.8954008140781298e-08,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "col": 3102,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.5554236769676208,
+      "entropy": 0.761513352394104,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.4325644075870514,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0067766387946903706,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00351567380130291,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.00020463677356019616,
+          "d_curvature_mean": 0.0005646478966809809,
+          "d_curvature_max": 0.002424003090709448,
+          "endpoint_shift_m": 6.152018070220947,
+          "traj_ade_m": 2.0119290351867676,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the pedestrian in the crosswalk ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

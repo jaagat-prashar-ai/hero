@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the lead motorcycle since it is directly ahead in our lane"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 0.20263425101334828,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.41167598962783813,
+        "entropy": 1.9517589807510376,
+        "top_k": [
+          {
+            "text": "Keep",
+            "prob": 0.41167598962783813
+          },
+          {
+            "text": "Change",
+            "prob": 0.2496941089630127
+          },
+          {
+            "text": "Lane",
+            "prob": 0.08106380701065063
+          },
+          {
+            "text": "Merge",
+            "prob": 0.04339032992720604
+          },
+          {
+            "text": "N",
+            "prob": 0.040761444717645645
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.999985933303833,
+        "entropy": 0.00018543846090324223,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.999985933303833
+          },
+          {
+            "text": " lane",
+            "prob": 1.1478738088044338e-05
+          },
+          {
+            "text": " speed",
+            "prob": 1.034839669955545e-06
+          },
+          {
+            "text": " at",
+            "prob": 4.5920731395199255e-07
+          },
+          {
+            "text": " a",
+            "prob": 2.0377200371513027e-07
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.9960284233093262,
+        "entropy": 0.028038688004016876,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9960284233093262
+          },
+          {
+            "text": " from",
+            "prob": 0.003592239459976554
+          },
+          {
+            "text": " and",
+            "prob": 0.0001628421014174819
+          },
+          {
+            "text": " since",
+            "prob": 4.6655044570798054e-05
+          },
+          {
+            "text": " for",
+            "prob": 3.9906171878101304e-05
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9995019435882568,
+        "entropy": 0.005924316588789225,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9995019435882568
+          },
+          {
+            "text": " our",
+            "prob": 0.0002694175345823169
+          },
+          {
+            "text": " follow",
+            "prob": 2.2115140382084064e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 1.5681982404203154e-05
+          },
+          {
+            "text": " it",
+            "prob": 9.21896116778953e-06
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lead",
+        "sampled_prob": 0.9844414591789246,
+        "entropy": 0.10231652855873108,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.9844414591789246
+          },
+          {
+            "text": " motorcycle",
+            "prob": 0.010273569263517857
+          },
+          {
+            "text": " motor",
+            "prob": 0.0022923429496586323
+          },
+          {
+            "text": " scooter",
+            "prob": 0.001575502916239202
+          },
+          {
+            "text": " cyclist",
+            "prob": 0.0002914387150667608
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " motorcycle",
+        "sampled_prob": 0.9098119139671326,
+        "entropy": 0.3764554262161255,
+        "top_k": [
+          {
+            "text": " motorcycle",
+            "prob": 0.9098119139671326
+          },
+          {
+            "text": " scooter",
+            "prob": 0.051328081637620926
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.037552423775196075
+          },
+          {
+            "text": " motor",
+            "prob": 0.00033520531724207103
+          },
+          {
+            "text": " cyclist",
+            "prob": 0.0001397343585267663
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " since",
+        "sampled_prob": 0.9932112097740173,
+        "entropy": 0.04834476113319397,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9932112097740173
+          },
+          {
+            "text": " because",
+            "prob": 0.0038131033070385456
+          },
+          {
+            "text": " ahead",
+            "prob": 0.002172640757635236
+          },
+          {
+            "text": " in",
+            "prob": 0.00041465568938292563
+          },
+          {
+            "text": " as",
+            "prob": 0.00018400236149318516
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " it",
+        "sampled_prob": 0.9996222257614136,
+        "entropy": 0.00404916238039732,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9996222257614136
+          },
+          {
+            "text": " we",
+            "prob": 0.00019106862600892782
+          },
+          {
+            "text": " a",
+            "prob": 7.48235615901649e-05
+          },
+          {
+            "text": " the",
+            "prob": 5.4742082284064963e-05
+          },
+          {
+            "text": " our",
+            "prob": 1.5201326277747285e-05
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " is",
+        "sampled_prob": 0.9992626309394836,
+        "entropy": 0.00896813627332449,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9992626309394836
+          },
+          {
+            "text": " controls",
+            "prob": 0.00029582646675407887
+          },
+          {
+            "text": " merges",
+            "prob": 9.908944775816053e-05
+          },
+          {
+            "text": " remains",
+            "prob": 1.5195857486105524e-05
+          },
+          {
+            "text": " occupies",
+            "prob": 1.111752771976171e-05
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " directly",
+        "sampled_prob": 0.9921935796737671,
+        "entropy": 0.05429096519947052,
+        "top_k": [
+          {
+            "text": " directly",
+            "prob": 0.9921935796737671
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0052065541967749596
+          },
+          {
+            "text": " in",
+            "prob": 0.0017993369838222861
+          },
+          {
+            "text": " slowing",
+            "prob": 0.0003030578081961721
+          },
+          {
+            "text": " moving",
+            "prob": 0.00015722430543974042
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.9998069405555725,
+        "entropy": 0.0021051974035799503,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9998069405555725
+          },
+          {
+            "text": " in",
+            "prob": 0.00014883189578540623
+          },
+          {
+            "text": " since",
+            "prob": 1.3004786524106748e-05
+          },
+          {
+            "text": " directly",
+            "prob": 6.746794042555848e-06
+          },
+          {
+            "text": " into",
+            "prob": 4.356057615950704e-06
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " in",
+        "sampled_prob": 0.9934432506561279,
+        "entropy": 0.05639113485813141,
+        "top_k": [
+          {
+            "text": " in",
+            "prob": 0.9934432506561279
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.002621317282319069
+          },
+          {
+            "text": " through",
+            "prob": 0.0007994566112756729
+          },
+          {
+            "text": " and",
+            "prob": 0.0005494579090736806
+          },
+          {
+            "text": " since",
+            "prob": 0.0004279182758182287
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " our",
+        "sampled_prob": 0.9932611584663391,
+        "entropy": 0.040863242000341415,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9932611584663391
+          },
+          {
+            "text": " the",
+            "prob": 0.00669254083186388
+          },
+          {
+            "text": " a",
+            "prob": 1.765906017681118e-05
+          },
+          {
+            "text": " this",
+            "prob": 3.5876553283742396e-06
+          },
+          {
+            "text": " an",
+            "prob": 1.6946884215940372e-06
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " lane",
+        "sampled_prob": 0.9823645949363708,
+        "entropy": 0.1571875363588333,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9823645949363708
+          },
+          {
+            "text": " path",
+            "prob": 0.006026777438819408
+          },
+          {
+            "text": " right",
+            "prob": 0.0018964098999276757
+          },
+          {
+            "text": " narrow",
+            "prob": 0.0016735759563744068
+          },
+          {
+            "text": " single",
+            "prob": 0.0005433305050246418
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.41167598962783813,
+      "entropy": 1.9517589807510376,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.2496941089630127,
+          "d_curvature_mean": 0.00022438586165662855,
+          "d_curvature_max": 0.0005510337650775909,
+          "endpoint_shift_m": 0.1672285795211792,
+          "traj_ade_m": 0.05967143550515175,
+          "forced_cot": {
+            "cot": [
+              "Change distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.08106380701065063,
+          "d_curvature_mean": 5.375087130232714e-05,
+          "d_curvature_max": 0.00016327202320098877,
+          "endpoint_shift_m": 0.047082461416721344,
+          "traj_ade_m": 0.021794810891151428,
+          "forced_cot": {
+            "cot": [
+              "Lane distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.04339032992720604,
+          "d_curvature_mean": 0.0002495278895366937,
+          "d_curvature_max": 0.00078573077917099,
+          "endpoint_shift_m": 0.09228191524744034,
+          "traj_ade_m": 0.03487410768866539,
+          "forced_cot": {
+            "cot": [
+              "Merge distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.040761444717645645,
+          "d_curvature_mean": 2.930241134890821e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.02520587109029293,
+          "traj_ade_m": 0.00918759685009718,
+          "forced_cot": {
+            "cot": [
+              "N distance to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.999985933303833,
+      "entropy": 0.00018543846090324223,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 1.1478738088044338e-05,
+          "d_curvature_mean": 0.0003344382857903838,
+          "d_curvature_max": 0.0008979812264442444,
+          "endpoint_shift_m": 0.2961888909339905,
+          "traj_ade_m": 0.10528608411550522,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 1.034839669955545e-06,
+          "d_curvature_mean": 0.0004767462960444391,
+          "d_curvature_max": 0.0014081932604312897,
+          "endpoint_shift_m": 0.4221799075603485,
+          "traj_ade_m": 0.14543628692626953,
+          "forced_cot": {
+            "cot": [
+              "Keep speed to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 4.5920731395199255e-07,
+          "d_curvature_mean": 5.237681762082502e-05,
+          "d_curvature_max": 0.00014286115765571594,
+          "endpoint_shift_m": 0.07775689661502838,
+          "traj_ade_m": 0.03644018620252609,
+          "forced_cot": {
+            "cot": [
+              "Keep at to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 2.0377200371513027e-07,
+          "d_curvature_mean": 0.00013352627865970135,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.09993702918291092,
+          "traj_ade_m": 0.04267684370279312,
+          "forced_cot": {
+            "cot": [
+              "Keep a to the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9960284233093262,
+      "entropy": 0.028038688004016876,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.003592239459976554,
+          "d_curvature_mean": 0.00010169063170906156,
+          "d_curvature_max": 0.00024490803480148315,
+          "endpoint_shift_m": 0.01666521094739437,
+          "traj_ade_m": 0.01351088099181652,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0001628421014174819,
+          "d_curvature_mean": 0.00016258990217465907,
+          "d_curvature_max": 0.00028571952134370804,
+          "endpoint_shift_m": 0.12116725742816925,
+          "traj_ade_m": 0.05055534839630127,
+          "forced_cot": {
+            "cot": [
+              "Keep distance and the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 4.6655044570798054e-05,
+          "d_curvature_mean": 0.00027053174562752247,
+          "d_curvature_max": 0.0005328617990016937,
+          "endpoint_shift_m": 0.15273936092853546,
+          "traj_ade_m": 0.05790604650974274,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.9906171878101304e-05,
+          "d_curvature_mean": 0.00010330117220291868,
+          "d_curvature_max": 0.00024490244686603546,
+          "endpoint_shift_m": 0.07475225627422333,
+          "traj_ade_m": 0.03232434391975403,
+          "forced_cot": {
+            "cot": [
+              "Keep distance for the lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995019435882568,
+      "entropy": 0.005924316588789225,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0002694175345823169,
+          "d_curvature_mean": 0.00014589654165320098,
+          "d_curvature_max": 0.0005102120339870453,
+          "endpoint_shift_m": 0.06018216535449028,
+          "traj_ade_m": 0.014354413375258446,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 2.2115140382084064e-05,
+          "d_curvature_mean": 0.00012994463031645864,
+          "d_curvature_max": 0.000346943736076355,
+          "endpoint_shift_m": 0.08887356519699097,
+          "traj_ade_m": 0.03586430847644806,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 1.5681982404203154e-05,
+          "d_curvature_mean": 0.0001091882586479187,
+          "d_curvature_max": 0.00031634047627449036,
+          "endpoint_shift_m": 0.10127101093530655,
+          "traj_ade_m": 0.03790678456425667,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 9.21896116778953e-06,
+          "d_curvature_mean": 0.00011267259833402932,
+          "d_curvature_max": 0.0003469511866569519,
+          "endpoint_shift_m": 0.06160702556371689,
+          "traj_ade_m": 0.017572058364748955,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to it lead motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9844414591789246,
+      "entropy": 0.10231652855873108,
+      "alternatives": [
+        {
+          "token": " motorcycle",
+          "token_prob": 0.010273569263517857,
+          "d_curvature_mean": 0.00013962510274723172,
+          "d_curvature_max": 0.0003469455987215042,
+          "endpoint_shift_m": 0.11045630276203156,
+          "traj_ade_m": 0.036463648080825806,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the motorcycle motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.0022923429496586323,
+          "d_curvature_mean": 0.0001407980889780447,
+          "d_curvature_max": 0.0002857223153114319,
+          "endpoint_shift_m": 0.10294544696807861,
+          "traj_ade_m": 0.0335419699549675,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the motor motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 0.001575502916239202,
+          "d_curvature_mean": 0.00013169008889235556,
+          "d_curvature_max": 0.0003469493240118027,
+          "endpoint_shift_m": 0.11957978457212448,
+          "traj_ade_m": 0.03994658961892128,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the scooter motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0002914387150667608,
+          "d_curvature_mean": 0.0002444770943839103,
+          "d_curvature_max": 0.000510217621922493,
+          "endpoint_shift_m": 0.18685007095336914,
+          "traj_ade_m": 0.06317058950662613,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cyclist motorcycle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " motorcycle",
+      "sampled_prob": 0.9098119139671326,
+      "entropy": 0.3764554262161255,
+      "alternatives": [
+        {
+          "token": " scooter",
+          "token_prob": 0.051328081637620926,
+          "d_curvature_mean": 2.6771407647174783e-05,
+          "d_curvature_max": 0.00012245029211044312,
+          "endpoint_shift_m": 0.00958174653351307,
+          "traj_ade_m": 0.003812239971011877,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead scooter since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.037552423775196075,
+          "d_curvature_mean": 5.8717680076370016e-05,
+          "d_curvature_max": 0.0002551078796386719,
+          "endpoint_shift_m": 0.06489802151918411,
+          "traj_ade_m": 0.021818986162543297,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.00033520531724207103,
+          "d_curvature_mean": 0.00012329814489930868,
+          "d_curvature_max": 0.0004489906132221222,
+          "endpoint_shift_m": 0.04678179323673248,
+          "traj_ade_m": 0.014798833057284355,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motor since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0001397343585267663,
+          "d_curvature_mean": 0.0001385133364237845,
+          "d_curvature_max": 0.0003469511866569519,
+          "endpoint_shift_m": 0.0812193900346756,
+          "traj_ade_m": 0.025726674124598503,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead cyclist since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9932112097740173,
+      "entropy": 0.04834476113319397,
+      "alternatives": [
+        {
+          "token": " because",
+          "token_prob": 0.0038131033070385456,
+          "d_curvature_mean": 5.928561222390272e-05,
+          "d_curvature_max": 0.00021428987383842468,
+          "endpoint_shift_m": 0.018282653763890266,
+          "traj_ade_m": 0.005140238907188177,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle because it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.002172640757635236,
+          "d_curvature_mean": 9.924121695803478e-05,
+          "d_curvature_max": 0.00023470446467399597,
+          "endpoint_shift_m": 0.12119241803884506,
+          "traj_ade_m": 0.047374408692121506,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle ahead it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.00041465568938292563,
+          "d_curvature_mean": 4.4199612602824345e-05,
+          "d_curvature_max": 0.00012245401740074158,
+          "endpoint_shift_m": 0.020871292799711227,
+          "traj_ade_m": 0.007944570854306221,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle in it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.00018400236149318516,
+          "d_curvature_mean": 2.917083111242391e-05,
+          "d_curvature_max": 8.785352110862732e-05,
+          "endpoint_shift_m": 0.04219837486743927,
+          "traj_ade_m": 0.013211341574788094,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle as it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9996222257614136,
+      "entropy": 0.00404916238039732,
+      "alternatives": [
+        {
+          "token": " we",
+          "token_prob": 0.00019106862600892782,
+          "d_curvature_mean": 0.0001093708342523314,
+          "d_curvature_max": 0.0005000121891498566,
+          "endpoint_shift_m": 0.11611762642860413,
+          "traj_ade_m": 0.051434215158224106,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since we is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 7.48235615901649e-05,
+          "d_curvature_mean": 4.200401599518955e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.025598201900720596,
+          "traj_ade_m": 0.01126756239682436,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since a is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 5.4742082284064963e-05,
+          "d_curvature_mean": 6.605696398764849e-05,
+          "d_curvature_max": 0.0002755112946033478,
+          "endpoint_shift_m": 0.014388379640877247,
+          "traj_ade_m": 0.002819048473611474,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since the is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 1.5201326277747285e-05,
+          "d_curvature_mean": 0.00022479290782939643,
+          "d_curvature_max": 0.0007959380745887756,
+          "endpoint_shift_m": 0.12521867454051971,
+          "traj_ade_m": 0.05090656876564026,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since our is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9992626309394836,
+      "entropy": 0.00896813627332449,
+      "alternatives": [
+        {
+          "token": " controls",
+          "token_prob": 0.00029582646675407887,
+          "d_curvature_mean": 0.00018753456242848188,
+          "d_curvature_max": 0.00038776174187660217,
+          "endpoint_shift_m": 0.12156429141759872,
+          "traj_ade_m": 0.04677307978272438,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it controls directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 9.908944775816053e-05,
+          "d_curvature_mean": 0.00018257371266372502,
+          "d_curvature_max": 0.00034694746136665344,
+          "endpoint_shift_m": 0.0991862341761589,
+          "traj_ade_m": 0.035220637917518616,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it merges directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 1.5195857486105524e-05,
+          "d_curvature_mean": 0.00013224894064478576,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.09516525268554688,
+          "traj_ade_m": 0.036819957196712494,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it remains directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupies",
+          "token_prob": 1.111752771976171e-05,
+          "d_curvature_mean": 0.00016309853526763618,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.09707602858543396,
+          "traj_ade_m": 0.03589656576514244,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it occupies directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " directly",
+      "sampled_prob": 0.9921935796737671,
+      "entropy": 0.05429096519947052,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0052065541967749596,
+          "d_curvature_mean": 3.32571507897228e-05,
+          "d_curvature_max": 0.00013265758752822876,
+          "endpoint_shift_m": 0.027677303180098534,
+          "traj_ade_m": 0.008499087765812874,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is ahead ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0017993369838222861,
+          "d_curvature_mean": 3.9888647734187543e-05,
+          "d_curvature_max": 0.00014286115765571594,
+          "endpoint_shift_m": 0.009824827313423157,
+          "traj_ade_m": 0.002393595175817609,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is in ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowing",
+          "token_prob": 0.0003030578081961721,
+          "d_curvature_mean": 0.0006255664047785103,
+          "d_curvature_max": 0.0027551651000976562,
+          "endpoint_shift_m": 0.5276357531547546,
+          "traj_ade_m": 0.1301252841949463,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is slowing ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.00015722430543974042,
+          "d_curvature_mean": 5.975213207420893e-05,
+          "d_curvature_max": 0.00027551501989364624,
+          "endpoint_shift_m": 0.04515034705400467,
+          "traj_ade_m": 0.01786336489021778,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is moving ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9998069405555725,
+      "entropy": 0.0021051974035799503,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.00014883189578540623,
+          "d_curvature_mean": 3.649521750048734e-05,
+          "d_curvature_max": 8.163973689079285e-05,
+          "endpoint_shift_m": 0.05874699726700783,
+          "traj_ade_m": 0.019674329087138176,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly in in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 1.3004786524106748e-05,
+          "d_curvature_mean": 0.00012295410851947963,
+          "d_curvature_max": 0.00026531144976615906,
+          "endpoint_shift_m": 0.0759214460849762,
+          "traj_ade_m": 0.021839208900928497,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly since in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 6.746794042555848e-06,
+          "d_curvature_mean": 2.247914562758524e-05,
+          "d_curvature_max": 0.00010204315185546875,
+          "endpoint_shift_m": 0.050832994282245636,
+          "traj_ade_m": 0.018119091168045998,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly directly in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 4.356057615950704e-06,
+          "d_curvature_mean": 8.10548008303158e-05,
+          "d_curvature_max": 0.0002245008945465088,
+          "endpoint_shift_m": 0.0735212117433548,
+          "traj_ade_m": 0.019602738320827484,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly into in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " in",
+      "sampled_prob": 0.9934432506561279,
+      "entropy": 0.05639113485813141,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.002621317282319069,
+          "d_curvature_mean": 0.00012318349035922438,
+          "d_curvature_max": 0.000551026314496994,
+          "endpoint_shift_m": 0.224760040640831,
+          "traj_ade_m": 0.08346974104642868,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0007994566112756729,
+          "d_curvature_mean": 0.00019340422295499593,
+          "d_curvature_max": 0.0005714446306228638,
+          "endpoint_shift_m": 0.09200204163789749,
+          "traj_ade_m": 0.029973244294524193,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead through our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0005494579090736806,
+          "d_curvature_mean": 0.0001306208287132904,
+          "d_curvature_max": 0.0002959221601486206,
+          "endpoint_shift_m": 0.08962802588939667,
+          "traj_ade_m": 0.032145775854587555,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead and our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0004279182758182287,
+          "d_curvature_mean": 6.800755363656208e-05,
+          "d_curvature_max": 0.00027551501989364624,
+          "endpoint_shift_m": 0.038670990616083145,
+          "traj_ade_m": 0.009907510131597519,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead since our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " our",
+      "sampled_prob": 0.9932611584663391,
+      "entropy": 0.040863242000341415,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00669254083186388,
+          "d_curvature_mean": 9.573560964781791e-05,
+          "d_curvature_max": 0.00038776174187660217,
+          "endpoint_shift_m": 0.044384729117155075,
+          "traj_ade_m": 0.011783634312450886,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 1.765906017681118e-05,
+          "d_curvature_mean": 7.685004675295204e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.040093954652547836,
+          "traj_ade_m": 0.011315660551190376,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in a lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " this",
+          "token_prob": 3.5876553283742396e-06,
+          "d_curvature_mean": 9.387188038090244e-05,
+          "d_curvature_max": 0.00030612945556640625,
+          "endpoint_shift_m": 0.031433671712875366,
+          "traj_ade_m": 0.00931665301322937,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in this lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 1.6946884215940372e-06,
+          "d_curvature_mean": 7.461591303581372e-05,
+          "d_curvature_max": 0.00027551501989364624,
+          "endpoint_shift_m": 0.032773371785879135,
+          "traj_ade_m": 0.009671537205576897,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in an lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9823645949363708,
+      "entropy": 0.1571875363588333,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.006026777438819408,
+          "d_curvature_mean": 2.0746012523886748e-05,
+          "d_curvature_max": 0.00012245401740074158,
+          "endpoint_shift_m": 0.004494396969676018,
+          "traj_ade_m": 0.0017184036551043391,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0018964098999276757,
+          "d_curvature_mean": 7.433640712406486e-05,
+          "d_curvature_max": 0.0001836717128753662,
+          "endpoint_shift_m": 0.07202184945344925,
+          "traj_ade_m": 0.02286972664296627,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.0016735759563744068,
+          "d_curvature_mean": 6.962448242120445e-05,
+          "d_curvature_max": 0.00016327574849128723,
+          "endpoint_shift_m": 0.09386918693780899,
+          "traj_ade_m": 0.024854756891727448,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our narrow"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " single",
+          "token_prob": 0.0005433305050246418,
+          "d_curvature_mean": 7.210013427538797e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.03872379660606384,
+          "traj_ade_m": 0.01370740681886673,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead motorcycle since it is directly ahead in our single"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.41167598962783813,
+      "entropy": 1.9517589807510376,
+      "alternatives": [
+        {
+          "token": "Change",
+          "token_prob": 0.2496941089630127,
+          "d_curvature_mean": 0.0010722307488322258,
+          "d_curvature_max": 0.0031327195465564728,
+          "endpoint_shift_m": 0.772164523601532,
+          "traj_ade_m": 0.17759446799755096,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the right and slow to merge because construction barriers close/shift the left side and a motorcycle is already in the right\u2011curving work\u2011zone lane, requiring a safe gap during the merge and following distance."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.08106380701065063,
+          "d_curvature_mean": 0.0009930155938491225,
+          "d_curvature_max": 0.0017959661781787872,
+          "endpoint_shift_m": 0.3202877640724182,
+          "traj_ade_m": 0.1741216778755188,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane ahead and merge-right signs, then match speed to follow the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Merge",
+          "token_prob": 0.04339032992720604,
+          "d_curvature_mean": 0.0009613853762857616,
+          "d_curvature_max": 0.0033368095755577087,
+          "endpoint_shift_m": 0.814562201499939,
+          "traj_ade_m": 0.16988791525363922,
+          "forced_cot": {
+            "cot": [
+              "Merge right and slow to tuck in behind the motorcycle due to a construction zone closing the left side and narrowing traffic into a single right lane, requiring a safe gap and reduced speed."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.040761444717645645,
+          "d_curvature_mean": 0.0006713554030284286,
+          "d_curvature_max": 0.0033674240112304688,
+          "endpoint_shift_m": 0.5092664361000061,
+          "traj_ade_m": 0.16753840446472168,
+          "forced_cot": {
+            "cot": [
+              "Nudge right due to construction barriers blocking the left side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.999985933303833,
+      "entropy": 0.00018543846090324223,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 1.1478738088044338e-05,
+          "d_curvature_mean": 0.0011477191001176834,
+          "d_curvature_max": 0.002000045031309128,
+          "endpoint_shift_m": 0.4209754168987274,
+          "traj_ade_m": 0.20993271470069885,
+          "forced_cot": {
+            "cot": [
+              "Lane lane change to the right due to construction blocking the current lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 1.034839669955545e-06,
+          "d_curvature_mean": 0.0029910882003605366,
+          "d_curvature_max": 0.008446946740150452,
+          "endpoint_shift_m": 1.8283976316452026,
+          "traj_ade_m": 0.6455585956573486,
+          "forced_cot": {
+            "cot": [
+              "Lane speed up to complete the right merge into the single open lane because construction barriers and a slow scooter ahead block/ending our current path, requiring us to take the right curve and line up behind it; maintain a safe following gap as our lane narrows, then prepare for merge back as traffic flow allows it after we clear the construction zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 4.5920731395199255e-07,
+          "d_curvature_mean": 0.0002626844507176429,
+          "d_curvature_max": 0.0009285956621170044,
+          "endpoint_shift_m": 0.6164085865020752,
+          "traj_ade_m": 0.24686473608016968,
+          "forced_cot": {
+            "cot": [
+              "Lane at reduced speed to merge right because of construction blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 2.0377200371513027e-07,
+          "d_curvature_mean": 0.001625284319743514,
+          "d_curvature_max": 0.0030204690992832184,
+          "endpoint_shift_m": 0.781212329864502,
+          "traj_ade_m": 0.3062591552734375,
+          "forced_cot": {
+            "cot": [
+              "Lane a right merge due to construction narrowing/closing the left side and a slow motorcycle ahead, then match its speed after merging into the right lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9960284233093262,
+      "entropy": 0.028038688004016876,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.003592239459976554,
+          "d_curvature_mean": 0.0005502384155988693,
+          "d_curvature_max": 0.0018265694379806519,
+          "endpoint_shift_m": 0.3165808916091919,
+          "traj_ade_m": 0.1181270033121109,
+          "forced_cot": {
+            "cot": [
+              "Lane change from right to left due to construction blocking the current lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0001628421014174819,
+          "d_curvature_mean": 0.0013024696381762624,
+          "d_curvature_max": 0.0048980712890625,
+          "endpoint_shift_m": 0.753908634185791,
+          "traj_ade_m": 0.15069276094436646,
+          "forced_cot": {
+            "cot": [
+              "Lane change and merge to the right due to construction barriers narrowing/closing the left side and a merge-right sign, then slow to safely slot in behind a slow two-wheeler ahead on a right-curving, low-speed construction zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 4.6655044570798054e-05,
+          "d_curvature_mean": 0.00039104261668398976,
+          "d_curvature_max": 0.0008673667907714844,
+          "endpoint_shift_m": 0.2105562835931778,
+          "traj_ade_m": 0.06210615858435631,
+          "forced_cot": {
+            "cot": [
+              "Lane change since the left lane is closed by construction ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.9906171878101304e-05,
+          "d_curvature_mean": 0.00023240972950588912,
+          "d_curvature_max": 0.0004898086190223694,
+          "endpoint_shift_m": 0.21453042328357697,
+          "traj_ade_m": 0.07949333637952805,
+          "forced_cot": {
+            "cot": [
+              "Lane change for the right curve because construction barriers block straight ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9995019435882568,
+      "entropy": 0.005924316588789225,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0002694175345823169,
+          "d_curvature_mean": 0.0011926922015845776,
+          "d_curvature_max": 0.0021633170545101166,
+          "endpoint_shift_m": 0.3125528395175934,
+          "traj_ade_m": 0.17671474814414978,
+          "forced_cot": {
+            "cot": [
+              "Lane change to our right due to construction blocking our current lane ahead and merge-right signs, then match speed to follow the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 2.2115140382084064e-05,
+          "d_curvature_mean": 0.0014273562701418996,
+          "d_curvature_max": 0.007367514073848724,
+          "endpoint_shift_m": 0.8738136291503906,
+          "traj_ade_m": 0.1466974914073944,
+          "forced_cot": {
+            "cot": [
+              "Lane change to follow the rightward merge through the construction zone and position behind/around the slow motorcycle ahead, then reduce speed due to constrained space and a slow lead vehicle in front after merging right."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 1.5681982404203154e-05,
+          "d_curvature_mean": 0.0006523869815282524,
+          "d_curvature_max": 0.0025204643607139587,
+          "endpoint_shift_m": 0.7313944101333618,
+          "traj_ade_m": 0.2472689002752304,
+          "forced_cot": {
+            "cot": [
+              "Lane change to maintain traffic flow because of a slow motorcycle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 9.21896116778953e-06,
+          "d_curvature_mean": 0.0029056069906800985,
+          "d_curvature_max": 0.005918506532907486,
+          "endpoint_shift_m": 0.8599413633346558,
+          "traj_ade_m": 0.24017053842544556,
+          "forced_cot": {
+            "cot": [
+              "Lane change to it to merge right because construction barriers close the left lane ahead, slowing to merge safely behind/around the motorcycle already in that lane, then continuing with gentle acceleration after the merge is completed; later prepare to merge back left as space narrows near construction equipment and signage ahead, but not immediately after this action is taken."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lead",
+      "sampled_prob": 0.9844414591789246,
+      "entropy": 0.10231652855873108,
+      "alternatives": [
+        {
+          "token": " motorcycle",
+          "token_prob": 0.010273569263517857,
+          "d_curvature_mean": 0.0017887925496324897,
+          "d_curvature_max": 0.0032245703041553497,
+          "endpoint_shift_m": 0.6883941292762756,
+          "traj_ade_m": 0.26969510316848755,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the motorcycle due to construction blocking the current lane ahead and merge-right guidance, then match speed to follow the lead motorcycle through the narrowed work-zone section."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.0022923429496586323,
+          "d_curvature_mean": 0.0014609107747673988,
+          "d_curvature_max": 0.006694033741950989,
+          "endpoint_shift_m": 0.7190784215927124,
+          "traj_ade_m": 0.15100239217281342,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the motorcyclist and slow down due to a construction work zone narrowing/closing lanes ahead, merging into the right channel behind the motorcycle and car to maintain safe following distance and clearance to the right curb."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " scooter",
+          "token_prob": 0.001575502916239202,
+          "d_curvature_mean": 0.0013162249233573675,
+          "d_curvature_max": 0.0024082250893115997,
+          "endpoint_shift_m": 0.5011181235313416,
+          "traj_ade_m": 0.22298291325569153,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the scooter due to construction blocking the current lane ahead and merge-right guidance, then match speed to follow the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0002914387150667608,
+          "d_curvature_mean": 0.0011892691254615784,
+          "d_curvature_max": 0.0022857747972011566,
+          "endpoint_shift_m": 0.4487251937389374,
+          "traj_ade_m": 0.19301234185695648,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the cyclist due to construction blocking the current lane ahead and merge-right guidance, then match speed to follow the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " motorcycle",
+      "sampled_prob": 0.9098119139671326,
+      "entropy": 0.3764554262161255,
+      "alternatives": [
+        {
+          "token": " scooter",
+          "token_prob": 0.051328081637620926,
+          "d_curvature_mean": 0.0012140674516558647,
+          "d_curvature_max": 0.0022857747972011566,
+          "endpoint_shift_m": 0.3045528531074524,
+          "traj_ade_m": 0.1506330370903015,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right scooter due to a construction work-zone closing/redirecting the left side and to merge behind the slow motorcycle, then match its speed for safe following distance."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.037552423775196075,
+          "d_curvature_mean": 0.0009888708591461182,
+          "d_curvature_max": 0.0030204840004444122,
+          "endpoint_shift_m": 0.3895599842071533,
+          "traj_ade_m": 0.10356064140796661,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right vehicle lane due to construction barriers blocking the left lane ahead, merging into the right-lane traffic and slowing for slower vehicles (scooter and cars) after merging, then accelerating once established in the right lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " motor",
+          "token_prob": 0.00033520531724207103,
+          "d_curvature_mean": 0.0009958380833268166,
+          "d_curvature_max": 0.00175514817237854,
+          "endpoint_shift_m": 0.7034178972244263,
+          "traj_ade_m": 0.29074952006340027,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right motorcyclist due to left-lane closure from construction and a slow scooter ahead, then match speed with right-lane traffic after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " cyclist",
+          "token_prob": 0.0001397343585267663,
+          "d_curvature_mean": 0.00016051503189373761,
+          "d_curvature_max": 0.00038776546716690063,
+          "endpoint_shift_m": 0.13837219774723053,
+          "traj_ade_m": 0.05648929253220558,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right cyclist ahead blocking the current lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " since",
+      "sampled_prob": 0.9932112097740173,
+      "entropy": 0.04834476113319397,
+      "alternatives": [
+        {
+          "token": " because",
+          "token_prob": 0.0038131033070385456,
+          "d_curvature_mean": 0.0015581536572426558,
+          "d_curvature_max": 0.004367444664239883,
+          "endpoint_shift_m": 0.3784148097038269,
+          "traj_ade_m": 0.18963150680065155,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due because construction barriers block the current lane ahead and merge-right signs indicate a rightward detour; the merge is executed with a slight speed reduction to slot in behind a motorcycle already in that lane, then the lane narrows and becomes constrained by construction equipment and cones ahead, requiring further slowing after the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.002172640757635236,
+          "d_curvature_mean": 0.001100035267882049,
+          "d_curvature_max": 0.004775617271661758,
+          "endpoint_shift_m": 0.6488659381866455,
+          "traj_ade_m": 0.11051429063081741,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due ahead construction blocking the current lane and merge-right signs, then slow to merge behind the motorcycle in the narrowed work-zone corridor."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.00041465568938292563,
+          "d_curvature_mean": 0.0017401969525963068,
+          "d_curvature_max": 0.00897979736328125,
+          "endpoint_shift_m": 0.8227120041847229,
+          "traj_ade_m": 0.16290245950222015,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due in a construction zone that shifts traffic right and a slow lead motorcycle, then reduce speed to merge safely into the right-lane queue behind it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.00018400236149318516,
+          "d_curvature_mean": 0.0014214214170351624,
+          "d_curvature_max": 0.005816459655761719,
+          "endpoint_shift_m": 0.5258913040161133,
+          "traj_ade_m": 0.11505307257175446,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due as the left lane is closed by construction and a merge-right sign, merging into the right lane behind slower motorcycles; then reduce speed to maintain a safe following gap after the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " it",
+      "sampled_prob": 0.9996222257614136,
+      "entropy": 0.00404916238039732,
+      "alternatives": [
+        {
+          "token": " we",
+          "token_prob": 0.00019106862600892782,
+          "d_curvature_mean": 0.0011321526253595948,
+          "d_curvature_max": 0.004500098526477814,
+          "endpoint_shift_m": 0.27725300192832947,
+          "traj_ade_m": 0.10751497745513916,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to we-lane closure from construction ahead and to merge safely behind the motorcycle in the open right lane, then match its slower speed after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 7.48235615901649e-05,
+          "d_curvature_mean": 0.0011870019370689988,
+          "d_curvature_max": 0.005061335861682892,
+          "endpoint_shift_m": 0.6629969477653503,
+          "traj_ade_m": 0.13666361570358276,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to a construction work zone blocking the left lane ahead, merging into the right-lane traffic and slowing to maintain a safe gap behind the motorcycle."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 5.4742082284064963e-05,
+          "d_curvature_mean": 0.0012237329501658678,
+          "d_curvature_max": 0.005224611610174179,
+          "endpoint_shift_m": 0.6809366941452026,
+          "traj_ade_m": 0.14815612137317657,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to the left lane being closed by construction barriers ahead, merging into the right-lane traffic and slowing to maintain a safe gap behind the motorcycle."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 1.5201326277747285e-05,
+          "d_curvature_mean": 0.0013497276231646538,
+          "d_curvature_max": 0.006632804870605469,
+          "endpoint_shift_m": 0.5319586396217346,
+          "traj_ade_m": 0.11983830481767654,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to our lane ending at a construction barrier ahead and merge-right signage, merging into the right lane behind slower motorcycles; then reduce speed to maintain a safe following gap after the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " is",
+      "sampled_prob": 0.9992626309394836,
+      "entropy": 0.00896813627332449,
+      "alternatives": [
+        {
+          "token": " controls",
+          "token_prob": 0.00029582646675407887,
+          "d_curvature_mean": 0.0011152825318276882,
+          "d_curvature_max": 0.002040870487689972,
+          "endpoint_shift_m": 0.4085085988044739,
+          "traj_ade_m": 0.1945447027683258,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction controls blocking the current lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merges",
+          "token_prob": 9.908944775816053e-05,
+          "d_curvature_mean": 0.0015428027836605906,
+          "d_curvature_max": 0.0028776153922080994,
+          "endpoint_shift_m": 0.41284656524658203,
+          "traj_ade_m": 0.14501897990703583,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction merges narrowing/closing the left side ahead, and slow slightly to merge behind the motorcycle already in that lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 1.5195857486105524e-05,
+          "d_curvature_mean": 0.001067793695256114,
+          "d_curvature_max": 0.0018775984644889832,
+          "endpoint_shift_m": 0.39767253398895264,
+          "traj_ade_m": 0.20104026794433594,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction remains blocking the current lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " occupies",
+          "token_prob": 1.111752771976171e-05,
+          "d_curvature_mean": 0.002165519166737795,
+          "d_curvature_max": 0.012081906199455261,
+          "endpoint_shift_m": 1.2847237586975098,
+          "traj_ade_m": 0.2178916484117508,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction occupies the left side of our lane ahead, merging into the right-lane queue behind the slow motorcycle; after clearing it, return left and reduce speed for the narrowed construction section and upcoming signal-controlled queue."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " directly",
+      "sampled_prob": 0.9921935796737671,
+      "entropy": 0.05429096519947052,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.0052065541967749596,
+          "d_curvature_mean": 0.0010302497539669275,
+          "d_curvature_max": 0.0040205009281635284,
+          "endpoint_shift_m": 0.4539602994918823,
+          "traj_ade_m": 0.09150154888629913,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking ahead and merge-right signage, then reduce speed to merge into a safe gap behind the slow motorcycle in the right-lane traffic."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0017993369838222861,
+          "d_curvature_mean": 0.0010254967492073774,
+          "d_curvature_max": 0.0018775984644889832,
+          "endpoint_shift_m": 0.31963345408439636,
+          "traj_ade_m": 0.16781869530677795,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking in the current lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowing",
+          "token_prob": 0.0003030578081961721,
+          "d_curvature_mean": 0.0004566064162645489,
+          "d_curvature_max": 0.0010306350886821747,
+          "endpoint_shift_m": 0.17094284296035767,
+          "traj_ade_m": 0.08595915883779526,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking slowing traffic in our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " moving",
+          "token_prob": 0.00015722430543974042,
+          "d_curvature_mean": 0.0005045540747232735,
+          "d_curvature_max": 0.0010816603899002075,
+          "endpoint_shift_m": 0.267278254032135,
+          "traj_ade_m": 0.11541666090488434,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking moving into the current lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9998069405555725,
+      "entropy": 0.0021051974035799503,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.00014883189578540623,
+          "d_curvature_mean": 0.001121665583923459,
+          "d_curvature_max": 0.001959230750799179,
+          "endpoint_shift_m": 0.515920102596283,
+          "traj_ade_m": 0.22739192843437195,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the in-lane path ahead and merge-right guidance, then match speed behind the motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 1.3004786524106748e-05,
+          "d_curvature_mean": 0.0021199644543230534,
+          "d_curvature_max": 0.004854708909988403,
+          "endpoint_shift_m": 1.2143993377685547,
+          "traj_ade_m": 0.3927530348300934,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the since the left lane ends ahead, and merge into the right\u2011curving work\u2011zone lane while keeping a safe gap to the slow motorcycle ahead andStationary vehicles; decelerate slightly for space during and after the merge, then accelerate once established in the right lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 6.746794042555848e-06,
+          "d_curvature_mean": 0.0018202026840299368,
+          "d_curvature_max": 0.0033061951398849487,
+          "endpoint_shift_m": 0.986934244632721,
+          "traj_ade_m": 0.38818997144699097,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the directly ahead lane and a safe gap behind a motorcycle in the right lane, then match speed with right-lane traffic after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 4.356057615950704e-06,
+          "d_curvature_mean": 0.0010759897995740175,
+          "d_curvature_max": 0.001959230750799179,
+          "endpoint_shift_m": 0.313393771648407,
+          "traj_ade_m": 0.16650858521461487,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the into-lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " in",
+      "sampled_prob": 0.9934432506561279,
+      "entropy": 0.05639113485813141,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.002621317282319069,
+          "d_curvature_mean": 0.0005004483973607421,
+          "d_curvature_max": 0.0017245300114154816,
+          "endpoint_shift_m": 0.23514266312122345,
+          "traj_ade_m": 0.09276008605957031,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0007994566112756729,
+          "d_curvature_mean": 0.0012246053665876389,
+          "d_curvature_max": 0.0022449567914009094,
+          "endpoint_shift_m": 0.4227239489555359,
+          "traj_ade_m": 0.19985687732696533,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current through lane ahead and merge-right guidance, then match speed behind the slow motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0005494579090736806,
+          "d_curvature_mean": 0.0023683859035372734,
+          "d_curvature_max": 0.0061838142573833466,
+          "endpoint_shift_m": 1.169195532798767,
+          "traj_ade_m": 0.34238189458847046,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current and left lanes ahead, merging into a narrow right-lane corridor behind the slow motorcycle; slow to create a gap, then accelerate after completing the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.0004279182758182287,
+          "d_curvature_mean": 0.0012295127380639315,
+          "d_curvature_max": 0.0033980384469032288,
+          "endpoint_shift_m": 0.1799025684595108,
+          "traj_ade_m": 0.16278725862503052,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current since the left lane ends ahead and merge right into the single open lane, then slow to follow the motorcycle and lead vehicle after the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " our",
+      "sampled_prob": 0.9932611584663391,
+      "entropy": 0.040863242000341415,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00669254083186388,
+          "d_curvature_mean": 0.0016283730510622263,
+          "d_curvature_max": 0.002857208251953125,
+          "endpoint_shift_m": 0.6487779021263123,
+          "traj_ade_m": 0.24562212824821472,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane the left side ahead, and merge into the right\u2011curving channel while keeping a safe gap behind the motorcycle."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 1.765906017681118e-05,
+          "d_curvature_mean": 0.0019396349089220166,
+          "d_curvature_max": 0.005265429615974426,
+          "endpoint_shift_m": 0.6033194661140442,
+          "traj_ade_m": 0.1449129283428192,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane a left merge is required, then merge back left after clearing the obstruction and slower two\u2011wheelers are ahead in that lane; deceleration helps create a safe gap for the merge, and subsequent frames confirm it completed and followed by acceleration once the merge is complete."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " this",
+          "token_prob": 3.5876553283742396e-06,
+          "d_curvature_mean": 0.0020344930235296488,
+          "d_curvature_max": 0.006296064704656601,
+          "endpoint_shift_m": 0.8919211626052856,
+          "traj_ade_m": 0.24219806492328644,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane this is a right curve, and merge into the right lane behind the slow motorcycle, reducing speed for a safe gap, then continue with acceleration after completing the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " an",
+          "token_prob": 1.6946884215940372e-06,
+          "d_curvature_mean": 0.0025731425266712904,
+          "d_curvature_max": 0.007622625678777695,
+          "endpoint_shift_m": 1.717230200767517,
+          "traj_ade_m": 0.4995880722999573,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane an urban construction zone with a slow scooter ahead; merge right, maintain following distance, then accelerate after completing the merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9823645949363708,
+      "entropy": 0.1571875363588333,
+      "alternatives": [
+        {
+          "token": " path",
+          "token_prob": 0.006026777438819408,
+          "d_curvature_mean": 0.0005596757400780916,
+          "d_curvature_max": 0.0015510544180870056,
+          "endpoint_shift_m": 0.24942338466644287,
+          "traj_ade_m": 0.10163956880569458,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane ahead path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.0018964098999276757,
+          "d_curvature_mean": 0.0012251032749190927,
+          "d_curvature_max": 0.0022449493408203125,
+          "endpoint_shift_m": 0.467582643032074,
+          "traj_ade_m": 0.21104539930820465,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane ahead rightward and merge-right signage, then match speed behind the motorcycle after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.0016735759563744068,
+          "d_curvature_mean": 0.0008667720248922706,
+          "d_curvature_max": 0.002081681042909622,
+          "endpoint_shift_m": 0.382276713848114,
+          "traj_ade_m": 0.1463920772075653,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane ahead narrow."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " single",
+          "token_prob": 0.0005433305050246418,
+          "d_curvature_mean": 0.0012383176945149899,
+          "d_curvature_max": 0.0027551688253879547,
+          "endpoint_shift_m": 0.5933182835578918,
+          "traj_ade_m": 0.25709474086761475,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the right due to construction blocking the current lane ahead single-lane road and merge right, then follow the slow motorcycle through the narrowed work zone; after clearing it, return to the right lane for normal travel."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

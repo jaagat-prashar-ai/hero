@@ -1,0 +1,1615 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep lane since the lane is clear ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 8,
+    "mean_entropy": 0.7102873523253947,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.21475738286972046,
+        "entropy": 1.6872187852859497,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.4546413719654083
+          },
+          {
+            "text": "Keep",
+            "prob": 0.21475738286972046
+          },
+          {
+            "text": "Stop",
+            "prob": 0.09529800713062286
+          },
+          {
+            "text": "Maint",
+            "prob": 0.061529017984867096
+          },
+          {
+            "text": "Y",
+            "prob": 0.05963596701622009
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " lane",
+        "sampled_prob": 0.39169085025787354,
+        "entropy": 0.9193623661994934,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.5353779196739197
+          },
+          {
+            "text": " lane",
+            "prob": 0.39169085025787354
+          },
+          {
+            "text": " at",
+            "prob": 0.06806565821170807
+          },
+          {
+            "text": " speed",
+            "prob": 0.003388789715245366
+          },
+          {
+            "text": " a",
+            "prob": 0.00031520656193606555
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " since",
+        "sampled_prob": 0.9556519985198975,
+        "entropy": 0.21175521612167358,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9556519985198975
+          },
+          {
+            "text": " to",
+            "prob": 0.034809622913599014
+          },
+          {
+            "text": " because",
+            "prob": 0.007296492345631123
+          },
+          {
+            "text": " as",
+            "prob": 0.001844842336140573
+          },
+          {
+            "text": " while",
+            "prob": 0.00014677474973723292
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.6814754009246826,
+        "entropy": 1.031927466392517,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.6814754009246826
+          },
+          {
+            "text": " an",
+            "prob": 0.18341661989688873
+          },
+          {
+            "text": " no",
+            "prob": 0.07645941525697708
+          },
+          {
+            "text": " there",
+            "prob": 0.031873032450675964
+          },
+          {
+            "text": " on",
+            "prob": 0.011015024036169052
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lane",
+        "sampled_prob": 0.8071282505989075,
+        "entropy": 0.8668603301048279,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.8071282505989075
+          },
+          {
+            "text": " on",
+            "prob": 0.08777112513780594
+          },
+          {
+            "text": " path",
+            "prob": 0.06032415106892586
+          },
+          {
+            "text": " adjacent",
+            "prob": 0.005611020606011152
+          },
+          {
+            "text": " road",
+            "prob": 0.005108891986310482
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " is",
+        "sampled_prob": 0.9826661348342896,
+        "entropy": 0.09153435379266739,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9826661348342896
+          },
+          {
+            "text": " ahead",
+            "prob": 0.01690770499408245
+          },
+          {
+            "text": " control",
+            "prob": 6.291437603067607e-05
+          },
+          {
+            "text": " directly",
+            "prob": 4.4612974306801334e-05
+          },
+          {
+            "text": " remains",
+            "prob": 3.367563840583898e-05
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " clear",
+        "sampled_prob": 0.9980171918869019,
+        "entropy": 0.02113485522568226,
+        "top_k": [
+          {
+            "text": " clear",
+            "prob": 0.9980171918869019
+          },
+          {
+            "text": " un",
+            "prob": 0.0006254839827306569
+          },
+          {
+            "text": " open",
+            "prob": 0.0002607405185699463
+          },
+          {
+            "text": " narrowed",
+            "prob": 0.00023010271252132952
+          },
+          {
+            "text": " not",
+            "prob": 0.00012316511129029095
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " ahead",
+        "sampled_prob": 0.794238269329071,
+        "entropy": 0.8525054454803467,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.794238269329071
+          },
+          {
+            "text": " after",
+            "prob": 0.08911105990409851
+          },
+          {
+            "text": " and",
+            "prob": 0.0395427942276001
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.03714701905846596
+          },
+          {
+            "text": " of",
+            "prob": 0.014099418185651302
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.21475738286972046,
+      "entropy": 1.6872187852859497,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.4546413719654083,
+          "d_curvature_mean": 3.9012826164253056e-05,
+          "d_curvature_max": 0.00010204524733126163,
+          "endpoint_shift_m": 0.44012176990509033,
+          "traj_ade_m": 0.1796731948852539,
+          "forced_cot": {
+            "cot": [
+              "N lane since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.09529800713062286,
+          "d_curvature_mean": 3.185521927662194e-05,
+          "d_curvature_max": 0.00010204222053289413,
+          "endpoint_shift_m": 0.1824980527162552,
+          "traj_ade_m": 0.045368462800979614,
+          "forced_cot": {
+            "cot": [
+              "Stop lane since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.061529017984867096,
+          "d_curvature_mean": 3.362232382642105e-05,
+          "d_curvature_max": 6.441492587327957e-05,
+          "endpoint_shift_m": 0.38677656650543213,
+          "traj_ade_m": 0.1512506902217865,
+          "forced_cot": {
+            "cot": [
+              "Maint lane since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.05963596701622009,
+          "d_curvature_mean": 3.728408773895353e-05,
+          "d_curvature_max": 0.00013265712186694145,
+          "endpoint_shift_m": 0.3671324849128723,
+          "traj_ade_m": 0.1512777954339981,
+          "forced_cot": {
+            "cot": [
+              "Y lane since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " lane",
+      "sampled_prob": 0.39169085025787354,
+      "entropy": 0.9193623661994934,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 0.5353779196739197,
+          "d_curvature_mean": 3.44033760484308e-05,
+          "d_curvature_max": 8.163426537066698e-05,
+          "endpoint_shift_m": 0.08477992564439774,
+          "traj_ade_m": 0.062281280755996704,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.06806565821170807,
+          "d_curvature_mean": 1.9804541807388887e-05,
+          "d_curvature_max": 6.122561171650887e-05,
+          "endpoint_shift_m": 0.06582068651914597,
+          "traj_ade_m": 0.034430377185344696,
+          "forced_cot": {
+            "cot": [
+              "Keep at since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.003388789715245366,
+          "d_curvature_mean": 1.6671147022861987e-05,
+          "d_curvature_max": 5.1022740080952644e-05,
+          "endpoint_shift_m": 0.06877370178699493,
+          "traj_ade_m": 0.02516196481883526,
+          "forced_cot": {
+            "cot": [
+              "Keep speed since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.00031520656193606555,
+          "d_curvature_mean": 2.1785705030197278e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.10643032193183899,
+          "traj_ade_m": 0.05985098332166672,
+          "forced_cot": {
+            "cot": [
+              "Keep a since the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " since",
+      "sampled_prob": 0.9556519985198975,
+      "entropy": 0.21175521612167358,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.034809622913599014,
+          "d_curvature_mean": 2.7736503398045897e-05,
+          "d_curvature_max": 8.163647726178169e-05,
+          "endpoint_shift_m": 0.050944723188877106,
+          "traj_ade_m": 0.03879665210843086,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.007296492345631123,
+          "d_curvature_mean": 1.4073490092414431e-05,
+          "d_curvature_max": 4.081707447767258e-05,
+          "endpoint_shift_m": 0.04091116413474083,
+          "traj_ade_m": 0.012126713059842587,
+          "forced_cot": {
+            "cot": [
+              "Keep lane because the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.001844842336140573,
+          "d_curvature_mean": 1.0732474038377404e-05,
+          "d_curvature_max": 3.316393122076988e-05,
+          "endpoint_shift_m": 0.12274559587240219,
+          "traj_ade_m": 0.051992543041706085,
+          "forced_cot": {
+            "cot": [
+              "Keep lane as the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " while",
+          "token_prob": 0.00014677474973723292,
+          "d_curvature_mean": 3.2615371310384944e-05,
+          "d_curvature_max": 0.00012245122343301773,
+          "endpoint_shift_m": 0.5114440321922302,
+          "traj_ade_m": 0.20281407237052917,
+          "forced_cot": {
+            "cot": [
+              "Keep lane while the lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.6814754009246826,
+      "entropy": 1.031927466392517,
+      "alternatives": [
+        {
+          "token": " an",
+          "token_prob": 0.18341661989688873,
+          "d_curvature_mean": 3.3867119782371446e-05,
+          "d_curvature_max": 9.502796456217766e-05,
+          "endpoint_shift_m": 0.2169925719499588,
+          "traj_ade_m": 0.10094873607158661,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since an lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " no",
+          "token_prob": 0.07645941525697708,
+          "d_curvature_mean": 1.878249713627156e-05,
+          "d_curvature_max": 6.12249132245779e-05,
+          "endpoint_shift_m": 0.4157014787197113,
+          "traj_ade_m": 0.14945785701274872,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since no lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.031873032450675964,
+          "d_curvature_mean": 1.888530096039176e-05,
+          "d_curvature_max": 9.184109512716532e-05,
+          "endpoint_shift_m": 0.14818578958511353,
+          "traj_ade_m": 0.05677385628223419,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since there lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.011015024036169052,
+          "d_curvature_mean": 2.6473115212866105e-05,
+          "d_curvature_max": 8.1636942923069e-05,
+          "endpoint_shift_m": 0.15065298974514008,
+          "traj_ade_m": 0.07008291035890579,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since on lane is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lane",
+      "sampled_prob": 0.8071282505989075,
+      "entropy": 0.8668603301048279,
+      "alternatives": [
+        {
+          "token": " on",
+          "token_prob": 0.08777112513780594,
+          "d_curvature_mean": 1.6085876268334687e-05,
+          "d_curvature_max": 6.122607737779617e-05,
+          "endpoint_shift_m": 0.13295824825763702,
+          "traj_ade_m": 0.05949060246348381,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the on is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.06032415106892586,
+          "d_curvature_mean": 1.259727287106216e-05,
+          "d_curvature_max": 5.102111026644707e-05,
+          "endpoint_shift_m": 0.00747564947232604,
+          "traj_ade_m": 0.00560100469738245,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the path is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 0.005611020606011152,
+          "d_curvature_mean": 2.088037581415847e-05,
+          "d_curvature_max": 7.143057882785797e-05,
+          "endpoint_shift_m": 0.1482984572649002,
+          "traj_ade_m": 0.08035459369421005,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the adjacent is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.005108891986310482,
+          "d_curvature_mean": 1.1234655175940134e-05,
+          "d_curvature_max": 6.122514605522156e-05,
+          "endpoint_shift_m": 0.02270379476249218,
+          "traj_ade_m": 0.009474845603108406,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the road is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " is",
+      "sampled_prob": 0.9826661348342896,
+      "entropy": 0.09153435379266739,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.01690770499408245,
+          "d_curvature_mean": 9.11150982574327e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.03347514197230339,
+          "traj_ade_m": 0.014745563268661499,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane ahead clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " control",
+          "token_prob": 6.291437603067607e-05,
+          "d_curvature_mean": 2.230704740213696e-05,
+          "d_curvature_max": 0.00010204454883933067,
+          "endpoint_shift_m": 0.1866021454334259,
+          "traj_ade_m": 0.10619403421878815,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane control clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 4.4612974306801334e-05,
+          "d_curvature_mean": 1.8346665456192568e-05,
+          "d_curvature_max": 5.102111026644707e-05,
+          "endpoint_shift_m": 0.13336989283561707,
+          "traj_ade_m": 0.06962640583515167,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane directly clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 3.367563840583898e-05,
+          "d_curvature_mean": 1.0823489901667926e-05,
+          "d_curvature_max": 3.0612689442932606e-05,
+          "endpoint_shift_m": 0.05454330891370773,
+          "traj_ade_m": 0.024783266708254814,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane remains clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " clear",
+      "sampled_prob": 0.9980171918869019,
+      "entropy": 0.02113485522568226,
+      "alternatives": [
+        {
+          "token": " un",
+          "token_prob": 0.0006254839827306569,
+          "d_curvature_mean": 1.0428711902932264e-05,
+          "d_curvature_max": 4.081660881638527e-05,
+          "endpoint_shift_m": 0.024735357612371445,
+          "traj_ade_m": 0.01336005236953497,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is un ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " open",
+          "token_prob": 0.0002607405185699463,
+          "d_curvature_mean": 8.253122359747067e-06,
+          "d_curvature_max": 3.0613038688898087e-05,
+          "endpoint_shift_m": 0.10433829575777054,
+          "traj_ade_m": 0.04413740709424019,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is open ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowed",
+          "token_prob": 0.00023010271252132952,
+          "d_curvature_mean": 9.95601476461161e-06,
+          "d_curvature_max": 4.081625957041979e-05,
+          "endpoint_shift_m": 0.13284924626350403,
+          "traj_ade_m": 0.04089934751391411,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " not",
+          "token_prob": 0.00012316511129029095,
+          "d_curvature_mean": 1.4073437341721728e-05,
+          "d_curvature_max": 6.122514605522156e-05,
+          "endpoint_shift_m": 0.01748904213309288,
+          "traj_ade_m": 0.008096273988485336,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is not ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.794238269329071,
+      "entropy": 0.8525054454803467,
+      "alternatives": [
+        {
+          "token": " after",
+          "token_prob": 0.08911105990409851,
+          "d_curvature_mean": 1.006377351586707e-05,
+          "d_curvature_max": 3.0613038688898087e-05,
+          "endpoint_shift_m": 0.0618755966424942,
+          "traj_ade_m": 0.023267194628715515,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear after"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0395427942276001,
+          "d_curvature_mean": 1.3153516192687675e-05,
+          "d_curvature_max": 3.1569565180689096e-05,
+          "endpoint_shift_m": 0.06919804960489273,
+          "traj_ade_m": 0.03450411930680275,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear and"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.03714701905846596,
+          "d_curvature_mean": 5.537090328289196e-05,
+          "d_curvature_max": 0.00016326876357197762,
+          "endpoint_shift_m": 0.2567058801651001,
+          "traj_ade_m": 0.06773397326469421,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " of",
+          "token_prob": 0.014099418185651302,
+          "d_curvature_mean": 7.726808689767495e-06,
+          "d_curvature_max": 2.040993422269821e-05,
+          "endpoint_shift_m": 0.007361193653196096,
+          "traj_ade_m": 0.00668692123144865,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear of"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.21475738286972046,
+      "entropy": 1.6872187852859497,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.4546413719654083,
+          "d_curvature_mean": 3.7836482079001144e-05,
+          "d_curvature_max": 0.00011224951595067978,
+          "endpoint_shift_m": 0.29279059171676636,
+          "traj_ade_m": 0.08301971107721329,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the right to increase clearance from the oncoming truck"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Stop",
+          "token_prob": 0.09529800713062286,
+          "d_curvature_mean": 2.5260958864237182e-05,
+          "d_curvature_max": 8.16386891528964e-05,
+          "endpoint_shift_m": 0.08623268455266953,
+          "traj_ade_m": 0.09455458074808121,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.061529017984867096,
+          "d_curvature_mean": 6.244804535526782e-05,
+          "d_curvature_max": 0.0001632669591344893,
+          "endpoint_shift_m": 1.9689173698425293,
+          "traj_ade_m": 0.8123639822006226,
+          "forced_cot": {
+            "cot": [
+              "Maintain speed due to green traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.05963596701622009,
+          "d_curvature_mean": 7.064163946779445e-05,
+          "d_curvature_max": 0.00022449460811913013,
+          "endpoint_shift_m": 0.5966218709945679,
+          "traj_ade_m": 0.24036091566085815,
+          "forced_cot": {
+            "cot": [
+              "Yield due to an oncoming truck blocking the center of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " lane",
+      "sampled_prob": 0.39169085025787354,
+      "entropy": 0.9193623661994934,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 0.5353779196739197,
+          "d_curvature_mean": 6.96436982252635e-05,
+          "d_curvature_max": 0.0002091885544359684,
+          "endpoint_shift_m": 0.9427329301834106,
+          "traj_ade_m": 0.237095907330513,
+          "forced_cot": {
+            "cot": [
+              "Stop distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.06806565821170807,
+          "d_curvature_mean": 6.946320354472846e-05,
+          "d_curvature_max": 0.0001785758649930358,
+          "endpoint_shift_m": 1.4829834699630737,
+          "traj_ade_m": 0.4016851782798767,
+          "forced_cot": {
+            "cot": [
+              "Stop at the stop line since the traffic light is red"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.003388789715245366,
+          "d_curvature_mean": 2.969239176309202e-05,
+          "d_curvature_max": 0.00013568531721830368,
+          "endpoint_shift_m": 0.08725687116384506,
+          "traj_ade_m": 0.08934138715267181,
+          "forced_cot": {
+            "cot": [
+              "Stop speed due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.00031520656193606555,
+          "d_curvature_mean": 7.341057062149048e-05,
+          "d_curvature_max": 0.00024267123080790043,
+          "endpoint_shift_m": 0.8294489979743958,
+          "traj_ade_m": 0.4463178515434265,
+          "forced_cot": {
+            "cot": [
+              "Stop a low speed due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " since",
+      "sampled_prob": 0.9556519985198975,
+      "entropy": 0.21175521612167358,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.034809622913599014,
+          "d_curvature_mean": 2.5260958864237182e-05,
+          "d_curvature_max": 8.16386891528964e-05,
+          "endpoint_shift_m": 0.08623268455266953,
+          "traj_ade_m": 0.09455458074808121,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.007296492345631123,
+          "d_curvature_mean": 3.243317405576818e-05,
+          "d_curvature_max": 0.0001224471488967538,
+          "endpoint_shift_m": 0.027171874418854713,
+          "traj_ade_m": 0.1137971580028534,
+          "forced_cot": {
+            "cot": [
+              "Stop due because of red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.001844842336140573,
+          "d_curvature_mean": 5.478699677041732e-05,
+          "d_curvature_max": 0.00021046423353254795,
+          "endpoint_shift_m": 0.11799758672714233,
+          "traj_ade_m": 0.0856960266828537,
+          "forced_cot": {
+            "cot": [
+              "Stop due as a speed adaptation because of red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " while",
+          "token_prob": 0.00014677474973723292,
+          "d_curvature_mean": 5.005611455999315e-05,
+          "d_curvature_max": 0.00018367951270192862,
+          "endpoint_shift_m": 0.5875791311264038,
+          "traj_ade_m": 0.1407836526632309,
+          "forced_cot": {
+            "cot": [
+              "Stop due while maintaining lane because of red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.6814754009246826,
+      "entropy": 1.031927466392517,
+      "alternatives": [
+        {
+          "token": " an",
+          "token_prob": 0.18341661989688873,
+          "d_curvature_mean": 5.5244490795303136e-05,
+          "d_curvature_max": 0.00018367869779467583,
+          "endpoint_shift_m": 0.28821051120758057,
+          "traj_ade_m": 0.18957222998142242,
+          "forced_cot": {
+            "cot": [
+              "Stop due to an oncoming truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " no",
+          "token_prob": 0.07645941525697708,
+          "d_curvature_mean": 6.393325747922063e-05,
+          "d_curvature_max": 0.00014286336954683065,
+          "endpoint_shift_m": 0.438347727060318,
+          "traj_ade_m": 0.2677912712097168,
+          "forced_cot": {
+            "cot": [
+              "Stop due to no gap for a left nudge because of oncoming truck"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.031873032450675964,
+          "d_curvature_mean": 3.002472294610925e-05,
+          "d_curvature_max": 0.0001264377497136593,
+          "endpoint_shift_m": 0.18629316985607147,
+          "traj_ade_m": 0.08475270122289658,
+          "forced_cot": {
+            "cot": [
+              "Stop due to there red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " on",
+          "token_prob": 0.011015024036169052,
+          "d_curvature_mean": 5.215867349761538e-05,
+          "d_curvature_max": 0.00016327202320098877,
+          "endpoint_shift_m": 0.42219844460487366,
+          "traj_ade_m": 0.25352442264556885,
+          "forced_cot": {
+            "cot": [
+              "Stop due to oncoming truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lane",
+      "sampled_prob": 0.8071282505989075,
+      "entropy": 0.8668603301048279,
+      "alternatives": [
+        {
+          "token": " on",
+          "token_prob": 0.08777112513780594,
+          "d_curvature_mean": 3.887256025336683e-05,
+          "d_curvature_max": 0.00017140014097094536,
+          "endpoint_shift_m": 0.1075470894575119,
+          "traj_ade_m": 0.15285590291023254,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red on red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.06032415106892586,
+          "d_curvature_mean": 2.6169829652644694e-05,
+          "d_curvature_max": 8.466362487524748e-05,
+          "endpoint_shift_m": 0.23828577995300293,
+          "traj_ade_m": 0.08101415634155273,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red path traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " adjacent",
+          "token_prob": 0.005611020606011152,
+          "d_curvature_mean": 3.455483238212764e-05,
+          "d_curvature_max": 0.0001224493607878685,
+          "endpoint_shift_m": 0.27253666520118713,
+          "traj_ade_m": 0.07130230963230133,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red adjacent traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.005108891986310482,
+          "d_curvature_mean": 4.0249266021419317e-05,
+          "d_curvature_max": 8.163438178598881e-05,
+          "endpoint_shift_m": 0.36543789505958557,
+          "traj_ade_m": 0.07129150629043579,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red roadwork signal ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " is",
+      "sampled_prob": 0.9826661348342896,
+      "entropy": 0.09153435379266739,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.01690770499408245,
+          "d_curvature_mean": 3.318781091365963e-05,
+          "d_curvature_max": 0.00010204128921031952,
+          "endpoint_shift_m": 0.10311175882816315,
+          "traj_ade_m": 0.1462128758430481,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " control",
+          "token_prob": 6.291437603067607e-05,
+          "d_curvature_mean": 3.0723080271855e-05,
+          "d_curvature_max": 8.163554593920708e-05,
+          "endpoint_shift_m": 0.012153812684118748,
+          "traj_ade_m": 0.10971371829509735,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic control ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 4.4612974306801334e-05,
+          "d_curvature_mean": 3.59032565029338e-05,
+          "d_curvature_max": 0.00010204222053289413,
+          "endpoint_shift_m": 0.10007680952548981,
+          "traj_ade_m": 0.16236728429794312,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic directly ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 3.367563840583898e-05,
+          "d_curvature_mean": 3.5084685805486515e-05,
+          "d_curvature_max": 9.183725342154503e-05,
+          "endpoint_shift_m": 0.05196341127157211,
+          "traj_ade_m": 0.08916518092155457,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic remains stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " clear",
+      "sampled_prob": 0.9980171918869019,
+      "entropy": 0.02113485522568226,
+      "alternatives": [
+        {
+          "token": " un",
+          "token_prob": 0.0006254839827306569,
+          "d_curvature_mean": 4.745747719425708e-05,
+          "d_curvature_max": 0.00018367648590356112,
+          "endpoint_shift_m": 0.052927736192941666,
+          "traj_ade_m": 0.1082838624715805,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light unloading ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " open",
+          "token_prob": 0.0002607405185699463,
+          "d_curvature_mean": 3.3851509215310216e-05,
+          "d_curvature_max": 0.00010905833914875984,
+          "endpoint_shift_m": 0.08133416622877121,
+          "traj_ade_m": 0.14818282425403595,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light open ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowed",
+          "token_prob": 0.00023010271252132952,
+          "d_curvature_mean": 4.7044683014974e-05,
+          "d_curvature_max": 0.0002040875842794776,
+          "endpoint_shift_m": 0.04548964649438858,
+          "traj_ade_m": 0.10543401539325714,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light narrowed by oncoming truck"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " not",
+          "token_prob": 0.00012316511129029095,
+          "d_curvature_mean": 5.37134546902962e-05,
+          "d_curvature_max": 0.00018367765005677938,
+          "endpoint_shift_m": 0.023800667375326157,
+          "traj_ade_m": 0.09926054626703262,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light not visible in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.794238269329071,
+      "entropy": 0.8525054454803467,
+      "alternatives": [
+        {
+          "token": " after",
+          "token_prob": 0.08911105990409851,
+          "d_curvature_mean": 5.431605677586049e-05,
+          "d_curvature_max": 0.00021811691112816334,
+          "endpoint_shift_m": 0.5554566979408264,
+          "traj_ade_m": 0.3155568838119507,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead after near-lane acceleration"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.0395427942276001,
+          "d_curvature_mean": 4.7303059545811266e-05,
+          "d_curvature_max": 0.00020791275892406702,
+          "endpoint_shift_m": 0.48476818203926086,
+          "traj_ade_m": 0.08093422651290894,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead and slow lead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.03714701905846596,
+          "d_curvature_mean": 2.5260958864237182e-05,
+          "d_curvature_max": 8.16386891528964e-05,
+          "endpoint_shift_m": 0.08623268455266953,
+          "traj_ade_m": 0.09455458074808121,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " of",
+          "token_prob": 0.014099418185651302,
+          "d_curvature_mean": 3.947985533159226e-05,
+          "d_curvature_max": 0.00016709556803107262,
+          "endpoint_shift_m": 0.21596962213516235,
+          "traj_ade_m": 0.07188417762517929,
+          "forced_cot": {
+            "cot": [
+              "Stop due to red traffic light ahead of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

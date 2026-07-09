@@ -1,0 +1,2809 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep distance to the cut-in vehicle since it merges into our lane ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 14,
+    "mean_entropy": 0.27463357149723117,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.1563461273908615,
+        "entropy": 2.3561789989471436,
+        "top_k": [
+          {
+            "text": "Wait",
+            "prob": 0.188589408993721
+          },
+          {
+            "text": "Lane",
+            "prob": 0.1664295792579651
+          },
+          {
+            "text": "Keep",
+            "prob": 0.1563461273908615
+          },
+          {
+            "text": "N",
+            "prob": 0.12562763690948486
+          },
+          {
+            "text": "Change",
+            "prob": 0.11801624298095703
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " distance",
+        "sampled_prob": 0.9862083196640015,
+        "entropy": 0.07781002670526505,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9862083196640015
+          },
+          {
+            "text": " lane",
+            "prob": 0.012414530850946903
+          },
+          {
+            "text": " at",
+            "prob": 0.0013084819074720144
+          },
+          {
+            "text": " speed",
+            "prob": 2.4726434276090004e-05
+          },
+          {
+            "text": " to",
+            "prob": 3.506954044496524e-06
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.9886707067489624,
+        "entropy": 0.06745506078004837,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9886707067489624
+          },
+          {
+            "text": " from",
+            "prob": 0.010317705571651459
+          },
+          {
+            "text": " since",
+            "prob": 0.00048256549052894115
+          },
+          {
+            "text": " because",
+            "prob": 0.00016677015810273588
+          },
+          {
+            "text": " and",
+            "prob": 0.00011825775436591357
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.9979999661445618,
+        "entropy": 0.021861432120203972,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9979999661445618
+          },
+          {
+            "text": " our",
+            "prob": 0.0009389466140419245
+          },
+          {
+            "text": " follow",
+            "prob": 9.591942944098264e-05
+          },
+          {
+            "text": " maintain",
+            "prob": 4.9762344133341685e-05
+          },
+          {
+            "text": " a",
+            "prob": 4.1254428651882336e-05
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " cut",
+        "sampled_prob": 0.8330602049827576,
+        "entropy": 0.5856835842132568,
+        "top_k": [
+          {
+            "text": " cut",
+            "prob": 0.8330602049827576
+          },
+          {
+            "text": " lead",
+            "prob": 0.12775392830371857
+          },
+          {
+            "text": " merging",
+            "prob": 0.028505751863121986
+          },
+          {
+            "text": " vehicle",
+            "prob": 0.004510264843702316
+          },
+          {
+            "text": " stopped",
+            "prob": 0.003404526738449931
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": "-in",
+        "sampled_prob": 0.9994377493858337,
+        "entropy": 0.005527419503778219,
+        "top_k": [
+          {
+            "text": "-in",
+            "prob": 0.9994377493858337
+          },
+          {
+            "text": " in",
+            "prob": 0.0003799152618739754
+          },
+          {
+            "text": "\u2011",
+            "prob": 0.00011954562796745449
+          },
+          {
+            "text": " into",
+            "prob": 2.4287168344017118e-05
+          },
+          {
+            "text": " to",
+            "prob": 1.2672170441874187e-06
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " vehicle",
+        "sampled_prob": 0.9513594508171082,
+        "entropy": 0.23181308805942535,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.9513594508171082
+          },
+          {
+            "text": " lead",
+            "prob": 0.041799817234277725
+          },
+          {
+            "text": " pickup",
+            "prob": 0.0019550034776329994
+          },
+          {
+            "text": " SUV",
+            "prob": 0.001223409897647798
+          },
+          {
+            "text": " car",
+            "prob": 0.0010142425308004022
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " since",
+        "sampled_prob": 0.9940377473831177,
+        "entropy": 0.04655558988451958,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.9940377473831177
+          },
+          {
+            "text": " from",
+            "prob": 0.0016934624873101711
+          },
+          {
+            "text": " because",
+            "prob": 0.0015908607747405767
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0014039296656847
+          },
+          {
+            "text": " merging",
+            "prob": 0.0005164768663235009
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " it",
+        "sampled_prob": 0.9988081455230713,
+        "entropy": 0.009421806782484055,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9988081455230713
+          },
+          {
+            "text": " a",
+            "prob": 0.0011694841086864471
+          },
+          {
+            "text": " they",
+            "prob": 3.0858216177875875e-06
+          },
+          {
+            "text": " the",
+            "prob": 2.5582360194675857e-06
+          },
+          {
+            "text": " we",
+            "prob": 2.1208522866800195e-06
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " merges",
+        "sampled_prob": 0.9662606120109558,
+        "entropy": 0.20184166729450226,
+        "top_k": [
+          {
+            "text": " merges",
+            "prob": 0.9662606120109558
+          },
+          {
+            "text": " is",
+            "prob": 0.024189863353967667
+          },
+          {
+            "text": " merged",
+            "prob": 0.0050704702734947205
+          },
+          {
+            "text": " has",
+            "prob": 0.0008540066191926599
+          },
+          {
+            "text": " merge",
+            "prob": 0.00023714907001703978
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " into",
+        "sampled_prob": 0.9659482836723328,
+        "entropy": 0.17728003859519958,
+        "top_k": [
+          {
+            "text": " into",
+            "prob": 0.9659482836723328
+          },
+          {
+            "text": " from",
+            "prob": 0.01769196055829525
+          },
+          {
+            "text": " ahead",
+            "prob": 0.015613099560141563
+          },
+          {
+            "text": " slowly",
+            "prob": 0.0002771657018456608
+          },
+          {
+            "text": " out",
+            "prob": 0.00015306544082704931
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " our",
+        "sampled_prob": 0.9998283386230469,
+        "entropy": 0.0016897175228223205,
+        "top_k": [
+          {
+            "text": " our",
+            "prob": 0.9998283386230469
+          },
+          {
+            "text": " the",
+            "prob": 0.00016865224461071193
+          },
+          {
+            "text": " my",
+            "prob": 4.5913495227978274e-07
+          },
+          {
+            "text": " your",
+            "prob": 4.180471364634286e-07
+          },
+          {
+            "text": " and",
+            "prob": 2.8731929546665924e-07
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " lane",
+        "sampled_prob": 0.9996331930160522,
+        "entropy": 0.003928143531084061,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.9996331930160522
+          },
+          {
+            "text": " right",
+            "prob": 0.00016343145398423076
+          },
+          {
+            "text": " path",
+            "prob": 0.0001442277425667271
+          },
+          {
+            "text": " ego",
+            "prob": 9.814822078624275e-06
+          },
+          {
+            "text": " left",
+            "prob": 5.592317393166013e-06
+          }
+        ]
+      },
+      {
+        "step": 13,
+        "col": 3099,
+        "sampled": " ahead",
+        "sampled_prob": 0.9920039772987366,
+        "entropy": 0.05782342702150345,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9920039772987366
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.004315560217946768
+          },
+          {
+            "text": " from",
+            "prob": 0.0024589321110397577
+          },
+          {
+            "text": ".",
+            "prob": 0.00031261815456673503
+          },
+          {
+            "text": " directly",
+            "prob": 0.00015235789760481566
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.1563461273908615,
+      "entropy": 2.3561789989471436,
+      "alternatives": [
+        {
+          "token": "Wait",
+          "token_prob": 0.188589408993721,
+          "d_curvature_mean": 0.00016523819067515433,
+          "d_curvature_max": 0.00037756096571683884,
+          "endpoint_shift_m": 0.17581534385681152,
+          "traj_ade_m": 0.06300882250070572,
+          "forced_cot": {
+            "cot": [
+              "Wait distance to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.1664295792579651,
+          "d_curvature_mean": 3.335573273943737e-05,
+          "d_curvature_max": 6.122700870037079e-05,
+          "endpoint_shift_m": 0.011904463171958923,
+          "traj_ade_m": 0.006695655174553394,
+          "forced_cot": {
+            "cot": [
+              "Lane distance to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.12562763690948486,
+          "d_curvature_mean": 2.2731062927050516e-05,
+          "d_curvature_max": 8.163368329405785e-05,
+          "endpoint_shift_m": 0.0822518914937973,
+          "traj_ade_m": 0.022237010300159454,
+          "forced_cot": {
+            "cot": [
+              "N distance to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.11801624298095703,
+          "d_curvature_mean": 2.4706871045054868e-05,
+          "d_curvature_max": 8.163368329405785e-05,
+          "endpoint_shift_m": 0.041112020611763,
+          "traj_ade_m": 0.01457357220351696,
+          "forced_cot": {
+            "cot": [
+              "Change distance to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9862083196640015,
+      "entropy": 0.07781002670526505,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.012414530850946903,
+          "d_curvature_mean": 0.00021531115635298193,
+          "d_curvature_max": 0.0005510346964001656,
+          "endpoint_shift_m": 0.6566210985183716,
+          "traj_ade_m": 0.22408920526504517,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0013084819074720144,
+          "d_curvature_mean": 8.793387678451836e-05,
+          "d_curvature_max": 0.00024490710347890854,
+          "endpoint_shift_m": 0.3671383559703827,
+          "traj_ade_m": 0.13011150062084198,
+          "forced_cot": {
+            "cot": [
+              "Keep at to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 2.4726434276090004e-05,
+          "d_curvature_mean": 0.00016737350961193442,
+          "d_curvature_max": 0.00040817447006702423,
+          "endpoint_shift_m": 0.3587089478969574,
+          "traj_ade_m": 0.11817702651023865,
+          "forced_cot": {
+            "cot": [
+              "Keep speed to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 3.506954044496524e-06,
+          "d_curvature_mean": 8.574535604566336e-05,
+          "d_curvature_max": 0.00023469794541597366,
+          "endpoint_shift_m": 0.30564844608306885,
+          "traj_ade_m": 0.09853485971689224,
+          "forced_cot": {
+            "cot": [
+              "Keep to to the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9886707067489624,
+      "entropy": 0.06745506078004837,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.010317705571651459,
+          "d_curvature_mean": 2.199205664510373e-05,
+          "d_curvature_max": 8.673593401908875e-05,
+          "endpoint_shift_m": 0.038698580116033554,
+          "traj_ade_m": 0.017305800691246986,
+          "forced_cot": {
+            "cot": [
+              "Keep distance from the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00048256549052894115,
+          "d_curvature_mean": 1.9015838915947825e-05,
+          "d_curvature_max": 6.122607737779617e-05,
+          "endpoint_shift_m": 0.07752605527639389,
+          "traj_ade_m": 0.033240675926208496,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00016677015810273588,
+          "d_curvature_mean": 3.061563620576635e-05,
+          "d_curvature_max": 0.00011224765330553055,
+          "endpoint_shift_m": 0.09614630788564682,
+          "traj_ade_m": 0.03432587534189224,
+          "forced_cot": {
+            "cot": [
+              "Keep distance because the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.00011825775436591357,
+          "d_curvature_mean": 1.9974022507085465e-05,
+          "d_curvature_max": 8.035823702812195e-05,
+          "endpoint_shift_m": 0.13455556333065033,
+          "traj_ade_m": 0.046857528388500214,
+          "forced_cot": {
+            "cot": [
+              "Keep distance and the cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9979999661445618,
+      "entropy": 0.021861432120203972,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0009389466140419245,
+          "d_curvature_mean": 8.323507063323632e-05,
+          "d_curvature_max": 0.00019388273358345032,
+          "endpoint_shift_m": 0.04650365933775902,
+          "traj_ade_m": 0.02769266441464424,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to our cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 9.591942944098264e-05,
+          "d_curvature_mean": 5.455290011013858e-05,
+          "d_curvature_max": 0.00013265572488307953,
+          "endpoint_shift_m": 0.07301376014947891,
+          "traj_ade_m": 0.03469105809926987,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to follow cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 4.9762344133341685e-05,
+          "d_curvature_mean": 2.932230017904658e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.2174791395664215,
+          "traj_ade_m": 0.072928786277771,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to maintain cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 4.1254428651882336e-05,
+          "d_curvature_mean": 3.0628951208200306e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.03721405193209648,
+          "traj_ade_m": 0.010654499754309654,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to a cut-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " cut",
+      "sampled_prob": 0.8330602049827576,
+      "entropy": 0.5856835842132568,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.12775392830371857,
+          "d_curvature_mean": 5.826074630022049e-05,
+          "d_curvature_max": 0.00012755393981933594,
+          "endpoint_shift_m": 0.0808299109339714,
+          "traj_ade_m": 0.02764245867729187,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.028505751863121986,
+          "d_curvature_mean": 9.445244359085336e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.11770465970039368,
+          "traj_ade_m": 0.03271118551492691,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the merging-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.004510264843702316,
+          "d_curvature_mean": 4.658344550989568e-05,
+          "d_curvature_max": 0.00013775750994682312,
+          "endpoint_shift_m": 0.08581435680389404,
+          "traj_ade_m": 0.024445492774248123,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the vehicle-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.003404526738449931,
+          "d_curvature_mean": 0.00010021832713391632,
+          "d_curvature_max": 0.0002602105960249901,
+          "endpoint_shift_m": 0.29955777525901794,
+          "traj_ade_m": 0.10589669644832611,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the stopped-in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": "-in",
+      "sampled_prob": 0.9994377493858337,
+      "entropy": 0.005527419503778219,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.0003799152618739754,
+          "d_curvature_mean": 3.108390956185758e-05,
+          "d_curvature_max": 8.163321763277054e-05,
+          "endpoint_shift_m": 0.03016013093292713,
+          "traj_ade_m": 0.009018050506711006,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut in vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "\u2011",
+          "token_prob": 0.00011954562796745449,
+          "d_curvature_mean": 2.9271634048200212e-05,
+          "d_curvature_max": 8.163368329405785e-05,
+          "endpoint_shift_m": 0.044152017682790756,
+          "traj_ade_m": 0.01415959931910038,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut\u2011 vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 2.4287168344017118e-05,
+          "d_curvature_mean": 4.176866787020117e-05,
+          "d_curvature_max": 0.0001479610800743103,
+          "endpoint_shift_m": 0.07270979881286621,
+          "traj_ade_m": 0.0300388615578413,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut into vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.2672170441874187e-06,
+          "d_curvature_mean": 3.985949661000632e-05,
+          "d_curvature_max": 0.0001143207773566246,
+          "endpoint_shift_m": 0.09516356885433197,
+          "traj_ade_m": 0.03612876683473587,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut to vehicle since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9513594508171082,
+      "entropy": 0.23181308805942535,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.041799817234277725,
+          "d_curvature_mean": 6.566049705725163e-05,
+          "d_curvature_max": 0.00011352263391017914,
+          "endpoint_shift_m": 0.11746302247047424,
+          "traj_ade_m": 0.044977594166994095,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in lead since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pickup",
+          "token_prob": 0.0019550034776329994,
+          "d_curvature_mean": 3.7973251892253757e-05,
+          "d_curvature_max": 0.00010204222053289413,
+          "endpoint_shift_m": 0.01965758018195629,
+          "traj_ade_m": 0.012507947161793709,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in pickup since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " SUV",
+          "token_prob": 0.001223409897647798,
+          "d_curvature_mean": 2.9094289857312106e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.023655695840716362,
+          "traj_ade_m": 0.007061121053993702,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in SUV since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.0010142425308004022,
+          "d_curvature_mean": 3.0064380553085357e-05,
+          "d_curvature_max": 7.142964750528336e-05,
+          "endpoint_shift_m": 0.0483325719833374,
+          "traj_ade_m": 0.017409389838576317,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in car since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.9940377473831177,
+      "entropy": 0.04655558988451958,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0016934624873101711,
+          "d_curvature_mean": 7.773044490022585e-05,
+          "d_curvature_max": 0.00022449251264333725,
+          "endpoint_shift_m": 0.07079324871301651,
+          "traj_ade_m": 0.02264089323580265,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle from it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0015908607747405767,
+          "d_curvature_mean": 1.4770370398764499e-05,
+          "d_curvature_max": 5.6123360991477966e-05,
+          "endpoint_shift_m": 0.010264383628964424,
+          "traj_ade_m": 0.004555743187665939,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle because it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0014039296656847,
+          "d_curvature_mean": 5.811968367197551e-05,
+          "d_curvature_max": 0.00018877815455198288,
+          "endpoint_shift_m": 0.20051145553588867,
+          "traj_ade_m": 0.06721379607915878,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle ahead it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.0005164768663235009,
+          "d_curvature_mean": 9.88063111435622e-05,
+          "d_curvature_max": 0.00024490151554346085,
+          "endpoint_shift_m": 0.06302119791507721,
+          "traj_ade_m": 0.01356511004269123,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle merging it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " it",
+      "sampled_prob": 0.9988081455230713,
+      "entropy": 0.009421806782484055,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.0011694841086864471,
+          "d_curvature_mean": 5.321142452885397e-05,
+          "d_curvature_max": 0.00016327016055583954,
+          "endpoint_shift_m": 0.06338668614625931,
+          "traj_ade_m": 0.024505052715539932,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since a merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " they",
+          "token_prob": 3.0858216177875875e-06,
+          "d_curvature_mean": 3.695117629831657e-05,
+          "d_curvature_max": 0.00010204222053289413,
+          "endpoint_shift_m": 0.07497881352901459,
+          "traj_ade_m": 0.025636255741119385,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since they merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.5582360194675857e-06,
+          "d_curvature_mean": 7.963764073792845e-05,
+          "d_curvature_max": 0.00018623005598783493,
+          "endpoint_shift_m": 0.08228665590286255,
+          "traj_ade_m": 0.033449046313762665,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since the merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 2.1208522866800195e-06,
+          "d_curvature_mean": 0.0001236830576090142,
+          "d_curvature_max": 0.0002372516319155693,
+          "endpoint_shift_m": 0.13639557361602783,
+          "traj_ade_m": 0.05262311175465584,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since we merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " merges",
+      "sampled_prob": 0.9662606120109558,
+      "entropy": 0.20184166729450226,
+      "alternatives": [
+        {
+          "token": " is",
+          "token_prob": 0.024189863353967667,
+          "d_curvature_mean": 3.687933713081293e-05,
+          "d_curvature_max": 0.00012245308607816696,
+          "endpoint_shift_m": 0.10846548527479172,
+          "traj_ade_m": 0.040787920355796814,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it is into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merged",
+          "token_prob": 0.0050704702734947205,
+          "d_curvature_mean": 2.5848950826912187e-05,
+          "d_curvature_max": 7.143151015043259e-05,
+          "endpoint_shift_m": 0.03589187562465668,
+          "traj_ade_m": 0.01059995498508215,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merged into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.0008540066191926599,
+          "d_curvature_mean": 6.377149111358449e-05,
+          "d_curvature_max": 0.00016327016055583954,
+          "endpoint_shift_m": 0.10014766454696655,
+          "traj_ade_m": 0.03697367012500763,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it has into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merge",
+          "token_prob": 0.00023714907001703978,
+          "d_curvature_mean": 6.8387344072107226e-06,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.011923645623028278,
+          "traj_ade_m": 0.004785940982401371,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merge into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " into",
+      "sampled_prob": 0.9659482836723328,
+      "entropy": 0.17728003859519958,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.01769196055829525,
+          "d_curvature_mean": 5.445752321975306e-05,
+          "d_curvature_max": 0.00018367543816566467,
+          "endpoint_shift_m": 0.09894058108329773,
+          "traj_ade_m": 0.038412004709243774,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges from our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.015613099560141563,
+          "d_curvature_mean": 5.201723251957446e-05,
+          "d_curvature_max": 0.0002040863037109375,
+          "endpoint_shift_m": 0.06015654280781746,
+          "traj_ade_m": 0.015221724286675453,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges ahead our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowly",
+          "token_prob": 0.0002771657018456608,
+          "d_curvature_mean": 5.4664338676957414e-05,
+          "d_curvature_max": 0.00018878187984228134,
+          "endpoint_shift_m": 0.06782884895801544,
+          "traj_ade_m": 0.016870388761162758,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges slowly our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " out",
+          "token_prob": 0.00015306544082704931,
+          "d_curvature_mean": 5.323051300365478e-05,
+          "d_curvature_max": 0.00013265293091535568,
+          "endpoint_shift_m": 0.07317724823951721,
+          "traj_ade_m": 0.026741111651062965,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges out our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998283386230469,
+      "entropy": 0.0016897175228223205,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00016865224461071193,
+          "d_curvature_mean": 8.653720215079375e-06,
+          "d_curvature_max": 4.081381484866142e-05,
+          "endpoint_shift_m": 0.018807120621204376,
+          "traj_ade_m": 0.0051632048562169075,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 4.5913495227978274e-07,
+          "d_curvature_mean": 3.502208710415289e-05,
+          "d_curvature_max": 8.418504148721695e-05,
+          "endpoint_shift_m": 0.013848715461790562,
+          "traj_ade_m": 0.008343891240656376,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into my lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 4.180471364634286e-07,
+          "d_curvature_mean": 1.653597064432688e-05,
+          "d_curvature_max": 5.1021575927734375e-05,
+          "endpoint_shift_m": 0.01580359973013401,
+          "traj_ade_m": 0.004514521453529596,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into your lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 2.8731929546665924e-07,
+          "d_curvature_mean": 4.7193520003929734e-05,
+          "d_curvature_max": 0.0001530628651380539,
+          "endpoint_shift_m": 0.17123620212078094,
+          "traj_ade_m": 0.0609440952539444,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into and lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9996331930160522,
+      "entropy": 0.003928143531084061,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.00016343145398423076,
+          "d_curvature_mean": 7.314889808185399e-05,
+          "d_curvature_max": 0.00015306565910577774,
+          "endpoint_shift_m": 0.0913984403014183,
+          "traj_ade_m": 0.034906938672065735,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.0001442277425667271,
+          "d_curvature_mean": 1.639455513213761e-05,
+          "d_curvature_max": 4.8032961785793304e-05,
+          "endpoint_shift_m": 0.022514453157782555,
+          "traj_ade_m": 0.009610394015908241,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 9.814822078624275e-06,
+          "d_curvature_mean": 3.0452101782429963e-05,
+          "d_curvature_max": 7.142871618270874e-05,
+          "endpoint_shift_m": 0.06983371078968048,
+          "traj_ade_m": 0.023389168083667755,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our ego ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 5.592317393166013e-06,
+          "d_curvature_mean": 4.748764695250429e-05,
+          "d_curvature_max": 0.00014286115765571594,
+          "endpoint_shift_m": 0.06957659870386124,
+          "traj_ade_m": 0.029992032796144485,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our left ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9920039772987366,
+      "entropy": 0.05782342702150345,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.004315560217946768,
+          "d_curvature_mean": 0.00012274984328541905,
+          "d_curvature_max": 0.0003265365958213806,
+          "endpoint_shift_m": 0.2750534117221832,
+          "traj_ade_m": 0.1307070255279541,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0024589321110397577,
+          "d_curvature_mean": 2.27878426812822e-05,
+          "d_curvature_max": 6.122607737779617e-05,
+          "endpoint_shift_m": 0.04056994244456291,
+          "traj_ade_m": 0.01605978235602379,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our lane from"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.00031261815456673503,
+          "d_curvature_mean": 0.00011137763067381456,
+          "d_curvature_max": 0.00028572138398885727,
+          "endpoint_shift_m": 0.4716028571128845,
+          "traj_ade_m": 0.18895776569843292,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 0.00015235789760481566,
+          "d_curvature_mean": 4.6972345444373786e-05,
+          "d_curvature_max": 9.183958172798157e-05,
+          "endpoint_shift_m": 0.03926309198141098,
+          "traj_ade_m": 0.013919785618782043,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the cut-in vehicle since it merges into our lane directly"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.1563461273908615,
+      "entropy": 2.3561789989471436,
+      "alternatives": [
+        {
+          "token": "Wait",
+          "token_prob": 0.188589408993721,
+          "d_curvature_mean": 0.00036452000495046377,
+          "d_curvature_max": 0.0008775703608989716,
+          "endpoint_shift_m": 0.4312317371368408,
+          "traj_ade_m": 0.12113330513238907,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.1664295792579651,
+          "d_curvature_mean": 0.00010252092033624649,
+          "d_curvature_max": 0.00020535942167043686,
+          "endpoint_shift_m": 0.09742890298366547,
+          "traj_ade_m": 0.045446574687957764,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left due to stopped vehicles blocking the right lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "N",
+          "token_prob": 0.12562763690948486,
+          "d_curvature_mean": 0.00010615569044603035,
+          "d_curvature_max": 0.0002410775050520897,
+          "endpoint_shift_m": 0.07292864471673965,
+          "traj_ade_m": 0.01940172165632248,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to clear the stopped vehicle blocking the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.11801624298095703,
+          "d_curvature_mean": 0.0004889813717454672,
+          "d_curvature_max": 0.0014592185616493225,
+          "endpoint_shift_m": 1.640060305595398,
+          "traj_ade_m": 0.5105831623077393,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the left due to slow/obstructed right-lane traffic and a car merging into our lane, then match speed with vehicles ahead after merging."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9862083196640015,
+      "entropy": 0.07781002670526505,
+      "alternatives": [
+        {
+          "token": " lane",
+          "token_prob": 0.012414530850946903,
+          "d_curvature_mean": 0.00040130384149961174,
+          "d_curvature_max": 0.0008928775787353516,
+          "endpoint_shift_m": 0.5048220157623291,
+          "traj_ade_m": 0.14878493547439575,
+          "forced_cot": {
+            "cot": [
+              "Wait lane because a car is merging from a parking spot into our right lane blocking our path for a right-lane change"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0013084819074720144,
+          "d_curvature_mean": 0.0002997660485561937,
+          "d_curvature_max": 0.0007551198359578848,
+          "endpoint_shift_m": 0.22489604353904724,
+          "traj_ade_m": 0.0665661171078682,
+          "forced_cot": {
+            "cot": [
+              "Wait at the centerline for a gap because a car is coming from behind in our left lane blocking an immediate merge to our left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 2.4726434276090004e-05,
+          "d_curvature_mean": 0.001118444837629795,
+          "d_curvature_max": 0.00189800257794559,
+          "endpoint_shift_m": 1.4297077655792236,
+          "traj_ade_m": 0.4110666811466217,
+          "forced_cot": {
+            "cot": [
+              "Wait speed because a lead vehicle is pulling out from our right into our lane ahead, blocking our path; maintain following distance until it clears to create space for our next move left around it."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 3.506954044496524e-06,
+          "d_curvature_mean": 0.0006761981640011072,
+          "d_curvature_max": 0.0015102371107786894,
+          "endpoint_shift_m": 0.9109477996826172,
+          "traj_ade_m": 0.2701532244682312,
+          "forced_cot": {
+            "cot": [
+              "Wait to create a gap for a merge to the left because our right lane is narrowing with cones and stopped vehicles, and cars are currently occupying the left lane alongside us blocking an immediate merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.9886707067489624,
+      "entropy": 0.06745506078004837,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.010317705571651459,
+          "d_curvature_mean": 0.00022944938973523676,
+          "d_curvature_max": 0.0004285816103219986,
+          "endpoint_shift_m": 0.46109074354171753,
+          "traj_ade_m": 0.13225866854190826,
+          "forced_cot": {
+            "cot": [
+              "Wait for from the vehicles in left lane because our lane is obstructed by stopped cars and cones ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00048256549052894115,
+          "d_curvature_mean": 0.0002180772862629965,
+          "d_curvature_max": 0.0006173606961965561,
+          "endpoint_shift_m": 0.38921934366226196,
+          "traj_ade_m": 0.16678696870803833,
+          "forced_cot": {
+            "cot": [
+              "Wait for since a car is coming from behind in our left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.00016677015810273588,
+          "d_curvature_mean": 0.000741370371542871,
+          "d_curvature_max": 0.002071474911645055,
+          "endpoint_shift_m": 1.1454659700393677,
+          "traj_ade_m": 0.3429165482521057,
+          "forced_cot": {
+            "cot": [
+              "Wait for because a car is coming up in our left lane blocking an immediate merge to the left into the main roadway ahead; once it passes, we can merge left to bypass the obstructed right side with parked vehicles and cones, making our current right lane unsuitable for our intended path of travel."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 0.00011825775436591357,
+          "d_curvature_mean": 0.0012564987409859896,
+          "d_curvature_max": 0.0023469924926757812,
+          "endpoint_shift_m": 2.743237257003784,
+          "traj_ade_m": 0.9283546209335327,
+          "forced_cot": {
+            "cot": [
+              "Wait for and yield to the car pulling out from the right into our lane to avoid a conflict ahead; it continues into our path and slower, so a left merge becomes necessary after it passes, but not immediately as it is already partially blocking our lane but will clear shortly after"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.9979999661445618,
+      "entropy": 0.021861432120203972,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0009389466140419245,
+          "d_curvature_mean": 0.001756047597154975,
+          "d_curvature_max": 0.005817737430334091,
+          "endpoint_shift_m": 1.7872421741485596,
+          "traj_ade_m": 0.46070367097854614,
+          "forced_cot": {
+            "cot": [
+              "Wait for a our lane gap to merge right because our current lane bends left at the upcoming split and cars in our right lane are alongside blocking an immediate merge; we need space before changing right to stay on our path as our lane bends left, with additional vehicles emerging from a right\u2011side driveway ahead that could create additional conflict if we moved now."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 9.591942944098264e-05,
+          "d_curvature_mean": 0.0004055030003655702,
+          "d_curvature_max": 0.0008367542177438736,
+          "endpoint_shift_m": 0.300567090511322,
+          "traj_ade_m": 0.06527401506900787,
+          "forced_cot": {
+            "cot": [
+              "Wait for a follow gap because a car is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " maintain",
+          "token_prob": 4.9762344133341685e-05,
+          "d_curvature_mean": 0.0009336828370578587,
+          "d_curvature_max": 0.0025051599368453026,
+          "endpoint_shift_m": 1.0583410263061523,
+          "traj_ade_m": 0.3106224536895752,
+          "forced_cot": {
+            "cot": [
+              "Wait for a maintainable gap to merge right because a car is traveling alongside in our right lane blocking an immediate merge, with cones and parked vehicles further narrowing our lane ahead; once it clears, we can shift right to stay with through traffic as our current lane bends left, so we need space to merge into it safely."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 4.1254428651882336e-05,
+          "d_curvature_mean": 0.0003618795599322766,
+          "d_curvature_max": 0.0008571632206439972,
+          "endpoint_shift_m": 0.43020108342170715,
+          "traj_ade_m": 0.1200798824429512,
+          "forced_cot": {
+            "cot": [
+              "Wait for a a gap because a car is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " cut",
+      "sampled_prob": 0.8330602049827576,
+      "entropy": 0.5856835842132568,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.12775392830371857,
+          "d_curvature_mean": 0.0003528502129483968,
+          "d_curvature_max": 0.0007653236389160156,
+          "endpoint_shift_m": 0.4764217436313629,
+          "traj_ade_m": 0.14701487123966217,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap lead vehicle in the right lane blocking an immediate merge to the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.028505751863121986,
+          "d_curvature_mean": 0.00039671361446380615,
+          "d_curvature_max": 0.000795937143266201,
+          "endpoint_shift_m": 0.4874877631664276,
+          "traj_ade_m": 0.14015215635299683,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap merging right because a car is alongside in the right lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " vehicle",
+          "token_prob": 0.004510264843702316,
+          "d_curvature_mean": 0.000337687146384269,
+          "d_curvature_max": 0.0007704249583184719,
+          "endpoint_shift_m": 0.42735937237739563,
+          "traj_ade_m": 0.12488006055355072,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap vehicle in the right lane because it is blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.003404526738449931,
+          "d_curvature_mean": 0.0006585171213373542,
+          "d_curvature_max": 0.0012653348967432976,
+          "endpoint_shift_m": 0.767324686050415,
+          "traj_ade_m": 0.20294910669326782,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap stopped for a right lane change because a car is alongside in the right lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": "-in",
+      "sampled_prob": 0.9994377493858337,
+      "entropy": 0.005527419503778219,
+      "alternatives": [
+        {
+          "token": " in",
+          "token_prob": 0.0003799152618739754,
+          "d_curvature_mean": 0.00037207105197012424,
+          "d_curvature_max": 0.00080103799700737,
+          "endpoint_shift_m": 0.45240911841392517,
+          "traj_ade_m": 0.13128171861171722,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because in our lane, a car is alongside blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "\u2011",
+          "token_prob": 0.00011954562796745449,
+          "d_curvature_mean": 0.0003222295781597495,
+          "d_curvature_max": 0.0007143015973269939,
+          "endpoint_shift_m": 0.3437274396419525,
+          "traj_ade_m": 0.1028258204460144,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because\u2011a car is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 2.4287168344017118e-05,
+          "d_curvature_mean": 0.000375246861949563,
+          "d_curvature_max": 0.000989818014204502,
+          "endpoint_shift_m": 0.709324061870575,
+          "traj_ade_m": 0.24651332199573517,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because into the right lane is blocked by stopped vehicles and a car is pulling out ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 1.2672170441874187e-06,
+          "d_curvature_mean": 0.0004548716824501753,
+          "d_curvature_max": 0.0009183879010379314,
+          "endpoint_shift_m": 0.5345188975334167,
+          "traj_ade_m": 0.14411762356758118,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because to merge right into the right-turn lane ahead since a car is alongside in that lane blocking an immediate merge"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9513594508171082,
+      "entropy": 0.23181308805942535,
+      "alternatives": [
+        {
+          "token": " lead",
+          "token_prob": 0.041799817234277725,
+          "d_curvature_mean": 0.0003413716913200915,
+          "d_curvature_max": 0.0008979802951216698,
+          "endpoint_shift_m": 0.3765794038772583,
+          "traj_ade_m": 0.09126982092857361,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a lead car is occupying the adjacent right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " pickup",
+          "token_prob": 0.0019550034776329994,
+          "d_curvature_mean": 0.00036324572283774614,
+          "d_curvature_max": 0.0009183883666992188,
+          "endpoint_shift_m": 0.4479995667934418,
+          "traj_ade_m": 0.13161569833755493,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a pickup is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " SUV",
+          "token_prob": 0.001223409897647798,
+          "d_curvature_mean": 0.0004599283856805414,
+          "d_curvature_max": 0.001040840521454811,
+          "endpoint_shift_m": 0.5905396938323975,
+          "traj_ade_m": 0.17507846653461456,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a SUV is merging from the right into our lane blocking our path for a right-lane change"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " car",
+          "token_prob": 0.0010142425308004022,
+          "d_curvature_mean": 0.00036452000495046377,
+          "d_curvature_max": 0.0008775703608989716,
+          "endpoint_shift_m": 0.4312317371368408,
+          "traj_ade_m": 0.12113330513238907,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " since",
+      "sampled_prob": 0.9940377473831177,
+      "entropy": 0.04655558988451958,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0016934624873101711,
+          "d_curvature_mean": 0.00033866323065012693,
+          "d_curvature_max": 0.0008571622893214226,
+          "endpoint_shift_m": 0.34311750531196594,
+          "traj_ade_m": 0.09285947680473328,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car from behind is occupying the adjacent right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0015908607747405767,
+          "d_curvature_mean": 0.0003290704626124352,
+          "d_curvature_max": 0.0008775722235441208,
+          "endpoint_shift_m": 0.40727898478507996,
+          "traj_ade_m": 0.12448703497648239,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car because it is alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0014039296656847,
+          "d_curvature_mean": 0.00030879504629410803,
+          "d_curvature_max": 0.0007959362119436264,
+          "endpoint_shift_m": 0.26632651686668396,
+          "traj_ade_m": 0.05906594544649124,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car ahead is occupying the adjacent right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merging",
+          "token_prob": 0.0005164768663235009,
+          "d_curvature_mean": 0.00044358742889016867,
+          "d_curvature_max": 0.0009438991546630859,
+          "endpoint_shift_m": 0.5983310341835022,
+          "traj_ade_m": 0.17481514811515808,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car merging into our lane from the right blocks an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " it",
+      "sampled_prob": 0.9988081455230713,
+      "entropy": 0.009421806782484055,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.0011694841086864471,
+          "d_curvature_mean": 0.00029339073807932436,
+          "d_curvature_max": 0.000622462248429656,
+          "endpoint_shift_m": 0.22199656069278717,
+          "traj_ade_m": 0.058345258235931396,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is a short distance ahead in our left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " they",
+          "token_prob": 3.0858216177875875e-06,
+          "d_curvature_mean": 0.0004312157107051462,
+          "d_curvature_max": 0.0011224746704101562,
+          "endpoint_shift_m": 0.4774901568889618,
+          "traj_ade_m": 0.1286650449037552,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is they are alongside in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.5582360194675857e-06,
+          "d_curvature_mean": 0.0004787979705724865,
+          "d_curvature_max": 0.0012245168909430504,
+          "endpoint_shift_m": 0.44195428490638733,
+          "traj_ade_m": 0.10035854578018188,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is the lead vehicle in our right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " we",
+          "token_prob": 2.1208522866800195e-06,
+          "d_curvature_mean": 0.00034175909240730107,
+          "d_curvature_max": 0.0009183883666992188,
+          "endpoint_shift_m": 0.3453206717967987,
+          "traj_ade_m": 0.09116724878549576,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is weering out from the right and blocking our merge into the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " merges",
+      "sampled_prob": 0.9662606120109558,
+      "entropy": 0.20184166729450226,
+      "alternatives": [
+        {
+          "token": " is",
+          "token_prob": 0.024189863353967667,
+          "d_curvature_mean": 0.0003606287355069071,
+          "d_curvature_max": 0.000857161357998848,
+          "endpoint_shift_m": 0.45877811312675476,
+          "traj_ade_m": 0.13953104615211487,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside is blocking an immediate merge to the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merged",
+          "token_prob": 0.0050704702734947205,
+          "d_curvature_mean": 0.0004197138478048146,
+          "d_curvature_max": 0.0009592054411768913,
+          "endpoint_shift_m": 0.5111023187637329,
+          "traj_ade_m": 0.14309000968933105,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside merged into our lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.0008540066191926599,
+          "d_curvature_mean": 0.0004648658214136958,
+          "d_curvature_max": 0.0011428818106651306,
+          "endpoint_shift_m": 0.4816494584083557,
+          "traj_ade_m": 0.1203656941652298,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside has merged into our right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " merge",
+          "token_prob": 0.00023714907001703978,
+          "d_curvature_mean": 0.00037663502735085785,
+          "d_curvature_max": 0.0008571622893214226,
+          "endpoint_shift_m": 0.43362146615982056,
+          "traj_ade_m": 0.11955279111862183,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside merge into our lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " into",
+      "sampled_prob": 0.9659482836723328,
+      "entropy": 0.17728003859519958,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.01769196055829525,
+          "d_curvature_mean": 0.00042923117871396244,
+          "d_curvature_max": 0.00106124859303236,
+          "endpoint_shift_m": 0.45926952362060547,
+          "traj_ade_m": 0.11870832741260529,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in from behind in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.015613099560141563,
+          "d_curvature_mean": 0.0004443620564416051,
+          "d_curvature_max": 0.0008979784324765205,
+          "endpoint_shift_m": 0.5723174810409546,
+          "traj_ade_m": 0.16515593230724335,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in ahead of our intended merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slowly",
+          "token_prob": 0.0002771657018456608,
+          "d_curvature_mean": 0.000574922130908817,
+          "d_curvature_max": 0.0013265600427985191,
+          "endpoint_shift_m": 0.69688880443573,
+          "traj_ade_m": 0.19022294878959656,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in slowly moving traffic in the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " out",
+          "token_prob": 0.00015306544082704931,
+          "d_curvature_mean": 0.00038202418363653123,
+          "d_curvature_max": 0.0008775722235441208,
+          "endpoint_shift_m": 0.4663560688495636,
+          "traj_ade_m": 0.1331394761800766,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in out-of-lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " our",
+      "sampled_prob": 0.9998283386230469,
+      "entropy": 0.0016897175228223205,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.00016865224461071193,
+          "d_curvature_mean": 0.0003479151055216789,
+          "d_curvature_max": 0.0008571632206439972,
+          "endpoint_shift_m": 0.41004645824432373,
+          "traj_ade_m": 0.11493687331676483,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the the right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " my",
+          "token_prob": 4.5913495227978274e-07,
+          "d_curvature_mean": 0.00035276933340355754,
+          "d_curvature_max": 0.0008979802951216698,
+          "endpoint_shift_m": 0.3757087290287018,
+          "traj_ade_m": 0.09376092255115509,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the my right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " your",
+          "token_prob": 4.180471364634286e-07,
+          "d_curvature_mean": 0.00039152943645603955,
+          "d_curvature_max": 0.000979614444077015,
+          "endpoint_shift_m": 0.38111966848373413,
+          "traj_ade_m": 0.08960135281085968,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the your right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 2.8731929546665924e-07,
+          "d_curvature_mean": 0.00039586806087754667,
+          "d_curvature_max": 0.0007959364447742701,
+          "endpoint_shift_m": 0.5107079148292542,
+          "traj_ade_m": 0.14324748516082764,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the and blocking our right lane to merge right into the main traffic lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " lane",
+      "sampled_prob": 0.9996331930160522,
+      "entropy": 0.003928143531084061,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.00016343145398423076,
+          "d_curvature_mean": 0.0004076639888808131,
+          "d_curvature_max": 0.0010000234469771385,
+          "endpoint_shift_m": 0.4376761317253113,
+          "traj_ade_m": 0.11086079478263855,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right right lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.0001442277425667271,
+          "d_curvature_mean": 0.0003648650017566979,
+          "d_curvature_max": 0.0008979793637990952,
+          "endpoint_shift_m": 0.4064231514930725,
+          "traj_ade_m": 0.11174771189689636,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right path blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ego",
+          "token_prob": 9.814822078624275e-06,
+          "d_curvature_mean": 0.0003706177813000977,
+          "d_curvature_max": 0.0009183883666992188,
+          "endpoint_shift_m": 0.39990854263305664,
+          "traj_ade_m": 0.104728102684021,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right ego lane blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " left",
+          "token_prob": 5.592317393166013e-06,
+          "d_curvature_mean": 0.00030289817368611693,
+          "d_curvature_max": 0.0006428712513297796,
+          "endpoint_shift_m": 0.23190945386886597,
+          "traj_ade_m": 0.05408351868391037,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right left lane blocking an immediate merge to the left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "col": 3099,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9920039772987366,
+      "entropy": 0.05782342702150345,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.004315560217946768,
+          "d_curvature_mean": 0.00024979907902888954,
+          "d_curvature_max": 0.0006275651976466179,
+          "endpoint_shift_m": 0.5558658242225647,
+          "traj_ade_m": 0.19643338024616241,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 0.0024589321110397577,
+          "d_curvature_mean": 0.00044444616651162505,
+          "d_curvature_max": 0.0010816575959324837,
+          "endpoint_shift_m": 0.5265902876853943,
+          "traj_ade_m": 0.14628379046916962,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane from behind blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.00031261815456673503,
+          "d_curvature_mean": 0.0003875273105222732,
+          "d_curvature_max": 0.0009285924024879932,
+          "endpoint_shift_m": 0.7009172439575195,
+          "traj_ade_m": 0.24393346905708313,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " directly",
+          "token_prob": 0.00015235789760481566,
+          "d_curvature_mean": 0.00046665914123877883,
+          "d_curvature_max": 0.0011224737390875816,
+          "endpoint_shift_m": 0.5212435126304626,
+          "traj_ade_m": 0.13657082617282867,
+          "forced_cot": {
+            "cot": [
+              "Wait for a gap because a car is alongside in the right lane directly blocking an immediate merge to the right"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

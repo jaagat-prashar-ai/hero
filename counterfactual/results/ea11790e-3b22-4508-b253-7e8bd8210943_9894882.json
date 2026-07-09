@@ -1,0 +1,2212 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Turn left to avoid the barricades blocking the lane ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 11,
+    "mean_entropy": 0.8870776183479889,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Turn",
+        "sampled_prob": 0.5486114621162415,
+        "entropy": 1.4906378984451294,
+        "top_k": [
+          {
+            "text": "Turn",
+            "prob": 0.5486114621162415
+          },
+          {
+            "text": "N",
+            "prob": 0.16731703281402588
+          },
+          {
+            "text": "Change",
+            "prob": 0.1571798175573349
+          },
+          {
+            "text": "Ad",
+            "prob": 0.05431988835334778
+          },
+          {
+            "text": "Lane",
+            "prob": 0.03095054067671299
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " left",
+        "sampled_prob": 0.5466592907905579,
+        "entropy": 0.6906881332397461,
+        "top_k": [
+          {
+            "text": " left",
+            "prob": 0.5466592907905579
+          },
+          {
+            "text": " right",
+            "prob": 0.4531964957714081
+          },
+          {
+            "text": " to",
+            "prob": 6.337573722703382e-05
+          },
+          {
+            "text": " for",
+            "prob": 3.5754142118094023e-06
+          },
+          {
+            "text": " lane",
+            "prob": 2.3448139927495504e-06
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " to",
+        "sampled_prob": 0.2067851424217224,
+        "entropy": 0.8788813352584839,
+        "top_k": [
+          {
+            "text": " at",
+            "prob": 0.7217510342597961
+          },
+          {
+            "text": " to",
+            "prob": 0.2067851424217224
+          },
+          {
+            "text": " because",
+            "prob": 0.031711529940366745
+          },
+          {
+            "text": " since",
+            "prob": 0.011307093314826488
+          },
+          {
+            "text": " into",
+            "prob": 0.009373909793794155
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " avoid",
+        "sampled_prob": 0.06321337819099426,
+        "entropy": 2.3503928184509277,
+        "top_k": [
+          {
+            "text": " navigate",
+            "prob": 0.31114715337753296
+          },
+          {
+            "text": " follow",
+            "prob": 0.2348661869764328
+          },
+          {
+            "text": " bypass",
+            "prob": 0.1380707174539566
+          },
+          {
+            "text": " enter",
+            "prob": 0.0837441235780716
+          },
+          {
+            "text": " avoid",
+            "prob": 0.06321337819099426
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " the",
+        "sampled_prob": 0.9813724756240845,
+        "entropy": 0.12680819630622864,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9813724756240845
+          },
+          {
+            "text": " construction",
+            "prob": 0.008229309692978859
+          },
+          {
+            "text": " road",
+            "prob": 0.0037676524370908737
+          },
+          {
+            "text": " entering",
+            "prob": 0.0034304866567254066
+          },
+          {
+            "text": " barric",
+            "prob": 0.0015705912373960018
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " barric",
+        "sampled_prob": 0.30425962805747986,
+        "entropy": 1.7204331159591675,
+        "top_k": [
+          {
+            "text": " construction",
+            "prob": 0.30425962805747986
+          },
+          {
+            "text": " barric",
+            "prob": 0.30425962805747986
+          },
+          {
+            "text": " road",
+            "prob": 0.22260108590126038
+          },
+          {
+            "text": " closed",
+            "prob": 0.08189036697149277
+          },
+          {
+            "text": " blocked",
+            "prob": 0.02830055169761181
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": "ades",
+        "sampled_prob": 0.4976273775100708,
+        "entropy": 0.7699124813079834,
+        "top_k": [
+          {
+            "text": "ade",
+            "prob": 0.4976273775100708
+          },
+          {
+            "text": "ades",
+            "prob": 0.4976273775100708
+          },
+          {
+            "text": "ard",
+            "prob": 0.0003217763442080468
+          },
+          {
+            "text": "rian",
+            "prob": 5.4195985285332426e-05
+          },
+          {
+            "text": " bin",
+            "prob": 2.811650665535126e-05
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " blocking",
+        "sampled_prob": 0.9997001886367798,
+        "entropy": 0.0029627936892211437,
+        "top_k": [
+          {
+            "text": " blocking",
+            "prob": 0.9997001886367798
+          },
+          {
+            "text": " closing",
+            "prob": 0.00026118019013665617
+          },
+          {
+            "text": " that",
+            "prob": 1.078019522537943e-05
+          },
+          {
+            "text": " and",
+            "prob": 7.886958883318584e-06
+          },
+          {
+            "text": " at",
+            "prob": 5.0922035370604135e-06
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " the",
+        "sampled_prob": 0.9964003562927246,
+        "entropy": 0.03083816170692444,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9964003562927246
+          },
+          {
+            "text": " our",
+            "prob": 0.0021796170622110367
+          },
+          {
+            "text": " straight",
+            "prob": 0.000517704407684505
+          },
+          {
+            "text": " a",
+            "prob": 0.0001483247906435281
+          },
+          {
+            "text": " road",
+            "prob": 0.00013505126116797328
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " lane",
+        "sampled_prob": 0.5557277202606201,
+        "entropy": 1.6282966136932373,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.5557277202606201
+          },
+          {
+            "text": " through",
+            "prob": 0.18041837215423584
+          },
+          {
+            "text": " straight",
+            "prob": 0.058573268353939056
+          },
+          {
+            "text": " road",
+            "prob": 0.05502449348568916
+          },
+          {
+            "text": " right",
+            "prob": 0.05010037124156952
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " ahead",
+        "sampled_prob": 0.9888408780097961,
+        "entropy": 0.06800225377082825,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9888408780097961
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.009694254957139492
+          },
+          {
+            "text": ".",
+            "prob": 0.0007475406746380031
+          },
+          {
+            "text": " since",
+            "prob": 0.00031162131926976144
+          },
+          {
+            "text": " at",
+            "prob": 0.0002503947471268475
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.5486114621162415,
+      "entropy": 1.4906378984451294,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.16731703281402588,
+          "d_curvature_mean": 0.0025288749020546675,
+          "d_curvature_max": 0.005306258797645569,
+          "endpoint_shift_m": 0.5215681791305542,
+          "traj_ade_m": 0.19788385927677155,
+          "forced_cot": {
+            "cot": [
+              "N left to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.1571798175573349,
+          "d_curvature_mean": 0.0011748169781640172,
+          "d_curvature_max": 0.0029388219118118286,
+          "endpoint_shift_m": 0.29919129610061646,
+          "traj_ade_m": 0.10042576491832733,
+          "forced_cot": {
+            "cot": [
+              "Change left to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.05431988835334778,
+          "d_curvature_mean": 0.0012163586216047406,
+          "d_curvature_max": 0.003428637981414795,
+          "endpoint_shift_m": 0.2212289571762085,
+          "traj_ade_m": 0.08438083529472351,
+          "forced_cot": {
+            "cot": [
+              "Ad left to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.03095054067671299,
+          "d_curvature_mean": 0.0017284122295677662,
+          "d_curvature_max": 0.0045715272426605225,
+          "endpoint_shift_m": 0.3882427513599396,
+          "traj_ade_m": 0.14632290601730347,
+          "forced_cot": {
+            "cot": [
+              "Lane left to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " left",
+      "sampled_prob": 0.5466592907905579,
+      "entropy": 0.6906881332397461,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.4531964957714081,
+          "d_curvature_mean": 0.0015595692675560713,
+          "d_curvature_max": 0.003510288894176483,
+          "endpoint_shift_m": 0.5531615018844604,
+          "traj_ade_m": 0.17948749661445618,
+          "forced_cot": {
+            "cot": [
+              "Turn right to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 6.337573722703382e-05,
+          "d_curvature_mean": 0.0012920410372316837,
+          "d_curvature_max": 0.002857223153114319,
+          "endpoint_shift_m": 0.43966150283813477,
+          "traj_ade_m": 0.14344772696495056,
+          "forced_cot": {
+            "cot": [
+              "Turn to to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.5754142118094023e-06,
+          "d_curvature_mean": 0.0014498287346214056,
+          "d_curvature_max": 0.003265380859375,
+          "endpoint_shift_m": 0.5770586729049683,
+          "traj_ade_m": 0.19177477061748505,
+          "forced_cot": {
+            "cot": [
+              "Turn for to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 2.3448139927495504e-06,
+          "d_curvature_mean": 0.0014922113623470068,
+          "d_curvature_max": 0.0031837522983551025,
+          "endpoint_shift_m": 0.7348260283470154,
+          "traj_ade_m": 0.21696314215660095,
+          "forced_cot": {
+            "cot": [
+              "Turn lane to avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.2067851424217224,
+      "entropy": 0.8788813352584839,
+      "alternatives": [
+        {
+          "token": " at",
+          "token_prob": 0.7217510342597961,
+          "d_curvature_mean": 9.826519817579538e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.07096696645021439,
+          "traj_ade_m": 0.016408519819378853,
+          "forced_cot": {
+            "cot": [
+              "Turn left at avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.031711529940366745,
+          "d_curvature_mean": 0.0002990874054376036,
+          "d_curvature_max": 0.0008163601160049438,
+          "endpoint_shift_m": 0.06597624719142914,
+          "traj_ade_m": 0.023003987967967987,
+          "forced_cot": {
+            "cot": [
+              "Turn left because avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.011307093314826488,
+          "d_curvature_mean": 0.0007709425990469754,
+          "d_curvature_max": 0.0017143264412879944,
+          "endpoint_shift_m": 0.31418073177337646,
+          "traj_ade_m": 0.08921317756175995,
+          "forced_cot": {
+            "cot": [
+              "Turn left since avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.009373909793794155,
+          "d_curvature_mean": 0.00018018699483945966,
+          "d_curvature_max": 0.00040818750858306885,
+          "endpoint_shift_m": 0.040567025542259216,
+          "traj_ade_m": 0.02088390290737152,
+          "forced_cot": {
+            "cot": [
+              "Turn left into avoid the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " avoid",
+      "sampled_prob": 0.06321337819099426,
+      "entropy": 2.3503928184509277,
+      "alternatives": [
+        {
+          "token": " navigate",
+          "token_prob": 0.31114715337753296,
+          "d_curvature_mean": 0.0005675383727066219,
+          "d_curvature_max": 0.001224525272846222,
+          "endpoint_shift_m": 0.11464476585388184,
+          "traj_ade_m": 0.030222781002521515,
+          "forced_cot": {
+            "cot": [
+              "Turn left to navigate the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.2348661869764328,
+          "d_curvature_mean": 0.0005747571121901274,
+          "d_curvature_max": 0.00138777494430542,
+          "endpoint_shift_m": 0.088795505464077,
+          "traj_ade_m": 0.017407426610589027,
+          "forced_cot": {
+            "cot": [
+              "Turn left to follow the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bypass",
+          "token_prob": 0.1380707174539566,
+          "d_curvature_mean": 0.00022993111633695662,
+          "d_curvature_max": 0.0005714595317840576,
+          "endpoint_shift_m": 0.08596711605787277,
+          "traj_ade_m": 0.033502012491226196,
+          "forced_cot": {
+            "cot": [
+              "Turn left to bypass the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.0837441235780716,
+          "d_curvature_mean": 0.0004660898703150451,
+          "d_curvature_max": 0.0011429041624069214,
+          "endpoint_shift_m": 0.20189112424850464,
+          "traj_ade_m": 0.0550493448972702,
+          "forced_cot": {
+            "cot": [
+              "Turn left to enter the barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.9813724756240845,
+      "entropy": 0.12680819630622864,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.008229309692978859,
+          "d_curvature_mean": 0.0004029731499031186,
+          "d_curvature_max": 0.0010204315185546875,
+          "endpoint_shift_m": 0.08050835877656937,
+          "traj_ade_m": 0.022873522713780403,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid construction barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.0037676524370908737,
+          "d_curvature_mean": 0.00015729322331026196,
+          "d_curvature_max": 0.0005714520812034607,
+          "endpoint_shift_m": 0.05844529718160629,
+          "traj_ade_m": 0.019438158720731735,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid road barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.0034304866567254066,
+          "d_curvature_mean": 0.00030206041992641985,
+          "d_curvature_max": 0.0007347166538238525,
+          "endpoint_shift_m": 0.08515826612710953,
+          "traj_ade_m": 0.030019233003258705,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid entering barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.0015705912373960018,
+          "d_curvature_mean": 0.00047798670129850507,
+          "d_curvature_max": 0.0012653470039367676,
+          "endpoint_shift_m": 0.1534690409898758,
+          "traj_ade_m": 0.03331536427140236,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid barric barricades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " barric",
+      "sampled_prob": 0.30425962805747986,
+      "entropy": 1.7204331159591675,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.30425962805747986,
+          "d_curvature_mean": 0.00027119979495182633,
+          "d_curvature_max": 0.0007347166538238525,
+          "endpoint_shift_m": 0.04875662922859192,
+          "traj_ade_m": 0.02388160489499569,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the constructionades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.22260108590126038,
+          "d_curvature_mean": 0.00034952780697494745,
+          "d_curvature_max": 0.0009796246886253357,
+          "endpoint_shift_m": 0.11463567614555359,
+          "traj_ade_m": 0.0392913781106472,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the roadades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " closed",
+          "token_prob": 0.08189036697149277,
+          "d_curvature_mean": 0.00043119245674461126,
+          "d_curvature_max": 0.0011428818106651306,
+          "endpoint_shift_m": 0.13456641137599945,
+          "traj_ade_m": 0.04652958735823631,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the closedades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocked",
+          "token_prob": 0.02830055169761181,
+          "d_curvature_mean": 0.00037489511305466294,
+          "d_curvature_max": 0.0010612532496452332,
+          "endpoint_shift_m": 0.14616389572620392,
+          "traj_ade_m": 0.04685412719845772,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the blockedades blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": "ades",
+      "sampled_prob": 0.4976273775100708,
+      "entropy": 0.7699124813079834,
+      "alternatives": [
+        {
+          "token": "ade",
+          "token_prob": 0.4976273775100708,
+          "d_curvature_mean": 0.0002341981016797945,
+          "d_curvature_max": 0.0006530731916427612,
+          "endpoint_shift_m": 0.04846244677901268,
+          "traj_ade_m": 0.011010255664587021,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricade blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ard",
+          "token_prob": 0.0003217763442080468,
+          "d_curvature_mean": 0.00013106039841659367,
+          "d_curvature_max": 0.000408172607421875,
+          "endpoint_shift_m": 0.03323959931731224,
+          "traj_ade_m": 0.0082264868542552,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricard blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "rian",
+          "token_prob": 5.4195985285332426e-05,
+          "d_curvature_mean": 0.00019403427722863853,
+          "d_curvature_max": 0.0004898011684417725,
+          "endpoint_shift_m": 0.03871235251426697,
+          "traj_ade_m": 0.01613803207874298,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricrian blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bin",
+          "token_prob": 2.811650665535126e-05,
+          "d_curvature_mean": 0.00019356592383701354,
+          "d_curvature_max": 0.00044899433851242065,
+          "endpoint_shift_m": 0.07235933095216751,
+          "traj_ade_m": 0.01670532301068306,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barric bin blocking the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9997001886367798,
+      "entropy": 0.0029627936892211437,
+      "alternatives": [
+        {
+          "token": " closing",
+          "token_prob": 0.00026118019013665617,
+          "d_curvature_mean": 0.00018360295507591218,
+          "d_curvature_max": 0.0005714595317840576,
+          "endpoint_shift_m": 0.05421740561723709,
+          "traj_ade_m": 0.018135223537683487,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades closing the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 1.078019522537943e-05,
+          "d_curvature_mean": 0.00016065716044977307,
+          "d_curvature_max": 0.0004082024097442627,
+          "endpoint_shift_m": 0.08649858087301254,
+          "traj_ade_m": 0.01931648701429367,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades that the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 7.886958883318584e-06,
+          "d_curvature_mean": 0.00027396524092182517,
+          "d_curvature_max": 0.0009796321392059326,
+          "endpoint_shift_m": 0.0781775563955307,
+          "traj_ade_m": 0.03659265860915184,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades and the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 5.0922035370604135e-06,
+          "d_curvature_mean": 8.500659168930724e-05,
+          "d_curvature_max": 0.00024490058422088623,
+          "endpoint_shift_m": 0.015933042392134666,
+          "traj_ade_m": 0.003881185781210661,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades at the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9964003562927246,
+      "entropy": 0.03083816170692444,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0021796170622110367,
+          "d_curvature_mean": 0.0005300082266330719,
+          "d_curvature_max": 0.0015102550387382507,
+          "endpoint_shift_m": 0.16653577983379364,
+          "traj_ade_m": 0.06407931447029114,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 0.000517704407684505,
+          "d_curvature_mean": 0.00010160264355363324,
+          "d_curvature_max": 0.0003265365958213806,
+          "endpoint_shift_m": 0.03591408580541611,
+          "traj_ade_m": 0.011388353072106838,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking straight lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0001483247906435281,
+          "d_curvature_mean": 0.0003561835619620979,
+          "d_curvature_max": 0.0008163601160049438,
+          "endpoint_shift_m": 0.05423501506447792,
+          "traj_ade_m": 0.027671819552779198,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking a lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.00013505126116797328,
+          "d_curvature_mean": 0.00017307334928773344,
+          "d_curvature_max": 0.0004081800580024719,
+          "endpoint_shift_m": 0.06164722889661789,
+          "traj_ade_m": 0.01200215332210064,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking road lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.5557277202606201,
+      "entropy": 1.6282966136932373,
+      "alternatives": [
+        {
+          "token": " through",
+          "token_prob": 0.18041837215423584,
+          "d_curvature_mean": 0.00024035006936173886,
+          "d_curvature_max": 0.0007347166538238525,
+          "endpoint_shift_m": 0.09344922751188278,
+          "traj_ade_m": 0.028862882405519485,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the through ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 0.058573268353939056,
+          "d_curvature_mean": 9.245147521141917e-05,
+          "d_curvature_max": 0.0003265589475631714,
+          "endpoint_shift_m": 0.10701093822717667,
+          "traj_ade_m": 0.02868400514125824,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the straight ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.05502449348568916,
+          "d_curvature_mean": 0.00021094076510053128,
+          "d_curvature_max": 0.0004898160696029663,
+          "endpoint_shift_m": 0.057576488703489304,
+          "traj_ade_m": 0.021183719858527184,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.05010037124156952,
+          "d_curvature_mean": 0.00023054966004565358,
+          "d_curvature_max": 0.0004898235201835632,
+          "endpoint_shift_m": 0.08338971436023712,
+          "traj_ade_m": 0.023907160386443138,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9888408780097961,
+      "entropy": 0.06800225377082825,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.009694254957139492,
+          "d_curvature_mean": 0.002380981110036373,
+          "d_curvature_max": 0.005551159381866455,
+          "endpoint_shift_m": 0.5365992784500122,
+          "traj_ade_m": 0.17232248187065125,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0007475406746380031,
+          "d_curvature_mean": 0.0028090619016438723,
+          "d_curvature_max": 0.00759202241897583,
+          "endpoint_shift_m": 0.7241342663764954,
+          "traj_ade_m": 0.2722893953323364,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00031162131926976144,
+          "d_curvature_mean": 0.0010838962625712156,
+          "d_curvature_max": 0.002449050545692444,
+          "endpoint_shift_m": 0.4424456059932709,
+          "traj_ade_m": 0.13863512873649597,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the lane since"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0002503947471268475,
+          "d_curvature_mean": 0.0009307283326052129,
+          "d_curvature_max": 0.0022857561707496643,
+          "endpoint_shift_m": 0.32838985323905945,
+          "traj_ade_m": 0.10284477472305298,
+          "forced_cot": {
+            "cot": [
+              "Turn left to avoid the barricades blocking the lane at"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Turn",
+      "sampled_prob": 0.5486114621162415,
+      "entropy": 1.4906378984451294,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.16731703281402588,
+          "d_curvature_mean": 0.012791500426828861,
+          "d_curvature_max": 0.02849043905735016,
+          "endpoint_shift_m": 4.384951114654541,
+          "traj_ade_m": 1.4524686336517334,
+          "forced_cot": {
+            "cot": [
+              "Nudge left due to the construction barricades blocking the right side ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Change",
+          "token_prob": 0.1571798175573349,
+          "d_curvature_mean": 0.0035366290248930454,
+          "d_curvature_max": 0.011020660400390625,
+          "endpoint_shift_m": 0.9452511668205261,
+          "traj_ade_m": 0.45560288429260254,
+          "forced_cot": {
+            "cot": [
+              "Change lanes to the left and turn into the left side street due to construction barricades blocking the straight path, slowing to negotiate the narrow entrance and then proceeding once established in the new lane; monitor opposing traffic after entering the street but no immediate need to yield as it appears clear ahead."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.05431988835334778,
+          "d_curvature_mean": 0.004186137579381466,
+          "d_curvature_max": 0.010041043162345886,
+          "endpoint_shift_m": 1.3027946949005127,
+          "traj_ade_m": 0.4462367296218872,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Lane",
+          "token_prob": 0.03095054067671299,
+          "d_curvature_mean": 0.002495878841727972,
+          "d_curvature_max": 0.006530791521072388,
+          "endpoint_shift_m": 0.2772284150123596,
+          "traj_ade_m": 0.1952013522386551,
+          "forced_cot": {
+            "cot": [
+              "Lane change to the left and turn into the side street due to construction barricades blocking the through lane ahead; slow to negotiate the narrow entrance, then accelerate after clearing the work zone."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " left",
+      "sampled_prob": 0.5466592907905579,
+      "entropy": 0.6906881332397461,
+      "alternatives": [
+        {
+          "token": " right",
+          "token_prob": 0.4531964957714081,
+          "d_curvature_mean": 0.001983317080885172,
+          "d_curvature_max": 0.004326634109020233,
+          "endpoint_shift_m": 0.8406617641448975,
+          "traj_ade_m": 0.256004273891449,
+          "forced_cot": {
+            "cot": [
+              "Turn right at the intersection since construction barricades block the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " to",
+          "token_prob": 6.337573722703382e-05,
+          "d_curvature_mean": 0.0013507651165127754,
+          "d_curvature_max": 0.0027755796909332275,
+          "endpoint_shift_m": 0.42872706055641174,
+          "traj_ade_m": 0.14995896816253662,
+          "forced_cot": {
+            "cot": [
+              "Turn to the left because the right branch is closed by roadwork barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.5754142118094023e-06,
+          "d_curvature_mean": 0.000888905837200582,
+          "d_curvature_max": 0.0021224915981292725,
+          "endpoint_shift_m": 0.27507483959198,
+          "traj_ade_m": 0.07551179826259613,
+          "forced_cot": {
+            "cot": [
+              "Turn for the left turn since construction barricades block the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lane",
+          "token_prob": 2.3448139927495504e-06,
+          "d_curvature_mean": 0.004091924987733364,
+          "d_curvature_max": 0.011183932423591614,
+          "endpoint_shift_m": 0.4834304451942444,
+          "traj_ade_m": 0.3546113073825836,
+          "forced_cot": {
+            "cot": [
+              "Turn lane to the left due to roadwork blocking the through lane ahead; slow to negotiate the narrow entry, then accelerate once established in the left side street; no conflicting moving agents are present, only static obstacles to clear after the turn."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " to",
+      "sampled_prob": 0.2067851424217224,
+      "entropy": 0.8788813352584839,
+      "alternatives": [
+        {
+          "token": " at",
+          "token_prob": 0.7217510342597961,
+          "d_curvature_mean": 0.0011873765615746379,
+          "d_curvature_max": 0.002938833087682724,
+          "endpoint_shift_m": 0.555021345615387,
+          "traj_ade_m": 0.16214951872825623,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades block the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.031711529940366745,
+          "d_curvature_mean": 0.000645497755613178,
+          "d_curvature_max": 0.0012653470039367676,
+          "endpoint_shift_m": 0.07565080374479294,
+          "traj_ade_m": 0.03537854552268982,
+          "forced_cot": {
+            "cot": [
+              "Turn left because construction barricades block the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.011307093314826488,
+          "d_curvature_mean": 0.0005072653875686228,
+          "d_curvature_max": 0.0008979737758636475,
+          "endpoint_shift_m": 0.2599349021911621,
+          "traj_ade_m": 0.07132065296173096,
+          "forced_cot": {
+            "cot": [
+              "Turn left since construction barricades block the right branch ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " into",
+          "token_prob": 0.009373909793794155,
+          "d_curvature_mean": 0.004110089968889952,
+          "d_curvature_max": 0.0114288330078125,
+          "endpoint_shift_m": 0.9069893956184387,
+          "traj_ade_m": 0.4421900510787964,
+          "forced_cot": {
+            "cot": [
+              "Turn left into the side street because the main road bends left and is narrowed by construction barricades, requiring a slow, precise entry; with no conflicting traffic, complete the left lane change and then accelerate once aligned with the new lane."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " avoid",
+      "sampled_prob": 0.06321337819099426,
+      "entropy": 2.3503928184509277,
+      "alternatives": [
+        {
+          "token": " navigate",
+          "token_prob": 0.31114715337753296,
+          "d_curvature_mean": 0.0011277736630290747,
+          "d_curvature_max": 0.0027959756553173065,
+          "endpoint_shift_m": 0.3709627091884613,
+          "traj_ade_m": 0.1033688634634018,
+          "forced_cot": {
+            "cot": [
+              "Turn left at navigate because construction barricades block the straight path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " follow",
+          "token_prob": 0.2348661869764328,
+          "d_curvature_mean": 0.0016927904216572642,
+          "d_curvature_max": 0.004081711173057556,
+          "endpoint_shift_m": 0.572826623916626,
+          "traj_ade_m": 0.1504949927330017,
+          "forced_cot": {
+            "cot": [
+              "Turn left at follow the keep-right sign since construction barricades close the right side of the intersection"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bypass",
+          "token_prob": 0.1380707174539566,
+          "d_curvature_mean": 0.00129293545614928,
+          "d_curvature_max": 0.0026123151183128357,
+          "endpoint_shift_m": 0.526915431022644,
+          "traj_ade_m": 0.15822716057300568,
+          "forced_cot": {
+            "cot": [
+              "Turn left at bypass since the road ahead is closed by barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " enter",
+          "token_prob": 0.0837441235780716,
+          "d_curvature_mean": 0.0026773905847221613,
+          "d_curvature_max": 0.005632780492305756,
+          "endpoint_shift_m": 0.7447900772094727,
+          "traj_ade_m": 0.22012436389923096,
+          "forced_cot": {
+            "cot": [
+              "Turn left at enter because the road bends left into a narrow lane with construction barricades ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " the",
+      "sampled_prob": 0.9813724756240845,
+      "entropy": 0.12680819630622864,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.008229309692978859,
+          "d_curvature_mean": 0.0006023513269610703,
+          "d_curvature_max": 0.0013061389327049255,
+          "endpoint_shift_m": 0.23641325533390045,
+          "traj_ade_m": 0.06645391136407852,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the construction detour since barricades block the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.0037676524370908737,
+          "d_curvature_mean": 0.0020838917698711157,
+          "d_curvature_max": 0.004653163254261017,
+          "endpoint_shift_m": 0.8150901794433594,
+          "traj_ade_m": 0.25929856300354004,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the road split since the right branch is closed by barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " entering",
+          "token_prob": 0.0034304866567254066,
+          "d_curvature_mean": 0.0026112948544323444,
+          "d_curvature_max": 0.005551151931285858,
+          "endpoint_shift_m": 0.8599559664726257,
+          "traj_ade_m": 0.28037554025650024,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the entering junction since the right branch is closed by barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.0015705912373960018,
+          "d_curvature_mean": 0.0009948976803570986,
+          "d_curvature_max": 0.002285778522491455,
+          "endpoint_shift_m": 0.5882274508476257,
+          "traj_ade_m": 0.17874401807785034,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the barricade since the right branch is closed by construction barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " barric",
+      "sampled_prob": 0.30425962805747986,
+      "entropy": 1.7204331159591675,
+      "alternatives": [
+        {
+          "token": " construction",
+          "token_prob": 0.30425962805747986,
+          "d_curvature_mean": 0.0019037724705412984,
+          "d_curvature_max": 0.004938885569572449,
+          "endpoint_shift_m": 0.7653000354766846,
+          "traj_ade_m": 0.2291392683982849,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection construction zone since the keep-left island directs left"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.22260108590126038,
+          "d_curvature_mean": 0.0006865981267765164,
+          "d_curvature_max": 0.0018163621425628662,
+          "endpoint_shift_m": 0.2559847831726074,
+          "traj_ade_m": 0.05785007029771805,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection roadwork barricade blocking the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " closed",
+          "token_prob": 0.08189036697149277,
+          "d_curvature_mean": 0.0007525758701376617,
+          "d_curvature_max": 0.0014286041259765625,
+          "endpoint_shift_m": 0.21390672028064728,
+          "traj_ade_m": 0.07072316110134125,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection closed to through traffic"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " blocked",
+          "token_prob": 0.02830055169761181,
+          "d_curvature_mean": 0.0005872976616956294,
+          "d_curvature_max": 0.0015510469675064087,
+          "endpoint_shift_m": 0.28429466485977173,
+          "traj_ade_m": 0.08831992000341415,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection blocked by construction barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": "ades",
+      "sampled_prob": 0.4976273775100708,
+      "entropy": 0.7699124813079834,
+      "alternatives": [
+        {
+          "token": "ade",
+          "token_prob": 0.4976273775100708,
+          "d_curvature_mean": 0.001248468877747655,
+          "d_curvature_max": 0.002979651093482971,
+          "endpoint_shift_m": 0.5287293791770935,
+          "traj_ade_m": 0.1508716493844986,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection sinceade barricades block the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "ard",
+          "token_prob": 0.0003217763442080468,
+          "d_curvature_mean": 0.001419881242327392,
+          "d_curvature_max": 0.0033061951398849487,
+          "endpoint_shift_m": 0.5650482177734375,
+          "traj_ade_m": 0.16288156807422638,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection sinceard barricades block the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "rian",
+          "token_prob": 5.4195985285332426e-05,
+          "d_curvature_mean": 0.000898761791177094,
+          "d_curvature_max": 0.0023469924926757812,
+          "endpoint_shift_m": 0.4652028977870941,
+          "traj_ade_m": 0.13090868294239044,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection sincerian barricades block the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bin",
+          "token_prob": 2.811650665535126e-05,
+          "d_curvature_mean": 0.0013996524503454566,
+          "d_curvature_max": 0.0034490562975406647,
+          "endpoint_shift_m": 0.6222261786460876,
+          "traj_ade_m": 0.1791505068540573,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since bin barricades block the road ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " blocking",
+      "sampled_prob": 0.9997001886367798,
+      "entropy": 0.0029627936892211437,
+      "alternatives": [
+        {
+          "token": " closing",
+          "token_prob": 0.00026118019013665617,
+          "d_curvature_mean": 0.001369235571473837,
+          "d_curvature_max": 0.003551095724105835,
+          "endpoint_shift_m": 0.6132513880729675,
+          "traj_ade_m": 0.18005217611789703,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction closing the right branch"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " that",
+          "token_prob": 1.078019522537943e-05,
+          "d_curvature_mean": 0.001405862858518958,
+          "d_curvature_max": 0.0034694671630859375,
+          "endpoint_shift_m": 0.5828232169151306,
+          "traj_ade_m": 0.1684093475341797,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction that blocks the straight path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 7.886958883318584e-06,
+          "d_curvature_mean": 0.0011325168889015913,
+          "d_curvature_max": 0.0030204802751541138,
+          "endpoint_shift_m": 0.42761263251304626,
+          "traj_ade_m": 0.1258460283279419,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction and a keep-left island block going straight"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 5.0922035370604135e-06,
+          "d_curvature_mean": 0.002068137750029564,
+          "d_curvature_max": 0.0051021575927734375,
+          "endpoint_shift_m": 0.9275715947151184,
+          "traj_ade_m": 0.2769632637500763,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction at the corner blocks the through path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " the",
+      "sampled_prob": 0.9964003562927246,
+      "entropy": 0.03083816170692444,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.0021796170622110367,
+          "d_curvature_mean": 0.0011713635176420212,
+          "d_curvature_max": 0.0025919079780578613,
+          "endpoint_shift_m": 0.4726855158805847,
+          "traj_ade_m": 0.132985457777977,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barric our lane blocks going straight"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 0.000517704407684505,
+          "d_curvature_mean": 0.0014739630278199911,
+          "d_curvature_max": 0.0034694597125053406,
+          "endpoint_shift_m": 0.6982853412628174,
+          "traj_ade_m": 0.20608167350292206,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barric straight ahead blocks the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.0001483247906435281,
+          "d_curvature_mean": 0.0011395125184208155,
+          "d_curvature_max": 0.002449043095111847,
+          "endpoint_shift_m": 0.4267321228981018,
+          "traj_ade_m": 0.12581895291805267,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barric a keep-left island blocks going straight"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.00013505126116797328,
+          "d_curvature_mean": 0.0013770280638709664,
+          "d_curvature_max": 0.003387823700904846,
+          "endpoint_shift_m": 0.6295652985572815,
+          "traj_ade_m": 0.18624049425125122,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barric roadwork blocks the through lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " lane",
+      "sampled_prob": 0.5557277202606201,
+      "entropy": 1.6282966136932373,
+      "alternatives": [
+        {
+          "token": " through",
+          "token_prob": 0.18041837215423584,
+          "d_curvature_mean": 0.00084623449947685,
+          "d_curvature_max": 0.0019592419266700745,
+          "endpoint_shift_m": 0.44459471106529236,
+          "traj_ade_m": 0.12323328852653503,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades through the intersection block going straight"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 0.058573268353939056,
+          "d_curvature_mean": 0.0010515408357605338,
+          "d_curvature_max": 0.0025918930768966675,
+          "endpoint_shift_m": 0.4634600877761841,
+          "traj_ade_m": 0.13365918397903442,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades straight ahead block the through lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.05502449348568916,
+          "d_curvature_mean": 0.0010744619648903608,
+          "d_curvature_max": 0.002346999943256378,
+          "endpoint_shift_m": 0.45318859815597534,
+          "traj_ade_m": 0.13438090682029724,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades roadwork block the right branch ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.05010037124156952,
+          "d_curvature_mean": 0.0011079675750806928,
+          "d_curvature_max": 0.003000061959028244,
+          "endpoint_shift_m": 0.7210872769355774,
+          "traj_ade_m": 0.2128239870071411,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades right-turn the lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9888408780097961,
+      "entropy": 0.06800225377082825,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.009694254957139492,
+          "d_curvature_mean": 0.0015744247939437628,
+          "d_curvature_max": 0.004081733524799347,
+          "endpoint_shift_m": 0.7022534012794495,
+          "traj_ade_m": 0.2175550013780594,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades block"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0007475406746380031,
+          "d_curvature_mean": 0.0020245222840458155,
+          "d_curvature_max": 0.005632773041725159,
+          "endpoint_shift_m": 0.24186137318611145,
+          "traj_ade_m": 0.1287982016801834,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades block."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00031162131926976144,
+          "d_curvature_mean": 0.0014418221544474363,
+          "d_curvature_max": 0.0029388442635536194,
+          "endpoint_shift_m": 0.48150694370269775,
+          "traj_ade_m": 0.15149429440498352,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades block since the through lane is closed"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.0002503947471268475,
+          "d_curvature_mean": 0.0012467075139284134,
+          "d_curvature_max": 0.00308169424533844,
+          "endpoint_shift_m": 0.5749755501747131,
+          "traj_ade_m": 0.17072272300720215,
+          "forced_cot": {
+            "cot": [
+              "Turn left at the intersection since construction barricades block at the through path ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

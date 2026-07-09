@@ -1,0 +1,2013 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Keep lane since the lane is narrowed by construction barriers"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 10,
+    "mean_entropy": 0.7082465477287769,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Keep",
+        "sampled_prob": 0.32985514402389526,
+        "entropy": 1.4320530891418457,
+        "top_k": [
+          {
+            "text": "N",
+            "prob": 0.42354241013526917
+          },
+          {
+            "text": "Keep",
+            "prob": 0.32985514402389526
+          },
+          {
+            "text": "Slow",
+            "prob": 0.12134693562984467
+          },
+          {
+            "text": "Ad",
+            "prob": 0.08083448559045792
+          },
+          {
+            "text": "Y",
+            "prob": 0.019199872389435768
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " lane",
+        "sampled_prob": 0.485016405582428,
+        "entropy": 0.8143215179443359,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.485016405582428
+          },
+          {
+            "text": " lane",
+            "prob": 0.485016405582428
+          },
+          {
+            "text": " at",
+            "prob": 0.02912749908864498
+          },
+          {
+            "text": " speed",
+            "prob": 0.00016786967171356082
+          },
+          {
+            "text": " straight",
+            "prob": 8.985416206996888e-05
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " since",
+        "sampled_prob": 0.8803443908691406,
+        "entropy": 0.43753504753112793,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.8803443908691406
+          },
+          {
+            "text": " to",
+            "prob": 0.09877189993858337
+          },
+          {
+            "text": " because",
+            "prob": 0.01716398447751999
+          },
+          {
+            "text": " through",
+            "prob": 0.0014089056057855487
+          },
+          {
+            "text": " as",
+            "prob": 0.0014089056057855487
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " the",
+        "sampled_prob": 0.8448943495750427,
+        "entropy": 0.6480861306190491,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.8448943495750427
+          },
+          {
+            "text": " no",
+            "prob": 0.07382604479789734
+          },
+          {
+            "text": " there",
+            "prob": 0.047665681689977646
+          },
+          {
+            "text": " construction",
+            "prob": 0.023967808112502098
+          },
+          {
+            "text": " a",
+            "prob": 0.003912637475878
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " lane",
+        "sampled_prob": 0.8188120126724243,
+        "entropy": 0.9262224435806274,
+        "top_k": [
+          {
+            "text": " lane",
+            "prob": 0.8188120126724243
+          },
+          {
+            "text": " roadway",
+            "prob": 0.03174878656864166
+          },
+          {
+            "text": " road",
+            "prob": 0.029825227335095406
+          },
+          {
+            "text": " right",
+            "prob": 0.028907600790262222
+          },
+          {
+            "text": " path",
+            "prob": 0.026320669800043106
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " is",
+        "sampled_prob": 0.9920559525489807,
+        "entropy": 0.05221683159470558,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9920559525489807
+          },
+          {
+            "text": " ahead",
+            "prob": 0.007115527987480164
+          },
+          {
+            "text": " bends",
+            "prob": 0.00031263454002328217
+          },
+          {
+            "text": " remains",
+            "prob": 9.534813580103219e-05
+          },
+          {
+            "text": " narrowing",
+            "prob": 2.8184857001178898e-05
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " narrowed",
+        "sampled_prob": 0.8079444169998169,
+        "entropy": 0.6247570514678955,
+        "top_k": [
+          {
+            "text": " narrowed",
+            "prob": 0.8079444169998169
+          },
+          {
+            "text": " clear",
+            "prob": 0.16935434937477112
+          },
+          {
+            "text": " constrained",
+            "prob": 0.010170519351959229
+          },
+          {
+            "text": " narrow",
+            "prob": 0.005794986616820097
+          },
+          {
+            "text": " un",
+            "prob": 0.00046104632201604545
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " by",
+        "sampled_prob": 0.9974414110183716,
+        "entropy": 0.026477400213479996,
+        "top_k": [
+          {
+            "text": " by",
+            "prob": 0.9974414110183716
+          },
+          {
+            "text": " and",
+            "prob": 0.00047186773736029863
+          },
+          {
+            "text": " but",
+            "prob": 0.000429640436777845
+          },
+          {
+            "text": " only",
+            "prob": 0.0003911920648533851
+          },
+          {
+            "text": " ahead",
+            "prob": 0.0001531930174678564
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " construction",
+        "sampled_prob": 0.828291118144989,
+        "entropy": 0.7586090564727783,
+        "top_k": [
+          {
+            "text": " construction",
+            "prob": 0.828291118144989
+          },
+          {
+            "text": " a",
+            "prob": 0.06387095898389816
+          },
+          {
+            "text": " roadside",
+            "prob": 0.05295087769627571
+          },
+          {
+            "text": " the",
+            "prob": 0.028342563658952713
+          },
+          {
+            "text": " barriers",
+            "prob": 0.00787044595927
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " barriers",
+        "sampled_prob": 0.7994579672813416,
+        "entropy": 1.3621869087219238,
+        "top_k": [
+          {
+            "text": " barriers",
+            "prob": 0.7994579672813416
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.028224319219589233
+          },
+          {
+            "text": " barric",
+            "prob": 0.022678878158330917
+          },
+          {
+            "text": " fences",
+            "prob": 0.02130483277142048
+          },
+          {
+            "text": " fencing",
+            "prob": 0.01558694988489151
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.32985514402389526,
+      "entropy": 1.4320530891418457,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.42354241013526917,
+          "d_curvature_mean": 0.00018695203470997512,
+          "d_curvature_max": 0.0005700066685676575,
+          "endpoint_shift_m": 0.4250585436820984,
+          "traj_ade_m": 0.16602540016174316,
+          "forced_cot": {
+            "cot": [
+              "N lane since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.12134693562984467,
+          "d_curvature_mean": 0.00011035853822249919,
+          "d_curvature_max": 0.00030102767050266266,
+          "endpoint_shift_m": 0.10438631474971771,
+          "traj_ade_m": 0.04189123213291168,
+          "forced_cot": {
+            "cot": [
+              "Slow lane since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.08083448559045792,
+          "d_curvature_mean": 0.00014467180881183594,
+          "d_curvature_max": 0.00028572138398885727,
+          "endpoint_shift_m": 0.10775275528430939,
+          "traj_ade_m": 0.03693179786205292,
+          "forced_cot": {
+            "cot": [
+              "Ad lane since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.019199872389435768,
+          "d_curvature_mean": 0.0002201907627750188,
+          "d_curvature_max": 0.0005000093951821327,
+          "endpoint_shift_m": 0.22471575438976288,
+          "traj_ade_m": 0.08216441422700882,
+          "forced_cot": {
+            "cot": [
+              "Y lane since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " lane",
+      "sampled_prob": 0.485016405582428,
+      "entropy": 0.8143215179443359,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 0.485016405582428,
+          "d_curvature_mean": 5.489576142281294e-05,
+          "d_curvature_max": 0.00017857737839221954,
+          "endpoint_shift_m": 0.25074318051338196,
+          "traj_ade_m": 0.09458145499229431,
+          "forced_cot": {
+            "cot": [
+              "Keep distance since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.02912749908864498,
+          "d_curvature_mean": 0.00010569624282652512,
+          "d_curvature_max": 0.00023438036441802979,
+          "endpoint_shift_m": 0.04354739934206009,
+          "traj_ade_m": 0.008294749073684216,
+          "forced_cot": {
+            "cot": [
+              "Keep at since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00016786967171356082,
+          "d_curvature_mean": 6.406997272279114e-05,
+          "d_curvature_max": 0.00020408770069479942,
+          "endpoint_shift_m": 0.09377364814281464,
+          "traj_ade_m": 0.019928717985749245,
+          "forced_cot": {
+            "cot": [
+              "Keep speed since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 8.985416206996888e-05,
+          "d_curvature_mean": 0.00021629108232446015,
+          "d_curvature_max": 0.00045249611139297485,
+          "endpoint_shift_m": 0.22527557611465454,
+          "traj_ade_m": 0.08113529533147812,
+          "forced_cot": {
+            "cot": [
+              "Keep straight since the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " since",
+      "sampled_prob": 0.8803443908691406,
+      "entropy": 0.43753504753112793,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.09877189993858337,
+          "d_curvature_mean": 8.952133066486567e-05,
+          "d_curvature_max": 0.00028572045266628265,
+          "endpoint_shift_m": 0.05098222568631172,
+          "traj_ade_m": 0.014114560559391975,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.01716398447751999,
+          "d_curvature_mean": 3.0600756872445345e-05,
+          "d_curvature_max": 0.00012452434748411179,
+          "endpoint_shift_m": 0.0819118544459343,
+          "traj_ade_m": 0.03506927937269211,
+          "forced_cot": {
+            "cot": [
+              "Keep lane because the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0014089056057855487,
+          "d_curvature_mean": 7.80240079620853e-05,
+          "d_curvature_max": 0.0002577388659119606,
+          "endpoint_shift_m": 0.3832969665527344,
+          "traj_ade_m": 0.1438489407300949,
+          "forced_cot": {
+            "cot": [
+              "Keep lane through the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.0014089056057855487,
+          "d_curvature_mean": 9.498119652562309e-06,
+          "d_curvature_max": 4.081800580024719e-05,
+          "endpoint_shift_m": 0.024816332384943962,
+          "traj_ade_m": 0.012076864019036293,
+          "forced_cot": {
+            "cot": [
+              "Keep lane as the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.8448943495750427,
+      "entropy": 0.6480861306190491,
+      "alternatives": [
+        {
+          "token": " no",
+          "token_prob": 0.07382604479789734,
+          "d_curvature_mean": 3.4946697269333526e-05,
+          "d_curvature_max": 0.00012165401130914688,
+          "endpoint_shift_m": 0.05914215371012688,
+          "traj_ade_m": 0.01722354255616665,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since no lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.047665681689977646,
+          "d_curvature_mean": 4.321271262597293e-05,
+          "d_curvature_max": 0.00015561655163764954,
+          "endpoint_shift_m": 0.1987895518541336,
+          "traj_ade_m": 0.08341193199157715,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since there lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 0.023967808112502098,
+          "d_curvature_mean": 0.00010439001198392361,
+          "d_curvature_max": 0.00026766490191221237,
+          "endpoint_shift_m": 0.27653253078460693,
+          "traj_ade_m": 0.10481035709381104,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since construction lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.003912637475878,
+          "d_curvature_mean": 2.566344483057037e-05,
+          "d_curvature_max": 8.163228631019592e-05,
+          "endpoint_shift_m": 0.15190181136131287,
+          "traj_ade_m": 0.0630502924323082,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since a lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lane",
+      "sampled_prob": 0.8188120126724243,
+      "entropy": 0.9262224435806274,
+      "alternatives": [
+        {
+          "token": " roadway",
+          "token_prob": 0.03174878656864166,
+          "d_curvature_mean": 1.9395578419789672e-05,
+          "d_curvature_max": 9.694229811429977e-05,
+          "endpoint_shift_m": 0.011892213486135006,
+          "traj_ade_m": 0.004812000319361687,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the roadway is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.029825227335095406,
+          "d_curvature_mean": 1.3745289834332652e-05,
+          "d_curvature_max": 5.114171653985977e-05,
+          "endpoint_shift_m": 0.029190124943852425,
+          "traj_ade_m": 0.010042787529528141,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the road is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.028907600790262222,
+          "d_curvature_mean": 3.756674050237052e-05,
+          "d_curvature_max": 0.00010794214904308319,
+          "endpoint_shift_m": 0.01714799366891384,
+          "traj_ade_m": 0.005329785402864218,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the right is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.026320669800043106,
+          "d_curvature_mean": 4.5136635890230536e-05,
+          "d_curvature_max": 0.00012053642421960831,
+          "endpoint_shift_m": 0.04936594143509865,
+          "traj_ade_m": 0.017125563696026802,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the path is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " is",
+      "sampled_prob": 0.9920559525489807,
+      "entropy": 0.05221683159470558,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.007115527987480164,
+          "d_curvature_mean": 2.2610616724705324e-05,
+          "d_curvature_max": 6.632879376411438e-05,
+          "endpoint_shift_m": 0.06946129351854324,
+          "traj_ade_m": 0.024524059146642685,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane ahead narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bends",
+          "token_prob": 0.00031263454002328217,
+          "d_curvature_mean": 8.702692139195278e-05,
+          "d_curvature_max": 0.0002959230914711952,
+          "endpoint_shift_m": 0.07509568333625793,
+          "traj_ade_m": 0.027303989976644516,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane bends narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 9.534813580103219e-05,
+          "d_curvature_mean": 3.200892751920037e-05,
+          "d_curvature_max": 0.00010786205530166626,
+          "endpoint_shift_m": 0.020275991410017014,
+          "traj_ade_m": 0.008801983669400215,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane remains narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 2.8184857001178898e-05,
+          "d_curvature_mean": 7.189127791207284e-05,
+          "d_curvature_max": 0.00023023225367069244,
+          "endpoint_shift_m": 0.17881278693675995,
+          "traj_ade_m": 0.06057697534561157,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane narrowing narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " narrowed",
+      "sampled_prob": 0.8079444169998169,
+      "entropy": 0.6247570514678955,
+      "alternatives": [
+        {
+          "token": " clear",
+          "token_prob": 0.16935434937477112,
+          "d_curvature_mean": 6.757522351108491e-05,
+          "d_curvature_max": 0.00016326643526554108,
+          "endpoint_shift_m": 0.03348246216773987,
+          "traj_ade_m": 0.011394982226192951,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " constrained",
+          "token_prob": 0.010170519351959229,
+          "d_curvature_mean": 2.677707379916683e-05,
+          "d_curvature_max": 8.5463747382164e-05,
+          "endpoint_shift_m": 0.040914386510849,
+          "traj_ade_m": 0.01581852324306965,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is constrained by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.005794986616820097,
+          "d_curvature_mean": 5.4531967180082574e-05,
+          "d_curvature_max": 0.00019388273358345032,
+          "endpoint_shift_m": 0.09356947988271713,
+          "traj_ade_m": 0.040574267506599426,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrow by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " un",
+          "token_prob": 0.00046104632201604545,
+          "d_curvature_mean": 4.693283335654996e-05,
+          "d_curvature_max": 0.00015378184616565704,
+          "endpoint_shift_m": 0.08592014014720917,
+          "traj_ade_m": 0.027448393404483795,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is un by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " by",
+      "sampled_prob": 0.9974414110183716,
+      "entropy": 0.026477400213479996,
+      "alternatives": [
+        {
+          "token": " and",
+          "token_prob": 0.00047186773736029863,
+          "d_curvature_mean": 3.9337272028205916e-05,
+          "d_curvature_max": 0.00016326922923326492,
+          "endpoint_shift_m": 0.03439164161682129,
+          "traj_ade_m": 0.01853635162115097,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed and construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " but",
+          "token_prob": 0.000429640436777845,
+          "d_curvature_mean": 3.584921796573326e-05,
+          "d_curvature_max": 0.0001031588762998581,
+          "endpoint_shift_m": 0.17020609974861145,
+          "traj_ade_m": 0.06220421940088272,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed but construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " only",
+          "token_prob": 0.0003911920648533851,
+          "d_curvature_mean": 0.00010190570901613683,
+          "d_curvature_max": 0.0002908194437623024,
+          "endpoint_shift_m": 0.15192313492298126,
+          "traj_ade_m": 0.05103081837296486,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed only construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0001531930174678564,
+          "d_curvature_mean": 8.813010936137289e-05,
+          "d_curvature_max": 0.00020918715745210648,
+          "endpoint_shift_m": 0.07334142178297043,
+          "traj_ade_m": 0.02182917669415474,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed ahead construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " construction",
+      "sampled_prob": 0.828291118144989,
+      "entropy": 0.7586090564727783,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.06387095898389816,
+          "d_curvature_mean": 3.777995516429655e-05,
+          "d_curvature_max": 0.00014286022633314133,
+          "endpoint_shift_m": 0.029065949842333794,
+          "traj_ade_m": 0.011485312134027481,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by a barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadside",
+          "token_prob": 0.05295087769627571,
+          "d_curvature_mean": 2.014536948991008e-05,
+          "d_curvature_max": 8.673779666423798e-05,
+          "endpoint_shift_m": 0.003940088674426079,
+          "traj_ade_m": 0.0036630076356232166,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by roadside barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.028342563658952713,
+          "d_curvature_mean": 4.5901550038252026e-05,
+          "d_curvature_max": 0.00015306472778320312,
+          "endpoint_shift_m": 0.10651525855064392,
+          "traj_ade_m": 0.04154445603489876,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by the barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.00787044595927,
+          "d_curvature_mean": 2.534521627239883e-05,
+          "d_curvature_max": 8.035916835069656e-05,
+          "endpoint_shift_m": 0.041521284729242325,
+          "traj_ade_m": 0.01513567753136158,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by barriers barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " barriers",
+      "sampled_prob": 0.7994579672813416,
+      "entropy": 1.3621869087219238,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.028224319219589233,
+          "d_curvature_mean": 0.00014497211668640375,
+          "d_curvature_max": 0.0005051195621490479,
+          "endpoint_shift_m": 0.48711636662483215,
+          "traj_ade_m": 0.18000778555870056,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.022678878158330917,
+          "d_curvature_mean": 1.3751596270594746e-05,
+          "d_curvature_max": 5.612429231405258e-05,
+          "endpoint_shift_m": 0.08477327972650528,
+          "traj_ade_m": 0.03452333062887192,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction barric"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " fences",
+          "token_prob": 0.02130483277142048,
+          "d_curvature_mean": 9.268357644032221e-06,
+          "d_curvature_max": 3.0613504350185394e-05,
+          "endpoint_shift_m": 0.028102289885282516,
+          "traj_ade_m": 0.012330557219684124,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction fences"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " fencing",
+          "token_prob": 0.01558694988489151,
+          "d_curvature_mean": 1.5172829989751335e-05,
+          "d_curvature_max": 5.1021575927734375e-05,
+          "endpoint_shift_m": 0.03242214024066925,
+          "traj_ade_m": 0.013563222251832485,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction fencing"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Keep",
+      "sampled_prob": 0.32985514402389526,
+      "entropy": 1.4320530891418457,
+      "alternatives": [
+        {
+          "token": "N",
+          "token_prob": 0.42354241013526917,
+          "d_curvature_mean": 0.00011835691111627966,
+          "d_curvature_max": 0.00033164024353027344,
+          "endpoint_shift_m": 0.17527487874031067,
+          "traj_ade_m": 0.06874633580446243,
+          "forced_cot": {
+            "cot": [
+              "Nudge to the left to increase clearance from the construction fence blocking the right side of the lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Slow",
+          "token_prob": 0.12134693562984467,
+          "d_curvature_mean": 0.0004653126816265285,
+          "d_curvature_max": 0.0017500445246696472,
+          "endpoint_shift_m": 1.4991042613983154,
+          "traj_ade_m": 0.5327647924423218,
+          "forced_cot": {
+            "cot": [
+              "Slow down due to the upcoming speed bump ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.08083448559045792,
+          "d_curvature_mean": 9.42099213716574e-05,
+          "d_curvature_max": 0.00022959616035223007,
+          "endpoint_shift_m": 0.5204285383224487,
+          "traj_ade_m": 0.19604292511940002,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed for the right curve since the lane bends right ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Y",
+          "token_prob": 0.019199872389435768,
+          "d_curvature_mean": 0.0003666108241304755,
+          "d_curvature_max": 0.0014925375580787659,
+          "endpoint_shift_m": 0.9710338711738586,
+          "traj_ade_m": 0.3533312976360321,
+          "forced_cot": {
+            "cot": [
+              "Yield to the cut-in vehicle from the right since it merges into our lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " lane",
+      "sampled_prob": 0.485016405582428,
+      "entropy": 0.8143215179443359,
+      "alternatives": [
+        {
+          "token": " distance",
+          "token_prob": 0.485016405582428,
+          "d_curvature_mean": 0.00012695998884737492,
+          "d_curvature_max": 0.0005311835557222366,
+          "endpoint_shift_m": 0.7030039429664612,
+          "traj_ade_m": 0.24061676859855652,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.02912749908864498,
+          "d_curvature_mean": 0.00019567596609704196,
+          "d_curvature_max": 0.0005271164700388908,
+          "endpoint_shift_m": 0.28670597076416016,
+          "traj_ade_m": 0.10282178223133087,
+          "forced_cot": {
+            "cot": [
+              "Keep at the center of the lane to continue driving since no critical agent needs special attention"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " speed",
+          "token_prob": 0.00016786967171356082,
+          "d_curvature_mean": 0.00020298335584811866,
+          "d_curvature_max": 0.000668378546833992,
+          "endpoint_shift_m": 0.7076575756072998,
+          "traj_ade_m": 0.21904301643371582,
+          "forced_cot": {
+            "cot": [
+              "Keep speed through the intersection since the traffic light is green"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " straight",
+          "token_prob": 8.985416206996888e-05,
+          "d_curvature_mean": 0.0005837891949340701,
+          "d_curvature_max": 0.0016326885670423508,
+          "endpoint_shift_m": 1.173722505569458,
+          "traj_ade_m": 0.4363214373588562,
+          "forced_cot": {
+            "cot": [
+              "Keep straight due to clear lane ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " since",
+      "sampled_prob": 0.8803443908691406,
+      "entropy": 0.43753504753112793,
+      "alternatives": [
+        {
+          "token": " to",
+          "token_prob": 0.09877189993858337,
+          "d_curvature_mean": 6.027144263498485e-05,
+          "d_curvature_max": 0.00028572045266628265,
+          "endpoint_shift_m": 0.11432524770498276,
+          "traj_ade_m": 0.02998143434524536,
+          "forced_cot": {
+            "cot": [
+              "Keep lane to continue through the narrowed section since construction barriers restrict lateral movement"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.01716398447751999,
+          "d_curvature_mean": 3.2884163374546915e-05,
+          "d_curvature_max": 0.00012771319597959518,
+          "endpoint_shift_m": 0.07981579750776291,
+          "traj_ade_m": 0.034610435366630554,
+          "forced_cot": {
+            "cot": [
+              "Keep lane because the lane is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " through",
+          "token_prob": 0.0014089056057855487,
+          "d_curvature_mean": 9.415778913535178e-05,
+          "d_curvature_max": 0.0003265365958213806,
+          "endpoint_shift_m": 0.18228667974472046,
+          "traj_ade_m": 0.0547415092587471,
+          "forced_cot": {
+            "cot": [
+              "Keep lane through the narrowed work zone since construction barriers restrict lateral movement"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " as",
+          "token_prob": 0.0014089056057855487,
+          "d_curvature_mean": 8.152064401656389e-05,
+          "d_curvature_max": 0.00020408909767866135,
+          "endpoint_shift_m": 0.12512195110321045,
+          "traj_ade_m": 0.05504373461008072,
+          "forced_cot": {
+            "cot": [
+              "Keep lane as the lane is clear and no agent requires action"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " the",
+      "sampled_prob": 0.8448943495750427,
+      "entropy": 0.6480861306190491,
+      "alternatives": [
+        {
+          "token": " no",
+          "token_prob": 0.07382604479789734,
+          "d_curvature_mean": 4.085789987584576e-05,
+          "d_curvature_max": 0.00018367916345596313,
+          "endpoint_shift_m": 0.1864473819732666,
+          "traj_ade_m": 0.07209154963493347,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since no critical agent affects the path"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " there",
+          "token_prob": 0.047665681689977646,
+          "d_curvature_mean": 0.0001267691550310701,
+          "d_curvature_max": 0.00030102673918008804,
+          "endpoint_shift_m": 0.21278831362724304,
+          "traj_ade_m": 0.0777318999171257,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since there is no lead obstacle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " construction",
+          "token_prob": 0.023967808112502098,
+          "d_curvature_mean": 4.841142435907386e-05,
+          "d_curvature_max": 0.00011735036969184875,
+          "endpoint_shift_m": 0.039898548275232315,
+          "traj_ade_m": 0.014281798154115677,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since construction barriers narrow the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 0.003912637475878,
+          "d_curvature_mean": 0.00010663756256690249,
+          "d_curvature_max": 0.00034694746136665344,
+          "endpoint_shift_m": 0.07610297203063965,
+          "traj_ade_m": 0.02096632309257984,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since a construction barrier blocks the right side of our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " lane",
+      "sampled_prob": 0.8188120126724243,
+      "entropy": 0.9262224435806274,
+      "alternatives": [
+        {
+          "token": " roadway",
+          "token_prob": 0.03174878656864166,
+          "d_curvature_mean": 1.5999903553165495e-05,
+          "d_curvature_max": 9.454973042011261e-05,
+          "endpoint_shift_m": 0.011219100095331669,
+          "traj_ade_m": 0.00525832362473011,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the roadway is narrowed by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " road",
+          "token_prob": 0.029825227335095406,
+          "d_curvature_mean": 3.006663973792456e-05,
+          "d_curvature_max": 8.673593401908875e-05,
+          "endpoint_shift_m": 0.08222312480211258,
+          "traj_ade_m": 0.032030925154685974,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the road is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 0.028907600790262222,
+          "d_curvature_mean": 3.8048357964726165e-05,
+          "d_curvature_max": 0.00012245029211044312,
+          "endpoint_shift_m": 0.01542314887046814,
+          "traj_ade_m": 0.004132508300244808,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the right side is blocked by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " path",
+          "token_prob": 0.026320669800043106,
+          "d_curvature_mean": 4.688296758104116e-05,
+          "d_curvature_max": 0.00014349538832902908,
+          "endpoint_shift_m": 0.1330629289150238,
+          "traj_ade_m": 0.04703979194164276,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the path is clear and no lead vehicle is present"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " is",
+      "sampled_prob": 0.9920559525489807,
+      "entropy": 0.05221683159470558,
+      "alternatives": [
+        {
+          "token": " ahead",
+          "token_prob": 0.007115527987480164,
+          "d_curvature_mean": 4.895459278486669e-05,
+          "d_curvature_max": 0.00016183499246835709,
+          "endpoint_shift_m": 0.038195397704839706,
+          "traj_ade_m": 0.019272293895483017,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane ahead is clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " bends",
+          "token_prob": 0.00031263454002328217,
+          "d_curvature_mean": 8.437494398094714e-05,
+          "d_curvature_max": 0.000341842882335186,
+          "endpoint_shift_m": 0.08179812133312225,
+          "traj_ade_m": 0.02648305334150791,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane bends right beside a construction fence"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 9.534813580103219e-05,
+          "d_curvature_mean": 5.7114200899377465e-05,
+          "d_curvature_max": 0.0001836773008108139,
+          "endpoint_shift_m": 0.08179157227277756,
+          "traj_ade_m": 0.03681507706642151,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane remains clear past the construction barrier"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrowing",
+          "token_prob": 2.8184857001178898e-05,
+          "d_curvature_mean": 0.00012457439152058214,
+          "d_curvature_max": 0.0003201626241207123,
+          "endpoint_shift_m": 0.22707706689834595,
+          "traj_ade_m": 0.06915239989757538,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane narrowing from construction is clear ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " narrowed",
+      "sampled_prob": 0.8079444169998169,
+      "entropy": 0.6247570514678955,
+      "alternatives": [
+        {
+          "token": " clear",
+          "token_prob": 0.16935434937477112,
+          "d_curvature_mean": 6.378385296557099e-05,
+          "d_curvature_max": 0.0001836773008108139,
+          "endpoint_shift_m": 0.12955541908740997,
+          "traj_ade_m": 0.04831232503056526,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is clear and no lead vehicle is present"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " constrained",
+          "token_prob": 0.010170519351959229,
+          "d_curvature_mean": 2.656346623552963e-05,
+          "d_curvature_max": 8.243042975664139e-05,
+          "endpoint_shift_m": 0.04651941359043121,
+          "traj_ade_m": 0.0179675854742527,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is constrained by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " narrow",
+          "token_prob": 0.005794986616820097,
+          "d_curvature_mean": 1.717208397167269e-05,
+          "d_curvature_max": 5.3571537137031555e-05,
+          "endpoint_shift_m": 0.10811532288789749,
+          "traj_ade_m": 0.046959083527326584,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrow beside a construction fence"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " un",
+          "token_prob": 0.00046104632201604545,
+          "d_curvature_mean": 5.026865255786106e-05,
+          "d_curvature_max": 0.00016964785754680634,
+          "endpoint_shift_m": 0.11034110188484192,
+          "traj_ade_m": 0.042503148317337036,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is unobstructed ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " by",
+      "sampled_prob": 0.9974414110183716,
+      "entropy": 0.026477400213479996,
+      "alternatives": [
+        {
+          "token": " and",
+          "token_prob": 0.00047186773736029863,
+          "d_curvature_mean": 7.046744576655328e-05,
+          "d_curvature_max": 0.00019898638129234314,
+          "endpoint_shift_m": 0.016024069860577583,
+          "traj_ade_m": 0.008086259476840496,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed and clear of obstacles"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " but",
+          "token_prob": 0.000429640436777845,
+          "d_curvature_mean": 6.466826016549021e-05,
+          "d_curvature_max": 0.00020392797887325287,
+          "endpoint_shift_m": 0.017786068841814995,
+          "traj_ade_m": 0.008807256817817688,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed but clear"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " only",
+          "token_prob": 0.0003911920648533851,
+          "d_curvature_mean": 5.440992390504107e-05,
+          "d_curvature_max": 0.0002104640007019043,
+          "endpoint_shift_m": 0.12555207312107086,
+          "traj_ade_m": 0.04434102401137352,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed only by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.0001531930174678564,
+          "d_curvature_mean": 2.464277349645272e-05,
+          "d_curvature_max": 7.334351539611816e-05,
+          "endpoint_shift_m": 0.019799530506134033,
+          "traj_ade_m": 0.006954515352845192,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed ahead by construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " construction",
+      "sampled_prob": 0.828291118144989,
+      "entropy": 0.7586090564727783,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.06387095898389816,
+          "d_curvature_mean": 3.548483437043615e-05,
+          "d_curvature_max": 0.00011655408889055252,
+          "endpoint_shift_m": 0.008974585682153702,
+          "traj_ade_m": 0.005475396290421486,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by a construction fence"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " roadside",
+          "token_prob": 0.05295087769627571,
+          "d_curvature_mean": 2.3297398001886904e-05,
+          "d_curvature_max": 9.056553244590759e-05,
+          "endpoint_shift_m": 0.056900039315223694,
+          "traj_ade_m": 0.024218378588557243,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by roadside construction barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 0.028342563658952713,
+          "d_curvature_mean": 5.009450251236558e-05,
+          "d_curvature_max": 0.00019005872309207916,
+          "endpoint_shift_m": 0.02129753865301609,
+          "traj_ade_m": 0.005433254409581423,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by the construction fence"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barriers",
+          "token_prob": 0.00787044595927,
+          "d_curvature_mean": 1.8095553969033062e-05,
+          "d_curvature_max": 7.462035864591599e-05,
+          "endpoint_shift_m": 0.057448986917734146,
+          "traj_ade_m": 0.02324036881327629,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by barriers"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " barriers",
+      "sampled_prob": 0.7994579672813416,
+      "entropy": 1.3621869087219238,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.028224319219589233,
+          "d_curvature_mean": 5.1409129810053855e-05,
+          "d_curvature_max": 0.00013871677219867706,
+          "endpoint_shift_m": 0.034240394830703735,
+          "traj_ade_m": 0.012984402477741241,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " barric",
+          "token_prob": 0.022678878158330917,
+          "d_curvature_mean": 2.0192761439830065e-05,
+          "d_curvature_max": 8.163414895534515e-05,
+          "endpoint_shift_m": 0.08132047206163406,
+          "traj_ade_m": 0.03407059237360954,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction barricades"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " fences",
+          "token_prob": 0.02130483277142048,
+          "d_curvature_mean": 1.1178000931977294e-05,
+          "d_curvature_max": 4.081707447767258e-05,
+          "endpoint_shift_m": 0.031643930822610855,
+          "traj_ade_m": 0.013151602819561958,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction fences"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " fencing",
+          "token_prob": 0.01558694988489151,
+          "d_curvature_mean": 1.306512513110647e-05,
+          "d_curvature_max": 4.5919790863990784e-05,
+          "endpoint_shift_m": 0.013062864542007446,
+          "traj_ade_m": 0.0053804973140358925,
+          "forced_cot": {
+            "cot": [
+              "Keep lane since the lane is narrowed by construction fencing"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

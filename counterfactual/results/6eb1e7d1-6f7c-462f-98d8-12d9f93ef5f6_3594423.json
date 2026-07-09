@@ -1,0 +1,2610 @@
+{
+  "token_alternative_map": {
+    "cot": {
+      "cot": [
+        "Stop to keep distance to the lead vehicle since it is stationary ahead"
+      ],
+      "meta_action": [
+        ""
+      ],
+      "answer": [
+        ""
+      ]
+    },
+    "n_reasoning_tokens": 13,
+    "mean_entropy": 0.18115547262669468,
+    "positions": [
+      {
+        "step": 0,
+        "col": 3086,
+        "sampled": "Stop",
+        "sampled_prob": 0.7493765950202942,
+        "entropy": 0.6098802089691162,
+        "top_k": [
+          {
+            "text": "Stop",
+            "prob": 0.7493765950202942
+          },
+          {
+            "text": "Keep",
+            "prob": 0.24328696727752686
+          },
+          {
+            "text": "Ad",
+            "prob": 0.004318861290812492
+          },
+          {
+            "text": "Dec",
+            "prob": 0.001162405707873404
+          },
+          {
+            "text": "Maint",
+            "prob": 0.0003657671913970262
+          }
+        ]
+      },
+      {
+        "step": 1,
+        "col": 3087,
+        "sampled": " to",
+        "sampled_prob": 0.9998185038566589,
+        "entropy": 0.0020541793201118708,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9998185038566589
+          },
+          {
+            "text": " for",
+            "prob": 9.027215128298849e-05
+          },
+          {
+            "text": " and",
+            "prob": 3.218753045075573e-05
+          },
+          {
+            "text": " due",
+            "prob": 2.144151585525833e-05
+          },
+          {
+            "text": " because",
+            "prob": 2.078183024423197e-05
+          }
+        ]
+      },
+      {
+        "step": 2,
+        "col": 3088,
+        "sampled": " keep",
+        "sampled_prob": 0.9955525994300842,
+        "entropy": 0.02952498383820057,
+        "top_k": [
+          {
+            "text": " keep",
+            "prob": 0.9955525994300842
+          },
+          {
+            "text": " maintain",
+            "prob": 0.004330997820943594
+          },
+          {
+            "text": " yield",
+            "prob": 4.663275831262581e-05
+          },
+          {
+            "text": " create",
+            "prob": 3.82785037800204e-06
+          },
+          {
+            "text": " a",
+            "prob": 3.2741336326580495e-06
+          }
+        ]
+      },
+      {
+        "step": 3,
+        "col": 3089,
+        "sampled": " distance",
+        "sampled_prob": 0.9998719692230225,
+        "entropy": 0.0013196506770327687,
+        "top_k": [
+          {
+            "text": " distance",
+            "prob": 0.9998719692230225
+          },
+          {
+            "text": " a",
+            "prob": 0.00012339399836491793
+          },
+          {
+            "text": " safe",
+            "prob": 3.359249944878684e-07
+          },
+          {
+            "text": " right",
+            "prob": 2.699232766190107e-07
+          },
+          {
+            "text": " the",
+            "prob": 2.699232766190107e-07
+          }
+        ]
+      },
+      {
+        "step": 4,
+        "col": 3090,
+        "sampled": " to",
+        "sampled_prob": 0.9984185695648193,
+        "entropy": 0.01298048347234726,
+        "top_k": [
+          {
+            "text": " to",
+            "prob": 0.9984185695648193
+          },
+          {
+            "text": " from",
+            "prob": 0.0013246822636574507
+          },
+          {
+            "text": " since",
+            "prob": 0.00013962048979010433
+          },
+          {
+            "text": " for",
+            "prob": 3.642217779997736e-05
+          },
+          {
+            "text": " because",
+            "prob": 2.1411493435152806e-05
+          }
+        ]
+      },
+      {
+        "step": 5,
+        "col": 3091,
+        "sampled": " the",
+        "sampled_prob": 0.9998018145561218,
+        "entropy": 0.002241420093923807,
+        "top_k": [
+          {
+            "text": " the",
+            "prob": 0.9998018145561218
+          },
+          {
+            "text": " our",
+            "prob": 0.000131343025714159
+          },
+          {
+            "text": " from",
+            "prob": 2.0142104403930716e-05
+          },
+          {
+            "text": " it",
+            "prob": 7.181888122431701e-06
+          },
+          {
+            "text": " lead",
+            "prob": 6.539183232234791e-06
+          }
+        ]
+      },
+      {
+        "step": 6,
+        "col": 3092,
+        "sampled": " lead",
+        "sampled_prob": 0.7961289286613464,
+        "entropy": 0.5606397390365601,
+        "top_k": [
+          {
+            "text": " lead",
+            "prob": 0.7961289286613464
+          },
+          {
+            "text": " stopped",
+            "prob": 0.18909719586372375
+          },
+          {
+            "text": " stationary",
+            "prob": 0.014581609517335892
+          },
+          {
+            "text": " slow",
+            "prob": 3.847530024359003e-05
+          },
+          {
+            "text": " parked",
+            "prob": 1.5790230463608168e-05
+          }
+        ]
+      },
+      {
+        "step": 7,
+        "col": 3093,
+        "sampled": " vehicle",
+        "sampled_prob": 0.9990191459655762,
+        "entropy": 0.008289923891425133,
+        "top_k": [
+          {
+            "text": " vehicle",
+            "prob": 0.9990191459655762
+          },
+          {
+            "text": " truck",
+            "prob": 0.0009109875536523759
+          },
+          {
+            "text": " work",
+            "prob": 1.4271709915192332e-05
+          },
+          {
+            "text": " stopped",
+            "prob": 8.131774848152418e-06
+          },
+          {
+            "text": " parked",
+            "prob": 7.4040653998963535e-06
+          }
+        ]
+      },
+      {
+        "step": 8,
+        "col": 3094,
+        "sampled": " since",
+        "sampled_prob": 0.8759550452232361,
+        "entropy": 0.5212910175323486,
+        "top_k": [
+          {
+            "text": " since",
+            "prob": 0.8759550452232361
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.06754639744758606
+          },
+          {
+            "text": " ahead",
+            "prob": 0.03396446257829666
+          },
+          {
+            "text": " stopped",
+            "prob": 0.01604367606341839
+          },
+          {
+            "text": " because",
+            "prob": 0.0033629373647272587
+          }
+        ]
+      },
+      {
+        "step": 9,
+        "col": 3095,
+        "sampled": " it",
+        "sampled_prob": 0.9972670078277588,
+        "entropy": 0.02075490541756153,
+        "top_k": [
+          {
+            "text": " it",
+            "prob": 0.9972670078277588
+          },
+          {
+            "text": " the",
+            "prob": 0.002322208136320114
+          },
+          {
+            "text": " traffic",
+            "prob": 0.0002605445042718202
+          },
+          {
+            "text": " a",
+            "prob": 5.813534153276123e-05
+          },
+          {
+            "text": " our",
+            "prob": 3.2105388527270406e-05
+          }
+        ]
+      },
+      {
+        "step": 10,
+        "col": 3096,
+        "sampled": " is",
+        "sampled_prob": 0.9969558715820312,
+        "entropy": 0.024517633020877838,
+        "top_k": [
+          {
+            "text": " is",
+            "prob": 0.9969558715820312
+          },
+          {
+            "text": " stops",
+            "prob": 0.002471206709742546
+          },
+          {
+            "text": " has",
+            "prob": 0.00015797893865965307
+          },
+          {
+            "text": " remains",
+            "prob": 0.00011557987454580143
+          },
+          {
+            "text": " stopped",
+            "prob": 2.8324066079221666e-05
+          }
+        ]
+      },
+      {
+        "step": 11,
+        "col": 3097,
+        "sampled": " stationary",
+        "sampled_prob": 0.8079984784126282,
+        "entropy": 0.49014973640441895,
+        "top_k": [
+          {
+            "text": " stationary",
+            "prob": 0.8079984784126282
+          },
+          {
+            "text": " stopped",
+            "prob": 0.19191646575927734
+          },
+          {
+            "text": " halted",
+            "prob": 2.2249410903896205e-05
+          },
+          {
+            "text": " waiting",
+            "prob": 1.3079752534395084e-05
+          },
+          {
+            "text": " not",
+            "prob": 1.0509877029107884e-05
+          }
+        ]
+      },
+      {
+        "step": 12,
+        "col": 3098,
+        "sampled": " ahead",
+        "sampled_prob": 0.9896279573440552,
+        "entropy": 0.07137726247310638,
+        "top_k": [
+          {
+            "text": " ahead",
+            "prob": 0.9896279573440552
+          },
+          {
+            "text": "<|cot_end|>",
+            "prob": 0.004878457169979811
+          },
+          {
+            "text": " in",
+            "prob": 0.0033529114443808794
+          },
+          {
+            "text": " at",
+            "prob": 0.001397701445966959
+          },
+          {
+            "text": ".",
+            "prob": 0.0004398062883410603
+          }
+        ]
+      }
+    ]
+  },
+  "single_token_swap_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Stop",
+      "sampled_prob": 0.7493765950202942,
+      "entropy": 0.6098802089691162,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.24328696727752686,
+          "d_curvature_mean": 8.432210051978473e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.0012805461883544922,
+          "traj_ade_m": 0.0009709052974358201,
+          "forced_cot": {
+            "cot": [
+              "Keep to keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.004318861290812492,
+          "d_curvature_mean": 1.0388956070528366e-05,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.0044981688261032104,
+          "traj_ade_m": 0.0016272675711661577,
+          "forced_cot": {
+            "cot": [
+              "Ad to keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.001162405707873404,
+          "d_curvature_mean": 7.328983883780893e-06,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.005010075867176056,
+          "traj_ade_m": 0.002401044126600027,
+          "forced_cot": {
+            "cot": [
+              "Dec to keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.0003657671913970262,
+          "d_curvature_mean": 5.174906618776731e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.007051810622215271,
+          "traj_ade_m": 0.003702238667756319,
+          "forced_cot": {
+            "cot": [
+              "Maint to keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " to",
+      "sampled_prob": 0.9998185038566589,
+      "entropy": 0.0020541793201118708,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 9.027215128298849e-05,
+          "d_curvature_mean": 5.314189365890343e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.003614954650402069,
+          "traj_ade_m": 0.0015299331862479448,
+          "forced_cot": {
+            "cot": [
+              "Stop for keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 3.218753045075573e-05,
+          "d_curvature_mean": 7.946625373733696e-06,
+          "d_curvature_max": 2.2321823053061962e-05,
+          "endpoint_shift_m": 0.006010480225086212,
+          "traj_ade_m": 0.0033864136785268784,
+          "forced_cot": {
+            "cot": [
+              "Stop and keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 2.144151585525833e-05,
+          "d_curvature_mean": 1.0118590580532327e-05,
+          "d_curvature_max": 6.632786244153976e-05,
+          "endpoint_shift_m": 0.004357323050498962,
+          "traj_ade_m": 0.002037848113104701,
+          "forced_cot": {
+            "cot": [
+              "Stop due keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 2.078183024423197e-05,
+          "d_curvature_mean": 5.331726242729928e-06,
+          "d_curvature_max": 2.0410283468663692e-05,
+          "endpoint_shift_m": 0.004012852907180786,
+          "traj_ade_m": 0.0015566562069579959,
+          "forced_cot": {
+            "cot": [
+              "Stop because keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " keep",
+      "sampled_prob": 0.9955525994300842,
+      "entropy": 0.02952498383820057,
+      "alternatives": [
+        {
+          "token": " maintain",
+          "token_prob": 0.004330997820943594,
+          "d_curvature_mean": 8.040293323574588e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.01091824471950531,
+          "traj_ade_m": 0.004795755259692669,
+          "forced_cot": {
+            "cot": [
+              "Stop to maintain distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " yield",
+          "token_prob": 4.663275831262581e-05,
+          "d_curvature_mean": 5.102367140352726e-06,
+          "d_curvature_max": 2.0409876015037298e-05,
+          "endpoint_shift_m": 0.002877749502658844,
+          "traj_ade_m": 0.001307320548221469,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " create",
+          "token_prob": 3.82785037800204e-06,
+          "d_curvature_mean": 7.445443770848215e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.006965138018131256,
+          "traj_ade_m": 0.0031619579531252384,
+          "forced_cot": {
+            "cot": [
+              "Stop to create distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 3.2741336326580495e-06,
+          "d_curvature_mean": 1.3448659956338815e-05,
+          "d_curvature_max": 7.143022958189249e-05,
+          "endpoint_shift_m": 0.004827737808227539,
+          "traj_ade_m": 0.002308241557329893,
+          "forced_cot": {
+            "cot": [
+              "Stop to a distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9998719692230225,
+      "entropy": 0.0013196506770327687,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.00012339399836491793,
+          "d_curvature_mean": 7.492643817386124e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.0049276649951934814,
+          "traj_ade_m": 0.0020286552608013153,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep a to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " safe",
+          "token_prob": 3.359249944878684e-07,
+          "d_curvature_mean": 1.6487501852679998e-05,
+          "d_curvature_max": 9.626313112676144e-05,
+          "endpoint_shift_m": 0.006733305752277374,
+          "traj_ade_m": 0.0029188927728682756,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep safe to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 2.699232766190107e-07,
+          "d_curvature_mean": 8.859912668413017e-06,
+          "d_curvature_max": 5.971116479486227e-05,
+          "endpoint_shift_m": 0.003995731472969055,
+          "traj_ade_m": 0.00210685096681118,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep right to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.699232766190107e-07,
+          "d_curvature_mean": 2.141402910638135e-05,
+          "d_curvature_max": 0.00011918321251869202,
+          "endpoint_shift_m": 0.001409389078617096,
+          "traj_ade_m": 0.0003714169142767787,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep the to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9984185695648193,
+      "entropy": 0.01298048347234726,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0013246822636574507,
+          "d_curvature_mean": 1.464142042095773e-05,
+          "d_curvature_max": 7.222744170576334e-05,
+          "endpoint_shift_m": 0.004142887890338898,
+          "traj_ade_m": 0.0017456330824643373,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance from the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00013962048979010433,
+          "d_curvature_mean": 1.0625417417031713e-05,
+          "d_curvature_max": 6.584951188415289e-05,
+          "endpoint_shift_m": 0.008727088570594788,
+          "traj_ade_m": 0.003578579518944025,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance since the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.642217779997736e-05,
+          "d_curvature_mean": 6.795827630412532e-06,
+          "d_curvature_max": 3.571540582925081e-05,
+          "endpoint_shift_m": 0.0013966187834739685,
+          "traj_ade_m": 0.0010061935754492879,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance for the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 2.1411493435152806e-05,
+          "d_curvature_mean": 6.646411748079117e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.002652093768119812,
+          "traj_ade_m": 0.0008430276648141444,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance because the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.9998018145561218,
+      "entropy": 0.002241420093923807,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.000131343025714159,
+          "d_curvature_mean": 9.104642231250182e-06,
+          "d_curvature_max": 4.081550287082791e-05,
+          "endpoint_shift_m": 0.005179278552532196,
+          "traj_ade_m": 0.0022872001864016056,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to our lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 2.0142104403930716e-05,
+          "d_curvature_mean": 2.1726013073930517e-05,
+          "d_curvature_max": 0.00011774804443120956,
+          "endpoint_shift_m": 0.004551231861114502,
+          "traj_ade_m": 0.0018517953576520085,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to from lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 7.181888122431701e-06,
+          "d_curvature_mean": 7.1322083385894075e-06,
+          "d_curvature_max": 4.0817016270011663e-05,
+          "endpoint_shift_m": 0.0016284510493278503,
+          "traj_ade_m": 0.0010966963600367308,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to it lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 6.539183232234791e-06,
+          "d_curvature_mean": 5.210246399656171e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.0046329498291015625,
+          "traj_ade_m": 0.0019198667723685503,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to lead lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " lead",
+      "sampled_prob": 0.7961289286613464,
+      "entropy": 0.5606397390365601,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.18909719586372375,
+          "d_curvature_mean": 9.234845492755994e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.0017611384391784668,
+          "traj_ade_m": 0.00045458716340363026,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the stopped vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stationary",
+          "token_prob": 0.014581609517335892,
+          "d_curvature_mean": 5.2057903303648345e-06,
+          "d_curvature_max": 2.0409701392054558e-05,
+          "endpoint_shift_m": 0.006097152829170227,
+          "traj_ade_m": 0.0021438864059746265,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the stationary vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 3.847530024359003e-05,
+          "d_curvature_mean": 1.0241757991025224e-05,
+          "d_curvature_max": 6.489316001534462e-05,
+          "endpoint_shift_m": 0.0029656589031219482,
+          "traj_ade_m": 0.0008651074604131281,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the slow vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 1.5790230463608168e-05,
+          "d_curvature_mean": 3.141412162221968e-05,
+          "d_curvature_max": 0.00014796340838074684,
+          "endpoint_shift_m": 0.012906022369861603,
+          "traj_ade_m": 0.005453075282275677,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the parked vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9990191459655762,
+      "entropy": 0.008289923891425133,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 0.0009109875536523759,
+          "d_curvature_mean": 6.690515419904841e-06,
+          "d_curvature_max": 3.0612340196967125e-05,
+          "endpoint_shift_m": 0.004670947790145874,
+          "traj_ade_m": 0.0019634729251265526,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead truck since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 1.4271709915192332e-05,
+          "d_curvature_mean": 9.345685612061061e-06,
+          "d_curvature_max": 7.143046241253614e-05,
+          "endpoint_shift_m": 0.0015329495072364807,
+          "traj_ade_m": 0.0013223143760114908,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead work since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 8.131774848152418e-06,
+          "d_curvature_mean": 7.601905053888913e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.0006888881325721741,
+          "traj_ade_m": 0.0003671260201372206,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead stopped since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 7.4040653998963535e-06,
+          "d_curvature_mean": 2.7948193746851757e-05,
+          "d_curvature_max": 0.00012691633310168982,
+          "endpoint_shift_m": 0.012013852596282959,
+          "traj_ade_m": 0.005399494431912899,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead parked since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " since",
+      "sampled_prob": 0.8759550452232361,
+      "entropy": 0.5212910175323486,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.06754639744758606,
+          "d_curvature_mean": 9.248495189240202e-06,
+          "d_curvature_max": 5.612429231405258e-05,
+          "endpoint_shift_m": 0.015657875686883926,
+          "traj_ade_m": 0.0062917908653616905,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.03396446257829666,
+          "d_curvature_mean": 1.2028094715788029e-05,
+          "d_curvature_max": 6.1226193793118e-05,
+          "endpoint_shift_m": 0.0008013993501663208,
+          "traj_ade_m": 0.00030010833870619535,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle ahead it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.01604367606341839,
+          "d_curvature_mean": 8.088959475571755e-06,
+          "d_curvature_max": 5.612405948340893e-05,
+          "endpoint_shift_m": 0.008758224546909332,
+          "traj_ade_m": 0.004003554116934538,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle stopped it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0033629373647272587,
+          "d_curvature_mean": 4.422871370479697e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 6.955862045288086e-05,
+          "traj_ade_m": 3.9819831727072597e-05,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle because it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " it",
+      "sampled_prob": 0.9972670078277588,
+      "entropy": 0.02075490541756153,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.002322208136320114,
+          "d_curvature_mean": 3.486172317934688e-06,
+          "d_curvature_max": 2.0409090211614966e-05,
+          "endpoint_shift_m": 0.0016414448618888855,
+          "traj_ade_m": 0.0008252544794231653,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since the is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0002605445042718202,
+          "d_curvature_mean": 6.275231953623006e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.0002766624093055725,
+          "traj_ade_m": 0.00042256381129845977,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since traffic is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 5.813534153276123e-05,
+          "d_curvature_mean": 5.819790203531738e-06,
+          "d_curvature_max": 4.081550287082791e-05,
+          "endpoint_shift_m": 0.002423711121082306,
+          "traj_ade_m": 0.0014879504451528192,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since a is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 3.2105388527270406e-05,
+          "d_curvature_mean": 1.5988654922693968e-05,
+          "d_curvature_max": 7.653201464563608e-05,
+          "endpoint_shift_m": 0.0055514052510261536,
+          "traj_ade_m": 0.0024032038636505604,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since our is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " is",
+      "sampled_prob": 0.9969558715820312,
+      "entropy": 0.024517633020877838,
+      "alternatives": [
+        {
+          "token": " stops",
+          "token_prob": 0.002471206709742546,
+          "d_curvature_mean": 3.0279127258836525e-06,
+          "d_curvature_max": 1.3233744539320469e-05,
+          "endpoint_shift_m": 0.0055056363344192505,
+          "traj_ade_m": 0.002598547376692295,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it stops stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.00015797893865965307,
+          "d_curvature_mean": 1.1253368029429112e-05,
+          "d_curvature_max": 4.0817365515977144e-05,
+          "endpoint_shift_m": 0.002589277923107147,
+          "traj_ade_m": 0.0015240446664392948,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it has stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 0.00011557987454580143,
+          "d_curvature_mean": 4.949202775605954e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.0012716352939605713,
+          "traj_ade_m": 0.00033042527502402663,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it remains stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 2.8324066079221666e-05,
+          "d_curvature_mean": 5.3914809541311115e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.006456121802330017,
+          "traj_ade_m": 0.003001661039888859,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it stopped stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " stationary",
+      "sampled_prob": 0.8079984784126282,
+      "entropy": 0.49014973640441895,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.19191646575927734,
+          "d_curvature_mean": 4.330085630499525e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.001600220799446106,
+          "traj_ade_m": 0.000769013655371964,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " halted",
+          "token_prob": 2.2249410903896205e-05,
+          "d_curvature_mean": 4.939299287798349e-06,
+          "d_curvature_max": 3.571482375264168e-05,
+          "endpoint_shift_m": 0.0021442249417304993,
+          "traj_ade_m": 0.000894240103662014,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is halted ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " waiting",
+          "token_prob": 1.3079752534395084e-05,
+          "d_curvature_mean": 4.851436642638873e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.00345805287361145,
+          "traj_ade_m": 0.0013286680914461613,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is waiting ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " not",
+          "token_prob": 1.0509877029107884e-05,
+          "d_curvature_mean": 5.214012162468862e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.006577208638191223,
+          "traj_ade_m": 0.0038286205381155014,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is not ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9896279573440552,
+      "entropy": 0.07137726247310638,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.004878457169979811,
+          "d_curvature_mean": 7.48154570828774e-06,
+          "d_curvature_max": 2.551102079451084e-05,
+          "endpoint_shift_m": 0.026426400989294052,
+          "traj_ade_m": 0.012370019219815731,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0033529114443808794,
+          "d_curvature_mean": 1.0589366866042838e-05,
+          "d_curvature_max": 4.77528665214777e-05,
+          "endpoint_shift_m": 0.0025754496455192566,
+          "traj_ade_m": 0.0013504564994946122,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary in"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.001397701445966959,
+          "d_curvature_mean": 8.804529898043256e-06,
+          "d_curvature_max": 4.592002369463444e-05,
+          "endpoint_shift_m": 0.0009480044827796519,
+          "traj_ade_m": 0.00045582398888655007,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary at"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0004398062883410603,
+          "d_curvature_mean": 8.625700502307154e-06,
+          "d_curvature_max": 4.081742372363806e-05,
+          "endpoint_shift_m": 0.0007912591099739075,
+          "traj_ade_m": 0.00032733523403294384,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "counterfactual_sweep": [
+    {
+      "step": 0,
+      "col": 3086,
+      "sampled_token": "Stop",
+      "sampled_prob": 0.7493765950202942,
+      "entropy": 0.6098802089691162,
+      "alternatives": [
+        {
+          "token": "Keep",
+          "token_prob": 0.24328696727752686,
+          "d_curvature_mean": 9.284653060603887e-06,
+          "d_curvature_max": 4.0820916183292866e-05,
+          "endpoint_shift_m": 0.009089864790439606,
+          "traj_ade_m": 0.004629959352314472,
+          "forced_cot": {
+            "cot": [
+              "Keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Ad",
+          "token_prob": 0.004318861290812492,
+          "d_curvature_mean": 1.36456919790362e-05,
+          "d_curvature_max": 8.163682650774717e-05,
+          "endpoint_shift_m": 0.0008513928041793406,
+          "traj_ade_m": 0.0011817326303571463,
+          "forced_cot": {
+            "cot": [
+              "Adapt speed to maintain a safe distance from the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Dec",
+          "token_prob": 0.001162405707873404,
+          "d_curvature_mean": 1.0396459401817992e-05,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.01109122484922409,
+          "traj_ade_m": 0.005107850302010775,
+          "forced_cot": {
+            "cot": [
+              "Decelerate to maintain a safe distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": "Maint",
+          "token_prob": 0.0003657671913970262,
+          "d_curvature_mean": 1.0715680218709167e-05,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.0244063138961792,
+          "traj_ade_m": 0.011670942418277264,
+          "forced_cot": {
+            "cot": [
+              "Maintain a safe distance from the stopped lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 1,
+      "col": 3087,
+      "sampled_token": " to",
+      "sampled_prob": 0.9998185038566589,
+      "entropy": 0.0020541793201118708,
+      "alternatives": [
+        {
+          "token": " for",
+          "token_prob": 9.027215128298849e-05,
+          "d_curvature_mean": 1.1967127647949383e-05,
+          "d_curvature_max": 8.163123857229948e-05,
+          "endpoint_shift_m": 0.008227892220020294,
+          "traj_ade_m": 0.003772457828745246,
+          "forced_cot": {
+            "cot": [
+              "Stop for the stopped lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " and",
+          "token_prob": 3.218753045075573e-05,
+          "d_curvature_mean": 0.0005988659104332328,
+          "d_curvature_max": 0.0033954859245568514,
+          "endpoint_shift_m": 0.6544811725616455,
+          "traj_ade_m": 0.06975085288286209,
+          "forced_cot": {
+            "cot": [
+              "Stop and hold position to maintain a safe gap behind the stopped flatbed truck ahead, since our lane is blocked and vehicles in the left lanes prevent an immediate merge left; wait for a usable gap to merge left once traffic moves."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " due",
+          "token_prob": 2.144151585525833e-05,
+          "d_curvature_mean": 2.565620161476545e-05,
+          "d_curvature_max": 0.00013265630695968866,
+          "endpoint_shift_m": 0.021723292768001556,
+          "traj_ade_m": 0.008793268352746964,
+          "forced_cot": {
+            "cot": [
+              "Stop due to the lead vehicle ahead blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 2.078183024423197e-05,
+          "d_curvature_mean": 0.0013977059861645103,
+          "d_curvature_max": 0.00539553165435791,
+          "endpoint_shift_m": 0.29640471935272217,
+          "traj_ade_m": 0.0720146894454956,
+          "forced_cot": {
+            "cot": [
+              "Stop because of the stationary lead truck blocking our lane ahead, requiring us to hold position and maintain a safe following distance until it moves or a clear path opens for a left merge around it, since left-lane traffic is currently passing and blocks an immediate merge, after which we prepare for a left lane change to bypass it; our speed remains low throughout this process, with additional deceleration after the merge because the signal is red and our lane is queued up ahead, not blocking any cross-traffic but still requiring our attention and control for safety."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "col": 3088,
+      "sampled_token": " keep",
+      "sampled_prob": 0.9955525994300842,
+      "entropy": 0.02952498383820057,
+      "alternatives": [
+        {
+          "token": " maintain",
+          "token_prob": 0.004330997820943594,
+          "d_curvature_mean": 7.389999154838733e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.009741663932800293,
+          "traj_ade_m": 0.005018487572669983,
+          "forced_cot": {
+            "cot": [
+              "Stop to maintain a safe distance from the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " yield",
+          "token_prob": 4.663275831262581e-05,
+          "d_curvature_mean": 1.0518586350372061e-05,
+          "d_curvature_max": 4.081666702404618e-05,
+          "endpoint_shift_m": 0.011086955666542053,
+          "traj_ade_m": 0.005345657002180815,
+          "forced_cot": {
+            "cot": [
+              "Stop to yield to the stopped lead truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " create",
+          "token_prob": 3.82785037800204e-06,
+          "d_curvature_mean": 0.02344299480319023,
+          "d_curvature_max": 0.05509309470653534,
+          "endpoint_shift_m": 6.659977912902832,
+          "traj_ade_m": 1.2551484107971191,
+          "forced_cot": {
+            "cot": [
+              "Stop to create a gap for a merge to the left because a slow flatbed truck is blocking our lane and cars are currently occupying the left lane, preventing an immediate merge."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 3.2741336326580495e-06,
+          "d_curvature_mean": 9.154522558674216e-06,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.011550240218639374,
+          "traj_ade_m": 0.00519323255866766,
+          "forced_cot": {
+            "cot": [
+              "Stop to a stop to keep distance to the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "col": 3089,
+      "sampled_token": " distance",
+      "sampled_prob": 0.9998719692230225,
+      "entropy": 0.0013196506770327687,
+      "alternatives": [
+        {
+          "token": " a",
+          "token_prob": 0.00012339399836491793,
+          "d_curvature_mean": 9.63788443186786e-06,
+          "d_curvature_max": 4.081660881638527e-05,
+          "endpoint_shift_m": 0.011751517653465271,
+          "traj_ade_m": 0.005557946860790253,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep a safe distance from the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " safe",
+          "token_prob": 3.359249944878684e-07,
+          "d_curvature_mean": 0.00043636831105686724,
+          "d_curvature_max": 0.0024949549697339535,
+          "endpoint_shift_m": 0.13846276700496674,
+          "traj_ade_m": 0.014626828953623772,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep safe distance behind the stopped lead truck ahead, as our lane is blocked and vehicles in the left lane prevent an immediate merge left; wait for a usable gap."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " right",
+          "token_prob": 2.699232766190107e-07,
+          "d_curvature_mean": 0.001959059154614806,
+          "d_curvature_max": 0.004862356465309858,
+          "endpoint_shift_m": 1.07861328125,
+          "traj_ade_m": 0.10392998903989792,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep right because a slow flatbed truck is stopped ahead blocking our lane, and cars are flowing in the left lane so we must hold position and wait for a usable gap before merging left to pass."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " the",
+          "token_prob": 2.699232766190107e-07,
+          "d_curvature_mean": 2.0562689314829186e-05,
+          "d_curvature_max": 0.00010622863192111254,
+          "endpoint_shift_m": 0.006844162940979004,
+          "traj_ade_m": 0.002862766617909074,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep the lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "col": 3090,
+      "sampled_token": " to",
+      "sampled_prob": 0.9984185695648193,
+      "entropy": 0.01298048347234726,
+      "alternatives": [
+        {
+          "token": " from",
+          "token_prob": 0.0013246822636574507,
+          "d_curvature_mean": 1.3433295862341765e-05,
+          "d_curvature_max": 6.122648483142257e-05,
+          "endpoint_shift_m": 0.009957373142242432,
+          "traj_ade_m": 0.004542604088783264,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance from the stopped lead truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " since",
+          "token_prob": 0.00013962048979010433,
+          "d_curvature_mean": 1.61644220497692e-05,
+          "d_curvature_max": 7.143046241253614e-05,
+          "endpoint_shift_m": 0.0022259950637817383,
+          "traj_ade_m": 0.0012076057028025389,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance since the lead vehicle is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " for",
+          "token_prob": 3.642217779997736e-05,
+          "d_curvature_mean": 9.6584244602127e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.011149421334266663,
+          "traj_ade_m": 0.00493383314460516,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance for the stopped lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 2.1411493435152806e-05,
+          "d_curvature_mean": 8.582577720517293e-06,
+          "d_curvature_max": 6.122572813183069e-05,
+          "endpoint_shift_m": 0.006202235817909241,
+          "traj_ade_m": 0.0027494209352880716,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance because the lead vehicle is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "col": 3091,
+      "sampled_token": " the",
+      "sampled_prob": 0.9998018145561218,
+      "entropy": 0.002241420093923807,
+      "alternatives": [
+        {
+          "token": " our",
+          "token_prob": 0.000131343025714159,
+          "d_curvature_mean": 8.7601783889113e-06,
+          "d_curvature_max": 4.0815852116793394e-05,
+          "endpoint_shift_m": 0.0037372857332229614,
+          "traj_ade_m": 0.0015454752137884498,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to our lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " from",
+          "token_prob": 2.0142104403930716e-05,
+          "d_curvature_mean": 1.7807322365115397e-05,
+          "d_curvature_max": 8.275092113763094e-05,
+          "endpoint_shift_m": 0.0029342398047447205,
+          "traj_ade_m": 0.0015891389921307564,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to from the stopped lead truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " it",
+          "token_prob": 7.181888122431701e-06,
+          "d_curvature_mean": 1.5504156181123108e-05,
+          "d_curvature_max": 6.911787204444408e-05,
+          "endpoint_shift_m": 0.004322834312915802,
+          "traj_ade_m": 0.0022558460477739573,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to it since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " lead",
+          "token_prob": 6.539183232234791e-06,
+          "d_curvature_mean": 6.319433850876521e-06,
+          "d_curvature_max": 2.04118259716779e-05,
+          "endpoint_shift_m": 0.0038273707032203674,
+          "traj_ade_m": 0.0017040538368746638,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to lead vehicle since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "col": 3092,
+      "sampled_token": " lead",
+      "sampled_prob": 0.7961289286613464,
+      "entropy": 0.5606397390365601,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.18909719586372375,
+          "d_curvature_mean": 1.017099930322729e-05,
+          "d_curvature_max": 4.082010127604008e-05,
+          "endpoint_shift_m": 0.00850968062877655,
+          "traj_ade_m": 0.003894828027114272,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the stopped lead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stationary",
+          "token_prob": 0.014581609517335892,
+          "d_curvature_mean": 1.0310385732736904e-05,
+          "d_curvature_max": 6.122805643826723e-05,
+          "endpoint_shift_m": 0.0044371336698532104,
+          "traj_ade_m": 0.0020232449751347303,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the stationary lead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " slow",
+          "token_prob": 3.847530024359003e-05,
+          "d_curvature_mean": 1.0144178304472007e-05,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.005589775741100311,
+          "traj_ade_m": 0.002723908517509699,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the slow lead truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 1.5790230463608168e-05,
+          "d_curvature_mean": 1.160354986495804e-05,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.002578064799308777,
+          "traj_ade_m": 0.0009009168716147542,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the parked lead truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "col": 3093,
+      "sampled_token": " vehicle",
+      "sampled_prob": 0.9990191459655762,
+      "entropy": 0.008289923891425133,
+      "alternatives": [
+        {
+          "token": " truck",
+          "token_prob": 0.0009109875536523759,
+          "d_curvature_mean": 6.262724582484225e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.004067778587341309,
+          "traj_ade_m": 0.0017730004619807005,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead truck since it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " work",
+          "token_prob": 1.4271709915192332e-05,
+          "d_curvature_mean": 1.304332818108378e-05,
+          "d_curvature_max": 6.728467997163534e-05,
+          "endpoint_shift_m": 0.010357804596424103,
+          "traj_ade_m": 0.004468431696295738,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead work truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 8.131774848152418e-06,
+          "d_curvature_mean": 7.728297532594297e-06,
+          "d_curvature_max": 4.081818042322993e-05,
+          "endpoint_shift_m": 0.0052205100655555725,
+          "traj_ade_m": 0.002239930909126997,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead stopped truck ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " parked",
+          "token_prob": 7.4040653998963535e-06,
+          "d_curvature_mean": 8.994506060844287e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.0036446377635002136,
+          "traj_ade_m": 0.0012323777191340923,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead parked truck blocking our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "col": 3094,
+      "sampled_token": " since",
+      "sampled_prob": 0.8759550452232361,
+      "entropy": 0.5212910175323486,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.06754639744758606,
+          "d_curvature_mean": 1.2579350368469022e-05,
+          "d_curvature_max": 6.122648483142257e-05,
+          "endpoint_shift_m": 0.005158528685569763,
+          "traj_ade_m": 0.0026632877998054028,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " ahead",
+          "token_prob": 0.03396446257829666,
+          "d_curvature_mean": 1.0146573913516477e-05,
+          "d_curvature_max": 6.122572813183069e-05,
+          "endpoint_shift_m": 0.0064263716340065,
+          "traj_ade_m": 0.002816143911331892,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 0.01604367606341839,
+          "d_curvature_mean": 7.86099917604588e-06,
+          "d_curvature_max": 4.081818042322993e-05,
+          "endpoint_shift_m": 0.004254072904586792,
+          "traj_ade_m": 0.0018616211600601673,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " because",
+          "token_prob": 0.0033629373647272587,
+          "d_curvature_mean": 3.864253812935203e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.001136384904384613,
+          "traj_ade_m": 0.0005167911294847727,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle because it is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "col": 3095,
+      "sampled_token": " it",
+      "sampled_prob": 0.9972670078277588,
+      "entropy": 0.02075490541756153,
+      "alternatives": [
+        {
+          "token": " the",
+          "token_prob": 0.002322208136320114,
+          "d_curvature_mean": 8.54156314744614e-06,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.010862022638320923,
+          "traj_ade_m": 0.004769244231283665,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since the lead vehicle is stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " traffic",
+          "token_prob": 0.0002605445042718202,
+          "d_curvature_mean": 7.570707566628698e-06,
+          "d_curvature_max": 4.081777296960354e-05,
+          "endpoint_shift_m": 0.00547085702419281,
+          "traj_ade_m": 0.002765839919447899,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since traffic is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " a",
+          "token_prob": 5.813534153276123e-05,
+          "d_curvature_mean": 1.4793415175518021e-05,
+          "d_curvature_max": 5.1340670324862e-05,
+          "endpoint_shift_m": 0.010095864534378052,
+          "traj_ade_m": 0.0047126044519245625,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since a slow truck is directly ahead in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " our",
+          "token_prob": 3.2105388527270406e-05,
+          "d_curvature_mean": 1.2508934560173657e-05,
+          "d_curvature_max": 7.286539766937494e-05,
+          "endpoint_shift_m": 0.011267885565757751,
+          "traj_ade_m": 0.005120232701301575,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since our lane is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "col": 3096,
+      "sampled_token": " is",
+      "sampled_prob": 0.9969558715820312,
+      "entropy": 0.024517633020877838,
+      "alternatives": [
+        {
+          "token": " stops",
+          "token_prob": 0.002471206709742546,
+          "d_curvature_mean": 4.252931830706075e-06,
+          "d_curvature_max": 2.04118259716779e-05,
+          "endpoint_shift_m": 0.002999044954776764,
+          "traj_ade_m": 0.0013037421740591526,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it stops ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " has",
+          "token_prob": 0.00015797893865965307,
+          "d_curvature_mean": 7.020081284281332e-06,
+          "d_curvature_max": 3.061362076550722e-05,
+          "endpoint_shift_m": 0.0008769184350967407,
+          "traj_ade_m": 0.0002711045672185719,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it has stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " remains",
+          "token_prob": 0.00011557987454580143,
+          "d_curvature_mean": 3.687383923534071e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.00012381374835968018,
+          "traj_ade_m": 0.00015598878962919116,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it remains stationary ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " stopped",
+          "token_prob": 2.8324066079221666e-05,
+          "d_curvature_mean": 4.4770986278308555e-06,
+          "d_curvature_max": 2.040871186181903e-05,
+          "endpoint_shift_m": 0.007901884615421295,
+          "traj_ade_m": 0.0034994082525372505,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "col": 3097,
+      "sampled_token": " stationary",
+      "sampled_prob": 0.8079984784126282,
+      "entropy": 0.49014973640441895,
+      "alternatives": [
+        {
+          "token": " stopped",
+          "token_prob": 0.19191646575927734,
+          "d_curvature_mean": 4.4079392864659894e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.0007482469081878662,
+          "traj_ade_m": 0.00041705992771312594,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stopped ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " halted",
+          "token_prob": 2.2249410903896205e-05,
+          "d_curvature_mean": 6.626378308283165e-06,
+          "d_curvature_max": 3.57144745066762e-05,
+          "endpoint_shift_m": 0.00324433296918869,
+          "traj_ade_m": 0.0012983735650777817,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is halted ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " waiting",
+          "token_prob": 1.3079752534395084e-05,
+          "d_curvature_mean": 5.385787517298013e-06,
+          "d_curvature_max": 4.081695806235075e-05,
+          "endpoint_shift_m": 0.003281146287918091,
+          "traj_ade_m": 0.0012945265043526888,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is waiting ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " not",
+          "token_prob": 1.0509877029107884e-05,
+          "d_curvature_mean": 1.1534914847288746e-05,
+          "d_curvature_max": 4.081858787685633e-05,
+          "endpoint_shift_m": 0.006743207573890686,
+          "traj_ade_m": 0.0035431929863989353,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is not moving ahead"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "col": 3098,
+      "sampled_token": " ahead",
+      "sampled_prob": 0.9896279573440552,
+      "entropy": 0.07137726247310638,
+      "alternatives": [
+        {
+          "token": "<|cot_end|>",
+          "token_prob": 0.004878457169979811,
+          "d_curvature_mean": 9.066578058991581e-06,
+          "d_curvature_max": 4.081818042322993e-05,
+          "endpoint_shift_m": 0.00017170609498862177,
+          "traj_ade_m": 0.00019103287195321172,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " in",
+          "token_prob": 0.0033529114443808794,
+          "d_curvature_mean": 1.0866580851143226e-05,
+          "d_curvature_max": 4.687614273279905e-05,
+          "endpoint_shift_m": 0.01128319650888443,
+          "traj_ade_m": 0.004774426110088825,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary in our lane"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": " at",
+          "token_prob": 0.001397701445966959,
+          "d_curvature_mean": 8.630075171822682e-06,
+          "d_curvature_max": 4.0819752030074596e-05,
+          "endpoint_shift_m": 0.010044112801551819,
+          "traj_ade_m": 0.004302836023271084,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary at the intersection"
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        },
+        {
+          "token": ".",
+          "token_prob": 0.0004398062883410603,
+          "d_curvature_mean": 8.55526468512835e-06,
+          "d_curvature_max": 4.0817540138959885e-05,
+          "endpoint_shift_m": 0.0002601146697998047,
+          "traj_ade_m": 0.00017891437164507806,
+          "forced_cot": {
+            "cot": [
+              "Stop to keep distance to the lead vehicle since it is stationary."
+            ],
+            "meta_action": [
+              ""
+            ],
+            "answer": [
+              ""
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
