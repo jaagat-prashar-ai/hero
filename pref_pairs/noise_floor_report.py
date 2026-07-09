@@ -402,6 +402,8 @@ def render_html(
     video_b64_by_scene: dict[str, str] | None = None,
     image_b64_by_scene_a: dict[str, str] | None = None,
     image_b64_by_scene_b: dict[str, str] | None = None,
+    counterfactual_html: str | None = None,
+    counterfactual_label: str = "Token Sensitivity",
 ) -> str:
     """Render one or two datasets as a single self-contained HTML page.
 
@@ -417,22 +419,36 @@ def render_html(
     filter is shared (one input) but scoped to whichever of the two drill-down
     panels is currently visible, and hidden entirely on the Compare panel
     (there's nothing there to filter by clip ID).
+
+    counterfactual_html: an optional pre-rendered HTML fragment (see
+    counterfactual.report.render_counterfactual_section) shown as a 4th tab.
+    Independent of data_b/has_tabs -- this is a different experiment
+    (per-token logit counterfactuals) on the same manifest, not another
+    noise-floor dataset, so it's passed in fully rendered rather than going
+    through render_section. Its scene-level <details class="clip"> elements
+    reuse the existing clip-ID filter/JS as-is (no filter-hiding needed here,
+    unlike the Compare tab, since these ARE filterable by scene/clip id).
     """
     section_a = render_section(data, video_b64_by_scene, image_b64_by_scene_a)
     has_tabs = data_b is not None
     section_b = render_section(data_b, video_b64_by_scene, image_b64_by_scene_b) if has_tabs else None
 
-    tab_bar = ""
+    tab_bar_buttons = []
     compare_html = ""
     if has_tabs:
-        tab_bar = (
-            '<div class="tab-bar" role="tablist">'
-            f'<button type="button" class="tab-btn" data-tab-btn="a" aria-selected="true">{_esc(label)}</button>'
-            f'<button type="button" class="tab-btn" data-tab-btn="b" aria-selected="false">{_esc(label_b)}</button>'
-            '<button type="button" class="tab-btn" data-tab-btn="compare" aria-selected="false">Compare</button>'
-            "</div>"
-        )
+        tab_bar_buttons = [
+            f'<button type="button" class="tab-btn" data-tab-btn="a" aria-selected="true">{_esc(label)}</button>',
+            f'<button type="button" class="tab-btn" data-tab-btn="b" aria-selected="false">{_esc(label_b)}</button>',
+            '<button type="button" class="tab-btn" data-tab-btn="compare" aria-selected="false">Compare</button>',
+        ]
         compare_html = render_comparison_section(data, data_b, label, label_b)
+    if counterfactual_html is not None:
+        first = not tab_bar_buttons
+        tab_bar_buttons.append(
+            f'<button type="button" class="tab-btn" data-tab-btn="counterfactual" '
+            f'aria-selected="{"true" if first else "false"}">{_esc(counterfactual_label)}</button>'
+        )
+    tab_bar = f'<div class="tab-bar" role="tablist">{"".join(tab_bar_buttons)}</div>' if tab_bar_buttons else ""
 
     def panel_html(tab: str, section: dict[str, Any], hidden: bool) -> str:
         hidden_attr = " hidden" if hidden else ""
@@ -443,10 +459,17 @@ def render_html(
             "</div>"
         )
 
-    panels = panel_html("a", section_a, hidden=False)
+    # "a" is the default visible tab whenever it has its own tab button
+    # (has_tabs=True) or there's no tab bar at all (single-dataset caller).
+    # If counterfactual_html is given WITHOUT data_b, the counterfactual tab
+    # becomes the sole/first button instead, so "a" starts hidden then.
+    a_is_default = has_tabs or counterfactual_html is None
+    panels = panel_html("a", section_a, hidden=not a_is_default)
     if has_tabs:
         panels += panel_html("b", section_b, hidden=True)
         panels += f'<div data-tab-panel="compare" hidden>{compare_html}</div>'
+    if counterfactual_html is not None:
+        panels += f'<div data-tab-panel="counterfactual"{"" if not a_is_default else " hidden"}>{counterfactual_html}</div>'
 
     return _PAGE_TEMPLATE.format(
         total_clips=section_a["total_clips"],
@@ -585,6 +608,10 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 .dumbbell-vals {{ display: flex; align-items: center; gap: 0.3rem; font: 0.72rem var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }}
 .dumbbell-vals .swatch {{ margin-right: -0.05rem; }}
 .dumbbell-unit {{ font-style: normal; color: var(--ink-dim); margin-left: 0.15rem; }}
+.cf-alt-row {{ padding: 0.6rem 0; border-top: 1px dotted var(--line); }}
+.cf-alt-row:first-child {{ border-top: none; }}
+.cf-alt-token {{ font: 600 0.86rem var(--mono); margin-right: 0.6rem; }}
+.cf-alt-prob {{ font: 0.74rem var(--mono); color: var(--ink-dim); }}
 [hidden] {{ display: none !important; }}
 @media (prefers-reduced-motion: reduce) {{ * {{ transition: none !important; }} }}
 </style>
@@ -725,6 +752,13 @@ def main() -> None:
              "separate directory flag) since these files are already generated 1:1 with each "
              "results_dir's scene_reasoning reports -- no extra rendering, just embedding size.",
     )
+    ap.add_argument(
+        "--counterfactual_results_dir", default=None,
+        help="Optional counterfactual/results dir (see counterfactual/fetch_from_logs.py) -- "
+             "rendered as a 4th 'Token Sensitivity' tab: per-position logit-swap trajectory "
+             "deltas, a different experiment (per-token counterfactuals) on the same manifest, "
+             "not another noise-floor dataset.",
+    )
     args = ap.parse_args()
 
     data = build_report_data(args.results_dir)
@@ -737,12 +771,20 @@ def main() -> None:
         images_a = load_images_b64(Path(args.results_dir) / "scene_reasoning")
         if args.results_dir_b:
             images_b = load_images_b64(Path(args.results_dir_b) / "scene_reasoning")
+
+    counterfactual_html = None
+    if args.counterfactual_results_dir:
+        from counterfactual.report import build_counterfactual_data, render_counterfactual_section
+        cf_data = build_counterfactual_data(args.counterfactual_results_dir)
+        counterfactual_html = render_counterfactual_section(cf_data)
+
     html_text = render_html(
         data, args.label, data_b=data_b, label_b=args.label_b, video_b64_by_scene=videos,
         image_b64_by_scene_a=images_a, image_b64_by_scene_b=images_b,
+        counterfactual_html=counterfactual_html,
     )
     Path(args.out).write_text(html_text)
-    n_tabs = 2 if data_b else 1
+    n_tabs = 1 + (2 if data_b else 0) + (1 if counterfactual_html else 0)  # a, [b, compare], [counterfactual]
     logger.info(
         "wrote %s (%d bytes, %d embedded videos, %d+%d embedded trajectory PNGs, %d tab%s)",
         args.out, len(html_text), len(videos), len(images_a), len(images_b),
