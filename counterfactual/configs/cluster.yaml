@@ -1,0 +1,88 @@
+name: counterfactual-smoke-test
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: counterfactual.run.counterfactual_smoke_loop
+  training_fn_config:
+    # ── Scene selection ──────────────────────────────────────────────────────
+    # Reuses pref_pairs' Task 3 manifest for no reason other than it's a
+    # known-good, already-verified manifest -- there's no scene-for-scene
+    # comparability requirement here (unlike fixed_reasoning_cluster.yaml),
+    # this is a standalone token-level experiment.
+    manifest_path: "pref_pairs/configs/sample_clips_n100_unstratified.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Smoke-test scope ──────────────────────────────────────────────────────
+    # This code (counterfactual/counterfactual.py) has NEVER been run against
+    # the real model before this config -- max_scenes deliberately capped at 1
+    # to confirm it works end-to-end before scaling up. position_selection is
+    # hardcoded to "all" inside run.py (every reasoning token position, not a
+    # heuristic subset) -- top_k_alternatives below is the only real cost knob.
+    max_scenes: 1
+
+    # Runner-up tokens tested per position, ranked purely by logit probability.
+    # Option B (counterfactual_sweep) cost scales as
+    # n_reasoning_tokens * top_k_alternatives FULL VLM regenerations -- kept
+    # modest for the first real run. Raise once the smoke test's timing is known.
+    top_k_alternatives: 4
+
+    # Seeds torch's RNG before each of the 3 analyses' baseline generation call,
+    # so token_alternative_map / single_token_swap_sweep / counterfactual_sweep
+    # all see the byte-identical sampled reasoning trace for a scene (not three
+    # independent resamples) -- see run.py's _seed_reasoning_rng docstring.
+    reasoning_seed: 0
+    # Diffusion seed shared between baseline and every counterfactual draw
+    # (common-random-numbers) within each sweep, per counterfactual.py's own
+    # seed= parameter.
+    diffusion_seed: 0
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/mnt/work/tmp/counterfactual_smoke"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: counterfactual-token-smoke
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch install is multi-GB per worker; allow ample setup time (same as
+  # masking/configs/cluster.yaml and pref_pairs/configs/cluster.yaml).
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    # Reuses pref_pairs' requirements.txt, not masking's -- it's the
+    # already-validated superset for this exact dependency combination
+    # (masking.masked_model + pref_pairs.rollout_harvester +
+    # masking.data.wds_dataset's manifest path): pinned transformers==4.57.1
+    # (masking/requirements.txt's implicit version was confirmed missing
+    # Qwen3VLConfig on a live run), plus boto3/av/scipy/pyarrow that
+    # masking/requirements.txt assumes are already in the cluster image.
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
