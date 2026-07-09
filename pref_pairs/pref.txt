@@ -1,0 +1,153 @@
+Notes on changes I make in the codebase and ideas
+
+Context
+
+Task 3: e-calibration/same_action of the pre-pairs faithfulness project
+
+We need an emperical noise floor. How much does Alpamayo 1.5's own action output vary across repeated stochastic rollouts of the identical scene?
+That variance, measure per scenario type, becomes the calibrated epsilon.
+
+Scope for this task: for each of the 9 OOD scenario types the team has previously analyzed (i.e., masking/dashboard/data.js's event_cluster values) are
+ANIMALS_BIRDS_ROADKILL, COMPLEX_INTERSECTION_INTERACTION, CYCLISTS_AND_MICROMOBILITY_COMPLEX, EMERGENCY_INCIDENT_SCENE, OTHER_LONGTAIL, PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY, RAOD_DEBRIS_OR_SAFETY_TRACES, SPECIAL_OR_UNCOMMON_VEHICLE_BEHAVIOR, WORK_ZONES_TEMP_TRAFFIC_CONTROL)
+- sample 100 clips, hold each clip/scene fixed, sample 100 rollouts of that same scene, and report per-clip metrics plus a final per-scenario-type range in a structured, readable file. Runs on Lilypad.
+Sample 100 rollouts of that same scene, and report per-clip metrics plus a final per-scenario-type range in a structured, readable file.
+
+pref_pairs/rollout_harvester.py's harvest_scene() already does exactly "hold scene fixed, draw K stochastic rollouts in one batched call"
+- num_traj_samples=k, one tokenized input resused for the whole batched
+already captures the model's native per-waypoint (accel, curvature) action (not re-derived) - see its "NATIVE ACTION CAPTURE" docstring note?
+
+
+# WHERE DOES THE DISCRETENESS REALLY LIVE? HOW DO WE ANALYZE THE AFFECT OF REASONIGN ON THIS DISCRENTENESS AND THEN TRAJECTORY AT DIFFERENT STAGES?
+
+one tokenized input resued for the whole batch, and already captures the model's native per-waytpoint (accel, curvature) action
+
+pref_pairs/training/run.py's pref_pairs_loop (the existing lilypad entrypoint) already writes one JSONL row per rollout containing native_accel_mps2, native_curvature_per_m (full per-waypoint lists), event_cluster, plus trajectoruy_features.extract_features's scalar Summary
+
+# new work genuinely is the 100 clips/cluster restricted to these 9 clusters, and a post-hoc report script that pools those JSONl rows into per-clip and per-cluster variance/range numbers
+
+# Changes:
+1. masking/data/sample_clips.py -  add --clusters filter (small, additive)
+- add an optional --clusters CLI arg (comma-separated event_cluster names)
+- When given, filter ood_df to those clusters right after filter_clips_with_required_features and before find_available_ood_clips - this restricts both scanning and the early-stop condition (n_satisfied == len(all_clusters)) to just the requested clusters, instead of requiring every cluster in the full OOD taxonomy to hit n_per_type before stopping.
+No behavior change when --clusters is ommitted?
+
+# continued
+Use it to build one combined manifest:
+python -m masking.data.sample_clips \
+    --hf_token $HF_TOKEN --n_per_type 100 \
+    --clusters ANIMALS_BIRDS_ROADKILL,COMPLEX_INTERSECTION_INTERACTION,CYCLISTS_AND_MICROMOBILITY_COMPLEX,EMERGENCY_INCIDENT_SCENE,OTHER_LONGTAIL,PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY,ROAD_DEBRIS_OR_SAFETY_TRACES,SPECIAL_OR_UNCOMMON_VEHICLE_BEHAVIOR,WORK_ZONES_TEMP_TRAFFIC_CONTROL \
+    --out pref_pairs/configs/sample_clips_action_variance.json
+Up to 900 entries (100/cluster; a rare cluster may legitimately come back
+short if fewer than 100 clips are uploaded so far — sample_per_type
+already logs this, and the report step below will surface actual n per
+cluster rather than assuming exactly 100).
+
+Note: a manifest clip's assigned cluster (from ood_reasoning.parquet) can
+in rare cases diverge from the cluster of the event(s) actually embedded in
+that clip's raw JSON (_expand_clip_to_events reads event_cluster per
+embedded event, independently of the manifest). The report step groups by
+the per-rollout event_cluster field the pipeline already emits (ground
+truth at harvest time), not the manifest's label, so this is handled
+correctly without extra code. If one clip yields more than one scene, each
+scene is reported separately (labeled with its own clip_id/scene_id) and
+noted rather than silently collapsed.
+
+2. New Lilypad configs (mirror pref_pairs/configs/{local,cluster}.yaml)
+
+- pref_pairs/configs/action_variance_local.yaml — smoke test: tiny
+manifest (reuse/extend sample_clips_smoke.json or a 2-clip slice),
+k: 5, max_scenes: 2, local GPU.
+- pref_pairs/configs/action_variance_cluster.yaml — full run:
+manifest_path: pref_pairs/configs/sample_clips_action_variance.json,
+k: 100, resume: true, max_scenes: null, own outdir
+(/mnt/work/tmp/action_variance_results, separate from the Task-1 harvest's
+/mnt/work/tmp/pref_pairs_results so the two don't collide), own name
+(pref-pairs-action-variance-cluster) and own W&B project/tag if desired.
+Same training_fn: pref_pairs.training.run.pref_pairs_loop — no code
+change to that module. Keep gpu_machine_type: a100.8 / num_gpus: 8 as
+the starting point (existing convention); the smoke test will show whether
+k=100's larger batch needs adjusting.
+- Both launched the existing way: bash pref_pairs/configs/launch.sh local|cluster.
+
+Flagging cost/risk explicitly: k=100 is 5x the batch of the existing k=20
+default, across up to 900 scenes. Wall-clock/GPU-time is unknown until the
+smoke test runs — per your answer, I'll run the smoke test, report back
+what it implies for the full job's time/cost, and get your go-ahead before
+submitting action_variance_cluster.yaml.
+
+3. New report script: pref_pairs/action_space_variance.py
+
+Mirrors maneuver_report.py's structure (pure functions + thin CLI).
+
+- load_rollouts(results_dir): read all pref_pairs_rollouts*.jsonl shards
+under a results dir into one DataFrame (rank-sharded output from step 2).
+- per_clip_variance(df): group by scene_id (== one clip's fixed scene
+here). Per group, with n_rollouts rows:
+  - Per-waypoint mean/std/min/max across rollouts for native_accel_mps2
+and native_curvature_per_m (stored as JSON lists; verified equal
+length across rollouts of the same scene before stacking).
+  - Cross-rollout mean/std/min-max range for each scalar feature already
+in the row: final_lateral_offset_m, total_heading_change_deg,
+mean_acceleration_mps2, mean_deceleration_mps2,
+max_deceleration_mps2, initial/final/min_speed_mps.
+  - Carries clip_id, scene_id, event_cluster, n_rollouts (flagged if
+!= 100, e.g. a preempted/incomplete scene).
+- per_cluster_range(per_clip_df): group the above by event_cluster,
+report n_clips, and the median/p90/max across clips of each
+variance metric (std and range) — this pooled distribution is the
+"final range" deliverable: e.g. epsilon_accel_mps2 = p90 of per-clip native_accel_mps2 std, reported alongside the raw median/max so the
+choice of percentile is inspectable, not hidden.
+- write_report(...): writes
+  - pref_pairs/results/action_space_variance_report.json — structured,
+machine-readable: {"per_clip": [...], "per_cluster": [...]}, one entry
+per clip with its exact clip_id and its metrics as requested.
+  - pref_pairs/results/action_space_variance_report.md — human-readable:
+one summary table per cluster (n_clips, median/p90 accel & curvature
+std, lateral-offset & heading-change std) up top, then a per-clip
+appendix table (clip_id, event_cluster, n_rollouts, key stats).
+- CLI: python -m pref_pairs.action_space_variance --results_dir <outdir> --out_dir pref_pairs/results.
+
+4. pref_pairs/action_space_variance_test.py
+
+Same convention as the other *_test.py files: synthetic JSONL rows (a
+couple of fake scenes/clusters with hand-computed rollout values) to verify
+the per-clip and per-cluster aggregation math (mean/std/range, percentile
+pooling, the n_rollouts != 100 flag) without needing a GPU or the model.
+
+Execution order
+
+1. Add --clusters to sample_clips.py; build the 9x100-clip manifest
+(needs HF_TOKEN + AWS creds for the S3 bucket — same as existing usage).
+2. Write action_space_variance.py + its test; run the test locally
+(no GPU needed).
+3. Write the two new Lilypad YAML configs.
+4. Run the local smoke test (action_variance_local.yaml, k=5,
+max_scenes=2) — validates the config end-to-end and gives a real
+per-scene wall-clock number to extrapolate the full job's cost from.
+5. Report smoke-test timing/cost back to you and confirm before submitting
+action_variance_cluster.yaml to the full a100.8 cluster.
+6. Once the cluster job completes (or on resumed/partial output), run
+action_space_variance.py against its output dir and hand you the two
+report files.
+
+Verification
+
+- action_space_variance_test.py passes locally (pandas/numpy available in
+this sandbox, as with the other non-model-dependent test files).
+- Smoke test (action_variance_local.yaml) actually runs on Lilypad and
+produces a small JSONL with k=5 rollouts for 2 scenes; feed that
+directly into action_space_variance.py and eyeball the resulting JSON/MD
+for sane numbers (e.g. accel std should be small but nonzero) before
+trusting the full run.
+- After the full cluster run, spot-check that every requested cluster
+appears in per_cluster with n_clips close to 100 (or a clearly logged
+shortfall for rare clusters), and that the JSON's per-clip entries carry
+exact clip_ids as requested.
+
+# Add a chunking test to the cluster.yaml?
+# we had to chunking for the batches because k=100 was causing CUDA OOM?
+
+# update the BUILD file for rollout_harvester_test's new test coverage (no new deps needed) and update the two YAML configs to actually use
+# max_batch_size: 20.
+
+# Let's update the BUILD file for rollut_harvester_test's new test coverage (no new deps needed) and update the two YAML configs to actualy use th emax batch size of 20.
