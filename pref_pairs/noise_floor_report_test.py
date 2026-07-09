@@ -14,7 +14,14 @@ from pathlib import Path
 
 import pytest
 
-from pref_pairs.noise_floor_report import build_report_data, load_videos_b64, parse_reasoning_md, render_html
+from pref_pairs.noise_floor_report import (
+    build_report_data,
+    load_images_b64,
+    load_videos_b64,
+    parse_reasoning_md,
+    render_comparison_section,
+    render_html,
+)
 
 
 def test_parse_reasoning_md_ranks_quotes_by_frequency_per_class():
@@ -190,13 +197,75 @@ def test_render_html_two_datasets_renders_both_panels_and_tab_bar():
     assert out.count("<details") == out.count("</details>")
     assert '<div class="tab-bar"' in out
     assert "Tab A Label" in out and "Tab B Label" in out
-    assert out.count('data-tab-panel="') == 2
-    # Panel b starts hidden; panel a doesn't.
+    # Two drill-down panels (a/b) plus the third "compare" panel.
+    assert out.count('data-tab-panel="') == 3
+    # Panel b and the compare panel start hidden; panel a doesn't.
     assert '<div data-tab-panel="b" hidden>' in out
     assert '<div data-tab-panel="a">' in out
+    assert '<div data-tab-panel="compare" hidden>' in out
     # Each dataset's own clip appears exactly once (proves both panels got
     # their own data, not one panel's data duplicated into both).
     assert out.count('data-clipid="a"') == 1
     assert out.count('data-clipid="z"') == 1
     assert "Other Longtail" in out
     assert "Emergency Incident Scene" in out
+
+
+def test_render_comparison_section_plots_shared_categories_only():
+    data_a = {"clusters": {
+        "OTHER_LONGTAIL": {"n_clips": 1, "n_scenes": 1, "clips": [], "stats": {
+            "accel_std": {"median": 0.3, "p90": 0.5, "min": 0.1, "max": 0.6},
+            "curvature_std": {"median": 0.01, "p90": 0.02, "min": 0.0, "max": 0.03},
+            "lat_offset_std": {"median": 1.0, "p90": 2.0, "min": 0.5, "max": 2.5},
+            "heading_std": {"median": 10.0, "p90": 20.0, "min": 5.0, "max": 25.0},
+        }},
+        "ONLY_IN_A": {"n_clips": 1, "n_scenes": 1, "clips": [], "stats": {
+            k: {"median": 1.0, "p90": 1.0, "min": 1.0, "max": 1.0}
+            for k in ["accel_std", "curvature_std", "lat_offset_std", "heading_std"]
+        }},
+    }}
+    data_b = {"clusters": {
+        "OTHER_LONGTAIL": {"n_clips": 1, "n_scenes": 1, "clips": [], "stats": {
+            "accel_std": {"median": 0.2, "p90": 0.35, "min": 0.1, "max": 0.4},
+            "curvature_std": {"median": 0.005, "p90": 0.015, "min": 0.0, "max": 0.02},
+            "lat_offset_std": {"median": 0.8, "p90": 1.5, "min": 0.3, "max": 1.8},
+            "heading_std": {"median": 8.0, "p90": 15.0, "min": 4.0, "max": 18.0},
+        }},
+    }}
+    out = render_comparison_section(data_a, data_b, "Label A", "Label B")
+    assert "Label A" in out and "Label B" in out
+    assert "Other Longtail" in out
+    # ONLY_IN_A is present in only one dataset -- must be flagged, not silently dropped or plotted.
+    assert "Only In A" in out
+    assert "present in only one dataset" in out
+    # p90 values for the shared category show up as direct labels.
+    assert "0.5" in out and "0.35" in out
+
+
+def test_load_images_b64_reads_pngs_keyed_by_scene_id():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        (tmp_path / "a_100_actions.png").write_bytes(b"fake-png-bytes")
+        (tmp_path / "not_a_plot.txt").write_bytes(b"ignored")
+        result = load_images_b64(tmp_path)
+    assert list(result.keys()) == ["a_100"]
+    import base64
+    assert base64.b64decode(result["a_100"]) == b"fake-png-bytes"
+
+
+def test_load_images_b64_returns_empty_for_missing_dir():
+    assert load_images_b64("/nonexistent/path") == {}
+
+
+def test_render_html_embeds_trajectory_image_only_for_scenes_with_one():
+    rows = [
+        {**_ROW_TEMPLATE, "clip_id": "a", "scene_id": "a_100", "t0_us": "100", "event_cluster": "OTHER_LONGTAIL"},
+        {**_ROW_TEMPLATE, "clip_id": "b", "scene_id": "b_200", "t0_us": "200", "event_cluster": "OTHER_LONGTAIL"},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_fixture(tmp_path, rows)
+        data = build_report_data(tmp_path)
+    out = render_html(data, image_b64_by_scene_a={"a_100": "ZmFrZS1wbmc="})
+    assert out.count('<img class="scene-traj-img"') == 1
+    assert "data:image/png;base64,ZmFrZS1wbmc=" in out

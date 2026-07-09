@@ -157,7 +157,11 @@ def _cluster_label(cluster: str) -> str:
     return cluster.replace("_", " ").title().replace("Or", "or")
 
 
-def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | None = None) -> dict[str, Any]:
+def render_section(
+    data: dict[str, Any],
+    video_b64_by_scene: dict[str, str] | None = None,
+    image_b64_by_scene: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Render one dataset's gauge cards + category/clip/scene drill-down as
     HTML fragments (not a full page). Split out of render_html so a second
     dataset (e.g. a fixed-reasoning/diffusion-only run's results, see
@@ -173,9 +177,17 @@ def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | No
     render_trajectory_overlay.py) and this keeps that cost an explicit
     caller decision, not something that silently scales with report size.
 
+    image_b64_by_scene: optional {scene_id: base64-encoded PNG bytes} -- the
+    top-down, colored-by-maneuver-class trajectory plot scene_reasoning_report.py
+    already produces for every scene (all rollouts overlaid). Unlike video, this
+    is UNIQUE PER DATASET (dataset A and B have different scene_ids' plots even
+    though the underlying clip/manifest is shared), so it is NOT the same shared
+    dict passed to both render_section calls the way video_b64_by_scene is.
+
     Returns {"gauge_cards", "cluster_sections", "total_clips", "total_scenes", "n_categories"}.
     """
     video_b64_by_scene = video_b64_by_scene or {}
+    image_b64_by_scene = image_b64_by_scene or {}
     cluster_order = sorted(data["clusters"].items(), key=lambda kv: -kv[1]["n_scenes"])
     total_clips = sum(v["n_clips"] for _, v in cluster_order)
     total_scenes = sum(v["n_scenes"] for _, v in cluster_order)
@@ -251,6 +263,13 @@ def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | No
             for _, (short, label, unit) in METRICS.items()
         )
         incomplete = "" if scene["complete"] else '<span class="incomplete-flag">incomplete rollout set</span>'
+        image_b64 = image_b64_by_scene.get(scene["scene_id"])
+        image_html = (
+            f'<img class="scene-traj-img" loading="lazy" '
+            f'alt="Top-down trajectories for all rollouts in this scene, colored by maneuver class" '
+            f'src="data:image/png;base64,{image_b64}">'
+            if image_b64 else ""
+        )
         video_b64 = video_b64_by_scene.get(scene["scene_id"])
         video_html = (
             f'<video class="scene-video" controls preload="none" playsinline muted loop>'
@@ -260,7 +279,7 @@ def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | No
         return (
             f'<details class="scene"><summary><span class="scene-t0">t0={_esc(scene["t0_us"])}µs</span>'
             f'<span class="scene-n">{_esc(scene["n_rollouts"])} rollouts</span>{incomplete}</summary>'
-            f'<div class="scene-body">{video_html}<div class="stat-row">{stat_html}</div>'
+            f'<div class="scene-body">{image_html}{video_html}<div class="stat-row">{stat_html}</div>'
             f'{reasoning_block(scene["reasoning"])}</div></details>'
         )
 
@@ -297,6 +316,83 @@ def render_section(data: dict[str, Any], video_b64_by_scene: dict[str, str] | No
     }
 
 
+def render_comparison_section(data: dict[str, Any], data_b: dict[str, Any], label: str, label_b: str) -> str:
+    """Render the 'Compare' tab: one small-multiple panel per calibration
+    metric (never a shared/dual axis across metrics with different units --
+    that's the #1 dataviz anti-pattern), each panel a dumbbell row per
+    scenario category plotting dataset A's and B's recommended epsilon (p90
+    across scenes) on ONE shared x-scale for that metric. This is what lets a
+    reader see at a glance, per category, whether fixing reasoning shrinks or
+    grows the noise floor and by how much -- flipping between two separate
+    tabs and remembering numbers does not give that.
+
+    p90 (not median) is compared here because it's already the number the
+    gauge cards headline as "the recommended epsilon" -- this isn't a new
+    statistic, just the same one plotted for both datasets at once.
+
+    Colors (--cmp-a/--cmp-b) are a categorical pair validated separately from
+    --accent/--teal (see the page's :root block) since those two already mean
+    something else (p90/median ticks WITHIN one gauge) -- reusing them here
+    for dataset identity would overload the same hues with two meanings on
+    one page.
+    """
+    clusters_a, clusters_b = data["clusters"], data_b["clusters"]
+    shared = sorted(set(clusters_a) & set(clusters_b))
+    missing = sorted((set(clusters_a) | set(clusters_b)) - set(shared))
+    if missing:
+        logger.warning("compare view: category present in only one dataset, omitted: %s", missing)
+
+    panels = ""
+    for col, (short, mlabel, unit) in METRICS.items():
+        rows = [
+            (cluster, clusters_a[cluster]["stats"][short]["p90"], clusters_b[cluster]["stats"][short]["p90"])
+            for cluster in shared
+        ]
+        rows.sort(key=lambda r: -max(r[1], r[2]))
+        scale_max = max((max(pa, pb) for _, pa, pb in rows), default=1.0) or 1.0
+
+        def pct(x: float) -> float:
+            return max(0.0, min(100.0, 100.0 * x / scale_max))
+
+        row_html = ""
+        for cluster, pa, pb in rows:
+            xa, xb = pct(pa), pct(pb)
+            lo, hi = min(xa, xb), max(xa, xb)
+            row_html += (
+                f'<div class="dumbbell-row"><span class="dumbbell-label">{_esc(_cluster_label(cluster))}</span>'
+                f'<div class="dumbbell-track">'
+                f'<div class="dumbbell-line" style="left:{lo:.1f}%;width:{(hi - lo):.1f}%"></div>'
+                f'<div class="dumbbell-dot dot-a" style="left:{xa:.1f}%" '
+                f'title="{_esc(label)}: {_fmt(pa)} {_esc(unit)}"></div>'
+                f'<div class="dumbbell-dot dot-b" style="left:{xb:.1f}%" '
+                f'title="{_esc(label_b)}: {_fmt(pb)} {_esc(unit)}"></div>'
+                f'</div>'
+                f'<span class="dumbbell-vals"><i class="swatch swatch-a"></i>{_fmt(pa)}'
+                f'<i class="swatch swatch-b"></i>{_fmt(pb)}<i class="dumbbell-unit">{_esc(unit)}</i></span>'
+                f'</div>'
+            )
+        panels += (
+            f'<article class="compare-panel"><h3>{_esc(mlabel)}'
+            f'<span class="compare-metric-note">p90 epsilon &middot; {_esc(unit)}</span></h3>{row_html}</article>'
+        )
+
+    missing_note = ""
+    if missing:
+        names = ", ".join(_cluster_label(c) for c in missing)
+        missing_note = (
+            f'<p class="compare-missing-note">{len(missing)} categor{"y" if len(missing) == 1 else "ies"} '
+            f"present in only one dataset, omitted from this view: {_esc(names)}</p>"
+        )
+
+    return (
+        f'<div class="compare-legend">'
+        f'<span class="legend-chip"><i class="swatch swatch-a"></i>{_esc(label)}</span>'
+        f'<span class="legend-chip"><i class="swatch swatch-b"></i>{_esc(label_b)}</span>'
+        f"</div>"
+        f'<div class="compare-grid">{panels}</div>{missing_note}'
+    )
+
+
 def render_html(
     data: dict[str, Any],
     label: str = "Compound noise (reasoning + diffusion)",
@@ -304,6 +400,8 @@ def render_html(
     data_b: dict[str, Any] | None = None,
     label_b: str = "Diffusion-only noise (reasoning fixed)",
     video_b64_by_scene: dict[str, str] | None = None,
+    image_b64_by_scene_a: dict[str, str] | None = None,
+    image_b64_by_scene_b: dict[str, str] | None = None,
 ) -> str:
     """Render one or two datasets as a single self-contained HTML page.
 
@@ -311,24 +409,30 @@ def render_html(
     supported a second dataset -- no tab bar, no behavior change for
     existing callers (e.g. the published Task 3 report).
 
-    With `data_b` also given: a tab bar switches between two full panels
-    (each its own gauge grid + category/clip/scene drill-down), e.g. Task
-    3's compound-noise numbers vs. the fixed-reasoning mode's diffusion-only
-    numbers on the same scenes. The clip-ID filter is shared (one input) but
-    scoped to whichever panel is currently visible.
+    With `data_b` also given: a tab bar switches between three panels -- the
+    two full panels (each its own gauge grid + category/clip/scene drill-down),
+    e.g. Task 3's compound-noise numbers vs. the fixed-reasoning mode's
+    diffusion-only numbers on the same scenes, PLUS a third "Compare" panel
+    that plots both side by side (see render_comparison_section). The clip-ID
+    filter is shared (one input) but scoped to whichever of the two drill-down
+    panels is currently visible, and hidden entirely on the Compare panel
+    (there's nothing there to filter by clip ID).
     """
-    section_a = render_section(data, video_b64_by_scene)
+    section_a = render_section(data, video_b64_by_scene, image_b64_by_scene_a)
     has_tabs = data_b is not None
-    section_b = render_section(data_b, video_b64_by_scene) if has_tabs else None
+    section_b = render_section(data_b, video_b64_by_scene, image_b64_by_scene_b) if has_tabs else None
 
     tab_bar = ""
+    compare_html = ""
     if has_tabs:
         tab_bar = (
             '<div class="tab-bar" role="tablist">'
             f'<button type="button" class="tab-btn" data-tab-btn="a" aria-selected="true">{_esc(label)}</button>'
             f'<button type="button" class="tab-btn" data-tab-btn="b" aria-selected="false">{_esc(label_b)}</button>'
+            '<button type="button" class="tab-btn" data-tab-btn="compare" aria-selected="false">Compare</button>'
             "</div>"
         )
+        compare_html = render_comparison_section(data, data_b, label, label_b)
 
     def panel_html(tab: str, section: dict[str, Any], hidden: bool) -> str:
         hidden_attr = " hidden" if hidden else ""
@@ -342,6 +446,7 @@ def render_html(
     panels = panel_html("a", section_a, hidden=False)
     if has_tabs:
         panels += panel_html("b", section_b, hidden=True)
+        panels += f'<div data-tab-panel="compare" hidden>{compare_html}</div>'
 
     return _PAGE_TEMPLATE.format(
         total_clips=section_a["total_clips"],
@@ -358,6 +463,12 @@ _PAGE_TEMPLATE = """<title>Action-Space Noise Floor Report</title>
   --paper: #E8E9E4; --paper-raised: #F4F4F0; --ink: #20242B; --ink-dim: #565C63;
   --line: #C9CBC3; --accent: #B96A22; --accent-ink: #FFFFFF; --teal: #2E7671;
   --warn: #A63F35; --good: #4C6A45;
+  /* Two-series categorical pair for the A-vs-B compare chart, distinct from
+     --accent/--teal (those already carry a different meaning -- p90/median
+     ticks WITHIN one gauge). Validated via dataviz skill's validate_palette.js
+     against this surface (--paper-raised) in both modes: lightness band,
+     chroma floor, CVD separation (worst adjacent dE ~100), contrast all pass. */
+  --cmp-a: #2a78d6; --cmp-b: #eb6834;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --sans: ui-sans-serif, "Neue Haas Grotesk Text", "Helvetica Neue", Arial, sans-serif;
   --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
@@ -365,12 +476,14 @@ _PAGE_TEMPLATE = """<title>Action-Space Noise Floor Report</title>
 @media (prefers-color-scheme: dark) {{
   :root {{ --paper: #14171B; --paper-raised: #1B1F24; --ink: #E7E5DD; --ink-dim: #9B9F97;
     --line: #363C42; --accent: #E0954A; --accent-ink: #14171B; --teal: #55A69F;
-    --warn: #D9776A; --good: #85A377; }}
+    --warn: #D9776A; --good: #85A377; --cmp-a: #3987e5; --cmp-b: #d95926; }}
 }}
 :root[data-theme="dark"] {{ --paper: #14171B; --paper-raised: #1B1F24; --ink: #E7E5DD; --ink-dim: #9B9F97;
-  --line: #363C42; --accent: #E0954A; --accent-ink: #14171B; --teal: #55A69F; --warn: #D9776A; --good: #85A377; }}
+  --line: #363C42; --accent: #E0954A; --accent-ink: #14171B; --teal: #55A69F; --warn: #D9776A; --good: #85A377;
+  --cmp-a: #3987e5; --cmp-b: #d95926; }}
 :root[data-theme="light"] {{ --paper: #E8E9E4; --paper-raised: #F4F4F0; --ink: #20242B; --ink-dim: #565C63;
-  --line: #C9CBC3; --accent: #B96A22; --accent-ink: #FFFFFF; --teal: #2E7671; --warn: #A63F35; --good: #4C6A45; }}
+  --line: #C9CBC3; --accent: #B96A22; --accent-ink: #FFFFFF; --teal: #2E7671; --warn: #A63F35; --good: #4C6A45;
+  --cmp-a: #2a78d6; --cmp-b: #eb6834; }}
 * {{ box-sizing: border-box; }}
 body {{ margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.45; padding: 0 0 6rem; }}
 ::selection {{ background: var(--accent); color: var(--accent-ink); }}
@@ -451,6 +564,27 @@ details.scene > summary::-webkit-details-marker {{ display: none; }}
 .quote-group li q {{ font: 0.92rem/1.5 var(--serif); font-style: italic; quotes: "“" "”"; }}
 .qcount {{ font: 0.7rem var(--mono); color: var(--ink-dim); font-style: normal; }}
 footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line); font: 0.78rem var(--sans); color: var(--ink-dim); }}
+.scene-traj-img {{ display: block; width: 100%; max-width: 28rem; border-radius: 6px; margin-top: 0.75rem; background: var(--paper); border: 1px solid var(--line); }}
+.swatch {{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex: none; }}
+.swatch-a {{ background: var(--cmp-a); }}
+.swatch-b {{ background: var(--cmp-b); }}
+.compare-legend {{ display: flex; gap: 1.4rem; margin: 1.75rem 0 0.25rem; }}
+.legend-chip {{ display: flex; align-items: center; gap: 0.45rem; font: 0.84rem var(--sans); color: var(--ink-dim); }}
+.compare-missing-note {{ font: 0.8rem var(--sans); color: var(--ink-dim); font-style: italic; margin: 0.6rem 0 0; }}
+.compare-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(27rem, 1fr)); gap: 1.25rem; margin: 1.25rem 0 2rem; }}
+.compare-panel {{ background: var(--paper-raised); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.2rem 0.7rem; }}
+.compare-panel h3 {{ font: 600 0.95rem var(--sans); margin: 0 0 0.9rem; }}
+.compare-metric-note {{ font: 0.7rem var(--mono); color: var(--ink-dim); font-weight: 400; margin-left: 0.4rem; }}
+.dumbbell-row {{ display: grid; grid-template-columns: 9.5rem 1fr auto; align-items: center; gap: 0.7rem; margin: 0.6rem 0; }}
+.dumbbell-label {{ font-size: 0.74rem; color: var(--ink-dim); text-wrap: balance; }}
+.dumbbell-track {{ position: relative; height: 2px; background: var(--line); border-radius: 2px; }}
+.dumbbell-line {{ position: absolute; top: 0; height: 2px; background: var(--ink-dim); opacity: 0.55; border-radius: 2px; }}
+.dumbbell-dot {{ position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--paper-raised); }}
+.dumbbell-dot.dot-a {{ background: var(--cmp-a); z-index: 2; }}
+.dumbbell-dot.dot-b {{ background: var(--cmp-b); z-index: 1; }}
+.dumbbell-vals {{ display: flex; align-items: center; gap: 0.3rem; font: 0.72rem var(--mono); white-space: nowrap; font-variant-numeric: tabular-nums; }}
+.dumbbell-vals .swatch {{ margin-right: -0.05rem; }}
+.dumbbell-unit {{ font-style: normal; color: var(--ink-dim); margin-left: 0.15rem; }}
 [hidden] {{ display: none !important; }}
 @media (prefers-reduced-motion: reduce) {{ * {{ transition: none !important; }} }}
 </style>
@@ -488,6 +622,7 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 (function() {{
   var input = document.getElementById('filter');
   var count = document.getElementById('filter-count');
+  var filterBar = document.querySelector('.filter-bar');
   var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[data-tab-btn]'));
   var panels = Array.prototype.slice.call(document.querySelectorAll('[data-tab-panel]'));
 
@@ -523,7 +658,11 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
       var tab = btn.dataset.tabBtn;
       tabButtons.forEach(function(b) {{ b.setAttribute('aria-selected', String(b === btn)); }});
       panels.forEach(function(p) {{ p.hidden = p.dataset.tabPanel !== tab; }});
-      applyFilter();
+      // The Compare panel has no clip-level drill-down, so the clip-ID
+      // filter has nothing to act on there -- hide it rather than let it
+      // sit above a view it can't affect.
+      if (filterBar) filterBar.hidden = tab === 'compare';
+      if (tab !== 'compare') applyFilter();
     }});
   }});
 }})();
@@ -543,6 +682,26 @@ def load_videos_b64(video_dir: str | Path) -> dict[str, str]:
     } if video_dir.is_dir() else {}
 
 
+def load_images_b64(image_dir: str | Path) -> dict[str, str]:
+    """Reads every {scene_id}_actions.png in image_dir -- the top-down,
+    colored-by-maneuver-class trajectory plot scene_reasoning_report.py
+    already writes alongside each scene's reasoning .md, one PNG per scene it
+    covers. Unlike load_videos_b64, these files already exist as a normal
+    byproduct of fetch_from_logs.py -- there's no extra rendering cost here,
+    only the inline-embedding size tradeoff, which is why this is still an
+    opt-in flag rather than always-on."""
+    import base64
+
+    image_dir = Path(image_dir)
+    if not image_dir.is_dir():
+        return {}
+    suffix = "_actions.png"
+    return {
+        p.name[: -len(suffix)]: base64.b64encode(p.read_bytes()).decode("ascii")
+        for p in sorted(image_dir.glob(f"*{suffix}"))
+    }
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     ap = argparse.ArgumentParser(description=__doc__)
@@ -559,6 +718,13 @@ def main() -> None:
         "--video_dir", default=None,
         help="Optional directory of {scene_id}.mp4 files (see render_trajectory_overlay.py) to embed inline.",
     )
+    ap.add_argument(
+        "--embed_trajectory_pngs", action="store_true",
+        help="Embed each dataset's own scene_reasoning/*_actions.png top-down trajectory plots "
+             "inline, one per scene. Auto-discovered from --results_dir/--results_dir_b (not a "
+             "separate directory flag) since these files are already generated 1:1 with each "
+             "results_dir's scene_reasoning reports -- no extra rendering, just embedding size.",
+    )
     args = ap.parse_args()
 
     data = build_report_data(args.results_dir)
@@ -566,14 +732,21 @@ def main() -> None:
     videos = load_videos_b64(args.video_dir) if args.video_dir else {}
     if args.video_dir and not videos:
         logger.warning("--video_dir %s had no .mp4 files", args.video_dir)
+    images_a, images_b = {}, {}
+    if args.embed_trajectory_pngs:
+        images_a = load_images_b64(Path(args.results_dir) / "scene_reasoning")
+        if args.results_dir_b:
+            images_b = load_images_b64(Path(args.results_dir_b) / "scene_reasoning")
     html_text = render_html(
         data, args.label, data_b=data_b, label_b=args.label_b, video_b64_by_scene=videos,
+        image_b64_by_scene_a=images_a, image_b64_by_scene_b=images_b,
     )
     Path(args.out).write_text(html_text)
     n_tabs = 2 if data_b else 1
     logger.info(
-        "wrote %s (%d bytes, %d embedded videos, %d tab%s)",
-        args.out, len(html_text), len(videos), n_tabs, "s" if n_tabs != 1 else "",
+        "wrote %s (%d bytes, %d embedded videos, %d+%d embedded trajectory PNGs, %d tab%s)",
+        args.out, len(html_text), len(videos), len(images_a), len(images_b),
+        n_tabs, "s" if n_tabs != 1 else "",
     )
 
 
