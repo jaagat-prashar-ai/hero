@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from counterfactual.report import build_counterfactual_data, is_degenerate, render_counterfactual_section
+from counterfactual.report import build_counterfactual_data, example_key, is_degenerate, render_counterfactual_section
 
 
 def _alt(token: str, prob: float, ade_a: float, ade_b: float, forced_cot: str | None) -> dict:
@@ -157,3 +157,44 @@ def test_render_counterfactual_section_flags_degenerate_and_hides_its_ade_b():
     # The degenerate alternative's Option B ade (20.0) must not appear as a
     # rendered number -- only the em-dash placeholder should show.
     assert "20</span>" not in out and "20.0" not in out
+
+
+def test_example_key_is_filename_safe_and_matches_token_text():
+    assert example_key("scene1", 3, " Change") == "scene1_step3_Change"
+    assert example_key("scene1", 0, "N") == "scene1_step0_N"
+    # A punctuation token still becomes a non-empty, filename-safe stem
+    # (non-alnum chars become "_", not stripped to nothing).
+    assert example_key("scene1", 5, ",") == "scene1_step5__"
+    # Only a token that's empty/whitespace-only after strip() falls back to
+    # a literal "blank" stem, so it never collides with a real "_"-only token.
+    assert example_key("scene1", 6, "   ") == "scene1_step6_blank"
+
+
+def test_render_counterfactual_section_embeds_matching_example_plot_as_toggle():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_scene(tmp_path, "scene_a", "Keep distance", [
+            {"step": 0, "sampled_token": "Keep", "sampled_prob": 0.9, "entropy": 0.5, "alternatives": [
+                ("Change", 0.05, 0.3, 0.4, "alt cot"),
+            ]},
+        ])
+        data = build_counterfactual_data(tmp_path)
+        key = example_key("scene_a", 0, "Change")
+        out = render_counterfactual_section(data, example_plots_b64={key: "ZmFrZS1wbmc="})
+
+    assert "Show trajectory plot" in out
+    assert "data:image/png;base64,ZmFrZS1wbmc=" in out
+
+
+def test_render_counterfactual_section_omits_toggle_when_no_matching_plot():
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_scene(tmp_path, "scene_a", "Keep distance", [
+            {"step": 0, "sampled_token": "Keep", "sampled_prob": 0.9, "entropy": 0.5, "alternatives": [
+                ("Change", 0.05, 0.3, 0.4, "alt cot"),
+            ]},
+        ])
+        data = build_counterfactual_data(tmp_path)
+        out = render_counterfactual_section(data, example_plots_b64={"unrelated_key": "ZmFrZQ=="})
+
+    assert "Show trajectory plot" not in out

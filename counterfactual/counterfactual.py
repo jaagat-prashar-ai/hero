@@ -84,6 +84,7 @@ class CounterfactualResult:
     d_curvature_max: float
     endpoint_shift_m: float  # L2 distance of final waypoint vs. baseline (metres)
     traj_ade_m: float        # average displacement error over full trajectory (metres)
+    xy: list[list[float]] | None = None  # (T,2) waypoints, only set when capture_trajectories=True
 
 
 # --------------------------------------------------------------------------- #
@@ -528,6 +529,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         max_positions: int = 5,
         position_selection: str = "entropy",
         seed: int = 0,
+        capture_trajectories: bool = False,
         **rollout_kwargs: Any,
     ) -> dict[str, Any]:
         """Option-A counterfactual: swap one token, keep the rest of the trace fixed.
@@ -555,6 +557,14 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                                   had the highest probability).
             seed:                Diffusion seed shared across baseline and all swaps
                                   so that noise is not a confound.
+            capture_trajectories: If True, also store the (T,2) x/y waypoint
+                                  path on the baseline dict and on every
+                                  CounterfactualResult.xy -- off by default
+                                  since this is a real memory/log-size cost
+                                  not needed for the scalar deltas alone
+                                  (see counterfactual/render_examples.py,
+                                  which turns this on for a small curated
+                                  set of scenes to render comparison plots).
 
         Returns:
             {
@@ -563,6 +573,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                 "controls": {"accel": Tensor,        # physical units, per waypoint
                              "curvature": Tensor},
                 "pred_xyz": Tensor,                  # (1,1,1,T,3)
+                "xy": list[list[float]] | None,      # (T,2), only if capture_trajectories
               },
               "positions": [
                 {
@@ -641,6 +652,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                         (cf_xy[..., -1, :] - base_xy[..., -1, :]).norm(dim=-1).mean()
                     ),
                     traj_ade_m=float((cf_xy - base_xy).norm(dim=-1).mean()),
+                    xy=cf_xy.squeeze().tolist() if capture_trajectories else None,
                 ))
 
             out_positions.append({
@@ -657,6 +669,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                 "cot": prefix["cot"],
                 "controls": base_controls,
                 "pred_xyz": base_xyz.float().cpu(),
+                "xy": base_xy.squeeze().tolist() if capture_trajectories else None,
             },
             "positions": out_positions,
         }
@@ -669,6 +682,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
         max_positions: int = 5,
         position_selection: str = "entropy",
         seed: int = 0,
+        capture_trajectories: bool = False,
         **rollout_kwargs: Any,
     ) -> dict[str, Any]:
         """For selected reasoning positions, force each top-K alternative and
@@ -689,6 +703,8 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
             max_positions:       How many reasoning positions to analyse.
             position_selection:  "entropy" | "prob_gap" | "all"
             seed:                Diffusion seed shared across baseline and all CFs.
+            capture_trajectories: See single_token_swap_sweep's docstring --
+                                  identical meaning here.
 
         Returns:
             {
@@ -696,6 +712,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                 "cot": str,
                 "controls": {"accel": Tensor, "curvature": Tensor},
                 "pred_xyz": Tensor,
+                "xy": list[list[float]] | None,
               },
               "positions": [
                 {
@@ -764,6 +781,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                         (cf_xy[..., -1, :] - base_xy[..., -1, :]).norm(dim=-1).mean()
                     ),
                     traj_ade_m=float((cf_xy - base_xy).norm(dim=-1).mean()),
+                    xy=cf_xy.squeeze().tolist() if capture_trajectories else None,
                 ))
 
             out_positions.append({
@@ -780,6 +798,7 @@ class CounterfactualTokenAnalyzer(MaskedAlpamayo1_5):
                 "cot": prefix["cot"],
                 "controls": base_controls,
                 "pred_xyz": base_xyz.float().cpu(),
+                "xy": base_xy.squeeze().tolist() if capture_trajectories else None,
             },
             "positions": out_positions,
         }

@@ -612,6 +612,12 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 .cf-alt-row:first-child {{ border-top: none; }}
 .cf-alt-token {{ font: 600 0.86rem var(--mono); margin-right: 0.6rem; }}
 .cf-alt-prob {{ font: 0.74rem var(--mono); color: var(--ink-dim); }}
+.cf-plot-toggle {{ margin-top: 0.45rem; }}
+.cf-plot-toggle > summary {{ list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; font: 600 0.72rem var(--sans); color: var(--teal); }}
+.cf-plot-toggle > summary::-webkit-details-marker {{ display: none; }}
+.cf-plot-toggle > summary::before {{ content: "▸"; font-size: 0.8em; transition: transform 0.15s ease; }}
+.cf-plot-toggle[open] > summary::before {{ transform: rotate(90deg); }}
+.cf-plot-toggle .scene-traj-img {{ max-width: 22rem; margin-top: 0.5rem; }}
 [hidden] {{ display: none !important; }}
 @media (prefers-reduced-motion: reduce) {{ * {{ transition: none !important; }} }}
 </style>
@@ -759,6 +765,12 @@ def main() -> None:
              "deltas, a different experiment (per-token counterfactuals) on the same manifest, "
              "not another noise-floor dataset.",
     )
+    ap.add_argument(
+        "--counterfactual_example_plots_dir", default=None,
+        help="Optional dir of {scene_id}_step{N}_{token}.png files (see "
+             "counterfactual/render_examples.py) -- embedded as a toggle button on the "
+             "matching alternative row, for the small curated set of examples that have one.",
+    )
     args = ap.parse_args()
 
     data = build_report_data(args.results_dir)
@@ -774,9 +786,14 @@ def main() -> None:
 
     counterfactual_html = None
     if args.counterfactual_results_dir:
+        from counterfactual.render_examples import load_example_plots_b64
         from counterfactual.report import build_counterfactual_data, render_counterfactual_section
         cf_data = build_counterfactual_data(args.counterfactual_results_dir)
-        counterfactual_html = render_counterfactual_section(cf_data)
+        example_plots = (
+            load_example_plots_b64(args.counterfactual_example_plots_dir)
+            if args.counterfactual_example_plots_dir else {}
+        )
+        counterfactual_html = render_counterfactual_section(cf_data, example_plots_b64=example_plots)
 
     html_text = render_html(
         data, args.label, data_b=data_b, label_b=args.label_b, video_b64_by_scene=videos,

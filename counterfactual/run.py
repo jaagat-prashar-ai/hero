@@ -95,6 +95,19 @@ _DEFAULTS: dict[str, Any] = {
     "resume": False,
     "rank": 0,
     "world_size": 1,
+    # capture_trajectories: passed straight through to
+    # single_token_swap_sweep/counterfactual_sweep -- see counterfactual.py's
+    # docstring. Off by default (real log-size cost); turned on for the
+    # small curated-examples reruns that render trajectory comparison plots
+    # (see pref_pairs/report.py's rendering side), not the full sweep.
+    "capture_trajectories": False,
+    # scene_id_allowlist: if given, every OTHER scene in the manifest is
+    # skipped before it ever reaches build_tokenized_inputs (no model cost).
+    # Lets a curated-examples rerun reuse this exact same loop/config
+    # machinery instead of a bespoke script, at the cost of walking the full
+    # manifest just to skip most of it -- fine for a one-off few-scene rerun,
+    # not how the full sweep is (or should be) run.
+    "scene_id_allowlist": None,
 }
 
 
@@ -198,6 +211,7 @@ def _position_result_to_json(position_result: dict[str, Any]) -> dict[str, Any]:
                 "endpoint_shift_m": cf.endpoint_shift_m,
                 "traj_ade_m": cf.traj_ade_m,
                 "forced_cot": cf.forced_cot,
+                "xy": cf.xy,  # None unless capture_trajectories=True was passed to the sweep
             }
             for cf in position_result["alternatives"]
         ],
@@ -230,6 +244,8 @@ def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tra
     diffusion_seed = int(cfg["diffusion_seed"])
     rollout_kwargs = dict(cfg["rollout_kwargs"])
     max_scenes = cfg["max_scenes"]
+    capture_trajectories = bool(cfg["capture_trajectories"])
+    scene_id_allowlist = set(cfg["scene_id_allowlist"]) if cfg["scene_id_allowlist"] else None
 
     results_path = _results_path(outdir, rank, world_size)
     done_scenes: set[str] = set()
@@ -247,6 +263,8 @@ def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tra
 
         scene_id = f"{event['clip_id']}_{event['t0_us']}"
 
+        if scene_id_allowlist is not None and scene_id not in scene_id_allowlist:
+            continue
         if _scene_owner(scene_id, world_size) != rank:
             n_skipped_other_rank += 1
             continue
@@ -305,13 +323,15 @@ def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tra
             _seed_reasoning_rng(reasoning_seed)
             sweep_a = model.single_token_swap_sweep(
                 data, top_k_alternatives=top_k_alternatives, max_positions=n_positions,
-                position_selection="all", seed=diffusion_seed, **rollout_kwargs,
+                position_selection="all", seed=diffusion_seed,
+                capture_trajectories=capture_trajectories, **rollout_kwargs,
             )
         logger.info(
             SWAP_A_LOG_MARKER + "%s",
             json.dumps({
                 "scene_id": scene_id,
                 "baseline_cot": sweep_a["baseline"]["cot"],
+                "baseline_xy": sweep_a["baseline"]["xy"],
                 "positions": [_position_result_to_json(p) for p in sweep_a["positions"]],
             }),
         )
@@ -323,13 +343,15 @@ def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tra
             _seed_reasoning_rng(reasoning_seed)
             sweep_b = model.counterfactual_sweep(
                 data, top_k_alternatives=top_k_alternatives, max_positions=n_positions,
-                position_selection="all", seed=diffusion_seed, **rollout_kwargs,
+                position_selection="all", seed=diffusion_seed,
+                capture_trajectories=capture_trajectories, **rollout_kwargs,
             )
         logger.info(
             SWAP_B_LOG_MARKER + "%s",
             json.dumps({
                 "scene_id": scene_id,
                 "baseline_cot": sweep_b["baseline"]["cot"],
+                "baseline_xy": sweep_b["baseline"]["xy"],
                 "positions": [_position_result_to_json(p) for p in sweep_b["positions"]],
             }),
         )
@@ -342,6 +364,8 @@ def counterfactual_sweep_loop(training_fn_config: dict[str, Any], experiment_tra
             "token_alternative_map": {"cot": alt_map["cot"], "summary": alt_map["summary"]},
             "single_token_swap_sweep": [_position_result_to_json(p) for p in sweep_a["positions"]],
             "counterfactual_sweep": [_position_result_to_json(p) for p in sweep_b["positions"]],
+            "baseline_xy_a": sweep_a["baseline"]["xy"],
+            "baseline_xy_b": sweep_b["baseline"]["xy"],
         }, default=str, indent=2))
 
         # Resume marker: written only after all 3 analyses succeeded for

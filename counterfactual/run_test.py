@@ -35,6 +35,7 @@ def test_position_result_to_json_flattens_dataclasses():
                 d_curvature_max=0.045,
                 endpoint_shift_m=1.8,
                 traj_ade_m=0.9,
+                xy=[[0.0, 0.0], [1.0, 0.5]],
             ),
         ],
     }
@@ -53,6 +54,7 @@ def test_position_result_to_json_flattens_dataclasses():
         "endpoint_shift_m": 1.8,
         "traj_ade_m": 0.9,
         "forced_cot": "... turn right at the intersection ...",
+        "xy": [[0.0, 0.0], [1.0, 0.5]],
     }]
 
 

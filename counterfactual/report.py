@@ -43,6 +43,16 @@ def _fmt(v: float, sig: int = 3) -> str:
     return "0" if v == 0 else f"{v:.{sig}g}"
 
 
+def example_key(scene_id: str, step: int, token: str) -> str:
+    """Filename-safe key shared with render_examples.py (which writes
+    {key}.png) so a rendered trajectory-comparison plot can be matched back
+    to its alternative row. Lives here (zero dependencies) rather than in
+    render_examples.py so this HTML-string-building module never needs to
+    import matplotlib just to compute a filename key."""
+    safe_token = "".join(c if c.isalnum() else "_" for c in token.strip()) or "blank"
+    return f"{scene_id}_step{step}_{safe_token}"
+
+
 def is_degenerate(alt: dict[str, Any]) -> bool:
     """True if this Option B alternative's forced generation never closed
     its <|cot_end|> span -- see module docstring. Option A alternatives are
@@ -173,9 +183,18 @@ def _dumbbell_row(label: str, val_a: float, val_b: float, scale_max: float) -> s
     )
 
 
-def render_counterfactual_section(data: dict[str, Any]) -> str:
+def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[str, str] | None = None) -> str:
     """Render the full 'Token Sensitivity' tab body (everything inside the
-    <div data-tab-panel="...">, not the page shell)."""
+    <div data-tab-panel="...">, not the page shell).
+
+    example_plots_b64: optional {example_key: base64 PNG} for the small
+    curated set of (scene_id, step, token) examples that have a rendered
+    top-down trajectory comparison plot (see render_examples.py). Alternative
+    rows without a matching entry render exactly as before -- this is a
+    deliberately sparse, opt-in overlay onto the full per-scene drill-down,
+    not something every one of the ~6944 rows is expected to have."""
+    example_plots_b64 = example_plots_b64 or {}
+
     sa, sb = data["stats_a"], data["stats_b"]
     sa0, sao = data["stats_a_step0"], data["stats_a_other"]
     sb0, sbo = data["stats_b_step0"], data["stats_b_other"]
@@ -215,7 +234,7 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
         f'</p>'
     )
 
-    def alt_row(alt: dict, sampled_prob_unused: float) -> str:
+    def alt_row(scene_id: str, step: int, alt: dict) -> str:
         degenerate_flag = '<span class="incomplete-flag">generation incomplete</span>' if alt["degenerate"] else ""
         ade_b_html = (
             f'<span class="stat-val">{_fmt(alt["ade_b"])}<i>m</i></span>' if alt["ade_b"] is not None and not alt["degenerate"]
@@ -224,6 +243,14 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
         cot_html = ""
         if alt["forced_cot"] and not alt["degenerate"]:
             cot_html = f'<li><q>{_esc(alt["forced_cot"])}</q></li>'
+        plot_b64 = example_plots_b64.get(example_key(scene_id, step, alt["token"]))
+        plot_html = (
+            f'<details class="cf-plot-toggle"><summary>Show trajectory plot</summary>'
+            f'<img class="scene-traj-img" loading="lazy" '
+            f'alt="Top-down baseline vs. counterfactual trajectory comparison" '
+            f'src="data:image/png;base64,{plot_b64}"></details>'
+            if plot_b64 else ""
+        )
         return (
             f'<div class="cf-alt-row">'
             f'<span class="cf-alt-token">&rarr; &lsquo;{_esc(alt["token"].strip())}&rsquo;</span>'
@@ -234,11 +261,12 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
             f'<div class="stat"><span class="stat-label">Option B ade</span>{ade_b_html}</div>'
             f'</div>{degenerate_flag}'
             f'<ul class="quotes" style="margin-top:0.3rem">{cot_html}</ul>'
+            f'{plot_html}'
             f'</div>'
         )
 
-    def position_block(pos: dict) -> str:
-        alts_html = "".join(alt_row(a, pos["sampled_prob"]) for a in pos["alternatives"])
+    def position_block(scene_id: str, pos: dict) -> str:
+        alts_html = "".join(alt_row(scene_id, pos["step"], a) for a in pos["alternatives"])
         return (
             f'<details class="scene"><summary>'
             f'<span class="scene-t0">step {pos["step"]}</span>'
@@ -248,7 +276,7 @@ def render_counterfactual_section(data: dict[str, Any]) -> str:
         )
 
     def scene_block(scene: dict) -> str:
-        positions_html = "".join(position_block(p) for p in scene["positions"])
+        positions_html = "".join(position_block(scene["scene_id"], p) for p in scene["positions"])
         return (
             f'<details class="clip" data-clipid="{_esc(scene["scene_id"])}"><summary>'
             f'<span class="clip-id">{_esc(scene["scene_id"])}</span>'

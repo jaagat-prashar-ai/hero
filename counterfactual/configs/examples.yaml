@@ -1,0 +1,76 @@
+name: counterfactual-examples-rerun
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: counterfactual.run.counterfactual_sweep_loop
+  training_fn_config:
+    manifest_path: "pref_pairs/configs/sample_clips_n100_unstratified.json"
+    bucket: "research-datasets-chicago"
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Scope: only the specific scenes behind examples surfaced in review ───
+    # (the "Nudge left..." example, the top-8 clean-effect list, and the
+    # low-probability-tokenization-fragment case) -- NOT the full manifest.
+    # scene_id_allowlist skips every other scene before it reaches
+    # build_tokenized_inputs (no model cost for skipped scenes), so this
+    # reuses counterfactual_sweep_loop's exact tested logic/config surface
+    # rather than a bespoke script, at the cost of walking the full manifest
+    # just to filter down to 5 scenes -- fine for a one-off rerun.
+    scene_id_allowlist:
+      - "2e1d7d7c-8ce5-4ac0-b13d-0dad5fd34a1f_9981188"
+      - "71dc37e6-f69e-43a8-8d6b-e472f6b92d7a_4875293"
+      - "625c3a0d-3273-4dff-a6f7-1cae79a93436_4994763"
+      - "065131ea-2a04-4f34-bb1b-22543be873a9_1577426"
+      - "a994de45-2c85-45dc-b45d-11964806fb44_16693431"
+      - "14529dca-ea8e-4f4c-81a6-cbe365dfde7d_9144272"
+    max_scenes: 10  # harmless upper bound; the allowlist above is the real limit (6 scenes)
+
+    top_k_alternatives: 4
+    reasoning_seed: 0
+    diffusion_seed: 0
+    resume: false  # fresh, tiny run -- not worth resume-tracking machinery
+
+    # The one thing this config exists to turn on: capture_trajectories=true
+    # adds the (T,2) x/y waypoint path to every CounterfactualResult and the
+    # baseline, at real log-size cost -- deliberately NOT the default for the
+    # full sweep (see cluster.yaml), only for this small curated rerun that
+    # feeds pref_pairs/report.py's trajectory-plot rendering.
+    capture_trajectories: true
+
+    outdir: "/mnt/work/tmp/counterfactual_examples"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: counterfactual-token-sweep
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

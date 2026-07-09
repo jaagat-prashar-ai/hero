@@ -160,6 +160,8 @@ def build_scene_reports(workload_id: str, out_dir: str | Path, logs_fetcher=fetc
             },
             "single_token_swap_sweep": swap_a[sid]["positions"],
             "counterfactual_sweep": swap_b[sid]["positions"],
+            "baseline_xy_a": swap_a[sid].get("baseline_xy"),
+            "baseline_xy_b": swap_b[sid].get("baseline_xy"),
         }, indent=2))
         n_written += 1
     return n_written
