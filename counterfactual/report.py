@@ -165,24 +165,6 @@ def build_counterfactual_data(results_dir: str | Path) -> dict[str, Any]:
     }
 
 
-def _dumbbell_row(label: str, val_a: float, val_b: float, scale_max: float) -> str:
-    def pct(x: float) -> float:
-        return max(0.0, min(100.0, 100.0 * x / scale_max)) if scale_max else 0.0
-    xa, xb = pct(val_a), pct(val_b)
-    lo, hi = min(xa, xb), max(xa, xb)
-    return (
-        f'<div class="dumbbell-row"><span class="dumbbell-label">{_esc(label)}</span>'
-        f'<div class="dumbbell-track">'
-        f'<div class="dumbbell-line" style="left:{lo:.1f}%;width:{(hi - lo):.1f}%"></div>'
-        f'<div class="dumbbell-dot dot-a" style="left:{xa:.1f}%" title="Option A median: {_fmt(val_a)} m"></div>'
-        f'<div class="dumbbell-dot dot-b" style="left:{xb:.1f}%" title="Option B median: {_fmt(val_b)} m"></div>'
-        f'</div>'
-        f'<span class="dumbbell-vals"><i class="swatch swatch-a"></i>{_fmt(val_a)}'
-        f'<i class="swatch swatch-b"></i>{_fmt(val_b)}<i class="dumbbell-unit">m ADE</i></span>'
-        f'</div>'
-    )
-
-
 def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[str, str] | None = None) -> str:
     """Render the full 'Token Sensitivity' tab body (everything inside the
     <div data-tab-panel="...">, not the page shell).
@@ -207,18 +189,11 @@ def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[
         ]
     )
 
-    scale_max = max(sa["p90"], sa0["p90"], sao["p90"], sb["p90"], sb0["p90"], sbo["p90"], 0.001) * 1.15
     compare_html = (
         f'<div class="compare-legend">'
         f'<span class="legend-chip"><i class="swatch swatch-a"></i>Option A (isolated single-token swap)</span>'
         f'<span class="legend-chip"><i class="swatch swatch-b"></i>Option B (forced token, reasoning re-sampled)</span>'
         f'</div>'
-        f'<div class="compare-grid"><article class="compare-panel">'
-        f'<h3>Trajectory delta by swap mode<span class="compare-metric-note">median ADE, meters</span></h3>'
-        f'{_dumbbell_row("Overall", sa["median"], sb["median"], scale_max)}'
-        f'{_dumbbell_row("First reasoning token (step 0)", sa0["median"], sb0["median"], scale_max)}'
-        f'{_dumbbell_row("Later reasoning tokens", sao["median"], sbo["median"], scale_max)}'
-        f'</article></div>'
         f'<p class="compare-missing-note">'
         f'Full distributions (m, ADE, clean/non-degenerate only), mean / median / p90 / max &mdash; '
         f'Option A overall: {_fmt(sa["mean"])} / {_fmt(sa["median"])} / {_fmt(sa["p90"])} / {_fmt(sa["max"])}, '
@@ -234,7 +209,7 @@ def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[
         f'</p>'
     )
 
-    def alt_row(scene_id: str, step: int, alt: dict) -> str:
+    def alt_row(scene_id: str, step: int, alt: dict) -> tuple[str, bool]:
         degenerate_flag = '<span class="incomplete-flag">generation incomplete</span>' if alt["degenerate"] else ""
         ade_b_html = (
             f'<span class="stat-val">{_fmt(alt["ade_b"])}<i>m</i></span>' if alt["ade_b"] is not None and not alt["degenerate"]
@@ -244,17 +219,20 @@ def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[
         if alt["forced_cot"] and not alt["degenerate"]:
             cot_html = f'<li><q>{_esc(alt["forced_cot"])}</q></li>'
         plot_b64 = example_plots_b64.get(example_key(scene_id, step, alt["token"]))
+        has_plot = plot_b64 is not None
         plot_html = (
-            f'<details class="cf-plot-toggle"><summary>Show trajectory plot</summary>'
+            f'<details class="cf-plot-toggle" open><summary>Hide trajectory plot</summary>'
             f'<img class="scene-traj-img" loading="lazy" '
             f'alt="Top-down baseline vs. counterfactual trajectory comparison" '
             f'src="data:image/png;base64,{plot_b64}"></details>'
-            if plot_b64 else ""
+            if has_plot else ""
         )
-        return (
+        badge = ' <span class="cf-has-plot-badge">&#128200; trajectory plot below</span>' if has_plot else ""
+        row_html = (
             f'<div class="cf-alt-row">'
             f'<span class="cf-alt-token">&rarr; &lsquo;{_esc(alt["token"].strip())}&rsquo;</span>'
             f'<span class="cf-alt-prob">p={_fmt(alt["prob"], 2)}</span>'
+            f'{badge}'
             f'<div class="stat-row" style="margin:0">'
             f'<div class="stat"><span class="stat-label">Option A ade</span>'
             f'<span class="stat-val">{_fmt(alt["ade_a"])}<i>m</i></span></div>'
@@ -264,24 +242,34 @@ def render_counterfactual_section(data: dict[str, Any], example_plots_b64: dict[
             f'{plot_html}'
             f'</div>'
         )
+        return row_html, has_plot
 
-    def position_block(scene_id: str, pos: dict) -> str:
-        alts_html = "".join(alt_row(scene_id, pos["step"], a) for a in pos["alternatives"])
+    def position_block(scene_id: str, pos: dict) -> tuple[str, bool]:
+        rows = [alt_row(scene_id, pos["step"], a) for a in pos["alternatives"]]
+        alts_html = "".join(r[0] for r in rows)
+        has_plot = any(r[1] for r in rows)
+        badge = ' <span class="cf-has-plot-badge">&#128200; has plot</span>' if has_plot else ""
+        open_attr = " open" if has_plot else ""
         return (
-            f'<details class="scene"><summary>'
+            f'<details class="scene"{open_attr}><summary>'
             f'<span class="scene-t0">step {pos["step"]}</span>'
             f'<span class="scene-n">sampled &lsquo;{_esc(pos["sampled_token"].strip())}&rsquo; '
-            f'(p={_fmt(pos["sampled_prob"], 2)}, H={_fmt(pos["entropy"], 2)})</span>'
-            f'</summary><div class="scene-body">{alts_html}</div></details>'
+            f'(p={_fmt(pos["sampled_prob"], 2)}, H={_fmt(pos["entropy"], 2)})</span>{badge}'
+            f'</summary><div class="scene-body">{alts_html}</div></details>',
+            has_plot,
         )
 
     def scene_block(scene: dict) -> str:
-        positions_html = "".join(position_block(scene["scene_id"], p) for p in scene["positions"])
+        blocks = [position_block(scene["scene_id"], p) for p in scene["positions"]]
+        positions_html = "".join(b[0] for b in blocks)
+        has_plot = any(b[1] for b in blocks)
+        badge = ' <span class="cf-has-plot-badge">&#128200; has trajectory plot(s)</span>' if has_plot else ""
+        open_attr = " open" if has_plot else ""
         return (
-            f'<details class="clip" data-clipid="{_esc(scene["scene_id"])}"><summary>'
+            f'<details class="clip" data-clipid="{_esc(scene["scene_id"])}"{open_attr}><summary>'
             f'<span class="clip-id">{_esc(scene["scene_id"])}</span>'
             f'<span class="clip-scene-count">{scene["n_positions"]} positions '
-            f'&middot; max clean ADE {_fmt(scene["max_clean_ade"])} m</span></summary>'
+            f'&middot; max clean ADE {_fmt(scene["max_clean_ade"])} m</span>{badge}</summary>'
             f'<div class="clip-body"><p class="masthead-meta" style="margin:0.5rem 0">'
             f'<q>{_esc(scene["cot"])}</q></p>{positions_html}</div></details>'
         )
