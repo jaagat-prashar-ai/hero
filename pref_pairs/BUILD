@@ -185,3 +185,17 @@ py_test(
         "@python_deps//pandas",
     ],
 )
+
+py_library(
+    name = "build_reasoning_matched_pairs",
+    srcs = ["build_reasoning_matched_pairs.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "build_reasoning_matched_pairs_test",
+    srcs = ["build_reasoning_matched_pairs_test.py"],
+    deps = [
+        ":build_reasoning_matched_pairs",
+    ],
+)
