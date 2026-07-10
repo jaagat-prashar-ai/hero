@@ -165,3 +165,23 @@ py_test(
         "//pref_pairs/training:run_lib",
     ],
 )
+
+py_library(
+    name = "build_ground_truth_action_dataset",
+    srcs = ["build_ground_truth_action_dataset.py"],
+    deps = [
+        ":fetch_from_logs",
+        "//pref_pairs/training:run_lib",
+        "@python_deps//pandas",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "build_ground_truth_action_dataset_test",
+    srcs = ["build_ground_truth_action_dataset_test.py"],
+    deps = [
+        ":build_ground_truth_action_dataset",
+        "@python_deps//pandas",
+    ],
+)
