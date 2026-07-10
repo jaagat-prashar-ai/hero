@@ -85,7 +85,9 @@ class _FakeModel:
         pred_xyz = pred_xyz.unsqueeze(0).unsqueeze(0)  # -> (B=1, ns=1, k, T, 3)
         pred_rot = pred_rot.unsqueeze(0).unsqueeze(0)
         cot = np.array([f"reasoning-{i}" for i in range(k)]).reshape(1, 1, k)
-        return pred_xyz, pred_rot, {"cot": cot}
+        meta_action = np.array([f"meta_action-{i}" for i in range(k)]).reshape(1, 1, k)
+        answer = np.array([f"answer-{i}" for i in range(k)]).reshape(1, 1, k)
+        return pred_xyz, pred_rot, {"cot": cot, "meta_action": meta_action, "answer": answer}
 
 
 def _make_harvester(num_waypoints: int = 5) -> RolloutHarvester:
@@ -113,6 +115,8 @@ def test_harvest_scene_unpacks_k_independent_rollouts():
         assert record.scene_id == "scene_a"
         assert record.rollout_id == i
         assert record.coc_text == f"reasoning-{i}"
+        assert record.meta_action_text == f"meta_action-{i}"
+        assert record.answer_text == f"answer-{i}"
         # Every waypoint in rollout i's trajectory should equal i (see _FakeModel).
         assert len(record.waypoints) == 5
         assert all(coord == float(i) for wp in record.waypoints for coord in wp)
@@ -155,7 +159,9 @@ def test_capture_failure_falls_back_to_none_gracefully():
             pred_xyz = torch.zeros(1, 1, k, t, 3)
             pred_rot = torch.zeros(1, 1, k, t, 3, 3)
             cot = np.array([f"reasoning-{i}" for i in range(k)]).reshape(1, 1, k)
-            return pred_xyz, pred_rot, {"cot": cot}
+            meta_action = np.array([f"meta_action-{i}" for i in range(k)]).reshape(1, 1, k)
+            answer = np.array([f"answer-{i}" for i in range(k)]).reshape(1, 1, k)
+            return pred_xyz, pred_rot, {"cot": cot, "meta_action": meta_action, "answer": answer}
 
     harvester = RolloutHarvester(model=_FakeModelNoCapture(num_waypoints=3), device="cpu")
     with mock.patch.object(RolloutHarvester, "_build_tokenized_inputs", return_value={}):
