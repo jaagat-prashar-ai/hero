@@ -57,11 +57,11 @@ def _perturbation_row(scene_id: str, event_cluster: str, ground_truth_trace: str
     }
 
 
-def test_select_ground_truth_rollout_picks_alphabetically_first_class_then_lowest_rollout_id():
-    # "lane_change_right" < "lane_keep" alphabetically, so lane_change_right's
-    # rollouts must be preferred over lane_keep's even though lane_keep has
-    # more rows and a lower rollout_id overall (rollout 1) -- this mirrors
-    # scene_reasoning_report.render_scene_reasoning_markdown's groupby+sort.
+def test_select_ground_truth_rollout_picks_lowest_rollout_id_regardless_of_class():
+    # The lowest rollout_id overall must win even though it belongs to a
+    # maneuver_class ("lane_keep") that would sort AFTER another class
+    # ("lane_change_right") alphabetically -- generation order (rollout_id),
+    # not maneuver_class grouping, is the selection criterion.
     scene_df = pd.DataFrame([
         _rollout_row("s1", 1, "lane_keep", "keep text A"),
         _rollout_row("s1", 2, "lane_keep", "keep text B"),
@@ -69,9 +69,9 @@ def test_select_ground_truth_rollout_picks_alphabetically_first_class_then_lowes
         _rollout_row("s1", 29, "lane_change_right", "change text B"),
     ])
     picked = select_ground_truth_rollout(scene_df)
-    assert picked["maneuver_class"] == "lane_change_right"
-    assert picked["rollout_id"] == 13
-    assert picked["coc_text"] == "change text A"
+    assert picked["maneuver_class"] == "lane_keep"
+    assert picked["rollout_id"] == 1
+    assert picked["coc_text"] == "keep text A"
 
 
 def test_fetch_rollout_rows_dedupes_by_scene_and_rollout_id():
@@ -107,9 +107,14 @@ def test_load_perturbations_by_scene_groups_rows():
 
 
 def test_build_dataset_joins_action_onto_matching_scene():
+    # Both rows share the same coc_text, matching the real invariant (fixed-
+    # reasoning mode freezes CoT across all draws) -- rollout_id=1 must be
+    # picked as the ground-truth action purely because it's the lowest
+    # rollout_id, even though rollout_id=13's maneuver_class would sort
+    # first alphabetically.
     rollout_df = pd.DataFrame([
         _rollout_row("s1", 13, "lane_change_right", "keep foo distance"),
-        _rollout_row("s1", 1, "lane_keep", "other text"),
+        _rollout_row("s1", 1, "lane_keep", "keep foo distance"),
     ])
     perturbations_by_scene = {
         "s1": {
@@ -125,8 +130,8 @@ def test_build_dataset_joins_action_onto_matching_scene():
     assert len(dataset) == 1
     entry = dataset[0]
     assert entry["scene_id"] == "s1"
-    assert entry["ground_truth_action"]["rollout_id"] == 13
-    assert entry["ground_truth_action"]["maneuver_class"] == "lane_change_right"
+    assert entry["ground_truth_action"]["rollout_id"] == 1
+    assert entry["ground_truth_action"]["maneuver_class"] == "lane_keep"
     assert isinstance(entry["ground_truth_action"]["rollout_id"], int)  # not numpy.int64
     assert isinstance(entry["ground_truth_action"]["mean_acceleration_mps2"], float)
     assert entry["perturbations"] == perturbations_by_scene["s1"]["perturbations"]
