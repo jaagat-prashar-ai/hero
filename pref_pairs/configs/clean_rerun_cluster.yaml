@@ -1,0 +1,90 @@
+name: pref-pairs-clean-rerun-cluster
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.pref_pairs_loop
+  training_fn_config:
+    # ── S3 data source ────────────────────────────────────────────────────────
+    # Scoped to exactly the 98 clip_ids underlying the 120 scenes already used
+    # for perturbation_generator.py's ground-truth traces (see
+    # pref_pairs/results/perturbation_actions/ground_truth_actions.json) --
+    # derived from sample_clips_n100_unstratified.json by filtering to those
+    # clip_ids, not rebuilt from scratch. Re-expanding these same clips'
+    # embedded OOD events is expected to reproduce the same ~120 scene_ids.
+    manifest_path: "pref_pairs/configs/sample_clips_clean_rerun.json"
+    bucket: "research-datasets-chicago"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Rollout sampling ──────────────────────────────────────────────────────
+    # k=1: exactly ONE fresh stochastic rollout per scene -- both reasoning
+    # AND diffusion resampled together (unlike fixed_reasoning_rollout.py's
+    # split mode), so this is a genuinely NEW model run, not a re-read of the
+    # earlier noise-floor experiment. Because k=1, RolloutHarvester.harvest_scene
+    # returns exactly one RolloutRecord per scene -- coc_text (ground-truth
+    # reasoning) and waypoints/native_accel_mps2/native_curvature_per_m
+    # (the action) are captured together in that SAME record by construction,
+    # with no "which of K rollouts is the real one" ambiguity to resolve
+    # downstream (see build_ground_truth_action_dataset.py's rollout-selection
+    # fix for why that ambiguity mattered in the OLD approach this replaces).
+    k: 1
+    seed: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    # ── Maneuver classification thresholds ───────────────────────────────────
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+
+    resume: true
+
+    # Omit/null = harvest every scene in the (already-scoped) manifest.
+    max_scenes: null
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    # Own outdir, independent of every prior pref_pairs run's resume state.
+    outdir: "/mnt/work/tmp/clean_rerun_results"
+
+    # ── Result retrieval (see run.py's "RESULT RETRIEVAL" docstring note) ──────
+    # Same workstation-vs-cluster /mnt/work mismatch as every prior pref_pairs
+    # cluster run -- fetch via logs, not outdir. log_detailed_scenes=20 covers
+    # every scene at this run's small scale (~120 scenes / 8 GPUs ~= 15/rank).
+    log_scene_summary: true
+    log_detailed_scenes: 20
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: pref-pairs-clean-rerun
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

@@ -1,0 +1,36 @@
+# NOTE: as of this writing, Lilypad's LaunchWorkload SDK raises
+# NotImplementedError("Local GPU machine type not supported for workloads
+# yet") on real (non-dry-run) submission of gpu_machine_type: local -- only
+# `--dry-run` validation works against this config today. The actual smoke
+# test for this experiment is instead a scoped-down canary directly on
+# clean_rerun_cluster.yaml's real a100.8 config (num_gpus overridden to 1,
+# max_scenes overridden to 2) via masking/configs/launch.py's -o overrides,
+# same pattern as every prior pref_pairs cluster experiment's canary.
+name: pref-pairs-clean-rerun-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: pref_pairs.training.run.pref_pairs_loop
+  training_fn_config:
+    manifest_path: "pref_pairs/configs/sample_clips_smoke.json"
+    bucket: "research-datasets-chicago"
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+    k: 1
+    seed: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+    thresholds_config: "pref_pairs/configs/maneuver_thresholds.yaml"
+    resume: false
+    max_scenes: 2
+    outdir: "/tmp/clean_rerun_smoke_results"
+  experiment_tracker: {}  # no W&B tracking for local smoke tests
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
