@@ -4,21 +4,23 @@ build_ground_truth_action_dataset.py — join each scene's ground-truth reasonin
 trace (and its perturbations from pref_pairs.perturbation_generator) with the
 REAL, already-computed action that produced that exact trace.
 
-Why no new model inference is needed: perturbation_generator.extract_ground_truth_traces
-took each scene's ground_truth_trace from the FIRST rollout's blockquoted CoT text in
-results/fixed_reasoning/scene_reasoning/*_reasoning.md -- the rendered output of the
-already-completed "diffusion-only noise (reasoning fixed)" experiment (workload
-pref-pairs-fixed-reasoning-cluster-f6kq5o). That first rollout already has a real
-model-produced action (full waypoints + native accel/curvature arrays); this module
-recovers it from the workload's logs (the .md files only kept a 4-field scalar summary,
-not the raw per-waypoint arrays) and joins it back in, rather than re-running inference.
+Why no new model inference is needed: in the already-completed "diffusion-only noise
+(reasoning fixed)" experiment (workload pref-pairs-fixed-reasoning-cluster-f6kq5o), one
+CoT is generated per scene and held FIXED while 100 diffusion-only draws are sampled
+against it (fixed_reasoning_rollout.py) -- every rollout for a scene shares the same
+coc_text, only the action (waypoints) differs per draw. ground_truth_trace is that
+shared CoT text; the ground-truth ACTION is the very first of those 100 draws --
+rollout_id==0, produced with seed_start (see fixed_reasoning_rollout.py's
+FixedReasoningHarvester.harvest_scene: rollout_id i is produced with seed_start + i).
+This module recovers that rollout's real waypoints + native accel/curvature arrays from
+the workload's logs (never persisted anywhere else -- the committed
+results/fixed_reasoning/scene_reasoning/*.md files only kept a 4-field scalar summary)
+and joins it onto perturbations.jsonl's per-scene text, rather than re-running inference.
 
-Verified during planning (see /home/jaagat-prashar/.claude/plans/generic-waddling-pie.md):
-fetching this workload's PREF_PAIRS_ROLLOUT_FULL log rows and replicating
-scene_reasoning_report.render_scene_reasoning_markdown's exact rollout-selection order
-(groupby("maneuver_class") alphabetically, then sort_values("rollout_id"), first row)
-reproduces a coc_text that is byte-identical to ground_truth_trace for all 120/120
-scenes -- zero mismatches.
+Note: since coc_text is identical across all 100 rollouts of a scene by construction,
+checking it matches ground_truth_trace does NOT validate which rollout was selected --
+only that fixed-reasoning mode's invariant held. The actual selection criterion is
+generation order (lowest rollout_id), not text matching.
 """
 
 from __future__ import annotations
@@ -143,17 +145,26 @@ def fetch_rollout_rows(
 
 
 def select_ground_truth_rollout(scene_df: pd.DataFrame) -> pd.Series:
-    """Reproduce scene_reasoning_report.render_scene_reasoning_markdown's exact
-    rollout order -- groupby("maneuver_class") (pandas groups sort keys
-    alphabetically by default) then .sort_values("rollout_id") -- and return
-    the very first row. That row is exactly what
-    perturbation_generator.extract_ground_truth_traces read as the scene's
-    ground_truth_trace (the first blockquote encountered parsing the
-    rendered .md top to bottom), so its action is THE ground-truth action.
+    """The very first rollout actually produced for this scene -- lowest
+    rollout_id, full stop.
+
+    In fixed-reasoning mode the CoT is frozen across all K draws for a
+    scene (only the diffusion action varies -- see
+    fixed_reasoning_rollout.py), so EVERY rollout here shares the same
+    coc_text as ground_truth_trace; checking coc_text equality can't tell
+    you whether you picked the right ACTION, only that the (trivially
+    identical) text matches. The actual selection criterion is generation
+    order: rollout_id i was produced with seed_start + i, so rollout_id==0
+    is literally the first waypoint chunk the model produced out of the
+    100 draws -- that's the one to use as the ground-truth action.
+
+    (An earlier version of this function grouped by maneuver_class first,
+    reproducing the rollout that scene_reasoning_report.py's markdown
+    happens to render first -- which is an artifact of alphabetical
+    class-name sorting, not "the first rollout produced". Fixed per
+    explicit correction.)
     """
-    first_class = sorted(scene_df["maneuver_class"].unique())[0]
-    class_group = scene_df[scene_df["maneuver_class"] == first_class].sort_values("rollout_id")
-    return class_group.iloc[0]
+    return scene_df.sort_values("rollout_id").iloc[0]
 
 
 def load_perturbations_by_scene(perturbations_path: str | Path) -> dict[str, dict[str, Any]]:
