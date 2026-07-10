@@ -199,3 +199,17 @@ py_test(
         ":build_reasoning_matched_pairs",
     ],
 )
+
+py_library(
+    name = "build_clean_reasoning_actions",
+    srcs = ["build_clean_reasoning_actions.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "build_clean_reasoning_actions_test",
+    srcs = ["build_clean_reasoning_actions_test.py"],
+    deps = [
+        ":build_clean_reasoning_actions",
+    ],
+)
