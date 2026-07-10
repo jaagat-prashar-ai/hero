@@ -618,6 +618,7 @@ footer.page-footer {{ margin-top: 3rem; padding-top: 1.25rem; border-top: 1px so
 .cf-plot-toggle > summary::before {{ content: "▸"; font-size: 0.8em; transition: transform 0.15s ease; }}
 .cf-plot-toggle[open] > summary::before {{ transform: rotate(90deg); }}
 .cf-plot-toggle .scene-traj-img {{ max-width: 22rem; margin-top: 0.5rem; }}
+.cf-has-plot-badge {{ font: 600 0.68rem var(--sans); color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); padding: 0.1rem 0.5rem; border-radius: 20px; white-space: nowrap; }}
 [hidden] {{ display: none !important; }}
 @media (prefers-reduced-motion: reduce) {{ * {{ transition: none !important; }} }}
 </style>

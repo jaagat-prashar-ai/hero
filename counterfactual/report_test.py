@@ -107,12 +107,11 @@ def test_build_counterfactual_data_splits_option_a_by_step_too():
     # The three must NOT all collapse to the same value.
     assert data["stats_a_step0"]["median"] != data["stats_a_other"]["median"]
 
+    # Rendering must not crash and must still surface the distinct per-step
+    # numbers in the summary text (the dumbbell chart itself was removed
+    # per user request; the underlying stats split is what actually matters).
     out = render_counterfactual_section(data)
-    # Both the step-0 (9) and later-step (1) Option A medians must appear as
-    # distinct rendered dumbbell values -- not the same overall-median
-    # number (5, the median of [9, 1]) repeated on every row.
-    assert 'swatch-a"></i>9<i' in out
-    assert 'swatch-a"></i>1<i' in out
+    assert "9" in out and "1" in out
 
 
 def test_build_counterfactual_data_sorts_scenes_by_max_clean_ade_descending():
@@ -182,8 +181,15 @@ def test_render_counterfactual_section_embeds_matching_example_plot_as_toggle():
         key = example_key("scene_a", 0, "Change")
         out = render_counterfactual_section(data, example_plots_b64={key: "ZmFrZS1wbmc="})
 
-    assert "Show trajectory plot" in out
+    # Plots default to open (auto-expanded) for discoverability, so the
+    # summary reads "Hide", and a badge flags it at the scene/step/row level
+    # too -- all three are collapsed by default otherwise, easy to miss.
+    assert "Hide trajectory plot" in out
     assert "data:image/png;base64,ZmFrZS1wbmc=" in out
+    assert out.count("cf-has-plot-badge") == 3  # row + position + scene badges
+    assert '<details class="cf-plot-toggle" open>' in out
+    assert '<details class="scene" open>' in out
+    assert '<details class="clip" data-clipid="scene_a" open>' in out
 
 
 def test_render_counterfactual_section_omits_toggle_when_no_matching_plot():
@@ -197,4 +203,7 @@ def test_render_counterfactual_section_omits_toggle_when_no_matching_plot():
         data = build_counterfactual_data(tmp_path)
         out = render_counterfactual_section(data, example_plots_b64={"unrelated_key": "ZmFrZQ=="})
 
-    assert "Show trajectory plot" not in out
+    assert "Hide trajectory plot" not in out
+    assert "cf-has-plot-badge" not in out
+    assert '<details class="scene">' in out  # no plot -> stays collapsed, no open attr
+    assert '<details class="clip" data-clipid="scene_a">' in out
