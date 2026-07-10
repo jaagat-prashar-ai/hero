@@ -114,6 +114,23 @@ class RolloutRecord:
     native_accel_mps2: list[float] | None = None
     native_curvature_per_m: list[float] | None = None
 
+    # extract_text_tokens (called inside sample_trajectories_from_data_with_vlm_rollout
+    # when return_extra=True) always returns all three of "cot"/"meta_action"/
+    # "answer" -- only "cot" was ever pulled into this dataclass historically
+    # (the project's framing centers on chain-of-causation reasoning), even
+    # though meta_action/answer were computed on every single run since Task 1
+    # and silently discarded. meta_action is the discrete action-decision span
+    # the VLM generates right after cot (and right before the trajectory
+    # hand-off) -- the diffusion expert cross-attends to it same as cot (see
+    # alpamayo1_5.py's _build_expert_pos_ids_and_attn_mask: nothing in this
+    # span is masked from the expert by default). answer is the model's
+    # direct natural-language response, sharing the same text-extraction
+    # schema as generate_text's VQA path (see base_model.py's docstring) --
+    # exact semantic distinction from meta_action not otherwise documented
+    # in this vendored source.
+    meta_action_text: str | None = None
+    answer_text: str | None = None
+
     def to_json_dict(self) -> dict[str, Any]:
         # dataclasses.asdict() would already give us plain dicts/lists here,
         # but spelling it out keeps the on-disk schema explicit and stable
@@ -296,9 +313,14 @@ class RolloutHarvester:
             )
 
         # pred_xyz shape: (B=1, num_traj_sets=1, num_traj_samples=batch_k, T, 3).
-        # extra["cot"] shape (after upstream's own reshape): (B=1, ns=1, batch_k) of str.
+        # extra["cot"]/["meta_action"]/["answer"] shape (after upstream's own
+        # reshape): (B=1, ns=1, batch_k) of str each -- extract_text_tokens
+        # always returns all three keys (see RolloutRecord's docstring note
+        # on meta_action_text/answer_text).
         waypoints_per_rollout = pred_xyz[0, 0].float().cpu()  # (batch_k, T, 3)
         cot_per_rollout = extra["cot"][0, 0]  # (batch_k,) array of str
+        meta_action_per_rollout = extra["meta_action"][0, 0]  # (batch_k,) array of str
+        answer_per_rollout = extra["answer"][0, 0]  # (batch_k,) array of str
 
         # action_raw shape (if captured): (batch_k, T, 2) normalized
         # [accel, kappa] -- see sample_trajectories_from_data_with_vlm_rollout's
@@ -339,6 +361,8 @@ class RolloutHarvester:
                     scene_id=scene_id,
                     rollout_id=rollout_id_offset + local_id,
                     coc_text=str(cot_per_rollout[local_id]),
+                    meta_action_text=str(meta_action_per_rollout[local_id]),
+                    answer_text=str(answer_per_rollout[local_id]),
                     waypoints=waypoints_per_rollout[local_id].tolist(),
                     hz=hz,
                     sampling_params=sampling_params,
