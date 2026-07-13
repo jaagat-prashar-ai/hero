@@ -9,19 +9,43 @@
 #   - The per-frame capture timestamps (a separate "frame_timestamps" parquet
 #     in HF's own zip layout) were never extracted into the WDS shard, so we
 #     cannot reproduce physical_ai_av's timestamp-based frame selection
-#     (SeekVideoReader.decode_images_from_timestamps). We pick frames by
-#     index instead (see decode_last_n_frames below).
+#     (SeekVideoReader.decode_images_from_timestamps). decode_last_n_frames()
+#     below picks frames by INDEX instead, and this is a much bigger gap than
+#     "slightly different pixels": on the reference clip
+#     (030c760c-ae38-49aa-9ad8-f5650a545d26) the video is 604 frames @ 30fps
+#     (~20.1s), so "last 4 frames" sits at t~20.0-20.1s -- but t0_us=5.1e6
+#     means the real demo wants frames at t~4.8-5.1s. That's ~15s away: a
+#     DIFFERENT MOMENT of the drive entirely, not just a recompressed version
+#     of the right one. We cannot fix this with index arithmetic either --
+#     that would require knowing what absolute-clock time video frame 0
+#     corresponds to, which is exactly what the missing frame_timestamps file
+#     would tell us. Checking the egomotion timestamps for this same clip
+#     (span -0.2s to +140.2s) shows egomotion is logged over a much longer
+#     window than the ~20s video, so "frame 0 == absolute time 0" is NOT a
+#     safe assumption -- it would just be a different unverified guess.
 #   - Egomotion IS exact: it's stored as raw per-sample floats (not derived/
 #     lossy), so EgomotionState.from_egomotion_df() + create_interpolator()
 #     on this data reconstructs the identical Interpolator physical_ai_av's
-#     own HF-streaming path would build from the same clip.
+#     own HF-streaming path would build from the same clip. VERIFIED, not
+#     just argued from reading the code: for 030c760c-...,
+#     load_egomotion_interpolator() on the S3 parquet vs. avdi.get_clip_feature
+#     (true HF stream) evaluated at the real history_timestamps gives 0.0 max
+#     abs difference on xyz, quaternion, and curvature. Video resolution is
+#     also confirmed unaffected by the transcode -- build_wds/data/
+#     video_transcode.py's ffmpeg invocation has no resize/scale filter, only
+#     codec/crf/preset -- so the vision-token SPAN LENGTH matches the true HF
+#     path too, on top of the input_ids-structure argument below.
 #
-# Net effect for T1.3 specifically: ego-history tokens (which is what
-# fuse_traj_tokens actually encodes into input_ids) are exact. The
-# vision-token SPAN LENGTH in input_ids is still exact too, because Qwen3-VL's
-# image token count is a deterministic function of image resolution/count,
-# not pixel content or capture time. Only the actual pixel_values (which
-# input_ids do not encode) are approximate. See dump_input_template.py's
+# Net effect: ego-history tokens (what fuse_traj_tokens actually encodes into
+# input_ids) are exact, and the vision-token SPAN LENGTH in input_ids is still
+# exact too, because Qwen3-VL's image token count is a deterministic function
+# of image resolution/count, not pixel content or capture time -- so T1.3's
+# byte-for-byte input_ids check is unaffected. But the decoded image_frames
+# tensor this module returns does NOT depict the same moment described by the
+# ego-history tokens in the same prompt. DO NOT reuse this loader for
+# anything where visual content matters (qualitative checks, real inference,
+# any vision-level teacher forcing) without first fixing frame alignment --
+# only for input_ids-structure work like T1.3. See dump_input_template.py's
 # fixture "data_source"/"caveats" fields for how this gets recorded.
 
 import io
@@ -54,9 +78,11 @@ def decode_last_n_frames(mp4_path: str, num_frames: int = 4) -> np.ndarray:
     We use physical_ai_av's own SeekVideoReader for the actual decode (real
     vendored decoder, not a reimplementation) but skip
     decode_images_from_timestamps entirely, since we have no per-frame
-    timestamps for this WDS-sourced video (see module docstring). Which exact
-    frames we grab doesn't matter for T1.3: input_ids depend on frame COUNT
-    and resolution, not content or capture time.
+    timestamps for this WDS-sourced video (see module docstring -- this is a
+    real content/timing gap, not just a cosmetic one). Frame COUNT and
+    resolution are what input_ids structure depends on, and those are correct
+    regardless of which frames we pick; the actual frame CONTENT picked here
+    is very likely from the wrong moment of the clip.
     """
     with open(mp4_path, "rb") as f:
         video_bytes = f.read()

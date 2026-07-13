@@ -189,15 +189,19 @@ def build_fixture(model: AlpamayoR1, data: dict, prompt: dict, data_source: str)
     if data_source == "s3":
         fixture["caveats"] = (
             "Sourced from our own S3 WDS mirror (shard_019_00000.tar), not HF directly, "
-            "because HF's Xet CDN was hanging on this session. Egomotion is exact (raw "
-            "floats, not lossy). Camera video was AV1-transcoded (crf=32) by "
-            "build_wds/data/build_webdataset.py before upload, and per-frame capture "
-            "timestamps were never stored in the WDS shard, so frames here are picked by "
-            "index (last N), not by the official timestamp-based selection. This does NOT "
-            "affect input_ids fidelity (vision-token span length depends on image "
-            "resolution/count, not pixel content or capture time) but pixel_values "
-            "themselves are not byte-identical to what the true HF path would produce. "
-            "See s3_clip_loader.py's module docstring."
+            "because HF's Xet CDN was hanging on this session. Egomotion is VERIFIED exact "
+            "against the true HF-streamed source for this clip (0.0 max abs diff on xyz/"
+            "quat/curvature at the real history_timestamps -- see s3_clip_loader.py's "
+            "module docstring) -- ego-history token VALUES and input_ids structure/spans "
+            "are unaffected. Video resolution is also confirmed unchanged by the transcode "
+            "(no resize filter in build_wds/data/video_transcode.py), so the vision-token "
+            "SPAN LENGTH matches the true HF path too. What is NOT verified/correct: per-"
+            "frame capture timestamps were never stored in the WDS shard, so image_frames "
+            "here are the last N frames BY INDEX, not the frames at t0 the real demo shows "
+            "the model -- on this clip that's ~t=20s of a ~20.1s video vs the correct "
+            "~t=5.1s, a different moment of the drive, not just lower quality. Safe to use "
+            "for input_ids-structure work (this fixture); NOT safe to treat image_frames as "
+            "depicting the same moment as the ego-history tokens."
         )
     return fixture
 
