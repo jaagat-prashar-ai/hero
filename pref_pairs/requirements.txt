@@ -37,3 +37,10 @@ pyarrow>=14.0
 
 # pref_pairs-specific: thresholds_config YAML loading.
 pyyaml>=6.0
+
+# perturbation_generator.py-specific: calls Claude Fable 5 to synthesize
+# semantic perturbations of ground-truth reasoning traces. This is a local/
+# workstation script, not a Lilypad workload dependency like the rest of this
+# file -- listed here anyway for one-file "pip install -r requirements.txt"
+# convenience.
+anthropic>=0.116.0
