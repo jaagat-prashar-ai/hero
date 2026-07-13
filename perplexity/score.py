@@ -60,6 +60,13 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
         sample["ego_future_xyz"],
         sample["ego_future_rot"],
     )[0].tolist()
+    # action_bin_ids are in [0, num_bins-1] = [0, 2999] per channel (accel,
+    # kappa) -- that's the size of the meaningful range for a discrete action
+    # token. It is NOT the size of the softmax denominator below: every
+    # position still normalizes over the full model vocabulary (155,697
+    # tokens), never just these 3,000. A model can be -- and in the
+    # mechanism artifact's Case C, is -- sharply confident about the wrong
+    # one of those 155,697 options.
     action_vocab_ids = [model.config.traj_token_start_idx + b for b in action_bin_ids]
     n_action = len(action_vocab_ids)  # 128
 
