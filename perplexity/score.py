@@ -104,30 +104,3 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
     return nlls.cpu().numpy()
 
 
-# score.py deliberately calls the low-level forward interface (model.vlm(input_ids=..., ...), the same thing PyTorch/transformers calls model(...)) rather than 
-# model.vlm.generate(...). It's a different Python method entirely - not a special mode of the same method, and not something a chat product would expose. 
-# there is genuinely no text output in the conversational sense anywhere in score.py - the only thing that comes out is the logits tensor, which gets turned into 128 floating-point numbers
-
-# how many action bins?
-# how big is the vocabulary for each of the text tokens and the 128-discret etokens? I.e., vocab size for discrete action tokens is just the number of bins?
-
-# ask different weighs a different question: "here's a complete sentence, tell me how likely each word was"
-# via a forward-only call 
-
-# 10 valid clips (3 of these lack a usable event)? and compute the exact shard file each needs, then check the total download size before pulling anything
-# this could be the real cost?
-
-# what edge case is this?
-# That matches a known edge case (the same one referenced in build_webdataset.py's comments — 9/1740 rows have null events). Fixing the sampler to skip those cleanly.
-# ● Update(sample_ood_clips.py)
-# Added 2 lines
-#         if len(picked) >= n:
-#             break
-#         row = ood_df.loc[cid]
-#         if pd.isna(row["events"]):
-#             continue  # ~9/1740 rows have no events (known upstream gap, not a bug)
-#         events = json.loads(row["events"]) if isinstance(row["events"], str) else row["events"]
-#         valid = [e for e in events if e["event_start_timestamp"] > MIN_T0_US]
-#         if not valid:
-
-
