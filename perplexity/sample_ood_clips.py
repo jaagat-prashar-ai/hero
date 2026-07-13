@@ -5,8 +5,10 @@
 
 import hashlib
 import json
+import os
 import random
 
+import boto3
 import pandas as pd
 import physical_ai_av
 from huggingface_hub import hf_hub_download
@@ -16,6 +18,15 @@ CLIPS_PER_SHARD = 50
 MIN_T0_US = 1_700_000  # needs > 1.6e6 (history window) with a small buffer
 BUCKET = "research-datasets-chicago"
 PREFIX = "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+S3_ENDPOINT = "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+
+
+def shard_exists(s3, key: str) -> bool:
+    try:
+        s3.head_object(Bucket=BUCKET, Key=key)
+        return True
+    except Exception:
+        return False
 
 
 def _hash_split(clip_id: str, val_frac: float = 0.10) -> str:
@@ -57,11 +68,15 @@ def main(n: int = 10, seed: int = 42) -> None:
     chunk_of = avdi.clip_index["chunk"].to_dict()
     splits_map = build_splits_map(feature_df, ood_df)
 
+    session = boto3.Session(profile_name="oci.chi")
+    s3 = session.client("s3", endpoint_url=S3_ENDPOINT)
+
     rng = random.Random(seed)
     pool = list(ood_df.index.astype(str))
     rng.shuffle(pool)
 
     picked = []
+    skipped_no_shard = []
     for cid in pool:
         if len(picked) >= n:
             break
@@ -73,6 +88,13 @@ def main(n: int = 10, seed: int = 42) -> None:
         if not valid:
             continue
         shard_info = resolve_shard(cid, chunk_of, splits_map, splits_map[cid])
+        if not shard_exists(s3, shard_info["shard_key"]):
+            # The WDS build was stopped/relaunched many times (see memory) and
+            # never finished every rank x split combo -- confirmed on rank 82's
+            # val split, which has zero shards. Redraw rather than assume the
+            # math is wrong.
+            skipped_no_shard.append((cid, shard_info["shard_key"]))
+            continue
         picked.append(
             {
                 "clip_id": cid,
@@ -82,6 +104,11 @@ def main(n: int = 10, seed: int = 42) -> None:
                 **shard_info,
             }
         )
+
+    if skipped_no_shard:
+        print(f"skipped {len(skipped_no_shard)} clips with no shard in S3 yet:")
+        for cid, key in skipped_no_shard:
+            print("  ", cid, "->", key)
 
     with open("ood_sample_manifest.json", "w") as f:
         json.dump(picked, f, indent=2)
