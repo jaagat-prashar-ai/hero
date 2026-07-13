@@ -89,6 +89,9 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
             image_grid_thw=aux["image_grid_thw"],
             use_cache=False,
         )
+    # Nothing conversational comes out of this call. logits is the only
+    # thing model.vlm() returns here -- no decoded text, no chat turn -- and
+    # everything below just turns it into 128 floating-point numbers.
     logits = outputs.logits  # (1, L, vocab_size)
 
     action_start = len(full_ids) - n_action
