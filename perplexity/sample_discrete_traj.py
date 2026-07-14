@@ -134,6 +134,14 @@ def sample_discrete_action_tokens(
             generation_config=generation_config,
             logits_processor=logits_processor,
         )
+    # generate() returns a plain tensor or a GenerateOutput depending on
+    # generation_config.return_dict_in_generate -- which we set explicitly
+    # above, but alpamayo_r1.py's own sample_trajectories_from_data_with_vlm_rollout
+    # mutates the SHARED model.vlm.generation_config object in place (it never
+    # deep-copies before setting fields), so calling this function after that
+    # one can still yield a dict-like return here despite our own override.
+    # Handle both shapes rather than assume one.
+    sequences = sequences.sequences if hasattr(sequences, "sequences") else sequences
 
     # min_new_tokens == max_new_tokens == n_action guarantees exactly n_action
     # new tokens with no padding, so we can slice by length directly instead
