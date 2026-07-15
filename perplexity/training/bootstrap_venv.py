@@ -20,6 +20,7 @@
 
 import logging
 import os
+import shutil
 import subprocess
 import time
 
@@ -39,7 +40,16 @@ def wait_for_alpamayo_venv(venv_dir: str, timeout_s: float = 45 * 60) -> str:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
         if os.path.exists(marker) and os.path.exists(python_bin):
-            return python_bin
+            # Same validation as the builder path: a marker can belong to a
+            # corrupted venv that local rank 0 is ABOUT to wipe and rebuild
+            # (it validates before trusting the marker too) -- returning on
+            # marker existence alone would hand back the corpse. Only
+            # return once the imports cluster_worker needs actually work.
+            check = subprocess.run(
+                [python_bin, "-c", "import torch, alpamayo_r1"], capture_output=True
+            )
+            if check.returncode == 0:
+                return python_bin
         time.sleep(10)
     raise TimeoutError(f"venv at {venv_dir} was not built by local rank 0 within {timeout_s:.0f}s")
 
@@ -63,8 +73,27 @@ def ensure_alpamayo_venv(venv_dir: str, perplexity_dir: str) -> str:
     python_bin = os.path.join(venv_dir, "bin", "python")
     marker = os.path.join(venv_dir, MARKER_NAME)
     if os.path.exists(marker) and os.path.exists(python_bin):
-        logger.info("bootstrap: venv already built at %s, skipping", venv_dir)
-        return python_bin
+        # The marker alone is NOT proof of a working venv: the pre-1d40ac3
+        # race let 8 ranks build this directory concurrently, and whichever
+        # ranks finished wrote the marker over a venv another rank had
+        # already half-recreated -- sweep attempt 1 left exactly such a
+        # marker-bearing corpse behind, and attempt 2 trusted it and died at
+        # `import alpamayo_r1`. Validate by importing the two modules
+        # cluster_worker actually needs; on any failure, wipe and rebuild.
+        check = subprocess.run(
+            [python_bin, "-c", "import torch, alpamayo_r1"],
+            capture_output=True,
+            text=True,
+        )
+        if check.returncode == 0:
+            logger.info("bootstrap: venv already built at %s, validated, skipping", venv_dir)
+            return python_bin
+        logger.warning(
+            "bootstrap: venv at %s has a marker but failed validation (%s) -- rebuilding",
+            venv_dir,
+            (check.stderr or "").strip().splitlines()[-1] if check.stderr else "no stderr",
+        )
+        shutil.rmtree(venv_dir, ignore_errors=True)
 
     uv_bin = os.path.expanduser("~/.local/bin/uv")
     if not os.path.exists(uv_bin):
