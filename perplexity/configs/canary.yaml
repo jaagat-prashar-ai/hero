@@ -1,0 +1,78 @@
+# On-cluster canary for the discrete-vs-diffusion sweep: 1 clip/cluster
+# (9 total) on a single A100, smoke-testing the full pipeline (S3 shard scan
+# + clip resolution + venv bootstrap + Alpamayo inference + plot upload)
+# before committing to the 8-GPU full sweep in cluster.yaml.
+#
+# canary1-3 were launched from untracked CLI overrides of cluster.yaml
+# (confirmed from canary3's trial config in its driver logs: machine_type
+# a100.8, gpus_per_trial 1, n_per_cluster 1) -- this file makes the exact
+# canary config reproducible and reviewable instead.
+name: discrete-vs-diffusion-canary
+model_identifier: other.training.alpamayo15.default.v1
+# Same rationale as cluster.yaml: long CPU-only setup (scan + venv bootstrap
+# + model download) before the GPU does anything -- canary3 was killed by
+# the idle-GPU reaper (termination_reason=IDLE_GPU) during exactly that
+# phase, at the reaper's ~60-min allocated-but-idle threshold.
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: perplexity.training.run.discrete_vs_diffusion_loop
+  training_fn_config:
+    # Canary: 1 clip/cluster (9 total) instead of the real run's 15.
+    n_per_cluster: 1
+    sample_seed: 42
+    s3_bucket: "research-datasets-chicago"
+    # Same shared venv dir as cluster.yaml so a later full-sweep pod on the
+    # same node can reuse an already-built venv.
+    venv_dir: "/mnt/work/tmp/alpamayo_r1_venv"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: discrete-vs-diffusion
+
+cluster_resources:
+  # 1 GPU carved off an a100.8 node (node splitting), matching how canary3
+  # actually ran.
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  # Non-preemptible, unlike the full sweep's `preemptible: always`: canary3
+  # lost its preemptible node ~34 min in and the forced RayJob restart
+  # re-ran all setup from zero, which is what pushed it into the idle-GPU
+  # reaper's window. A 1-GPU canary is cheap enough that waiting for
+  # non-preemptible quota beats losing the node mid-smoke-test.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  # The venv bootstrap (uv python install + torch/transformers download +
+  # pip install) takes several minutes on a cold cache -- generous timeout,
+  # same rationale as cluster.yaml. This bounds only the Ray runtime-env
+  # setup, NOT wall clock from workload creation.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: perplexity/requirements.txt
+    regex_excludes:
+      - "^perplexity/alpamayo/ar1_venv/"
+      - "^perplexity/clip_cache/"
+      - "^pref_pairs/"
+      - "^counterfactual/"
+      - "^build_wds/"
+      - "^third_party/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"

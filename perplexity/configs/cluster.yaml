@@ -1,5 +1,11 @@
 name: discrete-vs-diffusion-cluster
 model_identifier: other.training.alpamayo15.default.v1
+# This job front-loads a long CPU-only phase (S3 shard scan + uv venv
+# bootstrap + model download) before any GPU kernel runs -- canary3 was
+# killed by Lilypad's idle-GPU reaper (termination_reason=IDLE_GPU, ~60 min
+# allocated-but-idle threshold) while still in that phase. Opt out so the
+# reaper can't kill a healthy run during setup.
+ignore_idle_reaper: true
 workload_variant_config:
   workload_type: "training"
   training_fn: perplexity.training.run.discrete_vs_diffusion_loop
@@ -56,6 +62,11 @@ runtime_environment:
     pip_requirements_path: perplexity/requirements.txt
     regex_excludes:
       - "^perplexity/alpamayo/ar1_venv/"
+      # 2.1GB of locally-extracted clips -- the cluster job never reads
+      # this (each rank extracts its own clips from S3 into /tmp), but it
+      # dominated canary3's 1.6GB working-dir zip that every pod had to
+      # download during setup.
+      - "^perplexity/clip_cache/"
       - "^pref_pairs/"
       - "^counterfactual/"
       - "^build_wds/"
