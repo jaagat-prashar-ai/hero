@@ -54,6 +54,15 @@ def ensure_alpamayo_venv(venv_dir: str, perplexity_dir: str) -> str:
 
     env = dict(os.environ)
     env["PATH"] = f"{os.path.dirname(uv_bin)}:{env.get('PATH', '')}"
+    # Ignore uv config discovered from the CWD: the repo-root pyproject.toml
+    # defines [tool.uv].index = [ursa, pytorch-cu128, pypi.nvidia.com] (for
+    # the Bazel/lockfile toolchain) with NO pypi.org, and uv's
+    # first-index-wins strategy then caps e.g. packaging at the cu128
+    # index's 24.1 -- which broke hatchling resolution inside the editable
+    # install's build env (killed canary6, reproduced locally). This venv's
+    # packages come from explicit --index-url flags or the pypi.org default,
+    # deterministically, regardless of where the bootstrap runs from.
+    env["UV_NO_CONFIG"] = "1"
 
     _run([uv_bin, "python", "install", "3.12"], env=env)
     _run([uv_bin, "venv", "--python", "3.12", venv_dir], env=env)
@@ -96,17 +105,37 @@ def ensure_alpamayo_venv(venv_dir: str, perplexity_dir: str) -> str:
         env=env,
     )
 
-    # AlpamayoR1 itself, editable, from this same repo checkout. --no-deps
-    # is what actually implements the "skip flash-attn" promise above:
+    # Build backend for the editable install below, into the venv itself.
+    # Pinned to an explicit pypi.org index: the pod's ambient index config
+    # resolves first-index-wins against the pytorch cu128 index, which caps
+    # packaging at 24.1 and can't satisfy hatchling's packaging>=24.2 --
+    # that resolution failure inside uv's isolated build env is what killed
+    # canary6. (editables is hatchling's build-time requirement for editable
+    # wheels specifically.)
+    _run(
+        pip_install
+        + ["--index-url", "https://pypi.org/simple", "hatchling>=1.27.0", "editables"],
+        env=env,
+    )
+
+    # AlpamayoR1 itself, editable, from this same repo checkout.
+    # --no-deps actually implements the "skip flash-attn" promise above:
     # alpamayo-r1's pyproject.toml declares flash-attn>=2.8.3, and without
     # the flag uv resolves it and tries to BUILD it -- which fails outright
-    # (flash-attn's sdist needs torch at build time and uv's isolated build
-    # env doesn't have it; killed canary5), and even with build isolation
-    # worked around it would compile from source for 20-40+ min. Every
+    # (flash-attn's sdist needs torch at build time; killed canary5), and
+    # even if it built it would compile from source for 20-40+ min. Every
     # runtime dep alpamayo-r1 actually needs is already installed explicitly
-    # by the two steps above (the local ar1_venv only survived the -e
-    # install with deps because flash-attn was already present there).
-    _run(pip_install + ["--no-deps", "-e", os.path.join(perplexity_dir, "alpamayo")], env=env)
+    # above (the local ar1_venv only survived the with-deps -e install
+    # because flash-attn was already present there).
+    # --no-build-isolation makes the build use the venv's own hatchling
+    # (installed just above) instead of resolving a fresh isolated build env
+    # against the pod's broken index order -- combined with --no-deps, this
+    # step now touches no package index at all.
+    _run(
+        pip_install
+        + ["--no-deps", "--no-build-isolation", "-e", os.path.join(perplexity_dir, "alpamayo")],
+        env=env,
+    )
 
     with open(marker, "w") as f:
         f.write("ok\n")
