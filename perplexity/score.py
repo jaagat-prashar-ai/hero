@@ -30,7 +30,6 @@ import torch
 from dump_input_template import build_prompt
 from traj_tokenizer import tokenize_traj
 
-
 def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
     """Per-token NLLs (nats) for the 128 GT discrete action tokens, given reasoning_text as context.
 
@@ -46,6 +45,7 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
         [accel_0, kappa_0, accel_1, kappa_1, ..., accel_63, kappa_63].
     """
     device = next(model.parameters()).device
+    # tokenizer = model.tokenizer
     tokenizer = model.tokenizer
 
     prompt = build_prompt(model, sample)
@@ -104,3 +104,50 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
     return nlls.cpu().numpy()
 
 
+# score.py deliberately calls the low-level forward interface (model.vlm(input_ids=..., ...), the same thing PyTorch/transformers calls model(...)) rather than 
+# model.vlm.generate(...). It's a different Python method entirely - not a special mode of the same method, and not something a chat product would expose. 
+# there is genuinely no text output in the conversational sense anywhere in score.py - the only thing that comes out is the logits tensor, which gets turned into 128 floating-point numbers
+
+# how many action bins?
+# how big is the vocabulary for each of the text tokens and the 128-discret etokens? I.e., vocab size for discrete action tokens is just the number of bins?
+
+# ask different weighs a different question: "here's a complete sentence, tell me how likely each word was"
+# via a forward-only call 
+
+# 10 valid clips (3 of these lack a usable event)? and compute the exact shard file each needs, then check the total download size before pulling anything
+# this could be the real cost?
+
+# what edge case is this?
+# That matches a known edge case (the same one referenced in build_webdataset.py's comments — 9/1740 rows have null events). Fixing the sampler to skip those cleanly.
+# ● Update(sample_ood_clips.py)
+# Added 2 lines
+#         if len(picked) >= n:
+#             break
+#         row = ood_df.loc[cid]
+#         if pd.isna(row["events"]):
+#             continue  # ~9/1740 rows have no events (known upstream gap, not a bug)
+#         events = json.loads(row["events"]) if isinstance(row["events"], str) else row["events"]
+#         valid = [e for e in events if e["event_start_timestamp"] > MIN_T0_US]
+#         if not valid:
+
+# val shar ddoesn't exist? worth checking 
+# no val shards exist for rank 82 at all (the WDS build for that rank stopped before val was written, consistent with the many inocmplete/relaunched runs logged in memory).
+# This is a real data-availability gap, not a bug in shard-index math...? 
+
+# existence check caught 4 missing shards (including confirming rank 82's val split really is empty) and redraw cleanly, landing on 10 verified-existing clips. 
+
+# 27.3 GB across 10 shards 
+
+
+
+# score.py: doesn't ask the model to guess anything. It builds full_ids with the ground-truth action tokens already spliced in 
+# (prefix_ids + reasoning_ids + [end_marker_id] + action_vocab_ids - action_vocab_ids came straight from tokenize_traj), i.e., the real logged trajectory. 
+# Then one forward pass computes hidden states for every position using those real tokens as context. 
+
+# Measure of surprise: not a measure of compounding drift. Each of the 128 NLL values answers exactly one question: 
+# given everything true up to this point (scene, history, reasoning, and every true action token so far), how much probability did the model 
+# assign to the aactual next true token? It's isolating "was the model suprprised by the true next token" from "would th emodel's mistakes spiral"
+
+# Why do we need timestamps vs indices?
+
+# prefix compression. 
