@@ -1,0 +1,66 @@
+name: discrete-vs-diffusion-cluster
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: perplexity.training.run.discrete_vs_diffusion_loop
+  training_fn_config:
+    # 135 clips: 15 per event_cluster x 9 clusters, sampled directly from S3
+    # at job start (cluster_data.sample_and_resolve_clips) -- no locally
+    # pre-built manifest.
+    n_per_cluster: 15
+    sample_seed: 42
+    s3_bucket: "research-datasets-chicago"
+    # Isolated Python 3.12 venv self-bootstrapped at job start via `uv`
+    # (bootstrap_venv.py) -- AlpamayoR1 needs Python 3.12/torch==2.8.0, which
+    # this cluster's base Python 3.10 worker cannot provide. NOT the same
+    # filesystem as this workstation's /mnt/work (confirmed in a prior
+    # project's cluster runs) -- each pod builds its own copy fresh.
+    venv_dir: "/mnt/work/tmp/alpamayo_r1_venv"
+
+    # ── Distributed sharding (auto-set by Lilypad via RANK / WORLD_SIZE) ──
+    # Each replica owns clips where hash(clip_id) % num_gpus == rank (see
+    # training/run.py's _clip_rank). With 135 clips across 8 GPUs that's
+    # ~16-17 clips/rank.
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: discrete-vs-diffusion
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # The venv bootstrap (uv python install + torch/transformers download +
+  # pip install) takes several minutes on a cold cache per pod -- generous
+  # timeout, same rationale as masking/pref_pairs' cluster configs.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: perplexity/requirements.txt
+    regex_excludes:
+      - "^perplexity/alpamayo/ar1_venv/"
+      - "^pref_pairs/"
+      - "^counterfactual/"
+      - "^build_wds/"
+      - "^third_party/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
