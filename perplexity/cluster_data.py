@@ -13,7 +13,6 @@
 # coordination/broadcast needed) and then filters down to its own shard --
 # same pattern training/run.py already uses for rank sharding.
 
-import json
 import logging
 import os
 
@@ -38,11 +37,19 @@ CAMERA_KEYS = (
     "camera_cross_right_120fov",
     "camera_front_tele_30fov",
 )
-MIN_T0_US = 1_700_000  # history window (16 steps @ 0.1s) needs a buffer before this
+# The MIN_T0_US threshold for t0 validity lives in sample_scenario_clips.py
+# (single source of truth) -- pick_t0_and_coc, reused below, applies it.
 
 
 def sample_and_resolve_clips(n_per_cluster: int, seed: int, hf_token: str | None) -> list[dict]:
     """Pick n_per_cluster clips per event_cluster (from what's actually in S3) + resolve t0_us/coc."""
+    # Imported lazily: sample_and_resolve_clips only ever runs on rank 0 in
+    # the cluster's BASE Python 3.10 env (via training/run.py), while this
+    # module is ALSO flat-imported by cluster_worker.py inside the isolated
+    # Python 3.12 alpamayo venv (for extract_clip_to_dir) -- keeping this
+    # import out of module scope keeps the worker's import surface unchanged.
+    from perplexity.sample_scenario_clips import pick_t0_and_coc
+
     ood_df = load_ood_clips(hf_token)
     feature_df = load_feature_presence(hf_token)
     ood_df = filter_clips_with_required_features(ood_df, feature_df)
@@ -58,22 +65,28 @@ def sample_and_resolve_clips(n_per_cluster: int, seed: int, hf_token: str | None
         for i in order:
             if picked >= n_per_cluster:
                 break
-            clip_id, shard_key, meta, offset = candidates[i]
-            events = meta.get("events")
-            if isinstance(events, str):
-                events = [] if events in (None, "None") else json.loads(events)
-            events = events or []
-            valid = [e for e in events if e.get("event_start_timestamp", 0) > MIN_T0_US]
-            if not valid:
-                continue
+            clip_id, shard_key, _meta, offset = candidates[i]
+            # t0_us/coc MUST come from ood_reasoning.parquet's own "events"
+            # column (same convention as sample_scenario_clips.py /
+            # sample_ood_clips.py), NOT from the WDS shard's per-clip json
+            # blob (_meta). That blob has no "events" key at all (verified
+            # live against shard_016_00046.tar: its keys are clip_id /
+            # collection / feature_presence / ood_events / video), so the
+            # previous meta.get("events") lookup here silently rejected
+            # EVERY candidate -- canary3 resolved 0/1 clips for all 9
+            # clusters because of this.
+            t0_and_coc = pick_t0_and_coc(ood_df, clip_id)
+            if t0_and_coc is None:
+                continue  # no event clears MIN_T0_US -- draw a different candidate
+            t0_us, coc = t0_and_coc
             resolved.append(
                 {
                     "clip_id": clip_id,
                     "event_cluster": cluster,
                     "shard_key": shard_key,
                     "group_start_offset": offset,
-                    "t0_us": int(valid[0]["event_start_timestamp"]),
-                    "coc": valid[0].get("coc", ""),
+                    "t0_us": t0_us,
+                    "coc": coc,
                 }
             )
             picked += 1
