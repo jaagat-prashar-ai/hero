@@ -204,6 +204,21 @@ def discrete_vs_diffusion_loop(training_fn_config: dict, experiment_tracker) -> 
     child_env["PYTHONPATH"] = os.pathsep.join(
         [repo_root, perplexity_dir, child_env.get("PYTHONPATH", "")]
     )
+    # Pin the subprocess to THIS rank's GPU. Ray Train hands every worker on
+    # the node the full 8-GPU CUDA_VISIBLE_DEVICES (so NCCL jobs can see
+    # peers), and cluster_worker.py's .to("cuda") means cuda:0 -- on sweep
+    # attempt 2 all eight subprocesses piled their ~10-22GB models onto
+    # GPU 0 (torch.OutOfMemoryError listed 8 sibling processes on GPU 0,
+    # 18MiB free, GPUs 1-7 empty). Slicing by local rank gives each
+    # subprocess exactly one distinct device; single-GPU runs (the
+    # canaries) pass through unchanged.
+    visible = [d for d in child_env.get("CUDA_VISIBLE_DEVICES", "").split(",") if d]
+    if len(visible) > 1:
+        child_env["CUDA_VISIBLE_DEVICES"] = visible[local_rank % len(visible)]
+        logger.info(
+            "rank %d: pinned cluster_worker to CUDA_VISIBLE_DEVICES=%s",
+            rank, child_env["CUDA_VISIBLE_DEVICES"],
+        )
     # Tee the worker's output: echo every line to this process's stdout
     # unmodified (so the DISCRETE_VS_DIFFUSION_CLIP_SUMMARY log-then-fetch
     # contract is unchanged) while keeping a rolling tail. canary7's
