@@ -1,0 +1,41 @@
+name: discrete-vs-diffusion-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: perplexity.training.run.discrete_vs_diffusion_loop
+  training_fn_config:
+    # Canary: 1 clip/cluster (9 total) instead of the real run's 15, so the
+    # whole pipeline (S3 shard scan + extract + venv bootstrap + inference)
+    # can be smoke-tested quickly before committing to the full sweep.
+    n_per_cluster: 1
+    sample_seed: 42
+    s3_bucket: "research-datasets-chicago"
+    # Local canary: build the venv under /tmp so a stale/broken attempt is
+    # trivial to blow away without touching anything shared.
+    venv_dir: "/tmp/alpamayo_r1_venv_canary"
+
+  experiment_tracker: {}  # no W&B tracking for local runs
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  # The venv bootstrap (uv python install + torch/transformers download +
+  # pip install) takes several minutes on a cold cache -- generous timeout,
+  # same rationale as masking/pref_pairs' cluster configs.
+  setup_timeout_seconds: 3600
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: perplexity/requirements.txt
+    regex_excludes:
+      - "^perplexity/alpamayo/ar1_venv/"
+      - "^pref_pairs/"
+      - "^counterfactual/"
+      - "^build_wds/"
+      - "^third_party/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
