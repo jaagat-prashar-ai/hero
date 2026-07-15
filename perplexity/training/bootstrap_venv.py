@@ -96,8 +96,17 @@ def ensure_alpamayo_venv(venv_dir: str, perplexity_dir: str) -> str:
         env=env,
     )
 
-    # AlpamayoR1 itself, editable, from this same repo checkout.
-    _run(pip_install + ["-e", os.path.join(perplexity_dir, "alpamayo")], env=env)
+    # AlpamayoR1 itself, editable, from this same repo checkout. --no-deps
+    # is what actually implements the "skip flash-attn" promise above:
+    # alpamayo-r1's pyproject.toml declares flash-attn>=2.8.3, and without
+    # the flag uv resolves it and tries to BUILD it -- which fails outright
+    # (flash-attn's sdist needs torch at build time and uv's isolated build
+    # env doesn't have it; killed canary5), and even with build isolation
+    # worked around it would compile from source for 20-40+ min. Every
+    # runtime dep alpamayo-r1 actually needs is already installed explicitly
+    # by the two steps above (the local ar1_venv only survived the -e
+    # install with deps because flash-attn was already present there).
+    _run(pip_install + ["--no-deps", "-e", os.path.join(perplexity_dir, "alpamayo")], env=env)
 
     with open(marker, "w") as f:
         f.write("ok\n")
