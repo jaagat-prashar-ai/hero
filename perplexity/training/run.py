@@ -59,7 +59,14 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 POLL_INTERVAL_S = 15
-POLL_TIMEOUT_S = 1800  # 30 min -- generous, matches setup_timeout_seconds' budget
+# How long ranks > 0 wait for rank 0's scan manifest. NOT 30 min: with
+# n_per_cluster=15, the two rarest event clusters (~18-22 rows dataset-wide)
+# can force the scan through most of the ~4200 shards -- ~2.5h at the
+# ~0.5 shards/s observed on-cluster -- and a 30-min poll timeout would crash
+# ranks 1-7 mid-scan and fail the whole sweep (the 1-GPU canaries never
+# exercised this path). A requeued/repeat run reuses the cached manifest and
+# returns immediately, so this ceiling only bites on the first sweep launch.
+POLL_TIMEOUT_S = 4 * 3600
 
 
 def _clip_rank(clip_id: str, world_size: int) -> int:
