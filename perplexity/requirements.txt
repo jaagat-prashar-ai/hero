@@ -1,0 +1,24 @@
+# Dependencies for the discrete-vs-diffusion Lilypad workload.
+# Installed by Lilypad before the workload runs (pip_requirements_path), into
+# the BASE Python 3.10 worker environment -- NOT where AlpamayoR1 actually
+# runs. AlpamayoR1 needs Python 3.12 (torch==2.8.0, transformers==4.57.1,
+# flash-attn), which this base environment cannot provide (Lilypad workers
+# are Python 3.10, and masking/configs/launch.py's validator hard-enforces
+# torch==2.7.1 for any pip_requirements_path-based workload). So the actual
+# AlpamayoR1 work runs in a SEPARATE, self-bootstrapped Python 3.12 venv
+# (see training/bootstrap_venv.py), built by our own training_fn at job
+# start via `uv` -- this base env only needs enough to get that bootstrap
+# subprocess launched and to shard the clip manifest by rank.
+#
+# torch==2.7.1 below is dead weight (never actually used -- the real work
+# happens in the bootstrapped venv) but is REQUIRED by launch.py's
+# preflight validator for any non-build_wds inference workload.
+torch==2.7.1
+
+# Needed by training/run.py itself (in the base env): sampling/shard
+# resolution (cluster_data.py, reusing masking.data.sample_clips) runs here,
+# BEFORE the Python 3.12 venv exists, so it needs its own copy of these.
+pyyaml>=6.0
+boto3>=1.34
+pandas>=2.0
+huggingface_hub>=0.23
