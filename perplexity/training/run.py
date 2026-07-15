@@ -66,7 +66,22 @@ def _clip_rank(clip_id: str, world_size: int) -> int:
 
 
 def _scan_manifest_key(n_per_cluster: int, sample_seed: int) -> str:
-    return f"scratch/discrete_vs_diffusion/scan_manifest_n{n_per_cluster}_seed{sample_seed}.json"
+    # _v2: the t0_us/coc resolution semantics changed (parquet events column
+    # instead of the WDS json blob -- see cluster_data.py), so manifests
+    # written by the old code are wrong even when non-empty. Versioning the
+    # key rather than deleting the old objects keeps this cache-safe without
+    # any coordination: canary3's buggy 0-clip manifest still sits at the
+    # unversioned key and must never be picked up by the reuse path below.
+    return f"scratch/discrete_vs_diffusion/scan_manifest_v2_n{n_per_cluster}_seed{sample_seed}.json"
+
+
+def _try_read_manifest(s3, bucket: str, key: str) -> list[dict] | None:
+    try:
+        return json.loads(s3.get_object(Bucket=bucket, Key=key)["Body"].read())
+    except botocore.exceptions.ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") not in ("NoSuchKey", "404"):
+            raise
+        return None
 
 
 def _wait_for_manifest(s3, bucket: str, key: str) -> list[dict]:
@@ -95,21 +110,39 @@ def discrete_vs_diffusion_loop(training_fn_config: dict, experiment_tracker) -> 
     s3 = boto3.client("s3")
 
     if rank == 0:
-        logger.info(
-            "rank 0: running the S3 shard scan (%d clips/cluster, seed=%d) -- this is the "
-            "slow step, expect several minutes to tens of minutes",
-            n_per_cluster, sample_seed,
-        )
-        all_entries = sample_and_resolve_clips(
-            n_per_cluster=n_per_cluster, seed=sample_seed, hf_token=os.environ.get("HF_TOKEN")
-        )
-        s3.put_object(
-            Bucket=s3_bucket, Key=scan_key, Body=json.dumps(all_entries).encode("utf-8")
-        )
-        logger.info(
-            "rank 0: resolved %d clips, wrote to s3://%s/%s for other ranks",
-            len(all_entries), s3_bucket, scan_key,
-        )
+        # Reuse a manifest already written under the SAME (version,
+        # n_per_cluster, seed) key before paying for a fresh scan. Sampling
+        # is deterministic given those params, so a hit is exact, not stale.
+        # This is what makes a preempted/requeued attempt cheap: canary3's
+        # node loss forced a full RayJob restart that re-ran the ~20-min
+        # shard scan from zero, and that idle CPU-only time is precisely
+        # what got the workload killed by the idle-GPU reaper. An EMPTY
+        # cached manifest is never reused -- 0 resolved clips means a prior
+        # attempt's resolution failed (that's canary3's bug signature, and
+        # with the bug fixed a legitimate scan finding literally nothing is
+        # pathological enough to be worth re-checking), so rescan instead.
+        all_entries = _try_read_manifest(s3, s3_bucket, scan_key)
+        if all_entries:
+            logger.info(
+                "rank 0: reusing cached scan manifest s3://%s/%s (%d clips) -- skipping the scan",
+                s3_bucket, scan_key, len(all_entries),
+            )
+        else:
+            logger.info(
+                "rank 0: running the S3 shard scan (%d clips/cluster, seed=%d) -- this is the "
+                "slow step, expect several minutes to tens of minutes",
+                n_per_cluster, sample_seed,
+            )
+            all_entries = sample_and_resolve_clips(
+                n_per_cluster=n_per_cluster, seed=sample_seed, hf_token=os.environ.get("HF_TOKEN")
+            )
+            s3.put_object(
+                Bucket=s3_bucket, Key=scan_key, Body=json.dumps(all_entries).encode("utf-8")
+            )
+            logger.info(
+                "rank 0: resolved %d clips, wrote to s3://%s/%s for other ranks",
+                len(all_entries), s3_bucket, scan_key,
+            )
     else:
         logger.info(
             "rank %d: waiting for rank 0's scan result at s3://%s/%s ...",
@@ -117,6 +150,17 @@ def discrete_vs_diffusion_loop(training_fn_config: dict, experiment_tracker) -> 
         )
         all_entries = _wait_for_manifest(s3, s3_bucket, scan_key)
         logger.info("rank %d: got %d resolved clips from rank 0", rank, len(all_entries))
+
+    # Fail fast and loud on an empty resolution. canary3 resolved 0 clips
+    # (see cluster_data.py's t0 fix) and then spent its remaining minutes
+    # bootstrapping a venv it had nothing to feed -- the data bug was only
+    # visible as a WARNING buried mid-log. 0 clips means the run cannot
+    # produce anything: make it an EXPERIMENT_FAILED, not a quiet no-op.
+    if not all_entries:
+        raise RuntimeError(
+            "resolved 0 clips across all event clusters -- check the t0_us/"
+            "S3-availability filter (cluster_data.sample_and_resolve_clips)"
+        )
 
     my_entries = [e for e in all_entries if _clip_rank(e["clip_id"], world_size) == rank]
     logger.info(
