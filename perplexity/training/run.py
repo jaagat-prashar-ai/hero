@@ -43,6 +43,7 @@ import os
 import subprocess
 import tempfile
 import time
+from collections import deque
 
 import boto3
 import botocore.exceptions
@@ -184,11 +185,32 @@ def discrete_vs_diffusion_loop(training_fn_config: dict, experiment_tracker) -> 
     child_env["PYTHONPATH"] = os.pathsep.join(
         [repo_root, perplexity_dir, child_env.get("PYTHONPATH", "")]
     )
-    result = subprocess.run(
+    # Tee the worker's output: echo every line to this process's stdout
+    # unmodified (so the DISCRETE_VS_DIFFUSION_CLIP_SUMMARY log-then-fetch
+    # contract is unchanged) while keeping a rolling tail. canary7's
+    # cluster_worker crash was invisible -- its final stderr lines (the
+    # actual traceback) never reached OCI because the pod tore down before
+    # the log shipper flushed them. Ray's own error propagation (the
+    # exception raised here -> trial error.txt -> driver traceback) DID
+    # ship reliably, so on failure the tail rides along in the exception
+    # message.
+    tail: deque[str] = deque(maxlen=80)
+    proc = subprocess.Popen(
         [python_bin, "cluster_worker.py", "--manifest", rank_manifest_path, "--s3_bucket", s3_bucket],
         cwd=perplexity_dir,
         env=child_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
     )
-    logger.info("rank %d: cluster_worker.py exited with code %d", rank, result.returncode)
-    if result.returncode != 0:
-        raise RuntimeError(f"cluster_worker.py failed on rank {rank} (exit {result.returncode})")
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        tail.append(line)
+    returncode = proc.wait()
+    logger.info("rank %d: cluster_worker.py exited with code %d", rank, returncode)
+    if returncode != 0:
+        raise RuntimeError(
+            f"cluster_worker.py failed on rank {rank} (exit {returncode}); "
+            f"last {len(tail)} output lines:\n{''.join(tail)}"
+        )

@@ -9,9 +9,10 @@
 # Deliberately skips flash-attn on this first pass -- it compiles from
 # source and takes 20-40+ minutes, too slow for a "get it working quickly"
 # first cluster attempt. cluster_worker.py loads the model with
-# attn_implementation="sdpa" instead (a standard transformers override), not
-# flash_attention_2. Revisit adding flash-attn only if sdpa proves too slow
-# for the real 135-clip sweep.
+# attn_implementation="eager" instead (sdpa is rejected for this
+# architecture by transformers 4.57.1's dispatch check -- see
+# cluster_worker.load_model). Revisit adding flash-attn only if eager
+# proves too slow for the real 135-clip sweep.
 #
 # Idempotent: writes a marker file after a successful install so a
 # re-invoked job (e.g. after preemption/requeue) doesn't redo the
