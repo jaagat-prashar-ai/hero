@@ -65,11 +65,15 @@ def ade_fde(a: np.ndarray, b: np.ndarray) -> tuple[float, float]:
 
 
 def load_model() -> AlpamayoR1:
-    # sdpa, not flash_attention_2 (the checkpoint's own default) -- no
-    # flash-attn install on this first pass, see bootstrap_venv.py's
-    # module docstring.
+    # eager, not flash_attention_2 (the checkpoint's own default) -- no
+    # flash-attn install on this first pass, see bootstrap_venv.py's module
+    # docstring. NOT sdpa: transformers 4.57.1's init-time dispatch check
+    # rejects it for this architecture ("AlpamayoR1 does not support an
+    # attention implementation through torch.nn.functional.scaled_dot_
+    # product_attention yet"), which killed canary7 -- reproduced and
+    # eager-verified locally in a venv built by the same bootstrap_venv.py.
     return AlpamayoR1.from_pretrained(
-        CHECKPOINT, dtype=torch.bfloat16, attn_implementation="sdpa"
+        CHECKPOINT, dtype=torch.bfloat16, attn_implementation="eager"
     ).to("cuda")
 
 
