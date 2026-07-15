@@ -21,10 +21,27 @@
 import logging
 import os
 import subprocess
+import time
 
 logger = logging.getLogger(__name__)
 
 MARKER_NAME = "BOOTSTRAP_OK"
+
+
+def wait_for_alpamayo_venv(venv_dir: str, timeout_s: float = 45 * 60) -> str:
+    """Wait for another local rank to finish building the venv (marker file),
+    then return its python binary. See run.py: with 8 ranks per a100.8 node
+    sharing one venv_dir, only local rank 0 builds -- everyone else calling
+    ensure_alpamayo_venv concurrently would race eight `uv venv` recreations
+    of the same directory."""
+    python_bin = os.path.join(venv_dir, "bin", "python")
+    marker = os.path.join(venv_dir, MARKER_NAME)
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if os.path.exists(marker) and os.path.exists(python_bin):
+            return python_bin
+        time.sleep(10)
+    raise TimeoutError(f"venv at {venv_dir} was not built by local rank 0 within {timeout_s:.0f}s")
 
 
 def _run(cmd: list[str], **kwargs) -> None:

@@ -53,7 +53,7 @@ import botocore.exceptions
 # the `perplexity.training.run` dotted training_fn path from the repo root,
 # so perplexity's submodules resolve the same way masking's do.
 from perplexity.cluster_data import sample_and_resolve_clips
-from perplexity.training.bootstrap_venv import ensure_alpamayo_venv
+from perplexity.training.bootstrap_venv import ensure_alpamayo_venv, wait_for_alpamayo_venv
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -177,7 +177,19 @@ def discrete_vs_diffusion_loop(training_fn_config: dict, experiment_tracker) -> 
 
     perplexity_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     repo_root = os.path.dirname(perplexity_dir)
-    python_bin = ensure_alpamayo_venv(venv_dir, perplexity_dir)
+    # Only ONE rank per node builds the venv. All 8 ranks of an a100.8 node
+    # share /mnt/work (and hence venv_dir), and they all arrive here within
+    # ~15s of rank 0 publishing the scan manifest -- eight concurrent
+    # `uv venv` recreations of the same directory would race and corrupt it
+    # (a path the 1-GPU canaries never exercised). LOCAL_RANK (set by Ray
+    # Train per worker) picks the builder so this stays correct if the
+    # sweep ever goes multi-node; single-node it equals RANK.
+    local_rank = int(os.environ.get("LOCAL_RANK", os.environ.get("RANK", "0")))
+    if local_rank == 0:
+        python_bin = ensure_alpamayo_venv(venv_dir, perplexity_dir)
+    else:
+        logger.info("rank %d: waiting for local rank 0 to build the venv at %s", rank, venv_dir)
+        python_bin = wait_for_alpamayo_venv(venv_dir)
 
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
         json.dump(my_entries, f)
