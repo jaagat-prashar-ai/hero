@@ -58,7 +58,10 @@ runtime_environment:
     AWS_DEFAULT_REGION: us-chicago-1
 
   code_assets:
-    root_directory: .
+    # Resolved relative to THIS config file's directory (see lilypad's
+    # load_workload_config), not the launch CWD -- ../.. is the repo root,
+    # which the dotted training_fn path and the pip requirements need.
+    root_directory: ../..
     pip_requirements_path: perplexity/requirements.txt
     regex_excludes:
       - "^perplexity/alpamayo/ar1_venv/"
