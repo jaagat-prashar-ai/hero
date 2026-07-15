@@ -69,13 +69,17 @@ runtime_environment:
     root_directory: ../..
     pip_requirements_path: perplexity/requirements.txt
     regex_excludes:
-      - "^perplexity/alpamayo/ar1_venv/"
-      - "^perplexity/clip_cache/"
-      - "^pref_pairs/"
-      - "^counterfactual/"
-      - "^build_wds/"
-      - "^third_party/"
-      - "^mnist/"
-      - "^research-core/"
-      - "^docker/"
-      - "^lockfiles/"
+    # NOTE the leading slash: lilypad matches these against
+    # "/" + path_relative_to_root (packaging_utils._get_excludes), so
+    # "^perplexity/..." never matched anything -- that silent no-op is how
+    # canary3 ended up shipping a 1.6GB working-dir zip to every pod.
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/pref_pairs/"
+      - "^/counterfactual/"
+      - "^/build_wds/"
+      - "^/third_party/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
