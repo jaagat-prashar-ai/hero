@@ -140,6 +140,26 @@ def process_clip(model, entry: dict, s3, bucket: str, plots_done: dict) -> dict:
         mean_err / diffusion_self_spread if diffusion_self_spread > 1e-6 else float("inf")
     )
 
+    # Leave-one-out noise floor: each diffusion sample judged by the SAME
+    # rule as the discrete trajectory -- ADE to the centroid of the other
+    # samples. The pairwise spread above overstates the floor (a pair
+    # carries two samples' scatter, ~sqrt(2) vs one sample against a stable
+    # centroid), so under normalized_score a genuine extra diffusion draw
+    # scores ~0.7, not 1. Under normalized_score_loo it scores 1.0 by
+    # construction, making "> 1" directly readable as "outside the
+    # diffusion head's own sampling noise".
+    loo = [
+        ade_fde(
+            xyz_diffusion[k],
+            np.delete(xyz_diffusion, k, axis=0).mean(axis=0),
+        )[0]
+        for k in range(NUM_DIFFUSION_SAMPLES)
+    ]
+    diffusion_loo_spread = float(np.mean(loo)) if loo else 0.0
+    normalized_score_loo = (
+        mean_err / diffusion_loo_spread if diffusion_loo_spread > 1e-6 else float("inf")
+    )
+
     summary = {
         "clip_id": clip_id,
         "event_cluster": cluster,
@@ -149,6 +169,8 @@ def process_clip(model, entry: dict, s3, bucket: str, plots_done: dict) -> dict:
         "final_xy_err_to_centroid": final_err,
         "diffusion_self_spread": diffusion_self_spread,
         "normalized_score": normalized_score,
+        "diffusion_loo_spread": diffusion_loo_spread,
+        "normalized_score_loo": normalized_score_loo,
     }
     logger.info("%s %s", MARKER, json.dumps(summary))
 
@@ -158,10 +180,21 @@ def process_clip(model, entry: dict, s3, bucket: str, plots_done: dict) -> dict:
     # stdout before the log shipper flushes (canary7's crash traceback and
     # canary8's summary lines were both lost this way). S3 is the source of
     # truth for collecting sweep results; logs are best-effort.
+    #
+    # The raw trajectories ride along (rounded to cm -- ~50KB/clip) so any
+    # future metric can be recomputed post-hoc without re-running inference.
     s3.put_object(
         Bucket=bucket,
         Key=f"discrete_vs_diffusion_results/{cluster}/{clip_id}.json",
-        Body=json.dumps(summary).encode("utf-8"),
+        Body=json.dumps(
+            {
+                **summary,
+                "trajectories": {
+                    "discrete_xyz": np.round(xyz_discrete, 2).tolist(),
+                    "diffusion_xyz": np.round(xyz_diffusion, 2).tolist(),
+                },
+            }
+        ).encode("utf-8"),
     )
 
     if plots_done.get(cluster, 0) < PLOTS_PER_CLUSTER:
