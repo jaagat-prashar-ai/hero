@@ -152,6 +152,18 @@ def process_clip(model, entry: dict, s3, bucket: str, plots_done: dict) -> dict:
     }
     logger.info("%s %s", MARKER, json.dumps(summary))
 
+    # ALSO persist the summary to S3, one small JSON per clip next to the
+    # plots. The stdout marker line above stays the quick-look convention,
+    # but it is not durable: pod teardown can drop the final minutes of
+    # stdout before the log shipper flushes (canary7's crash traceback and
+    # canary8's summary lines were both lost this way). S3 is the source of
+    # truth for collecting sweep results; logs are best-effort.
+    s3.put_object(
+        Bucket=bucket,
+        Key=f"discrete_vs_diffusion_results/{cluster}/{clip_id}.json",
+        Body=json.dumps(summary).encode("utf-8"),
+    )
+
     if plots_done.get(cluster, 0) < PLOTS_PER_CLUSTER:
         fig, ax = plt.subplots(figsize=(7, 7))
         for k in range(NUM_DIFFUSION_SAMPLES):
