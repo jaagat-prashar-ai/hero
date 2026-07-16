@@ -260,3 +260,44 @@ def call_judge(
             logger.warning("pair_id=%s: invalid judgment (%s), retrying once", pair["pair_id"], e)
             return call_judge(client, pair, a_is_chosen, model, _retries_left - 1)
         raise JudgeError(f"pair_id={pair['pair_id']}: invalid judgment after retry: {e}") from e
+
+
+def judge_all_pairs(
+    client: anthropic.Anthropic,
+    pairs: list[dict[str, Any]],
+    model: str = "claude-fable-5",
+    max_workers: int = 8,
+    invert: bool = False,
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """Judges every pair concurrently (network-latency-bound, same
+    thread-pool trade-off as generate_all_perturbations). `invert` flips
+    swap_seed's A/B assignment for every pair -- run once normally and once
+    with invert=True (against a different --out_path) to get the
+    swap-debiasing check discussed for a follow-up pass; a single call here
+    only ever does one side. Returns (results, failures) -- failures is a
+    list of {"pair_id", "error"} so one bad judgment doesn't abort the batch."""
+    results: list[dict[str, Any]] = []
+    failures: list[dict[str, str]] = []
+
+    def _run(pair: dict[str, Any]) -> dict[str, Any]:
+        a_is_chosen = swap_seed(pair["pair_id"])
+        if invert:
+            a_is_chosen = not a_is_chosen
+        verdict = call_judge(client, pair, a_is_chosen, model=model)
+        return _build_result_row(pair, a_is_chosen, verdict)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        future_to_pair = {pool.submit(_run, pair): pair for pair in pairs}
+        n_done = 0
+        for future in as_completed(future_to_pair):
+            pair = future_to_pair[future]
+            n_done += 1
+            try:
+                results.append(future.result())
+            except JudgeError as e:
+                logger.error(str(e))
+                failures.append({"pair_id": pair["pair_id"], "error": str(e)})
+            if n_done % 25 == 0 or n_done == len(pairs):
+                logger.info("progress: %d/%d pairs judged (%d failed so far)", n_done, len(pairs), len(failures))
+
+    return results, failures
