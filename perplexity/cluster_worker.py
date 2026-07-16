@@ -41,7 +41,7 @@ from alpamayo_r1.models.alpamayo_r1 import AlpamayoR1
 
 from cluster_data import extract_clip_to_dir
 from dump_input_template import build_prompt
-from s3_clip_loader import load_clip_from_s3_extract
+from s3_clip_loader import ClipWindowOutOfRangeError, load_clip_from_s3_extract
 from sample_diffusion_traj import sample_diffusion_trajectories_given_fixed_reasoning
 from sample_discrete_traj import sample_discrete_action_tokens
 from traj_tokenizer import detokenize_traj
@@ -249,16 +249,23 @@ def main() -> None:
     s3 = boto3.client("s3")
     plots_done: dict[str, int] = {}
 
-    n_ok, n_fail = 0, 0
+    n_ok, n_skipped, n_fail = 0, 0, 0
     for entry in entries:
         try:
             process_clip(model, entry, s3, args.s3_bucket, plots_done)
             n_ok += 1
+        except ClipWindowOutOfRangeError as e:
+            # Known-bad manifest entry (t0 too close to the egomotion track's
+            # end), not a code/infra failure: leave the clip out and keep the
+            # run alive -- training/run.py turns any nonzero exit here into a
+            # whole-experiment failure.
+            logger.warning("skipping clip %s: %s", entry.get("clip_id"), e)
+            n_skipped += 1
         except Exception:
             logger.exception("failed on clip %s", entry.get("clip_id"))
             n_fail += 1
 
-    logger.info("cluster_worker done: %d ok, %d failed", n_ok, n_fail)
+    logger.info("cluster_worker done: %d ok, %d skipped, %d failed", n_ok, n_skipped, n_fail)
     sys.exit(0 if n_fail == 0 else 1)
 
 
