@@ -301,3 +301,17 @@ def judge_all_pairs(
                 logger.info("progress: %d/%d pairs judged (%d failed so far)", n_done, len(pairs), len(failures))
 
     return results, failures
+
+
+def load_pairs_jsonl(path: str | Path) -> list[dict[str, Any]]:
+    with open(path) as fh:
+        return [json.loads(line) for line in fh]
+
+
+def write_judged_jsonl(results: list[dict[str, Any]], out_path: str | Path) -> Path:
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with out_path.open("w") as fh:
+        for row in results:
+            fh.write(json.dumps(row) + "\n")
+    return out_path
