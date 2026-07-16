@@ -191,3 +191,32 @@ def _parse_judgment_response(text: str) -> dict[str, Any]:
         raise JudgeError(f"margin_confidence {parsed['margin_confidence']!r} not one of low/medium/high")
 
     return parsed
+
+
+def _build_result_row(pair: dict[str, Any], a_is_chosen: bool, verdict: dict[str, Any]) -> dict[str, Any]:
+    """Maps a validated judgment back onto chosen/rejected (undoing the blind
+    A/B assignment) and computes the RL-facing scalar fields. Pure, no
+    network -- unit-tested directly with a hand-built verdict."""
+    picked_tie = verdict["preferred"] == "tie"
+    picked_chosen = (verdict["preferred"] == "A") == a_is_chosen
+    chosen_block = verdict["trace_a"] if a_is_chosen else verdict["trace_b"]
+    rejected_block = verdict["trace_b"] if a_is_chosen else verdict["trace_a"]
+
+    return {
+        "pair_id": pair["pair_id"],
+        "scene_id": pair["scene_id"],
+        "perturbation_type": pair["perturbation_type"],
+        "chosen_trace": pair["chosen_trace"],
+        "rejected_trace": pair["rejected_trace"],
+        "judge_preferred": "tie" if picked_tie else ("chosen" if picked_chosen else "rejected"),
+        "judge_agrees_with_construction": None if picked_tie else picked_chosen,
+        "chosen_score": chosen_block["action_consistency_score"],
+        "rejected_score": rejected_block["action_consistency_score"],
+        "margin": chosen_block["action_consistency_score"] - rejected_block["action_consistency_score"],
+        "margin_confidence": verdict["margin_confidence"],
+        "corruption_type_expected": pair["perturbation_type"],
+        "corruption_type_detected": rejected_block["corruption_type"],
+        "corruption_type_match": rejected_block["corruption_type"] == pair["perturbation_type"],
+        "rationale_chosen": chosen_block["one_line_rationale"],
+        "rationale_rejected": rejected_block["one_line_rationale"],
+    }
