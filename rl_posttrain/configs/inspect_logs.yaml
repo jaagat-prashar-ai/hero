@@ -1,0 +1,34 @@
+name: alpamayo-rl-inspect-logs
+model_identifier: other.other.log_inspection.default.v1
+workload_variant_config:
+  # GPU-free: just reads cosmos-rl's per-process log files already written to
+  # workspace_dir/logs by a prior rl_local_test_loop run (persisted on
+  # /mnt/work) and prints their reward/wandb lines -- much cheaper than
+  # relaunching the full GPU job just to see what it did.
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.inspect_logs_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+cluster_resources:
+  num_cpu_nodes: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
+      - "^build_wds/"
+      - "^masking/"
+      - "^pref_pairs/"
+      - "^autovla/"
+      - "^third_party/alpamayo1.5/"
+      - "^perplexity/"
