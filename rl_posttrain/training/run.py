@@ -221,6 +221,32 @@ def _dump_latest_cosmos_logs(log_dir: Path, tail_lines: int = 200) -> None:
         logger.error("===== tail of %s =====\n%s", f, tail)
 
 
+_SUMMARY_MARKERS = ("wandb:", "View run", "Run data is saved", "reward", "Reward", " step ", "Step ")
+
+
+def _summarize_cosmos_logs(log_dir: Path) -> None:
+    """On a successful run, print just the lines worth seeing (wandb run URL,
+    reward/step progress) from the per-process logs rather than a full tail --
+    confirmed missing entirely from our own captured stdout on run
+    alpamayo-rl-local-test-b40s8k (2026-07-16), the first run to actually
+    succeed: no reward numbers or wandb link ever showed up in
+    `lilypad workload logs`, because policy_0.log/controller.log (where
+    wandb.init() and per-step reward actually get logged) aren't tailed
+    anywhere unless we do it ourselves."""
+    run_dirs = sorted(
+        (p for p in log_dir.glob("logs_*") if p.is_dir()), key=lambda p: p.stat().st_mtime
+    )
+    if not run_dirs:
+        logger.warning("no per-process cosmos-rl logs found under %s", log_dir)
+        return
+    latest = run_dirs[-1]
+    for f in sorted(latest.glob("*.log")):
+        text = f.read_text(errors="replace")
+        matches = [line for line in text.splitlines() if any(m in line for m in _SUMMARY_MARKERS)]
+        if matches:
+            logger.info("===== %s: reward/wandb lines =====\n%s", f, "\n".join(matches[-100:]))
+
+
 def _launch_cosmos_rl(
     python_bin: str,
     toml_path: Path,
@@ -250,6 +276,8 @@ def _launch_cosmos_rl(
     except subprocess.CalledProcessError:
         _dump_latest_cosmos_logs(log_dir)
         raise
+    else:
+        _summarize_cosmos_logs(log_dir)
 
 
 def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
@@ -362,3 +390,28 @@ def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: A
 
     remote_fn = ray.remote(_run_on_gpu_node).options(num_gpus=int(cfg["num_gpus"]))
     ray.get(remote_fn.remote(cfg))
+
+
+def inspect_logs_loop(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
+    """Lilypad-compatible generic entrypoint: rl_posttrain.training.run.inspect_logs_loop.
+
+    GPU-free companion to rl_local_test_loop: reads the per-process cosmos-rl
+    logs already written to workspace_dir/logs by a prior run (persisted on
+    /mnt/work, not accessible from a dev workstation) and prints their
+    reward/wandb-link lines. Use this instead of re-running the full,
+    expensive GPU job just to see what a completed/failed run actually did.
+    """
+    cfg = {**_DEFAULTS, **training_fn_config}
+    log_dir = Path(cfg["workspace_dir"]) / "logs"
+    run_dirs = sorted((p for p in log_dir.glob("logs_*") if p.is_dir()), key=lambda p: p.stat().st_mtime)
+    if not run_dirs:
+        logger.warning("no per-process cosmos-rl logs found under %s", log_dir)
+        return
+    for run_dir in run_dirs:
+        logger.info("===== run dir: %s =====", run_dir)
+        for f in sorted(run_dir.glob("*.log")):
+            text = f.read_text(errors="replace")
+            lines = text.splitlines()
+            logger.info(
+                "----- %s (%d lines) -----\n%s", f, len(lines), "\n".join(lines[-300:])
+            )

@@ -26,6 +26,9 @@ Usage: bash rl_posttrain/configs/launch.sh <command> [args...]
 
 Commands:
   local-test           Launch the alpamayo1_x_rl single-node local test (cluster.yaml)
+  inspect-logs         GPU-free: read a prior run's per-process cosmos-rl logs
+                       from /mnt/work (reward/wandb lines) without re-running
+                       the expensive GPU job (inspect_logs.yaml)
 
 Common flags (passed through to launch.py):
   --dry-run            Validate config + uv dependency resolve before submit
@@ -68,6 +71,10 @@ shift
 case "${cmd}" in
     local-test)
         launch_py "${SCRIPT_DIR}/cluster.yaml" "$@"
+        ;;
+
+    inspect-logs)
+        launch_py "${SCRIPT_DIR}/inspect_logs.yaml" "$@"
         ;;
 
     *)
