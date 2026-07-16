@@ -13,11 +13,13 @@
 # coordination/broadcast needed) and then filters down to its own shard --
 # same pattern training/run.py already uses for rank sharding.
 
+import io
 import logging
 import os
 
 import boto3
 import numpy as np
+import pandas as pd
 
 from masking.data.sample_clips import (
     TAR_BLOCK,
@@ -41,6 +43,30 @@ CAMERA_KEYS = (
 # (single source of truth) -- pick_t0_and_coc, reused below, applies it.
 
 
+def _load_metadata_parquet(name: str, hf_token: str | None, hf_fallback) -> pd.DataFrame:
+    """Load a dataset metadata parquet from our own S3 mirror, falling back
+    to the HF loader only if the mirror read fails.
+
+    build_wds's upload_metadata_parquets() put verbatim byte copies of the
+    HF originals under wds/metadata/, so the frames are identical -- and the
+    HF repo is gated, so going to HF first makes the whole scan hostage to a
+    valid HF_TOKEN (the wpnxce full-sweep launch died in 3 minutes on a
+    GatedRepoError because the token had been revoked). The mirror needs no
+    token at all inside the job's S3 environment."""
+    key = f"{PREFIX.rsplit('/', 1)[0]}/metadata/{name}"
+    try:
+        s3 = boto3.client("s3")
+        buf = io.BytesIO()
+        s3.download_fileobj(BUCKET, key, buf)
+        buf.seek(0)
+        df = pd.read_parquet(buf)
+        logger.info("loaded %s from s3://%s/%s (%d rows)", name, BUCKET, key, len(df))
+        return df
+    except Exception:
+        logger.exception("S3 metadata mirror read failed for %s; falling back to HF", name)
+        return hf_fallback(hf_token)
+
+
 def sample_and_resolve_clips(n_per_cluster: int, seed: int, hf_token: str | None) -> list[dict]:
     """Pick n_per_cluster clips per event_cluster (from what's actually in S3) + resolve t0_us/coc."""
     # Imported lazily: sample_and_resolve_clips only ever runs on rank 0 in
@@ -50,8 +76,8 @@ def sample_and_resolve_clips(n_per_cluster: int, seed: int, hf_token: str | None
     # import out of module scope keeps the worker's import surface unchanged.
     from perplexity.sample_scenario_clips import pick_t0_and_coc
 
-    ood_df = load_ood_clips(hf_token)
-    feature_df = load_feature_presence(hf_token)
+    ood_df = _load_metadata_parquet("ood_reasoning.parquet", hf_token, load_ood_clips)
+    feature_df = _load_metadata_parquet("feature_presence.parquet", hf_token, load_feature_presence)
     ood_df = filter_clips_with_required_features(ood_df, feature_df)
 
     by_cluster = find_available_ood_clips(BUCKET, PREFIX, ood_df, n_per_type=n_per_cluster)
