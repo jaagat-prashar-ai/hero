@@ -151,3 +151,39 @@ exact clip_ids as requested.
 # max_batch_size: 20.
 
 # Let's update the BUILD file for rollut_harvester_test's new test coverage (no new deps needed) and update the two YAML configs to actualy use th emax batch size of 20.
+
+# judge_reasoning_pairs.py -- LLM-judge audit of reasoning_matched_pairs.jsonl
+
+Added judge_reasoning_pairs.py: an independent claude-fable-5 judge over
+build_reasoning_matched_pairs.py's 717 pairs. Shows both traces BLIND
+(randomized A/B, never told which is real) against the scene's actual
+64-waypoint trajectory (via trajectory_features.extract_features, not the
+4-field scalar summary), scores each 0-10 on whether its claim is consistent
+with that trajectory, and writes a scalar margin (chosen_score -
+rejected_score) plus a QC signal (does the judge's verdict agree with the
+construction-time chosen/rejected label; does it detect the right
+perturbation_type).
+
+IMPORTANT PROVENANCE NOTE on pref_pairs/results/judged_pairs/judged_pairs.jsonl:
+this 717-row file was NOT produced by running judge_reasoning_pairs.py as a
+Lilypad workload. It came from an out-of-band run (717 parallel claude-fable-5
+calls orchestrated directly, not through `lilypad workload submit`) done to
+validate the judge design at full scale before wiring it into this project's
+normal pipeline. Real API calls, real judgments, 717/717 succeeded with 0
+errors -- but there is no workload_id, it won't show up in `lilypad workload
+list/info/logs`, and it wasn't written via judge_reasoning_pairs.py's own
+--out_path flag. Treat this file as a one-off snapshot to build on, not as
+reproducible provenance -- a real Lilypad run of judge_reasoning_pairs.py
+should replace it before this feeds anything downstream (RL training, the
+leakage audit) that cares about that.
+
+Results at a glance: 594 agree with construction / 108 disagree / 15 tie;
+mean margin +4.44; corruption_type_detected matches perturbation_type on
+576/717 (80%). Breaking down disagreement by type -- attribute_swap is by
+far the hardest for the judge to catch from trajectory alone (22/119
+disagree, only 78/119 type-matched, avg margin 2.7, all well below every
+other type): swapping "lead vehicle" for "parked vehicle" doesn't always
+change the predicted trajectory shape as clearly as a negation_flip or
+causal_flip does, so a kinematically-similar evasive maneuver can look
+equally consistent with either story. Worth a closer look before trusting
+attribute_swap pairs for RL without this judge's disagreement flag applied.
