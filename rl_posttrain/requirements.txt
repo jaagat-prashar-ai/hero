@@ -1,0 +1,16 @@
+# Dependencies for the alpamayo1_x_rl Lilypad workload, installed by
+# Lilypad into the BASE Python 3.10 worker environment -- NOT where the
+# actual RL post-training runs. The recipe needs Python 3.12 (torch==2.8.0,
+# cosmos-rl, vllm==0.11.0, flash-attn), which this base environment cannot
+# provide, so the real work happens in a SEPARATE, self-bootstrapped
+# Python 3.12 venv built by training/bootstrap_venv.py via `uv sync` against
+# the vendored recipe's own uv.lock.
+#
+# torch==2.7.1 below is dead weight (never actually used -- the real work
+# happens in the bootstrapped venv) but is REQUIRED by lilypad/launch.py's
+# preflight validator for any pip_requirements_path-based workload.
+torch==2.7.1
+
+# Needed by rl_posttrain/training/run.py itself (in the base env): patching
+# the recipe's local-test TOML config before handing it to cosmos-rl.
+tomlkit>=0.12
