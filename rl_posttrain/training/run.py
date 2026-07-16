@@ -5,10 +5,20 @@ post-training run (Cosmos-RL + GRPO), vendored from NVlabs/alpamayo-recipes
 at third_party/alpamayo-recipes.
 
 This runs the recipe's own "Getting started" single-node local-test steps
-end-to-end on one Lilypad a100.8 node (8 GPUs), on the Ray HEAD process only
-(workload_type: "generic" -- `cosmos-rl` itself fans out to the node's GPUs
-via its own controller/policy/rollout subprocess model, so this does NOT use
-Lilypad's per-rank training_fn replica convention):
+end-to-end on one Lilypad a100.8 node (8 GPUs). workload_type: "generic"
+runs entrypoint_fn directly on the Ray HEAD node/pod (Lilypad's
+GenericWorkloadRunner just calls it synchronously, no GPU-aware scheduling)
+-- and that head pod has NO GPU/driver passthrough in this cluster (confirmed
+2026-07-16 on run alpamayo-rl-local-test-6kfkvp: `nvidia-smi` missing,
+`libcuda.so.1` missing, vLLM/Triton both report zero GPUs). The real 8 GPUs
+requested via cluster_resources go to a separate Ray WORKER pod instead. So
+the actual work (venv bootstrap onward) is wrapped in a
+`@ray.remote(num_gpus=...)` task and dispatched via `ray.get(...)` from the
+plain entrypoint, so Ray schedules it onto that GPU worker pod. This does
+NOT use Lilypad's per-rank training_fn replica convention (which would start
+N independent copies, one per GPU) -- `cosmos-rl` itself fans out to all of
+a single node's GPUs via its own controller/policy/rollout subprocess model,
+so this needs to run as one process on one GPU-attached node, not N replicas.
 
   1. Bootstrap the recipe's isolated Python 3.12 uv venv (see
      bootstrap_venv.py) -- idempotent, persisted under workspace_dir so a
@@ -35,6 +45,7 @@ Full config reference (all keys optional, defaults shown):
     wandb_experiment:   "reasoning_vla_local_test"
     wandb_entity:       "research"
     reasoning:          false   # use the joint reasoning-motion reward variant
+    num_gpus:           8       # GPUs to request for the ray.remote GPU-node task
 """
 
 from __future__ import annotations
@@ -42,9 +53,10 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any
+
+import ray
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +76,7 @@ _DEFAULTS: dict[str, Any] = {
     "wandb_experiment": "reasoning_vla_local_test",
     "wandb_entity": "research",
     "reasoning": False,
+    "num_gpus": 8,
 }
 
 _CAMERA_SUBPARTS = [
@@ -199,16 +212,9 @@ def _launch_cosmos_rl(
     )
 
 
-def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
-    """Lilypad-compatible generic entrypoint: rl_posttrain.training.run.rl_local_test_loop."""
-    cfg = {**_DEFAULTS, **training_fn_config}
-
-    if not RECIPE_DIR.is_dir():
-        raise RuntimeError(
-            "Missing alpamayo-recipes vendor source at third_party/alpamayo-recipes -- run: "
-            "git submodule update --init third_party/alpamayo-recipes"
-        )
-
+def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
+    """Runs on a Ray worker with real GPUs attached (see module docstring for why
+    this can't just run inline in the plain `generic` entrypoint on the head)."""
     hf_token = os.environ.get("HF_TOKEN")
     wandb_key = os.environ.get("WANDB_API_KEY")
     if not hf_token:
@@ -279,3 +285,28 @@ def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: A
     _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
 
     logger.info("rl_posttrain: cosmos-rl run finished, checkpoints under %s", train_output_dir)
+
+
+def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
+    """Lilypad-compatible generic entrypoint: rl_posttrain.training.run.rl_local_test_loop.
+
+    Runs on the Ray head node (no GPUs here -- see module docstring). Does
+    only cheap validation itself, then dispatches the actual work to a
+    ray.remote task with num_gpus set so Ray schedules it onto the real
+    GPU worker node.
+    """
+    cfg = {**_DEFAULTS, **training_fn_config}
+
+    if not RECIPE_DIR.is_dir():
+        raise RuntimeError(
+            "Missing alpamayo-recipes vendor source at third_party/alpamayo-recipes -- run: "
+            "git submodule update --init third_party/alpamayo-recipes"
+        )
+    if not os.environ.get("HF_TOKEN"):
+        raise RuntimeError("HF_TOKEN is required in the environment (gated PAI dataset + model)")
+
+    if not ray.is_initialized():
+        ray.init(address="auto", ignore_reinit_error=True, log_to_driver=True)
+
+    remote_fn = ray.remote(_run_on_gpu_node).options(num_gpus=int(cfg["num_gpus"]))
+    ray.get(remote_fn.remote(cfg))
