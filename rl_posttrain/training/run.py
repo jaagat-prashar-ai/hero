@@ -185,6 +185,25 @@ def _patch_toml(
     output_path.write_text(tomlkit.dumps(doc))
 
 
+def _dump_latest_cosmos_logs(log_dir: Path, tail_lines: int = 200) -> None:
+    """cosmos-rl writes controller.log/policy_<i>.log/rollout_<i>.log to disk
+    under log_dir but only logs terse orchestration lines ("Process N exited
+    with code 1") to its own stdout -- which is all Lilypad's job log
+    captures. Dump the actual per-process tracebacks into our own log stream
+    on failure so `lilypad workload logs` actually shows them."""
+    run_dirs = sorted(
+        (p for p in log_dir.glob("logs_*") if p.is_dir()), key=lambda p: p.stat().st_mtime
+    )
+    if not run_dirs:
+        logger.warning("cosmos-rl failed but no per-process logs found under %s", log_dir)
+        return
+    latest = run_dirs[-1]
+    for f in sorted(latest.glob("*.log")):
+        text = f.read_text(errors="replace")
+        tail = "\n".join(text.splitlines()[-tail_lines:])
+        logger.error("===== tail of %s =====\n%s", f, tail)
+
+
 def _launch_cosmos_rl(
     python_bin: str,
     toml_path: Path,
@@ -194,22 +213,26 @@ def _launch_cosmos_rl(
 ) -> None:
     cosmos_rl_bin = str(Path(python_bin).parent / "cosmos-rl")
     log_dir.mkdir(parents=True, exist_ok=True)
-    _run_streamed(
-        [
-            cosmos_rl_bin,
-            "--config",
-            str(toml_path),
-            "--policy",
-            "1",
-            "--rollout",
-            "1",
-            "--log-dir",
-            str(log_dir),
-            str(entry_script),
-        ],
-        cwd=RECIPE_ROOT,
-        env=env,
-    )
+    try:
+        _run_streamed(
+            [
+                cosmos_rl_bin,
+                "--config",
+                str(toml_path),
+                "--policy",
+                "1",
+                "--rollout",
+                "1",
+                "--log-dir",
+                str(log_dir),
+                str(entry_script),
+            ],
+            cwd=RECIPE_ROOT,
+            env=env,
+        )
+    except subprocess.CalledProcessError:
+        _dump_latest_cosmos_logs(log_dir)
+        raise
 
 
 def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
