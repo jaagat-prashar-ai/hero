@@ -315,3 +315,48 @@ def write_judged_jsonl(results: list[dict[str, Any]], out_path: str | Path) -> P
         for row in results:
             fh.write(json.dumps(row) + "\n")
     return out_path
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "--in_path",
+        default="pref_pairs/results/reasoning_matched_pairs/reasoning_matched_pairs.jsonl",
+    )
+    ap.add_argument("--out_path", default="pref_pairs/results/judged_pairs/judged_pairs.jsonl")
+    ap.add_argument("--model", default="claude-fable-5")
+    ap.add_argument("--max_workers", type=int, default=8)
+    ap.add_argument(
+        "--invert", action="store_true",
+        help="Flip the blind A/B assignment for every pair -- run a second time with this "
+             "set (against a different --out_path) to check for judge position bias.",
+    )
+    ap.add_argument(
+        "--max_pairs", type=int, default=None,
+        help="Cap the number of pairs processed -- use for a cheap smoke test before "
+             "running the full (expensive) batch over every pair.",
+    )
+    args = ap.parse_args()
+
+    load_api_key()
+    client = anthropic.Anthropic()
+
+    pairs = load_pairs_jsonl(args.in_path)
+    logger.info("loaded %d pairs from %s", len(pairs), args.in_path)
+    if args.max_pairs is not None:
+        pairs = pairs[: args.max_pairs]
+        logger.info("capped to %d pairs via --max_pairs", len(pairs))
+
+    results, failures = judge_all_pairs(client, pairs, model=args.model, max_workers=args.max_workers, invert=args.invert)
+    out_path = write_judged_jsonl(results, args.out_path)
+
+    disagreements = [r for r in results if r["judge_agrees_with_construction"] is False]
+    logger.info(
+        "wrote %d judged pairs to %s (%d failed after retry, %d disagree with construction label)",
+        len(results), out_path, len(failures), len(disagreements),
+    )
+
+
+if __name__ == "__main__":
+    main()
