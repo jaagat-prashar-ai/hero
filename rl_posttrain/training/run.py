@@ -289,6 +289,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         wandb_experiment=cfg["wandb_experiment"],
     )
 
+    venv_bin_dir = str(Path(python_bin).parent)
     subprocess_env = dict(os.environ)
     subprocess_env.update(
         {
@@ -298,6 +299,15 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             "ALPAMAYO_LOG_DIR": str(log_dir),
             "HF_HOME": str(hf_home),
             "WANDB_ENTITY": cfg["wandb_entity"],
+            # cosmos-rl's own launcher spawns launch_controller.sh/launch_replica.sh,
+            # which invoke a bare `python` (not the venv's own bin/cosmos-rl absolute
+            # path). Without prepending the venv's bin/ to PATH, that resolves to
+            # whichever python is first on the inherited PATH -- confirmed via
+            # controller.log on run alpamayo-rl-local-test-ze550o (2026-07-16):
+            # `ModuleNotFoundError: No module named 'cosmos_rl'`, because the
+            # controller ran under a python that isn't this venv's.
+            "PATH": f"{venv_bin_dir}:{os.environ.get('PATH', '')}",
+            "VIRTUAL_ENV": str(venv_dir),
         }
     )
     if hf_token:
