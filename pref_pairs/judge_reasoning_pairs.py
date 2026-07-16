@@ -130,3 +130,24 @@ def swap_seed(pair_id: str) -> bool:
     and independent of any RNG/wall-clock state."""
     digest = hashlib.sha256(pair_id.encode("utf-8")).hexdigest()
     return int(digest[:8], 16) % 2 == 0
+
+
+def format_waypoint_table(action: dict[str, Any]) -> str:
+    """Renders action["waypoints"] (the (T, 3) xyz array already on every
+    reasoning_matched_pairs.jsonl row) as one `i: x=.., y=.., h=..` line per
+    step, via trajectory_features.extract_features's heading_deg -- reusing
+    that derivation rather than re-implementing atan2/unwrap/smoothing here
+    keeps this consistent with every other heading number in the project."""
+    features = extract_features(
+        waypoints=action["waypoints"],
+        hz=action["hz"],
+        scene_id="",  # not used by this call site; extract_features requires it
+        rollout_id=action["rollout_id"],
+        native_accel_mps2=action.get("native_accel_mps2"),
+    )
+    xy = action["waypoints"]
+    lines = [
+        f"{i}: x={xy[i][0]:.1f}, y={features.lateral_offset_m[i]:.1f}, h={features.heading_deg[i]:.0f}"
+        for i in range(len(xy))
+    ]
+    return "\n".join(lines)
