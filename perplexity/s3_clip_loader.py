@@ -59,6 +59,14 @@ from physical_ai_av.egomotion import EgomotionState
 from physical_ai_av.video import SeekVideoReader
 
 
+class ClipWindowOutOfRangeError(ValueError):
+    """t0's history/future window falls outside the clip's egomotion track,
+    so there is no ground truth to interpolate against. The manifest's t0
+    picker (sample_scenario_clips.pick_t0_and_coc) only enforces a LOWER
+    bound on t0, so a t0 within 6.4s of the track's end slips through --
+    cluster_worker.py catches this to skip the clip instead of failing."""
+
+
 def load_egomotion_interpolator(parquet_path: str):
     """Rebuild the exact Interpolator[EgomotionState] load_physical_aiavdataset gets from HF.
 
@@ -143,11 +151,17 @@ def load_clip_from_s3_extract(
     ).astype(np.int64)
     future_timestamps = t0_us + future_offsets_us
 
-    ego_history = egomotion(history_timestamps)
+    try:
+        ego_history = egomotion(history_timestamps)
+        ego_future = egomotion(future_timestamps)
+    except ValueError as e:
+        raise ClipWindowOutOfRangeError(
+            f"clip {clip_id}: requested egomotion window "
+            f"[{history_timestamps[0]}, {future_timestamps[-1]}] us (t0_us={t0_us}) "
+            f"does not fit inside the clip's egomotion track: {e}"
+        ) from e
     ego_history_xyz = ego_history.pose.translation
     ego_history_quat = ego_history.pose.rotation.as_quat()
-
-    ego_future = egomotion(future_timestamps)
     ego_future_xyz = ego_future.pose.translation
     ego_future_quat = ego_future.pose.rotation.as_quat()
 
