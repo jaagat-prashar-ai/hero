@@ -95,6 +95,23 @@ def _run_streamed(cmd: list[str], **kwargs) -> None:
     subprocess.run(cmd, check=True, **kwargs)
 
 
+def _ensure_redis_server() -> None:
+    """cosmos-rl's controller shells out to `redis-server` directly (return
+    code 127 = command not found if missing) -- a system package, not
+    something the recipe's own `uv sync` installs (the `redis` pip package
+    it does pull in is just the Python client library). Confirmed missing on
+    run alpamayo-rl-local-test-h13fcv (2026-07-16): `RuntimeError: Failed to
+    start redis server ... with return code 127`. Install it once via apt if
+    not already present (Lilypad's pod runs as root)."""
+    import shutil
+
+    if shutil.which("redis-server"):
+        return
+    logger.info("redis-server not found on PATH -- installing via apt")
+    _run_streamed(["apt-get", "update"])
+    _run_streamed(["apt-get", "install", "-y", "redis-server"])
+
+
 def _convert_model(python_bin: str, model_dir: Path, alpamayo_model: str) -> None:
     if (model_dir / "config.json").exists():
         logger.info("model conversion: %s already has config.json, skipping", model_dir)
@@ -288,6 +305,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         wandb_project=cfg["wandb_project"],
         wandb_experiment=cfg["wandb_experiment"],
     )
+
+    _ensure_redis_server()
 
     venv_bin_dir = str(Path(python_bin).parent)
     subprocess_env = dict(os.environ)
