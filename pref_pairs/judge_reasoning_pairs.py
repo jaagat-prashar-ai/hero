@@ -165,3 +165,29 @@ def build_user_message(pair: dict[str, Any], waypoint_table: str, a_is_chosen: b
         f'Trace A: "{trace_a}"\n'
         f'Trace B: "{trace_b}"'
     )
+
+
+def _parse_judgment_response(text: str) -> dict[str, Any]:
+    """Parses + validates one judge response into the dict shape
+    _build_result_row expects. Pure (no network) so it's directly
+    unit-testable, unlike call_judge itself."""
+    parsed = json.loads(_extract_json_object(text))
+
+    for key in ("trace_a", "trace_b", "preferred", "margin_confidence"):
+        if key not in parsed:
+            raise JudgeError(f"missing top-level key {key!r}")
+    for side in ("trace_a", "trace_b"):
+        block = parsed[side]
+        missing = [k for k in _REQUIRED_TRACE_KEYS if k not in block]
+        if missing:
+            raise JudgeError(f"{side} missing keys {missing}")
+        if not isinstance(block["action_consistency_score"], int) or not (0 <= block["action_consistency_score"] <= 10):
+            raise JudgeError(f"{side}.action_consistency_score {block['action_consistency_score']!r} not an int in [0, 10]")
+        if block["corruption_type"] not in _CORRUPTION_TYPES:
+            raise JudgeError(f"{side}.corruption_type {block['corruption_type']!r} not in {_CORRUPTION_TYPES}")
+    if parsed["preferred"] not in ("A", "B", "tie"):
+        raise JudgeError(f"preferred {parsed['preferred']!r} not one of A/B/tie")
+    if parsed["margin_confidence"] not in ("low", "medium", "high"):
+        raise JudgeError(f"margin_confidence {parsed['margin_confidence']!r} not one of low/medium/high")
+
+    return parsed
