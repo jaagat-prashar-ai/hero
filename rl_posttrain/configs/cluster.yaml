@@ -1,0 +1,88 @@
+name: alpamayo-rl-local-test
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  # "generic" runs the entrypoint_fn once on the Ray HEAD NODE only, with
+  # all num_gpus below attached to that one process. This is required here:
+  # `cosmos-rl` fans out to the node's GPUs itself (controller + policy +
+  # rollout subprocesses), so this must NOT use Lilypad's per-rank
+  # training_fn replica convention (that would start N independent copies,
+  # one per GPU, instead of one process that can see all of them).
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    # ── Workspace ─────────────────────────────────────────────────────────────
+    # Persistent scratch root: venv, converted model checkpoint, PAI mini
+    # dataset, cosmos-rl logs/checkpoints. Kept under /mnt/work so a
+    # preempted/requeued job reuses the (expensive to rebuild) venv and
+    # already-downloaded model/dataset instead of starting over.
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    # "nvidia/Alpamayo-1.5-10B" or "nvidia/Alpamayo-R1-10B".
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    # ── PAI mini dataset ────────────────────────────────────────────────────────
+    pai_chunk_ids: "3116"
+    pai_num_samples: 16
+    pai_seed: 0
+
+    # ── Cosmos-RL TOML overrides ────────────────────────────────────────────────
+    # 4 for 1 a100.8 node (local test); 8 for multi-node cluster training.
+    dp_shard_size: 4
+    train_epoch: 15
+
+    # false = motion-only reward (aggregated_reward.py: ADE + comfort, ~10 min).
+    # true  = joint reasoning-motion reward (needs a cached Lingo-Judge grader
+    #         model -- not wired up yet, leave false for this first pass).
+    reasoning: false
+
+    # ── W&B ───────────────────────────────────────────────────────────────────
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_local_test"
+    wandb_entity: "research"
+
+cluster_resources:
+  # a100.8 only permits num_gpus in {1, 4} (node-split) or a multiple of 8
+  # (full nodes) -- the README's "at least 5 GPUs" minimum (4 for policy
+  # dp_shard_size + 1 for the rollout replica) forces a full 8-GPU node.
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch==2.8.0 + vllm==0.11.0 + flash-attn (built from source, 20-40+ min)
+  # in the bootstrapped venv is a much heavier install than a normal
+  # pip_requirements_path workload; allow ample setup time.
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
+      - "^build_wds/"
+      - "^masking/"
+      - "^pref_pairs/"
+      - "^autovla/"
+      - "^third_party/alpamayo1.5/"
+      # perplexity/alpamayo/ar1_venv (8.1G, a checked-out venv) and
+      # perplexity/clip_cache (2.1G of sample mp4s) are not needed by this
+      # job and would otherwise dominate the code upload.
+      - "^perplexity/"
