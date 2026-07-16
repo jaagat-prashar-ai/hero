@@ -16,7 +16,12 @@ import json
 
 import pytest
 
-from pref_pairs.judge_reasoning_pairs import JudgeError, swap_seed
+from pref_pairs.judge_reasoning_pairs import (
+    JudgeError,
+    format_waypoint_table,
+    swap_seed,
+)
+from pref_pairs.synthetic_trajectory_fixtures import HZ, straight_line
 
 _SAMPLE_PAIR_IDS = [
     "00bbc8b2-7d40-40f7-a1b3-a5853fe5bddc_12206610__negation_flip",
@@ -35,3 +40,24 @@ def test_swap_seed_is_not_constant_across_pairs():
     # Not every pair_id should land on the same side of the coin flip --
     # a constant result would silently defeat the whole point of blind A/B.
     assert len({swap_seed(pair_id) for pair_id in _SAMPLE_PAIR_IDS}) == 2
+
+
+def test_format_waypoint_table_has_one_line_per_waypoint():
+    waypoints = straight_line(speed_mps=10.0, n=5)
+    action = {"waypoints": waypoints, "hz": HZ, "rollout_id": 0}
+    table = format_waypoint_table(action)
+    lines = table.splitlines()
+    assert len(lines) == 5
+    assert lines[0].startswith("0: x=")
+    assert lines[-1].startswith("4: x=")
+
+
+def test_format_waypoint_table_straight_line_has_near_zero_lateral_and_heading():
+    # straight_line is constant-speed, constant-heading -- y and heading
+    # should both round to ~0 at every step, not just start/end.
+    waypoints = straight_line(speed_mps=10.0, n=10)
+    action = {"waypoints": waypoints, "hz": HZ, "rollout_id": 0}
+    table = format_waypoint_table(action)
+    for line in table.splitlines():
+        assert "y=0.0" in line
+        assert "h=0" in line
