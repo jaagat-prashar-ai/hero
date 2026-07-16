@@ -151,3 +151,17 @@ def format_waypoint_table(action: dict[str, Any]) -> str:
         for i in range(len(xy))
     ]
     return "\n".join(lines)
+
+
+def build_user_message(pair: dict[str, Any], waypoint_table: str, a_is_chosen: bool) -> str:
+    trace_a = pair["chosen_trace"] if a_is_chosen else pair["rejected_trace"]
+    trace_b = pair["rejected_trace"] if a_is_chosen else pair["chosen_trace"]
+    return (
+        f"Scene category: {pair['event_cluster']}\n"
+        "Action taken (ground truth, already executed -- not in question): 64 waypoints\n"
+        "(x meters forward, y meters lateral [+left], heading degrees cumulative),\n"
+        "evenly spaced in time:\n"
+        f"{waypoint_table}\n\n"
+        f'Trace A: "{trace_a}"\n'
+        f'Trace B: "{trace_b}"'
+    )
