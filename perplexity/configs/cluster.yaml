@@ -10,10 +10,13 @@ workload_variant_config:
   workload_type: "training"
   training_fn: perplexity.training.run.discrete_vs_diffusion_loop
   training_fn_config:
-    # 135 clips: 15 per event_cluster x 9 clusters, sampled directly from S3
-    # at job start (cluster_data.sample_and_resolve_clips) -- no locally
-    # pre-built manifest.
-    n_per_cluster: 15
+    # Full sweep: 1000/cluster exceeds every cluster's real pool (largest is
+    # WORK_ZONES at ~628 t0-valid), so the scan walks all shards and keeps
+    # every S3-available, t0-valid OOD clip (~1,271 expected). The cached
+    # scan_manifest_v2_n1000_seed42.json this produces is therefore a FULL
+    # index of clip -> (shard, offset, t0) -- reusable by any future run or
+    # subsample without rescanning.
+    n_per_cluster: 1000
     sample_seed: 42
     s3_bucket: "research-datasets-chicago"
     # Isolated Python 3.12 venv self-bootstrapped at job start via `uv`
