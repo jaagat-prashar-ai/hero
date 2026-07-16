@@ -18,10 +18,18 @@ import pytest
 
 from pref_pairs.judge_reasoning_pairs import (
     JudgeError,
+    _parse_judgment_response,
     format_waypoint_table,
     swap_seed,
 )
 from pref_pairs.synthetic_trajectory_fixtures import HZ, straight_line
+
+_VALID_JUDGMENT = {
+    "trace_a": {"action_consistency_score": 8, "corruption_type": "none", "one_line_rationale": "matches"},
+    "trace_b": {"action_consistency_score": 1, "corruption_type": "causal_flip", "one_line_rationale": "inverted"},
+    "preferred": "A",
+    "margin_confidence": "high",
+}
 
 _SAMPLE_PAIR_IDS = [
     "00bbc8b2-7d40-40f7-a1b3-a5853fe5bddc_12206610__negation_flip",
@@ -61,3 +69,46 @@ def test_format_waypoint_table_straight_line_has_near_zero_lateral_and_heading()
     for line in table.splitlines():
         assert "y=0.0" in line
         assert "h=0" in line
+
+
+def test_parse_judgment_response_passes_through_plain_json():
+    assert _parse_judgment_response(json.dumps(_VALID_JUDGMENT)) == _VALID_JUDGMENT
+
+
+def test_parse_judgment_response_strips_json_fence():
+    text = "```json\n" + json.dumps(_VALID_JUDGMENT) + "\n```"
+    assert _parse_judgment_response(text) == _VALID_JUDGMENT
+
+
+def test_parse_judgment_response_raises_on_missing_top_level_key():
+    bad = {k: v for k, v in _VALID_JUDGMENT.items() if k != "preferred"}
+    with pytest.raises(JudgeError, match="preferred"):
+        _parse_judgment_response(json.dumps(bad))
+
+
+def test_parse_judgment_response_raises_on_missing_trace_key():
+    bad = json.loads(json.dumps(_VALID_JUDGMENT))  # deep copy
+    del bad["trace_a"]["one_line_rationale"]
+    with pytest.raises(JudgeError, match="trace_a"):
+        _parse_judgment_response(json.dumps(bad))
+
+
+def test_parse_judgment_response_raises_on_out_of_range_score():
+    bad = json.loads(json.dumps(_VALID_JUDGMENT))
+    bad["trace_a"]["action_consistency_score"] = 11
+    with pytest.raises(JudgeError, match="action_consistency_score"):
+        _parse_judgment_response(json.dumps(bad))
+
+
+def test_parse_judgment_response_raises_on_invalid_corruption_type():
+    bad = json.loads(json.dumps(_VALID_JUDGMENT))
+    bad["trace_b"]["corruption_type"] = "typo_error"  # not in the six-type taxonomy + "none"
+    with pytest.raises(JudgeError, match="corruption_type"):
+        _parse_judgment_response(json.dumps(bad))
+
+
+def test_parse_judgment_response_raises_on_invalid_preferred():
+    bad = json.loads(json.dumps(_VALID_JUDGMENT))
+    bad["preferred"] = "C"
+    with pytest.raises(JudgeError, match="preferred"):
+        _parse_judgment_response(json.dumps(bad))
