@@ -121,3 +121,12 @@ class JudgeError(Exception):
     """Raised when Fable 5's response can't be turned into a valid judgment
     (refusal, unparseable JSON, or a missing/invalid field) even after one
     retry."""
+
+
+def swap_seed(pair_id: str) -> bool:
+    """Deterministic per-pair coin flip (sha256 of pair_id) for which side of
+    the blind A/B the chosen trace lands on -- deterministic rather than
+    random so a rerun with the same pairs reproduces the same assignment,
+    and independent of any RNG/wall-clock state."""
+    digest = hashlib.sha256(pair_id.encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) % 2 == 0
