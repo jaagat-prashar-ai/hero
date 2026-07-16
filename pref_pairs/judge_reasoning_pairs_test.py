@@ -18,6 +18,7 @@ import pytest
 
 from pref_pairs.judge_reasoning_pairs import (
     JudgeError,
+    _build_result_row,
     _parse_judgment_response,
     format_waypoint_table,
     swap_seed,
@@ -29,6 +30,14 @@ _VALID_JUDGMENT = {
     "trace_b": {"action_consistency_score": 1, "corruption_type": "causal_flip", "one_line_rationale": "inverted"},
     "preferred": "A",
     "margin_confidence": "high",
+}
+
+_SAMPLE_PAIR = {
+    "pair_id": "scene_1__causal_flip",
+    "scene_id": "scene_1",
+    "perturbation_type": "causal_flip",
+    "chosen_trace": "Keep distance to the lead vehicle",
+    "rejected_trace": "No need to keep distance to the lead vehicle",
 }
 
 _SAMPLE_PAIR_IDS = [
@@ -112,3 +121,38 @@ def test_parse_judgment_response_raises_on_invalid_preferred():
     bad["preferred"] = "C"
     with pytest.raises(JudgeError, match="preferred"):
         _parse_judgment_response(json.dumps(bad))
+
+
+def test_build_result_row_maps_a_back_to_chosen_when_a_is_chosen():
+    # _VALID_JUDGMENT prefers "A" -- with a_is_chosen=True, A *is* chosen,
+    # so this should read as the judge agreeing with construction.
+    row = _build_result_row(_SAMPLE_PAIR, a_is_chosen=True, verdict=_VALID_JUDGMENT)
+    assert row["judge_preferred"] == "chosen"
+    assert row["judge_agrees_with_construction"] is True
+    assert row["chosen_score"] == 8
+    assert row["rejected_score"] == 1
+    assert row["margin"] == 7
+    assert row["corruption_type_detected"] == "causal_flip"
+    assert row["corruption_type_match"] is True  # pair's perturbation_type is causal_flip
+
+
+def test_build_result_row_undoes_the_swap_when_a_is_rejected():
+    # Same _VALID_JUDGMENT (still prefers "A"), but now A is the REJECTED
+    # trace -- so preferring A means disagreeing with construction, and the
+    # score/corruption fields must swap sides accordingly.
+    row = _build_result_row(_SAMPLE_PAIR, a_is_chosen=False, verdict=_VALID_JUDGMENT)
+    assert row["judge_preferred"] == "rejected"
+    assert row["judge_agrees_with_construction"] is False
+    assert row["chosen_score"] == 1
+    assert row["rejected_score"] == 8
+    assert row["margin"] == -7
+    assert row["corruption_type_detected"] == "none"
+    assert row["corruption_type_match"] is False  # "none" != pair's causal_flip
+
+
+def test_build_result_row_tie_has_no_construction_agreement_verdict():
+    tie_judgment = json.loads(json.dumps(_VALID_JUDGMENT))
+    tie_judgment["preferred"] = "tie"
+    row = _build_result_row(_SAMPLE_PAIR, a_is_chosen=True, verdict=tie_judgment)
+    assert row["judge_preferred"] == "tie"
+    assert row["judge_agrees_with_construction"] is None
