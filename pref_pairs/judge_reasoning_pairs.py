@@ -220,3 +220,43 @@ def _build_result_row(pair: dict[str, Any], a_is_chosen: bool, verdict: dict[str
         "rationale_chosen": chosen_block["one_line_rationale"],
         "rationale_rejected": rejected_block["one_line_rationale"],
     }
+
+
+def call_judge(
+    client: anthropic.Anthropic,
+    pair: dict[str, Any],
+    a_is_chosen: bool,
+    model: str = "claude-fable-5",
+    _retries_left: int = 1,
+) -> dict[str, Any]:
+    """Calls Fable 5 once with SYSTEM_PROMPT and this pair's blind A/B user
+    turn, returning the parsed+validated judgment. Retries once (fresh call,
+    not a repair) on a refusal or invalid response before raising JudgeError
+    -- same graceful-once-retry convention as
+    perturbation_generator.generate_perturbation."""
+    waypoint_table = format_waypoint_table(pair["action"])
+    user_message = build_user_message(pair, waypoint_table, a_is_chosen)
+
+    response = client.beta.messages.create(
+        model=model,
+        max_tokens=1024,
+        betas=["server-side-fallback-2026-06-01"],
+        fallbacks=[{"model": "claude-opus-4-8"}],
+        system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
+        messages=[{"role": "user", "content": user_message}],
+    )
+
+    if response.stop_reason == "refusal":
+        if _retries_left > 0:
+            logger.warning("pair_id=%s: refused even with fallback, retrying once", pair["pair_id"])
+            return call_judge(client, pair, a_is_chosen, model, _retries_left - 1)
+        raise JudgeError(f"pair_id={pair['pair_id']}: refused after retry")
+
+    text = next((b.text for b in response.content if b.type == "text"), "")
+    try:
+        return _parse_judgment_response(text)
+    except (json.JSONDecodeError, JudgeError) as e:
+        if _retries_left > 0:
+            logger.warning("pair_id=%s: invalid judgment (%s), retrying once", pair["pair_id"], e)
+            return call_judge(client, pair, a_is_chosen, model, _retries_left - 1)
+        raise JudgeError(f"pair_id={pair['pair_id']}: invalid judgment after retry: {e}") from e
