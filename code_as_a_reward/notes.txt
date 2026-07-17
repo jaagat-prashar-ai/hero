@@ -50,3 +50,104 @@ POSITION or TRAFFIC LIGHT STATE are not checkable against any structured ground 
 in this dataset — those would need a different signal (e.g. VLM-derived pseudo-labels
 from camera frames, treated as noisier/unverified) or be excluded from the reward's
 checkable-claim scope entirely.
+
+Follow-up: also queried a broader sample of obstacle.offline label_class values across
+~25 clips (not just the one sample above) to check actor-type coverage: {automobile,
+person, rider, trailer, heavy_truck, bus, other_vehicle, train_or_tram_car, animal,
+stroller, protruding_object}. "rider" covers cyclists/motorcyclists. No separate class
+for static work-zone objects (cones/barrels/barriers) — those are not in this feature
+at all, consistent with the "no lane/traffic-control ground truth" finding above.
+
+--- Phase 0, item: AR1-10B vs Alpamayo 1.5 decision (2026-07-17) ---
+
+Investigated via a local-code Explore agent (rollout_harvester.py, both
+load_physical_aiavdataset.py copies, perplexity/cluster_worker.py, pyproject.toml/
+requirements.txt, existing tests/results) plus directly reading both project READMEs
+myself (third_party/alpamayo1.5/README.md, perplexity/alpamayo/README.md).
+
+Key fact that resolves this cleanly: "AR1-10B" (nvidia/Alpamayo-R1-10B) is not a
+separate/parallel model — it IS Alpamayo 1, the original model, renamed after the
+Jan 2026 CES announcement but still published under its old HF repo id. Its own
+README states explicitly (line 127): "No. The current 10B model release has not
+undergone RL post-training." Alpamayo 1.5 (released March 2026, nvidia/Alpamayo-1.5-
+10B) is the direct successor: RL post-trained specifically "achieving improvements in
+reasoning quality and reasoning-trajectory alignment" (line 202), and NVIDIA's own
+README tells users to move to it ("We recommend all users check out the new version").
+
+Integration cost, in this repo, for each:
+- Alpamayo 1.5: pref_pairs/rollout_harvester.py already has a working, tested,
+  production-proven rollout harvester against nvidia/Alpamayo-1.5-10B.
+  RolloutHarvester.load() -> Alpamayo1_5.from_pretrained(...); harvest_scene() calls
+  sample_trajectories_from_data_with_vlm_rollout(...) and captures BOTH the model's
+  native per-waypoint (accel, curvature) action tensor (not re-derived) AND the CoT
+  reasoning text (coc_text) + meta_action_text/answer_text, alongside xyz waypoints.
+  Proven at scale: pref_pairs/results/scene_reasoning/*.md (hundreds of real reasoning
+  traces), action_space_variance_report (100 rollouts x ~900 clips), judged_pairs.jsonl
+  (717 LLM-judged pairs). 7 passing unit tests (rollout_harvester_test.py, mocked model).
+- AR1-10B: perplexity/alpamayo/ (vendored copy, tracked in git but not a submodule) has
+  only test_inference.py, a single-shot (num_traj_samples=1) upstream demo script, not
+  wired to any config/results in this repo. The separate perplexity/ project (a
+  different research question -- discrete vs diffusion action-head comparison) does
+  have real, tested AR1-10B inference via perplexity/cluster_worker.py, but with a
+  different sampling pattern (1 reasoning + N=10 fixed-reasoning diffusion samples, not
+  "hold scene fixed, draw K stochastic rollouts") and no RolloutRecord-equivalent
+  schema/manifest plumbing. Building on AR1-10B here would mean net-new harvester work.
+
+DECISION: recommend Alpamayo 1.5. It is both the newer, RL-post-trained model (better
+reasoning-trajectory alignment per NVIDIA's own claim -- directly relevant since
+code-as-reward is scoring reasoning quality) AND the one with zero additional
+integration cost given the existing production-tested harvester. AR1-10B is the
+older, non-RL-tuned model and would require building a new harvester from scratch.
+Pending final user sign-off, but the evidence points one direction, not a toss-up.
+
+--- Phase 0, item: ~100-trace claim taxonomy + checkability rate (2026-07-17) ---
+
+Source: pref_pairs/results/reasoning_matched_pairs/reasoning_matched_pairs.jsonl (717
+pref pairs already on disk from the earlier faithfulness project). Deduplicated to 120
+unique real (unperturbed, "chosen_trace") reasoning traces by scene_id -- this is the
+full population of distinct real traces available in that file (~100 as originally
+scoped; got 120 for free since that's all there is).
+
+Note on trace format: these are short, structured "[maneuver] because/due to
+[justification clause(s)]" sentences (sometimes chained with "then" for multi-step
+plans), not long free-form paragraphs -- e.g. "Keep distance to the lead vehicle since
+it is directly ahead in our lane." This is the actual CoC (chain-of-causation)
+reasoning granularity this dataset produces, not a simplification on my part.
+
+Method: regex-tagged each of the 120 traces into claim categories, then mapped each
+category to a checkability bucket using the scene-state availability findings above.
+Raw category hit counts (a trace can hit multiple categories):
+  lane_position: 75, other_vehicle_actor: 49, lead_vehicle: 26, vru_actor: 26,
+  static_workzone_obj: 20, crosswalk: 15, intersection: 10, traffic_control: 8,
+  speed_bump: 2, road_debris: 2, emergency_actor: 1
+
+Checkability buckets (fraction of the 120 traces containing at least one claim of
+that kind; a trace can land in more than one bucket):
+  - actor_checkable_pending_integration: 74/120 (62%) -- claims about a lead vehicle,
+    other vehicle, VRU/rider, emergency vehicle, or animal. Checkable against real
+    ground truth (obstacle.offline tracks) once that feature is integrated -- not
+    checkable today, but not a dead end either.
+  - partial_ego_relative_only: 98/120 (82%) -- claims involving lane/merge language,
+    intersections, or crosswalks. Checkable only in an ego-relative-geometry sense
+    (lateral offset, heading change -- already used by trajectory_features.py /
+    classify_maneuvers.py); NOT checkable against true lane/map/crosswalk ground
+    truth, because none exists in this dataset.
+  - not_checkable_no_ground_truth: 32/120 (27%) -- claims about static work-zone
+    objects (cones/barrels/barriers), road debris, speed bumps, or traffic
+    lights/signals/stop signs. No structured ground truth exists anywhere in this
+    dataset for any of these; would need a different signal entirely (e.g.
+    VLM-derived pseudo-labels from camera frames, explicitly treated as noisier/
+    unverified, not ground truth).
+  - 0/120 traces were purely kinematic-only with no taggable scene-referencing claim
+    at all -- essentially every real CoC trace in this sample references at least one
+    external scene element (an actor, the lane/intersection, or a static object),
+    confirming these traces are genuinely checkable-claim-dense, not just restating
+    ego motion.
+
+Bottom line for reward design: a meaningful majority of real reasoning claims (the
+62% actor-related ones, plus ego-relative-geometry claims within the 82% lane/
+intersection bucket) become checkable against real structured ground truth once
+obstacle.offline integration lands. The clear gap is the ~27% touching static
+work-zone objects or traffic control -- those need either a non-ground-truth signal
+(VLM pseudo-labels) or should be explicitly scoped out of what code-as-reward claims
+to verify, rather than silently scored against nothing.
