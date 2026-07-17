@@ -1,0 +1,14 @@
+Phase 0 — scene-state availability finding (2026-07-17)
+
+The availability investigation just came back, and it's a significant finding that changes the shape of Phase 0.
+
+Bottom line: lane geometry, traffic-light state, and other-actor tracks do NOT exist anywhere in this repo's data pipeline today. The only structured scene-state actually decoded (across sample_clips.py, wds_dataset.py, both load_physical_aiavdataset.py copies, and the installed physical_ai_av package) is:
+- ego pose/motion (egomotion.parquet: x,y,z,quat,vel,accel,curvature)
+- 4-7 camera video streams
+- sensor calibration/extrinsics + vehicle dimensions
+
+Notably, classify_maneuvers.py's "lane_change_left/right" is a label derived from ego trajectory geometry (lateral offset/heading thresholds) — not sourced from any actual lane graph or map. There is no lane ID, no traffic-light/signal field, and no actor/bbox/track data referenced anywhere in the pipeline.
+
+One caveat worth flagging: physical_ai_av.Features builds its schema dynamically from a features.csv that isn't checked into this repo — so it's possible NVIDIA's upstream raw dataset has additional feature directories (actor tracks, lane data, etc.) that just aren't wired up in our code yet. We haven't checked the live HF dataset schema itself, only what this codebase currently reads.
+
+This matters a lot for the whole "code-as-reward" premise — the plan assumes a scoring program can check reasoning claims against structured scene state (e.g. "is there a lead vehicle," "is the light red," "what lane am I in"), and right now essentially none of that exists as parseable data.
