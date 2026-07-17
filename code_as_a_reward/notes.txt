@@ -12,3 +12,41 @@ Notably, classify_maneuvers.py's "lane_change_left/right" is a label derived fro
 One caveat worth flagging: physical_ai_av.Features builds its schema dynamically from a features.csv that isn't checked into this repo — so it's possible NVIDIA's upstream raw dataset has additional feature directories (actor tracks, lane data, etc.) that just aren't wired up in our code yet. We haven't checked the live HF dataset schema itself, only what this codebase currently reads.
 
 This matters a lot for the whole "code-as-reward" premise — the plan assumes a scoring program can check reasoning claims against structured scene state (e.g. "is there a lead vehicle," "is the light red," "what lane am I in"), and right now essentially none of that exists as parseable data.
+
+--- UPDATE (2026-07-17, later same day): live-checked the upstream HF dataset directly ---
+
+Went and actually queried the live nvidia/PhysicalAI-Autonomous-Vehicles dataset via
+physical_ai_av.PhysicalAIAVDatasetInterface() (python3.12 venv at
+perplexity/alpamayo/ar1_venv, HF_TOKEN from ~/.creds/lilypad.env — the shell's default
+HF_TOKEN is invalid for this gated repo). Read features.csv directly: 34 total upstream
+features exist (egomotion[.offline], obstacle.offline, camera_intrinsics[.offline],
+lidar_intrinsics.offline, sensor_extrinsics[.offline], vehicle_dimensions, 7 camera
+streams, lidar_top_360fov, ~20 radar features). This corrects the local-code-only
+finding above:
+
+- ACTOR TRACKS EXIST UPSTREAM, just not wired up anywhere in this repo's code.
+  `obstacle.offline` (autolabeled v2) is present in 97.4% of clips (298,326/306,152).
+  Per-clip parquet schema: timestamp_us, source, track_id, center_x/y/z, size_x/y/z,
+  orientation_x/y/z/w (quaternion), label_class, reference_frame ("rig" = ego-relative),
+  reference_frame_timestamp_us. Sample clip (25cd4769-5dcf-4b53-a351-bf2c5deb6124) had
+  142 distinct track_ids across label_class {automobile, person, trailer}. This is real
+  3D bounding-box actor-track data in the ego frame, timestamped — exactly the kind of
+  ground truth a scoring program needs to check reasoning claims like "there is a lead
+  vehicle" or "a pedestrian is nearby." None of wds_dataset.py, sample_clips.py, or
+  either load_physical_aiavdataset.py copy currently reads this feature; it falls
+  through get_clip_feature's generic "not implemented yet" path and returns raw parquet
+  unparsed. Integrating it is new work, not a re-discovery of existing code.
+
+- LANE GEOMETRY: confirmed absent from the full 34-feature schema. No lane/map feature
+  exists upstream at all, not just unwired locally.
+
+- TRAFFIC LIGHT / SIGNAL STATE: confirmed absent from the full 34-feature schema. No
+  such feature exists upstream at all.
+
+Revised Phase 0 conclusion: claims about OTHER ACTORS (lead vehicle presence, nearby
+pedestrians/cyclists, relative position/velocity of tracked obstacles) are checkable
+against real ground truth once obstacle.offline is integrated. Claims about LANE
+POSITION or TRAFFIC LIGHT STATE are not checkable against any structured ground truth
+in this dataset — those would need a different signal (e.g. VLM-derived pseudo-labels
+from camera frames, treated as noisier/unverified) or be excluded from the reward's
+checkable-claim scope entirely.
