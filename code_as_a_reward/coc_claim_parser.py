@@ -444,3 +444,59 @@ def _split_beat(
     commitment_span = (start, start + match.start())
     cause_span = (start + match.end(), end)
     return commitment_span, cause_span, match.group()
+
+
+def _extract_commitments(text: str, span: tuple[int, int]) -> list[CommitmentClaim]:
+    """Find every maneuver mention inside `span`, which must be a
+    commitment clause (the text before a beat's causal connective, or a
+    whole beat with no connective) -- never a cause clause. That scoping is
+    what keeps MANEUVER_PATTERNS' "turn" entry from misfiring on an
+    adjectival "right-turn traffic light"/"right-turn lane" mention on the
+    cause side (see that pattern's comment); it also means a maneuver word
+    used to describe another agent in a cause clause (e.g. "vehicle
+    merging from the right") is never mistaken for ego's own commitment.
+
+    A compound commitment ("Accelerate and turn right...") yields one
+    CommitmentClaim per verb. MANEUVER_PATTERNS entries are tried in list
+    order and a later entry may not re-claim characters an earlier one
+    already matched -- in practice the patterns' vocabularies barely
+    overlap, but this keeps that an enforced invariant rather than an
+    accident of which words happen to differ.
+    """
+    start, end = span
+    region = text[start:end]
+    claimed: list[tuple[int, int]] = []
+    raw_matches: list[tuple[int, int, str, ManeuverAxis, str | None]] = []
+    for name, axis, speed_profile, pattern in MANEUVER_PATTERNS:
+        for m in pattern.finditer(region):
+            m_start, m_end = start + m.start(), start + m.end()
+            if any(m_start < c_end and c_start < m_end for c_start, c_end in claimed):
+                continue
+            claimed.append((m_start, m_end))
+            raw_matches.append((m_start, m_end, name, axis, speed_profile))
+    raw_matches.sort(key=lambda t: t[0])
+
+    claims: list[CommitmentClaim] = []
+    for i, (m_start, m_end, name, axis, speed_profile) in enumerate(raw_matches):
+        # Direction is searched only AFTER this maneuver's own match, and
+        # only up to wherever the NEXT maneuver match starts -- so in
+        # "change lanes to the right and enter the freeway on-ramp",
+        # "right" is attributed to "change lanes" (the nearer verb) and
+        # "enter" correctly gets no direction of its own, rather than both
+        # verbs claiming the same single direction word.
+        window_end = min(m_end + DIRECTION_WINDOW_CHARS, end)
+        if i + 1 < len(raw_matches):
+            window_end = min(window_end, raw_matches[i + 1][0])
+        direction_match = DIRECTION_PATTERN.search(text[m_end:window_end])
+        direction = direction_match.group(1).lower() if direction_match else None
+        claims.append(
+            CommitmentClaim(
+                text=text[m_start:m_end],
+                maneuver=name,
+                axis=axis,
+                speed_profile=speed_profile,
+                direction=direction,
+                span=(m_start, m_end),
+            )
+        )
+    return claims
