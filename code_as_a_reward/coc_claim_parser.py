@@ -404,3 +404,43 @@ WEAK_CONNECTIVES = re.compile(r"\b(?:after|for)\b", re.I)
 # entries use one, most don't use periods at all). Each beat is expected to
 # carry at most one causal connective (see _split_beat).
 BEAT_DELIMITER = re.compile(r";|,?\s+then\b|\.\s+(?=\S)", re.I)
+
+
+def _split_beats(text: str) -> list[tuple[int, int]]:
+    """Split `text` into sequential beat spans on BEAT_DELIMITER. Adjacent
+    delimiters (e.g. "...lane; then merge...", where ';' and ' then' both
+    match) produce a zero-length beat between them -- dropped here rather
+    than in the caller, since an empty/whitespace-only beat can never carry
+    a claim regardless of what calls this."""
+    spans: list[tuple[int, int]] = []
+    pos = 0
+    for m in BEAT_DELIMITER.finditer(text):
+        spans.append((pos, m.start()))
+        pos = m.end()
+    spans.append((pos, len(text)))
+    return [(s, e) for s, e in spans if text[s:e].strip()]
+
+
+def _split_beat(
+    text: str, beat_span: tuple[int, int]
+) -> tuple[tuple[int, int], tuple[int, int] | None, str | None]:
+    """Within one beat, split on the first causal connective into
+    (commitment_span, cause_span, connective_text) -- all as offsets into
+    the ORIGINAL `text`, not into the beat substring, so callers never have
+    to re-add an offset. STRONG_CONNECTIVES is tried before WEAK_CONNECTIVES
+    (searched only if no strong match exists ANYWHERE in the beat, not just
+    earlier in it -- e.g. "Create a usable gap for a left lane change
+    because cones..." must split on "because", not the earlier "for", so
+    trying WEAK_CONNECTIVES first and taking a leftmost-overall match would
+    be wrong here). Returns (beat_span, None, None) when the beat states no
+    reason at all -- a real, fairly common outcome (e.g. "Keep lane"), not
+    a parse failure.
+    """
+    start, end = beat_span
+    beat = text[start:end]
+    match = STRONG_CONNECTIVES.search(beat) or WEAK_CONNECTIVES.search(beat)
+    if match is None:
+        return beat_span, None, None
+    commitment_span = (start, start + match.start())
+    cause_span = (start + match.end(), end)
+    return commitment_span, cause_span, match.group()
