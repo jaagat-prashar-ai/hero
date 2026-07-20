@@ -39,6 +39,7 @@ actually derived vs. approximated).
 from __future__ import annotations
 
 import dataclasses
+import re
 from enum import Enum
 
 
@@ -117,3 +118,289 @@ class ParsedCoCTrace:
     perceptual: list[PerceptualClaim]
     causal: list[CausalClaim]
     unparsed_spans: list[tuple[int, int]]
+
+
+# ---------------------------------------------------------------------------
+# Lexicons. Every entry below was chosen by grepping coc_text frequency
+# across pref_pairs/results/scene_reasoning/*.md (2000+ unique CoC strings)
+# rather than guessed -- see the counts noted inline for the higher-value
+# entries. This is deliberately NOT exhaustive: rare entities/states that
+# didn't clear a "worth a lexicon entry" bar (e.g. "animal", "debris",
+# "pothole", one-off garbled model output) fall through to
+# ParsedCoCTrace.unparsed_spans instead of a silent misclassification.
+# ---------------------------------------------------------------------------
+
+# The corpus mixes ASCII '-' with the unicode non-breaking hyphen U+2011 and
+# en-dash U+2013 for the *same* word ("work-zone" vs "work‑zone", 80+
+# instances of U+2011 alone) -- normalizing once up front means every regex
+# below only has to spell one hyphen, not double every hyphenated
+# alternative. Single-char-for-single-char, so span offsets computed
+# against the normalized text stay valid against the (also normalized)
+# `raw_text` stored on ParsedCoCTrace -- see parse_coc_trace.
+_PUNCTUATION_NORMALIZATION = str.maketrans(
+    {"‑": "-", "–": "-", "‘": "'", "’": "'", "“": '"', "”": '"'}
+)
+
+
+def _normalize_punctuation(text: str) -> str:
+    return text.translate(_PUNCTUATION_NORMALIZATION)
+
+
+# (maneuver key, axis, speed_profile, compiled regex). Order matters only in
+# that later entries never get a chance to claim characters a *lower-index*
+# entry already matched (see _extract_commitments' consumed-span tracking);
+# it does not encode priority among independent matches -- a compound
+# commitment ("Accelerate and turn right...") is meant to yield one claim
+# per verb, not just the first.
+#
+# "turn" excludes a leading "right-"/"left-" via negative lookbehind because
+# the corpus also uses "right-turn"/"left-turn" as an *adjective* on nouns
+# like "right-turn traffic light" / "right-turn lane" -- that is a
+# perceptual-entity description, not an ego commitment, and would otherwise
+# be misread as one (checked: 8/2031 unique corpus lines have this adjective
+# form; all 8 are on the cause side of a connective and so would be excluded
+# from commitment-clause scanning anyway, but the lookbehind is cheap
+# insurance against a commitment-clause instance we haven't seen).
+MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] = [
+    ("lane_change", ManeuverAxis.LATERAL, None, re.compile(r"\bchang(?:e|es|ed|ing)\b", re.I)),
+    ("keep_lane", ManeuverAxis.LATERAL, None, re.compile(r"\bkeep(?:s|ing)?\s+lane\b", re.I)),
+    ("nudge", ManeuverAxis.LATERAL, None, re.compile(r"\bnudg(?:e|es|ed|ing)\b", re.I)),
+    ("merge", ManeuverAxis.LATERAL, None, re.compile(r"\bmerg(?:e|es|ed|ing)\b", re.I)),
+    (
+        "turn",
+        ManeuverAxis.LATERAL,
+        None,
+        re.compile(r"(?<!right-)(?<!left-)\bturn(?:s|ed|ing)?\b", re.I),
+    ),
+    ("enter", ManeuverAxis.LATERAL, None, re.compile(r"\benter(?:s|ing|ed)?\b", re.I)),
+    ("exit", ManeuverAxis.LATERAL, None, re.compile(r"\bexit(?:s|ing|ed)?\b", re.I)),
+    (
+        "adapt_speed",
+        ManeuverAxis.LONGITUDINAL,
+        "adapt",
+        re.compile(r"\b(?:adapt|adjust)(?:s|ing|ed)?\s+speed\b", re.I),
+    ),
+    (
+        "accelerate",
+        ManeuverAxis.LONGITUDINAL,
+        "accelerate",
+        re.compile(r"\baccelerat\w*\b", re.I),
+    ),
+    (
+        "decelerate",
+        ManeuverAxis.LONGITUDINAL,
+        "decelerate",
+        re.compile(r"\bdecelerat\w*\b|\bslow(?:s|ing)?\s+down\b|\bbrak\w*\b", re.I),
+    ),
+    (
+        # "Keep distance"/"maintain a safe gap"/"maintain following distance" --
+        # NOT "maintain lane" (that's keep_lane, LATERAL, matched above and
+        # so already consumed before this entry runs).
+        "keep_distance",
+        ManeuverAxis.LONGITUDINAL,
+        "maintain",
+        re.compile(
+            r"\bkeep(?:s|ing)?\s+distance\b"
+            r"|\bmaintain(?:s|ing)?\s+(?:a\s+|the\s+)?(?:safe\s+)?"
+            r"(?:distance|gap|following\s+distance|progress)\b",
+            re.I,
+        ),
+    ),
+    (
+        "create_gap",
+        ManeuverAxis.LONGITUDINAL,
+        None,
+        re.compile(r"\bcreat(?:e|es|ing)\s+(?:a\s+|an\s+)?(?:usable\s+)?gap\b", re.I),
+    ),
+    ("stop", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bstop(?:s|ping)?\b", re.I)),
+    ("yield", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\byield(?:s|ing)?\b", re.I)),
+    ("wait", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bwait(?:s|ing)?\b", re.I)),
+    ("proceed", ManeuverAxis.LONGITUDINAL, None, re.compile(r"\bproceed(?:s|ing)?\b", re.I)),
+]
+
+# Searched in a window immediately after (never before -- see
+# _extract_commitments) each maneuver match to resolve CommitmentClaim.direction.
+DIRECTION_PATTERN = re.compile(r"\b(left|right)\b", re.I)
+# How far past a maneuver match's end to look for a direction word before
+# giving up (chosen from corpus spot-checks like "change to the left lane",
+# "merge back right after clearing them" -- direction is close by, this is
+# generous headroom, not a precisely fit bound).
+DIRECTION_WINDOW_CHARS = 40
+
+# (entity key, compiled regex). Longer/more specific alternatives are listed
+# first within each pattern so a phrase like "stopped emergency vehicle"
+# prefers the more specific match its regex is written to prefer (Python's
+# re picks the first alternative that matches at the leftmost position, so
+# ordering within a single pattern's alternation *does* matter, unlike the
+# ordering of ENTITY_PATTERNS entries themselves).
+ENTITY_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    (
+        "emergency_vehicle",
+        re.compile(r"\bemergency\s+vehicles?\b", re.I),
+    ),
+    (
+        "construction_cones",
+        re.compile(r"\b(?:construction|traffic|roadwork|work-zone)\s+cones?\b|\bcones?\b", re.I),
+    ),
+    (
+        "barricades",
+        re.compile(
+            r"\b(?:construction\s+)?barricades?\b"
+            r"|\b(?:construction\s+)?barriers?\b"
+            r"|\b(?:concrete\s+)?barriers?\b"
+            r"|\bconstruction\s+barrels?\b"
+            r"|\bbarrels?\b",
+            re.I,
+        ),
+    ),
+    (
+        "cutin_vehicle",
+        re.compile(r"\bcut-in\s+(?:vehicle|car|truck|van|pickup)\b", re.I),
+    ),
+    (
+        "lead_vehicle",
+        re.compile(
+            r"\blead\s+(?:vehicle|car|truck|bus|motorcycle|scooter|van|pickup)\b", re.I
+        ),
+    ),
+    (
+        "stopped_vehicle",
+        re.compile(
+            r"\bstopped\s+(?:police\s+|parked\s+)?(?:car|cars|vehicle|vehicles|"
+            r"truck|trucks|van|bus|suv)\b"
+            r"|\bstalled\s+(?:car|vehicle|truck)\b",
+            re.I,
+        ),
+    ),
+    ("pedestrian", re.compile(r"\bpedestrians?\b|\bperson\s+standing\b", re.I)),
+    (
+        "cyclist",
+        re.compile(
+            r"\bscooters?\b|\bscooter\s+riders?\b|\bcyclists?\b|\bbicyclists?\b|\bbikers?\b",
+            re.I,
+        ),
+    ),
+    ("crosswalk", re.compile(r"\bcrosswalks?\b", re.I)),
+    (
+        "cross_traffic",
+        re.compile(r"\bcross[- ]traffic\b|\bcrossing\s+(?:traffic|vehicle)\b", re.I),
+    ),
+    (
+        "oncoming_traffic",
+        re.compile(r"\boncoming\b|\bopposing\s+(?:lane|traffic|van)\b", re.I),
+    ),
+    ("signal", re.compile(r"\btraffic\s+light\b|\bsignals?\b", re.I)),
+    (
+        "work_zone",
+        re.compile(r"\bwork-zone\b|\bwork\s+zone\b|\bconstruction\s+zone\b|\broadwork\b", re.I),
+    ),
+    ("roundabout", re.compile(r"\broundabouts?\b", re.I)),
+    ("gate", re.compile(r"\bgates?\b|\bdriveways?\b", re.I)),
+    ("workers", re.compile(r"\bworkers?\b", re.I)),
+    (
+        "ramp_or_freeway",
+        re.compile(r"\bfreeways?\b|\bon-ramps?\b|\boff-ramps?\b|\bramps?\b", re.I),
+    ),
+    ("curve", re.compile(r"\bcurves?\b|\bcurvature\b|\bbends?\b", re.I)),
+    (
+        "shoulder_or_median",
+        re.compile(r"\bshoulders?\b|\bmedians?\b|\bislands?\b|\bguardrails?\b", re.I),
+    ),
+    (
+        "weather_or_surface",
+        re.compile(
+            r"\bsnowy\b|\bsnow\b|\bwet\s+surface\b|\bwet\s+roadway\b|\bsun\s+glare\b|\bglare\b"
+            r"|\blow-friction\b|\bicy\s+surface\b",
+            re.I,
+        ),
+    ),
+    ("intersection", re.compile(r"\bintersections?\b", re.I)),
+    (
+        "speed_hump",
+        re.compile(r"\bspeed\s+humps?\b|\bspeed\s+bumps?\b", re.I),
+    ),
+    (
+        "speed_limit_sign",
+        re.compile(r"\bspeed\s+limit(?:\s+sign)?\b", re.I),
+    ),
+    # Generic vehicle mention with no lead/stopped/cut-in qualifier (a plain
+    # "car"/"vehicle"/"truck"/"SUV"/"construction equipment" the reasoning
+    # names directly, e.g. "a car pulling out from the right side"). Listed
+    # after the more specific vehicle entities above so those get first
+    # claim on any span this would otherwise also match.
+    (
+        "vehicle_generic",
+        re.compile(
+            r"\b(?:parked\s+|police\s+|construction\s+)?(?:vehicles?|cars?|trucks?|suvs?|"
+            r"equipment)\b",
+            re.I,
+        ),
+    ),
+    ("lane", re.compile(r"\blanes?\b", re.I)),
+]
+
+# (state key, compiled regex). Paired to the *nearest* entity match by
+# _pair_entities_with_states, not necessarily every predicate that could
+# describe that entity -- see that function's docstring for why picking one
+# is good enough here.
+STATE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("blocking", re.compile(r"\bblock(?:s|ing|ed)?\b", re.I)),
+    (
+        "narrowing",
+        re.compile(r"\bnarrow(?:s|ed|ing)?\b|\bconstrict(?:s|ed|ing)?\b|\btaper(?:s|ing)?\b", re.I),
+    ),
+    (
+        "clearing",
+        re.compile(r"\bclear(?:s|ed|ing|ance)?\b|\bhas\s+cleared\b", re.I),
+    ),
+    ("stopped", re.compile(r"\bstopped\b|\bstalled\b", re.I)),
+    ("crossing", re.compile(r"\bcrossing\b", re.I)),
+    ("ahead", re.compile(r"\bahead\b", re.I)),
+    ("closed", re.compile(r"\bclosed\b", re.I)),
+    ("open", re.compile(r"\bopen\b", re.I)),
+    ("green", re.compile(r"\bgreen\b", re.I)),
+    ("red", re.compile(r"\bred\b", re.I)),
+    ("encroaching", re.compile(r"\bencroaching\b", re.I)),
+    (
+        "yield_controlled",
+        re.compile(r"\byield[- ]controlled\b|\byield\s+sign\b", re.I),
+    ),
+    ("approaching", re.compile(r"\bapproaching\b", re.I)),
+    ("pulling_away", re.compile(r"\bpulling\s+away\b", re.I)),
+    ("pulling_out", re.compile(r"\bpulling\s+out\b", re.I)),
+    ("permits_movement", re.compile(r"\bpermits?\s+movement\b", re.I)),
+    ("nearby", re.compile(r"\bnearby\b|\bpresent\b", re.I)),
+    # "merging"/"exiting" describe ANOTHER agent's action (e.g. "a vehicle
+    # merging from the right"), unrelated to MANEUVER_PATTERNS' "merge"/
+    # "exit" entries -- those only ever scan commitment_text (the ego's own
+    # stated action), this only ever scans a cause clause (see
+    # _extract_perceptual_claims), so there is no risk of the two lexicons
+    # cross-matching the same span.
+    ("merging", re.compile(r"\bmerging\b", re.I)),
+    ("exiting", re.compile(r"\bexiting\b", re.I)),
+]
+
+# Backward-explanatory connectives only ("X because Y" -- Y is the cause of
+# X): tried in this tier first, leftmost match in the beat wins. "requiring"
+# was deliberately left out despite being common enough to lexicon
+# (~10 corpus hits) -- it runs FORWARD ("crossing pedestrians, requiring a
+# speed reduction": cause is BEFORE "requiring", effect after), the opposite
+# of every other connective here, and folding in a reversed-direction case
+# would complicate _split_beat for a minority pattern rather than clarify it.
+STRONG_CONNECTIVES = re.compile(
+    r"\b(?:because\s+of|because|due\s+to|since|as)\b"
+    r"(?!\s+(?:needed|well|confirmed|alongside|a\s+result))",
+    re.I,
+)
+# Fallback tier, only consulted when no STRONG_CONNECTIVES match exists
+# anywhere in the beat (see _split_beat) -- both are common in non-causal
+# roles elsewhere in English ("wait FOR the van", "merge AFTER the ramp"
+# read causally here only because this corpus's beats almost always state
+# a reason), so they're deliberately not tried first.
+WEAK_CONNECTIVES = re.compile(r"\b(?:after|for)\b", re.I)
+
+# Splits a CoC string into sequential "beats" -- ';', an explicit "then", or
+# a sentence-ending period followed by more text (a handful of corpus
+# entries use one, most don't use periods at all). Each beat is expected to
+# carry at most one causal connective (see _split_beat).
+BEAT_DELIMITER = re.compile(r";|,?\s+then\b|\.\s+(?=\S)", re.I)
