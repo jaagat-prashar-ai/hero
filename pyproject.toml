@@ -63,7 +63,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 # The template has no importable top-level package of its own to build; the
 # experiment code lives under mnist/ and is consumed via Bazel, not pip.
-packages = ["mnist", "masking", "build_wds", "pref_pairs"]
+packages = ["mnist", "masking", "build_wds", "pref_pairs", "code_as_a_reward"]
 
 [tool.pytest.ini_options]
 addopts = "--tb=short -q"
