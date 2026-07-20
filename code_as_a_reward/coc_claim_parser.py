@@ -500,3 +500,72 @@ def _extract_commitments(text: str, span: tuple[int, int]) -> list[CommitmentCla
             )
         )
     return claims
+
+
+def _nearest_state_key(
+    entity_span: tuple[int, int], state_matches: list[tuple[str, int, int]]
+) -> str | None:
+    """The state key whose match is closest to `entity_span` (0 if they
+    touch or overlap), or None if `state_matches` is empty. Picks exactly
+    one state per entity even when several plausibly apply (e.g. "the
+    closed gate blocking the driveway" -- "closed" and "blocking" both
+    describe "gate") -- good enough for a first pass at this task's
+    granularity (claim verification against kinematics doesn't need every
+    predicate that could apply, just a representative one), but a real
+    simplification worth knowing about before trusting `state` as
+    exhaustive.
+    """
+    best_distance: int | None = None
+    best_key: str | None = None
+    for key, s_start, s_end in state_matches:
+        if s_end <= entity_span[0]:
+            distance = entity_span[0] - s_end
+        elif s_start >= entity_span[1]:
+            distance = s_start - entity_span[1]
+        else:
+            distance = 0  # overlapping/adjacent
+        if best_distance is None or distance < best_distance:
+            best_distance, best_key = distance, key
+    return best_key
+
+
+def _extract_perceptual_claims(text: str, span: tuple[int, int]) -> list[PerceptualClaim]:
+    """Find every entity mention inside `span` (typically a cause clause,
+    but callers may pass any span -- see parse_coc_trace, which also scans
+    commitment clauses so an entity named there isn't missed just because
+    no causal connective happened to follow it) and pair each with the
+    nearest state predicate via _nearest_state_key. ENTITY_PATTERNS entries
+    are tried in list order with the same no-reclaiming-a-matched-span rule
+    as _extract_commitments, so e.g. "stopped police car" is captured whole
+    by the stopped_vehicle entry rather than vehicle_generic also matching
+    just "car" inside it.
+    """
+    start, end = span
+    region = text[start:end]
+
+    claimed: list[tuple[int, int]] = []
+    entity_matches: list[tuple[int, int, str]] = []
+    for key, pattern in ENTITY_PATTERNS:
+        for m in pattern.finditer(region):
+            m_start, m_end = start + m.start(), start + m.end()
+            if any(m_start < c_end and c_start < m_end for c_start, c_end in claimed):
+                continue
+            claimed.append((m_start, m_end))
+            entity_matches.append((m_start, m_end, key))
+    entity_matches.sort(key=lambda t: t[0])
+
+    state_matches: list[tuple[str, int, int]] = [
+        (key, start + m.start(), start + m.end())
+        for key, pattern in STATE_PATTERNS
+        for m in pattern.finditer(region)
+    ]
+
+    return [
+        PerceptualClaim(
+            text=text[m_start:m_end],
+            entity=key,
+            state=_nearest_state_key((m_start, m_end), state_matches),
+            span=(m_start, m_end),
+        )
+        for m_start, m_end, key in entity_matches
+    ]
