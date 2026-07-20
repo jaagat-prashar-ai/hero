@@ -38,9 +38,16 @@ actually derived vs. approximated).
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
+import json
+import logging
 import re
 from enum import Enum
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class ManeuverAxis(str, Enum):
@@ -692,3 +699,101 @@ def parse_coc_trace(
         causal=causal,
         unparsed_spans=unparsed_spans,
     )
+
+
+# ---------------------------------------------------------------------------
+# Ingestion from pref_pairs/results/scene_reasoning/*.md -- the reports
+# maneuver_report.py already produces (see e.g.
+# pref_pairs/results/scene_reasoning/f0d61901-...md), one "### rollout N"
+# section per rollout with a "> <coc_text>" blockquote line. This module
+# doesn't generate those reports, only reads them, so a scene's CoC text can
+# be parsed without re-running a rollout harvest.
+# ---------------------------------------------------------------------------
+
+_SCENE_HEADER = re.compile(r"^#\s+Scene\s+(\S+)", re.M)
+_ROLLOUT_HEADER = re.compile(r"^###\s+rollout\s+(\d+)\s*$", re.M)
+_BLOCKQUOTE_LINE = re.compile(r"^>\s*(.+)$", re.M)
+
+
+def parse_scene_reasoning_md(path: str | Path) -> list[ParsedCoCTrace]:
+    """Parse every rollout's coc_text out of one scene_reasoning report and
+    return one ParsedCoCTrace per rollout, in file order. A "### rollout N"
+    section with no blockquote line (shouldn't happen in a well-formed
+    report, but see module docstring's "no silent gaps" stance) is skipped
+    rather than producing an empty-text trace that would misleadingly
+    report 100% unparsed.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    scene_match = _SCENE_HEADER.search(text)
+    scene_id = scene_match.group(1) if scene_match else None
+
+    headers = list(_ROLLOUT_HEADER.finditer(text))
+    traces: list[ParsedCoCTrace] = []
+    for i, header in enumerate(headers):
+        rollout_id = int(header.group(1))
+        block_end = headers[i + 1].start() if i + 1 < len(headers) else len(text)
+        block = text[header.end() : block_end]
+        quote_match = _BLOCKQUOTE_LINE.search(block)
+        if quote_match is None:
+            logger.warning(
+                "scene %s rollout %d has no blockquote coc_text line, skipping",
+                scene_id, rollout_id,
+            )
+            continue
+        traces.append(
+            parse_coc_trace(quote_match.group(1).strip(), scene_id=scene_id, rollout_id=rollout_id)
+        )
+    return traces
+
+
+def _summarize(traces: list[ParsedCoCTrace]) -> dict[str, Any]:
+    """Aggregate counts across `traces` for the CLI's human-readable
+    summary -- not meant for programmatic consumption (that's what the
+    --out_jsonl dump is for)."""
+    n_commitments = sum(len(t.commitments) for t in traces)
+    n_perceptual = sum(len(t.perceptual) for t in traces)
+    n_causal = sum(len(t.causal) for t in traces)
+    n_unparsed_chars = sum(e - s for t in traces for s, e in t.unparsed_spans)
+    n_chars = sum(len(t.raw_text) for t in traces)
+    maneuver_counts: dict[str, int] = {}
+    for t in traces:
+        for c in t.commitments:
+            maneuver_counts[c.maneuver] = maneuver_counts.get(c.maneuver, 0) + 1
+    return {
+        "n_traces": len(traces),
+        "n_commitments": n_commitments,
+        "n_perceptual": n_perceptual,
+        "n_causal": n_causal,
+        "unparsed_char_fraction": (n_unparsed_chars / n_chars) if n_chars else 0.0,
+        "maneuver_counts": dict(sorted(maneuver_counts.items(), key=lambda kv: -kv[1])),
+    }
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument(
+        "scene_reasoning_md",
+        help="A pref_pairs/results/scene_reasoning/*.md report (see parse_scene_reasoning_md).",
+    )
+    ap.add_argument(
+        "--out_jsonl",
+        default=None,
+        help="If given, write one JSON-serialized ParsedCoCTrace per line here.",
+    )
+    args = ap.parse_args()
+
+    traces = parse_scene_reasoning_md(args.scene_reasoning_md)
+    summary = _summarize(traces)
+    logger.info("parsed %s", json.dumps(summary, indent=2))
+
+    if args.out_jsonl:
+        out_path = Path(args.out_jsonl)
+        with out_path.open("w", encoding="utf-8") as f:
+            for trace in traces:
+                f.write(json.dumps(dataclasses.asdict(trace)) + "\n")
+        logger.info("wrote %d traces to %s", len(traces), out_path)
+
+
+if __name__ == "__main__":
+    main()
