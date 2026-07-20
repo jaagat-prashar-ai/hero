@@ -554,11 +554,7 @@ def _extract_perceptual_claims(text: str, span: tuple[int, int]) -> list[Percept
             entity_matches.append((m_start, m_end, key))
     entity_matches.sort(key=lambda t: t[0])
 
-    state_matches: list[tuple[str, int, int]] = [
-        (key, start + m.start(), start + m.end())
-        for key, pattern in STATE_PATTERNS
-        for m in pattern.finditer(region)
-    ]
+    state_matches = _find_state_matches(text, span)
 
     return [
         PerceptualClaim(
@@ -569,3 +565,130 @@ def _extract_perceptual_claims(text: str, span: tuple[int, int]) -> list[Percept
         )
         for m_start, m_end, key in entity_matches
     ]
+
+
+def _find_state_matches(text: str, span: tuple[int, int]) -> list[tuple[str, int, int]]:
+    """Every STATE_PATTERNS match inside `span`, as (key, start, end).
+    Factored out of _extract_perceptual_claims so parse_coc_trace can also
+    use it directly: a state word that matched but wasn't the *nearest* one
+    to any entity (so didn't end up on a PerceptualClaim) still shouldn't
+    be reported as unparsed -- the parser recognized it, it just wasn't the
+    winning pairing. See parse_coc_trace's unparsed-span bookkeeping.
+    """
+    start, end = span
+    region = text[start:end]
+    return [
+        (key, start + m.start(), start + m.end())
+        for key, pattern in STATE_PATTERNS
+        for m in pattern.finditer(region)
+    ]
+
+
+# Function words/connectives that, on their own, don't represent a missed
+# claim -- a gap consisting only of these (plus whitespace/punctuation) is
+# not reported in ParsedCoCTrace.unparsed_spans. Deliberately narrow: this
+# is a denylist of grammatical glue, not an attempt to guess what content
+# words are "unimportant" (those still get surfaced).
+_FILLER_TOKEN = re.compile(
+    r"^(?:and|the|a|an|our|to|with|of|in|on|at|it|is|are|be|being|for|after|"
+    r"because|due|since|as|then|that|this|we|us|there|they|them)$",
+    re.I,
+)
+
+
+def _is_boilerplate_gap(gap_text: str) -> bool:
+    """True if every word in `gap_text` is filler -- i.e. this gap is not
+    worth surfacing as an unparsed span. A gap with no words at all (pure
+    whitespace/punctuation, e.g. the ", " left between two adjacent claim
+    spans) counts as boilerplate too."""
+    words = re.findall(r"[A-Za-z']+", gap_text)
+    return all(_FILLER_TOKEN.match(w) for w in words)
+
+
+def _compute_unparsed_spans(
+    text: str, covered_spans: list[tuple[int, int]]
+) -> list[tuple[int, int]]:
+    """Complement of `covered_spans` within `text`, merging overlaps first,
+    then dropping any gap _is_boilerplate_gap calls filler. What's left is
+    the parser's honest account of what it did NOT attribute to any claim
+    (see ParsedCoCTrace's docstring) -- e.g. a rare entity/state outside
+    the lexicons, or a sub-clause like "to create space" that isn't itself
+    a maneuver this module recognizes.
+    """
+    merged: list[tuple[int, int]] = []
+    for s, e in sorted(covered_spans):
+        if merged and s <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+        else:
+            merged.append((s, e))
+
+    gaps: list[tuple[int, int]] = []
+    pos = 0
+    for s, e in merged:
+        if s > pos:
+            gaps.append((pos, s))
+        pos = max(pos, e)
+    if pos < len(text):
+        gaps.append((pos, len(text)))
+
+    return [(s, e) for s, e in gaps if not _is_boilerplate_gap(text[s:e])]
+
+
+def parse_coc_trace(
+    text: str, *, scene_id: str | None = None, rollout_id: int | None = None
+) -> ParsedCoCTrace:
+    """Parse one rollout's CoC reasoning string into typed claims.
+
+    Each beat (see _split_beats) is processed independently: perceptual
+    claims are extracted from the WHOLE beat (not just its cause clause) --
+    e.g. in "Adapt speed for the roundabout since a yield-controlled entry
+    is ahead", the entity "roundabout" sits in the commitment-side text
+    ("for the roundabout") while its state "yield_controlled" sits in the
+    cause-side text (after "since"); only scanning the whole beat lets
+    _nearest_state_key pair them (see this module's perceptual-extraction
+    commit message for why cause-only scanning gets this wrong). A
+    CausalClaim's `cause` list is then just the subset of that beat's
+    perceptual claims whose span falls after the connective -- not a
+    second, separate extraction pass.
+    """
+    normalized = _normalize_punctuation(text)
+    commitments: list[CommitmentClaim] = []
+    perceptual: list[PerceptualClaim] = []
+    causal: list[CausalClaim] = []
+    state_spans: list[tuple[int, int]] = []  # covers matched-but-unpaired state words too
+
+    for beat_span in _split_beats(normalized):
+        commitment_span, cause_span, connective = _split_beat(normalized, beat_span)
+        beat_commitments = _extract_commitments(normalized, commitment_span)
+        beat_perceptual = _extract_perceptual_claims(normalized, beat_span)
+        commitments.extend(beat_commitments)
+        perceptual.extend(beat_perceptual)
+        state_spans.extend((s, e) for _key, s, e in _find_state_matches(normalized, beat_span))
+
+        if connective is not None:
+            cause_start, cause_end = cause_span
+            cause_claims = [
+                p for p in beat_perceptual if cause_start <= p.span[0] and p.span[1] <= cause_end
+            ]
+            causal.append(
+                CausalClaim(
+                    text=normalized[beat_span[0] : beat_span[1]],
+                    connective=connective,
+                    effects=beat_commitments,
+                    cause=cause_claims,
+                    span=beat_span,
+                )
+            )
+
+    covered_spans = [c.span for c in commitments] + [p.span for p in perceptual] + state_spans
+    unparsed_spans = _compute_unparsed_spans(normalized, covered_spans)
+
+    return ParsedCoCTrace(
+        raw_text=normalized,
+        scene_id=scene_id,
+        rollout_id=rollout_id,
+        commitments=commitments,
+        perceptual=perceptual,
+        causal=causal,
+        unparsed_spans=unparsed_spans,
+    )
