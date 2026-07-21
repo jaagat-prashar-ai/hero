@@ -38,6 +38,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
+import numpy as np
+
 from code_as_a_reward.coc_claim_parser import ENTITY_PATTERNS, PerceptualClaim
 from code_as_a_reward.commitment_verifier import Verdict
 from code_as_a_reward.obstacle_tracks import OBSTACLE_LABEL_CLASSES, SceneObstacles
@@ -169,3 +171,197 @@ class PerceptualVerdict:
             "evidence": self.evidence,
             "reason": self.reason,
         }
+
+
+# Entities whose parser key bundles an ATTRIBUTE the dataset's class
+# vocabulary cannot confirm (there is no "stopped"/"lead"/"cut-in" label,
+# only automobile/person/...). Verification is deliberately ASYMMETRIC for
+# these: existence can still FAIL — if no vehicle of any kind was near ego,
+# "a stopped vehicle" is false regardless of the attribute, and catching
+# that hallucination is this project's core purpose — but a would-be PASS
+# is capped at ABSTAIN, because certifying the claim would mean certifying
+# an attribute nobody checked. (workers is here too: people being present
+# doesn't make them workers.) vehicle_generic/pedestrian/cyclist are NOT
+# here: their parser keys assert nothing beyond the base class.
+ATTRIBUTE_UNVERIFIED_ENTITIES: dict[str, str] = {
+    "stopped_vehicle": "stopped",
+    "lead_vehicle": "lead",
+    "cutin_vehicle": "cut-in",
+    "cross_traffic": "crossing ego's path",
+    "oncoming_traffic": "oncoming",
+    "workers": "worker",
+}
+
+
+# ---------------------------------------------------------------------------
+# State checks. Each maps a parser state key to a predicate over the
+# WINDOWED tracks of the claim's mapped classes; a state passes if AT LEAST
+# ONE such actor satisfies it ("a pedestrian is crossing" needs one
+# crossing pedestrian, not all of them). States not in STATE_CHECKS are
+# undecidable from rig-frame geometry (signal colors, lane-relative
+# notions, world-frame motion like "stopped" — see module docstring) and
+# ABSTAIN. All geometry is planar (x fwd, y left), consistent with
+# obstacle_tracks' helpers.
+# ---------------------------------------------------------------------------
+
+
+def _check_ahead(tracks, thresholds):
+    xs = [t.mean_bearing()[0] for t in tracks]
+    ok = any(x > 0 for x in xs)
+    return ok, {"mean_forward_m": xs}, "an actor's mean position is ahead of ego"
+
+
+def _check_crossing(tracks, thresholds):
+    # Crossing ego's path = the actor's lateral (y) coordinate changes sign
+    # across the window: it was on one side of ego's heading line and ended
+    # on the other. Ego-relative jitter can't produce a sign flip for any
+    # actor that isn't actually near ego's path, so no extra threshold.
+    flips = [bool(t.centers_m[0, 1] * t.centers_m[-1, 1] < 0) for t in tracks]
+    return any(flips), {"lateral_sign_flip": flips}, "an actor's lateral offset changed sign"
+
+
+def _distance_delta(track) -> float:
+    first = float(np.linalg.norm(track.centers_m[0, :2]))
+    last = float(np.linalg.norm(track.centers_m[-1, :2]))
+    return last - first
+
+
+def _check_approaching(tracks, thresholds):
+    deltas = [_distance_delta(t) for t in tracks]
+    ok = any(d <= -thresholds.approach_min_delta_m for d in deltas)
+    return ok, {"distance_delta_m": deltas}, "an actor's ego-distance decreased over the window"
+
+
+def _check_pulling_away(tracks, thresholds):
+    deltas = [_distance_delta(t) for t in tracks]
+    ok = any(d >= thresholds.approach_min_delta_m for d in deltas)
+    return ok, {"distance_delta_m": deltas}, "an actor's ego-distance increased over the window"
+
+
+def _check_in_corridor(tracks, thresholds):
+    # "blocking"/"encroaching": mean position inside ego's forward corridor
+    # (a straight-ahead approximation — without lane geometry, ego's
+    # heading line is the only notion of "our path" available).
+    bearings = [t.mean_bearing() for t in tracks]
+    ok = any(
+        0.0 < x <= thresholds.corridor_max_ahead_m and abs(y) <= thresholds.corridor_half_width_m
+        for x, y in bearings
+    )
+    return ok, {"mean_bearing_m": bearings}, "an actor sits in ego's forward corridor"
+
+
+def _check_nearby(tracks, thresholds):
+    # actors_present already filtered by presence_max_distance_m, so any
+    # surviving track IS nearby; the check exists so "nearby" reads as
+    # decided-by-geometry in verdicts rather than falling into the
+    # undecidable bucket.
+    return bool(tracks), {"n_tracks": len(tracks)}, "an actor is within presence distance"
+
+
+STATE_CHECKS = {
+    "ahead": _check_ahead,
+    "crossing": _check_crossing,
+    "approaching": _check_approaching,
+    "pulling_away": _check_pulling_away,
+    "blocking": _check_in_corridor,
+    "encroaching": _check_in_corridor,
+    "nearby": _check_nearby,
+}
+
+
+def verify_perceptual(
+    claim: PerceptualClaim,
+    scene: SceneObstacles,
+    t0_us: int,
+    horizon_us: int,
+    thresholds: PerceptualThresholds | None = None,
+) -> PerceptualVerdict:
+    """Verify one PerceptualClaim against one scene's obstacle tracks over
+    the rollout window [t0_us, t0_us + horizon_us]. See the module
+    docstring for the existence/state split and combination rule, and
+    ATTRIBUTE_UNVERIFIED_ENTITIES for the asymmetric-PASS cap."""
+    thresholds = thresholds or PerceptualThresholds()
+    classes = ENTITY_TO_CLASSES[claim.entity]  # KeyError impossible: sync asserted at import
+
+    if classes is None:
+        state = Verdict.ABSTAIN if claim.state is not None else None
+        return PerceptualVerdict(
+            claim, Verdict.ABSTAIN, Verdict.ABSTAIN, state, "no_ground_truth",
+            {"entity": claim.entity},
+            f"dataset has no ground truth for '{claim.entity}' (Phase 0 unverifiable class)",
+        )
+
+    tracks = scene.actors_present(
+        t0_us, t0_us + horizon_us,
+        classes=set(classes),
+        max_distance_m=thresholds.presence_max_distance_m,
+        min_samples=thresholds.min_samples,
+    )
+    evidence: dict[str, Any] = {
+        "mapped_classes": sorted(classes),
+        "n_matching_tracks": len(tracks),
+        "track_ids": [t.track_id for t in tracks],
+        "window_us": [t0_us, t0_us + horizon_us],
+    }
+    existence = Verdict.PASS if tracks else Verdict.FAIL
+
+    # State part. Checked only when actors exist: a state can't be
+    # evaluated on actors that aren't there, and existence FAIL already
+    # decides the combined verdict.
+    state: Verdict | None = None
+    if claim.state is not None:
+        if existence is Verdict.FAIL:
+            state = Verdict.ABSTAIN
+        elif claim.state in STATE_CHECKS:
+            ok, state_evidence, how = STATE_CHECKS[claim.state](tracks, thresholds)
+            evidence.update(state_evidence)
+            state = Verdict.PASS if ok else Verdict.FAIL
+            evidence["state_check"] = how
+        else:
+            state = Verdict.ABSTAIN
+            evidence["state_check"] = f"'{claim.state}' undecidable from rig-frame geometry"
+
+    # Conservative combination (module docstring), then the asymmetric cap
+    # for attribute-carrying entities.
+    if existence is Verdict.FAIL or state is Verdict.FAIL:
+        combined = Verdict.FAIL
+    elif existence is Verdict.PASS and state in (None, Verdict.PASS):
+        combined = Verdict.PASS
+    else:
+        combined = Verdict.ABSTAIN
+
+    attribute = ATTRIBUTE_UNVERIFIED_ENTITIES.get(claim.entity)
+    if attribute is not None and combined is Verdict.PASS:
+        combined = Verdict.ABSTAIN
+        evidence["attribute_unverified"] = attribute
+
+    reason_bits = [f"existence={existence.value} ({len(tracks)} matching tracks)"]
+    if state is not None:
+        reason_bits.append(f"state[{claim.state}]={state.value}")
+    if attribute is not None:
+        reason_bits.append(f"'{attribute}' attribute has no ground truth")
+    return PerceptualVerdict(
+        claim, combined, existence, state, "actor_presence", evidence, "; ".join(reason_bits)
+    )
+
+
+def verify_trace_perceptual(
+    trace,
+    scene: SceneObstacles,
+    horizon_us: int = 6_400_000,
+    thresholds: PerceptualThresholds | None = None,
+) -> list[PerceptualVerdict]:
+    """Verify every perceptual claim in one parsed trace. t0 comes from the
+    trace's own scene_id (rollout_harvester's <clip_id>_<t0_us> naming);
+    the default horizon is the rollout future length every harvest in this
+    repo uses (64 waypoints at 10Hz). Same mispairing stance as
+    verify_trace_commitments: a clip mismatch raises rather than producing
+    plausible nonsense verdicts."""
+    if trace.scene_id is None:
+        raise ValueError("trace has no scene_id; cannot locate its rollout window")
+    clip_id, t0_us = split_scene_id(trace.scene_id)
+    if clip_id != scene.clip_id:
+        raise ValueError(f"trace clip {clip_id!r} != scene clip {scene.clip_id!r}")
+    return [
+        verify_perceptual(p, scene, t0_us, horizon_us, thresholds) for p in trace.perceptual
+    ]
