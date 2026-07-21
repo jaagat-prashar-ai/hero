@@ -45,6 +45,12 @@ Full config reference (all keys optional, defaults shown):
     wandb_experiment:   "reasoning_vla_local_test"
     wandb_entity:       "research"
     reasoning:          false   # use the joint reasoning-motion reward variant
+    reward_mode:        null    # null (derive from `reasoning`) | "motion" |
+                                # "reasoning" | "llm_judge" (Anthropic-API
+                                # trajectory-grounded judge; needs
+                                # ANTHROPIC_API_KEY at submit time)
+    num_reasoning_clips: 16     # reasoning/llm_judge modes: download_pai.py
+                                # --num-reasoning-clips (dataset size)
     num_gpus:           8       # GPUs to request for the ray.remote GPU-node task
 """
 
@@ -76,6 +82,17 @@ _DEFAULTS: dict[str, Any] = {
     "wandb_experiment": "reasoning_vla_local_test",
     "wandb_entity": "research",
     "reasoning": False,
+    # Reward mode: null (derive from legacy `reasoning` bool: false->"motion",
+    # true->"reasoning"), or explicitly one of "motion" | "reasoning" |
+    # "llm_judge". "llm_judge" uses our own entry script + TOML template
+    # (rl_posttrain/rewards/, rl_posttrain/toml/) that swap the recipe's
+    # Lingo-Judge grader for the Anthropic-API trajectory-grounded judge --
+    # requires ANTHROPIC_API_KEY in the environment at submit time.
+    "reward_mode": None,
+    # "llm_judge"/"reasoning" modes train on reasoning-bearing PAI clips
+    # (download_pai.py --only-reasoning-chunks) instead of the pai_chunk_ids
+    # motion subset; this sets --num-reasoning-clips.
+    "num_reasoning_clips": 16,
     "num_gpus": 8,
 }
 
@@ -177,6 +194,48 @@ def _download_pai(
     return mini_path
 
 
+def _download_pai_reasoning(python_bin: str, pai_dir: Path, num_clips: int) -> Path:
+    """Download the reasoning-bearing PAI subset used by the reasoning/
+    llm_judge reward modes. Unlike _download_pai there is no separate curate
+    step: `download_pai.py --only-reasoning-chunks --num-reasoning-clips N`
+    both restricts the download to reasoning-annotated clips and writes the
+    mini index (clip_index_reasoning_mini.parquet) the RL config reads --
+    exact flag set from the recipe SKILL.md's "joint reward" section
+    (`egomotion.offline`/`obstacle.offline` labels are required by the
+    reasoning dataset's feature pipeline, not used by our reward directly).
+    Idempotent: skipped when the mini index already exists (same convention
+    as _download_pai)."""
+    mini_path = pai_dir / "clip_index_reasoning_mini.parquet"
+    if mini_path.exists():
+        logger.info("PAI reasoning dataset: %s already exists, skipping download", mini_path)
+        return mini_path
+
+    pai_dir.mkdir(parents=True, exist_ok=True)
+    _run_streamed(
+        [
+            python_bin,
+            "scripts/download_pai.py",
+            "--only-reasoning-chunks",
+            "--num-reasoning-clips",
+            str(num_clips),
+            "--camera",
+            *_CAMERA_SUBPARTS,
+            "--calibration",
+            *_CALIBRATION_SUBPARTS,
+            "--labels",
+            "egomotion",
+            "egomotion.offline",
+            "obstacle.offline",
+            "--reasoning",
+            "ood_reasoning.parquet",
+            "--output-dir",
+            str(pai_dir),
+        ],
+        cwd=RECIPE_ROOT,
+    )
+    return mini_path
+
+
 def _patch_toml(
     template_path: Path,
     output_path: Path,
@@ -219,6 +278,18 @@ def _dump_latest_cosmos_logs(log_dir: Path, tail_lines: int = 200) -> None:
         text = f.read_text(errors="replace")
         tail = "\n".join(text.splitlines()[-tail_lines:])
         logger.error("===== tail of %s =====\n%s", f, tail)
+
+
+def _resolve_reward_mode(cfg: dict[str, Any]) -> str:
+    """Returns one of "motion" | "reasoning" | "llm_judge". The explicit
+    reward_mode key wins; when unset (None), falls back to the legacy
+    `reasoning` bool so pre-existing configs keep their exact behavior."""
+    mode = cfg.get("reward_mode")
+    if mode is None:
+        return "reasoning" if bool(cfg["reasoning"]) else "motion"
+    if mode not in ("motion", "reasoning", "llm_judge"):
+        raise ValueError(f"reward_mode must be motion|reasoning|llm_judge, got {mode!r}")
+    return mode
 
 
 _SUMMARY_MARKERS = ("wandb:", "View run", "Run data is saved", "reward", "Reward", " step ", "Step ")
@@ -295,7 +366,9 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     log_dir = workspace_dir / "logs"
     hf_home = workspace_dir / ".cache" / "huggingface"
     train_output_dir = workspace_dir / "outputs"
-    toml_out = workspace_dir / "toml" / "alpamayo_rvla_rl_local_test.local.toml"
+    # Scratch TOML name carries the reward mode so runs sharing the
+    # persistent workspace_dir never clobber each other's patched config.
+    toml_out = workspace_dir / "toml" / f"alpamayo_rvla_rl_{_resolve_reward_mode(cfg)}.local.toml"
     workspace_dir.mkdir(parents=True, exist_ok=True)
     hf_home.mkdir(parents=True, exist_ok=True)
 
@@ -303,25 +376,39 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
 
     from rl_posttrain.training.bootstrap_venv import ensure_recipe_venv
 
-    python_bin = ensure_recipe_venv(str(venv_dir), str(RECIPE_DIR))
+    reward_mode = _resolve_reward_mode(cfg)
+
+    # The LLM-judge reward calls the Anthropic API from inside the recipe
+    # venv, which the vendored uv.lock knows nothing about -- installed as an
+    # idempotent extra (see _ensure_extra_packages for why this must happen
+    # even when the persistent venv already validates).
+    extra_packages = ("anthropic",) if reward_mode == "llm_judge" else ()
+    python_bin = ensure_recipe_venv(str(venv_dir), str(RECIPE_DIR), extra_packages=extra_packages)
 
     _convert_model(python_bin, model_dir, cfg["alpamayo_model"])
 
-    _download_pai(python_bin, pai_dir, str(cfg["pai_chunk_ids"]), int(cfg["pai_num_samples"]))
-
-    reasoning = bool(cfg["reasoning"])
-    template_name = (
-        "alpamayo_rvla_rl_local_test_with_reasoning.toml"
-        if reasoning
-        else "alpamayo_rvla_rl_local_test.toml"
-    )
-    entry_name = (
-        "alpamayo_cosmos_rl_post_training_reasoning_entry.py"
-        if reasoning
-        else "alpamayo_cosmos_rl_post_training_entry.py"
-    )
-    template_path = RECIPE_DIR / "toml" / template_name
-    entry_script = RECIPE_DIR / "models" / "reasoning_vla" / entry_name
+    # Dataset + TOML template + entry script per reward mode. "llm_judge"
+    # trains on the same reasoning-bearing clips as "reasoning" (its reward
+    # scores the decoded CoC, so rollout prompts must come from clips whose
+    # data pipeline emits CoC sections) but swaps in our entry/TOML pair that
+    # replaces the Lingo-Judge grader with the Anthropic-API judge.
+    pai_reasoning_dir = workspace_dir / "PAI_Reasoning_mini"
+    if reward_mode == "llm_judge":
+        _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+        template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
+        entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "llm_judge_entry.py"
+    elif reward_mode == "reasoning":
+        _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+        template_path = RECIPE_DIR / "toml" / "alpamayo_rvla_rl_local_test_with_reasoning.toml"
+        entry_script = (
+            RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_reasoning_entry.py"
+        )
+    else:
+        _download_pai(python_bin, pai_dir, str(cfg["pai_chunk_ids"]), int(cfg["pai_num_samples"]))
+        template_path = RECIPE_DIR / "toml" / "alpamayo_rvla_rl_local_test.toml"
+        entry_script = (
+            RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_entry.py"
+        )
 
     _patch_toml(
         template_path,
@@ -361,6 +448,17 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         subprocess_env["HF_TOKEN"] = hf_token
     if wandb_key:
         subprocess_env["WANDB_API_KEY"] = wandb_key
+    if reward_mode in ("reasoning", "llm_judge"):
+        # Read by the reasoning/llm_judge entry scripts (mutually exclusive
+        # with ALPAMAYO_PAI_LOCAL_DIR, which the motion entry reads).
+        subprocess_env["ALPAMAYO_PAI_REASONING_LOCAL_DIR"] = str(pai_reasoning_dir)
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+    if reward_mode == "llm_judge":
+        if not anthropic_key:
+            # Validated on the head node already; re-checked here because this
+            # runs in a separate Ray task whose env is inherited independently.
+            raise RuntimeError("ANTHROPIC_API_KEY is required for reward_mode=llm_judge")
+        subprocess_env["ANTHROPIC_API_KEY"] = anthropic_key
 
     _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
 
@@ -384,6 +482,11 @@ def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: A
         )
     if not os.environ.get("HF_TOKEN"):
         raise RuntimeError("HF_TOKEN is required in the environment (gated PAI dataset + model)")
+    if _resolve_reward_mode(cfg) == "llm_judge" and not os.environ.get("ANTHROPIC_API_KEY"):
+        # Fail on the head node before any GPU worker (venv build, model
+        # download) spends time -- the judge reward can't score a single
+        # rollout without it.
+        raise RuntimeError("ANTHROPIC_API_KEY is required for reward_mode=llm_judge")
 
     if not ray.is_initialized():
         ray.init(address="auto", ignore_reinit_error=True, log_to_driver=True)
