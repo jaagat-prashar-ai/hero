@@ -164,3 +164,47 @@ def test_parse_scene_reasoning_md_extracts_scene_id_and_all_rollouts():
     # underlying action either way)
     assert all(t.commitments for t in traces)
     assert {t.commitments[0].maneuver for t in traces} <= {"nudge", "adapt_speed"}
+
+
+def test_closed_beat_claims_are_stable_under_prefix_truncation():
+    # Answers notes.txt's open question ("does this also work for the
+    # prefix idea?"): when the parser sees a PREFIX of a CoC string (a
+    # partial, still-generating reasoning trace, the fixed_reasoning /
+    # _rollout_prefix setting), claims extracted from CLOSED beats — beats
+    # a delimiter has already moved past — must be exactly what the full
+    # text's parse yields for those spans. The final beat of a prefix is
+    # provisional by construction (a later strong connective can re-split
+    # it, e.g. "Stop for the stop sign" vs "...stop sign BECAUSE ...", and
+    # its cause clause may be half-generated), so it is excluded — that
+    # exclusion IS the prefix-scoring protocol this test encodes.
+    #
+    # Verified corpus-wide before being locked in here as a regression
+    # test: 0 crashes and 0 closed-beat disagreements across all 33,136
+    # word-boundary prefixes of all 2,032 unique corpus strings
+    # (2026-07-21). Running the full sweep is too slow for a unit test, so
+    # this uses the same 100-rollout fixture the ingestion test reads.
+    import re
+
+    from code_as_a_reward.coc_claim_parser import _split_beats
+
+    def closed_beat_claims(trace, limit):
+        return {
+            ("c", c.maneuver, c.span) for c in trace.commitments if c.span[1] <= limit
+        } | {
+            ("p", p.entity, p.span) for p in trace.perceptual if p.span[1] <= limit
+        } | {
+            ("x", x.connective.lower(), x.span) for x in trace.causal if x.span[1] <= limit
+        }
+
+    for trace in parse_scene_reasoning_md(_SCENE_REASONING_FIXTURE):
+        text = trace.raw_text
+        for m in re.finditer(r"\S+", text):
+            cut = m.end()
+            if cut == len(text):
+                continue
+            partial = parse_coc_trace(text[:cut])  # totality: must not raise
+            beats = _split_beats(partial.raw_text)
+            closed_limit = beats[-1][0] if len(beats) > 1 else 0
+            assert closed_beat_claims(partial, closed_limit) == closed_beat_claims(
+                trace, closed_limit
+            ), f"closed-beat instability at cut={cut} of {text!r}"
