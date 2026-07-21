@@ -37,6 +37,19 @@ Here the beat 1 is "Nudge left due to construction cones blocking...," beat 2 is
 # Step 2: split each beat on its causal connective. Within a beat, _split_beat looks for "because / due to / since / as" (with "after / for" as a waker fallback tier, only used if no string connective exist). Everything before the connective is the commitment clause (what ego will do), everything after is the cause clause (why). 
 A beat with no connective is fine (it's just a commitment with no reason).
 # Thought: does this also work for the prefix idea? look more into this!!!!!!!!!!
+#
+# ANSWERED 2026-07-21 (empirical sweep, see test_closed_beat_claims_are_stable_under_prefix_truncation):
+# Yes, with one protocol rule. Tested every word-boundary prefix of every corpus string
+# (33,136 prefixes of 2,032 unique CoC strings):
+#   - parse_coc_trace never crashes on a prefix (totality holds).
+#   - Claims from CLOSED beats (beats a delimiter has already moved past) are 100% identical
+#     to what the full text's parse yields for those spans.
+#   - The still-open FINAL beat is provisional: a strong connective arriving later re-splits it.
+#     Example: "Stop for the stop sign" alone splits on weak "for" (commitment = "Stop"), but once
+#     "because cross traffic..." arrives, "because" wins the whole beat and "stop sign" lands on the
+#     commitment side. ~0.5% of prefixes flip a commitment this way; dangling connectives
+#     ("Nudge left due to") also produce empty-cause CausalClaims until the cause streams in.
+# => Prefix-scoring protocol: score closed beats, hold the open beat until it closes.
 
 # Step 3: extract commitments from the commitemnt clause only. MANEUVER_PATTERSN (~17 regexes: nudge, lane change, merge, accelerate, stop, yield, ...) are scanned over the commitment side. Each match becomes a CommitmentClaim with a canonical manauever key, an axis (lateral vs longitudinal), and optionally a direction: "left/right" is searched in a 40-char windo after the verb, capped at the next maneuever verb so compound commitments like "change lanes to the right and enter the ramp" don't both grab the ame "right." Scopin to the commitment side is delibearte: it prevents "vehicle merging from the right" in a cause clause from being read as ego's own merge. 
 
