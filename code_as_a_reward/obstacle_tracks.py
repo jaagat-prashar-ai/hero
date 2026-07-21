@@ -75,6 +75,56 @@ class ActorTrack:
     def last_us(self) -> int:
         return int(self.timestamps_us[-1])
 
+    def window(self, start_us: int, end_us: int) -> "ActorTrack":
+        """This track restricted to samples with start_us <= t <= end_us
+        (possibly zero-length — callers check len(), same 'empty is data,
+        not an error' contract as pandas slicing). Perceptual claims are
+        judged over a rollout's time window [t0, t0 + horizon], never the
+        whole clip: a pedestrian who left the scene ten seconds before t0
+        does not make 'a pedestrian is crossing' true."""
+        mask = (self.timestamps_us >= start_us) & (self.timestamps_us <= end_us)
+        return ActorTrack(
+            track_id=self.track_id,
+            label_class=self.label_class,
+            timestamps_us=self.timestamps_us[mask],
+            centers_m=self.centers_m[mask],
+            sizes_m=self.sizes_m[mask],
+        )
+
+    def min_ego_distance_m(self) -> float:
+        """Closest planar (xy) approach to ego across this track's samples.
+        Planar on purpose: box centers carry a z offset (~half the actor's
+        height above the road) that is irrelevant to 'how near was it'."""
+        if len(self.timestamps_us) == 0:
+            return float("inf")
+        return float(np.linalg.norm(self.centers_m[:, :2], axis=1).min())
+
+    def mean_bearing(self) -> tuple[float, float]:
+        """Mean (x_forward_m, y_left_m) over this track's samples — the
+        coarse 'where was it relative to ego' answer perceptual states
+        like 'ahead' / on the 'right side' need. Mean rather than a single
+        instant because claims describe the actor's general placement over
+        the maneuver, and single-frame autolabel boxes jitter."""
+        if len(self.timestamps_us) == 0:
+            return (float("nan"), float("nan"))
+        return (float(self.centers_m[:, 0].mean()), float(self.centers_m[:, 1].mean()))
+
+    def apparent_speed_mps(self) -> float:
+        """Mean speed of the actor's EGO-RELATIVE position over this
+        track's samples. This is apparent motion: it conflates the actor's
+        own motion with ego's (module docstring trade-off), so it can
+        support relative-motion states ('approaching', 'pulling away',
+        'crossing') but NOT world-frame ones ('stopped' — a parked car has
+        large apparent speed while ego drives past it). Callers needing
+        world-frame kinematics must difference against egomotion; nothing
+        in this module does, and pretending otherwise here would bake a
+        subtle wrongness into every downstream verdict."""
+        if len(self.timestamps_us) < 2:
+            return float("nan")
+        dt_s = np.diff(self.timestamps_us).astype(np.float64) / 1e6
+        steps_m = np.linalg.norm(np.diff(self.centers_m[:, :2], axis=0), axis=1)
+        return float((steps_m / dt_s).mean())
+
 
 @dataclasses.dataclass
 class SceneObstacles:
@@ -137,3 +187,39 @@ class SceneObstacles:
         # downstream reports are stable across pandas groupby versions.
         tracks.sort(key=lambda t: (t.first_us, t.track_id))
         return cls(clip_id=clip_id, tracks=tracks)
+
+    def actors_present(
+        self,
+        start_us: int,
+        end_us: int,
+        *,
+        classes: set[str] | None = None,
+        max_distance_m: float | None = None,
+        min_samples: int = 2,
+    ) -> list[ActorTrack]:
+        """Tracks (windowed to [start_us, end_us]) that were actually
+        present during the window: at least `min_samples` detections
+        (default 2 — a single-frame detection is exactly the shape
+        autolabel false positives take, and one sample also can't support
+        any relative-motion state check), of the given classes (validated
+        against OBSTACLE_LABEL_CLASSES — a typo should fail, not match
+        nothing), within `max_distance_m` of ego at closest approach.
+
+        This is THE question the perceptual verifier asks per claim:
+        "was an actor of class X near ego during this rollout's window?"."""
+        if classes is not None and not classes <= OBSTACLE_LABEL_CLASSES:
+            raise ValueError(
+                f"unknown obstacle classes {classes - OBSTACLE_LABEL_CLASSES}; "
+                f"valid: {sorted(OBSTACLE_LABEL_CLASSES)}"
+            )
+        result: list[ActorTrack] = []
+        for track in self.tracks:
+            if classes is not None and track.label_class not in classes:
+                continue
+            windowed = track.window(start_us, end_us)
+            if len(windowed.timestamps_us) < min_samples:
+                continue
+            if max_distance_m is not None and windowed.min_ego_distance_m() > max_distance_m:
+                continue
+            result.append(windowed)
+        return result
