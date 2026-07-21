@@ -42,6 +42,7 @@ from enum import Enum
 from typing import Any
 
 from code_as_a_reward.coc_claim_parser import CommitmentClaim
+from pref_pairs.trajectory_features import TrajectoryFeatures
 
 
 class Verdict(str, Enum):
@@ -113,6 +114,13 @@ class VerifierThresholds:
     # stop/yield event, or an end-to-end speed change (either sign)
     # exceeding this.
     adapt_speed_min_change_mps: float = 1.0
+    # "wait" is satisfied by a stop_event, but ALSO by a stop-then-go
+    # ("wait for the pedestrian, then proceed") that stop_event's
+    # no-recovery clause deliberately excludes — so we additionally accept
+    # min_speed dipping below this. Same value as maneuver_thresholds.yaml
+    # stop.speed_mps: "waiting" means the same near-standstill speed as
+    # "stopped", just without the must-not-recover requirement.
+    wait_max_min_speed_mps: float = 0.5
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "VerifierThresholds":
@@ -132,6 +140,7 @@ class VerifierThresholds:
             proceed_min_final_speed_mps=verifier.get("proceed_min_final_speed_mps", 2.0),
             keep_lane_max_lateral_offset_m=verifier.get("keep_lane_max_lateral_offset_m", 0.5),
             adapt_speed_min_change_mps=verifier.get("adapt_speed_min_change_mps", 1.0),
+            wait_max_min_speed_mps=verifier.get("wait_max_min_speed_mps", 0.5),
         )
 
 
@@ -167,3 +176,209 @@ class CommitmentVerdict:
             "evidence": self.evidence,
             "reason": self.reason,
         }
+
+
+# ---------------------------------------------------------------------------
+# Longitudinal predicates. Each takes (claim, features, thresholds) and
+# returns a CommitmentVerdict; the shared signature is what lets the
+# dispatch table (added with verify_commitment) treat them uniformly. All
+# speed evidence comes from TrajectoryFeatures' SMOOTHED scalar summaries —
+# these predicates never re-derive kinematics, so the verifier stays in
+# agreement with whatever smoothing/thresholding produced the feature row.
+# ---------------------------------------------------------------------------
+
+
+def _verify_stop(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Stop" maps directly onto the feature extractor's stop_event (speed
+    below stop threshold, sustained, without recovering by trajectory end)
+    — no verifier-side threshold at all, so a "stop" claim verdict can
+    never contradict the maneuver classifier's own stop rule."""
+    evidence = {
+        "stop_event": features.stop_event,
+        "min_speed_mps": features.min_speed_mps,
+        "final_speed_mps": features.final_speed_mps,
+    }
+    if features.stop_event:
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "stop_event", evidence,
+            f"stop_event detected (min speed {features.min_speed_mps:.2f} m/s)",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "stop_event", evidence,
+        f"no stop_event (min speed {features.min_speed_mps:.2f} m/s, "
+        f"final {features.final_speed_mps:.2f} m/s)",
+    )
+
+
+def _verify_yield(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Yield" passes on the extractor's yield_event (drop then partial
+    recovery), OR on stop_event: coming to a full stop is a stronger form
+    of yielding, not a different maneuver, and the two events are mutually
+    exclusive by construction (stop requires NOT recovering, yield requires
+    recovering) — so accepting either is what "slowed for someone" actually
+    means at the claim level."""
+    evidence = {"yield_event": features.yield_event, "stop_event": features.stop_event,
+                "min_speed_mps": features.min_speed_mps}
+    if features.yield_event or features.stop_event:
+        which = "yield_event" if features.yield_event else "stop_event"
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "yield_or_stop_event", evidence,
+            f"{which} detected (min speed {features.min_speed_mps:.2f} m/s)",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "yield_or_stop_event", evidence,
+        f"neither yield_event nor stop_event (min speed {features.min_speed_mps:.2f} m/s)",
+    )
+
+
+def _verify_wait(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Wait" = reached (near-)standstill at some point, recovery
+    irrelevant: a stop_event qualifies, and so does a stop-then-go that
+    stop_event's no-recovery clause excludes — hence the extra min_speed
+    check (see wait_max_min_speed_mps' definition comment)."""
+    evidence = {"stop_event": features.stop_event, "min_speed_mps": features.min_speed_mps,
+                "wait_max_min_speed_mps": thresholds.wait_max_min_speed_mps}
+    if features.stop_event or features.min_speed_mps < thresholds.wait_max_min_speed_mps:
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "standstill_reached", evidence,
+            f"reached near-standstill (min speed {features.min_speed_mps:.2f} m/s)",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "standstill_reached", evidence,
+        f"never dropped below {thresholds.wait_max_min_speed_mps} m/s "
+        f"(min speed {features.min_speed_mps:.2f} m/s)",
+    )
+
+
+def _verify_decelerate(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Decelerate"/"slow down"/"brake" needs a real end-to-end speed drop
+    (initial minus min), not just any negative accel sample — braking
+    jitter produces those on virtually every trajectory. A stop or yield
+    event also passes: both are deceleration by definition, and accepting
+    them keeps this predicate consistent with _verify_stop/_verify_yield
+    on trajectories where the drop straddles the threshold."""
+    speed_drop = features.initial_speed_mps - features.min_speed_mps
+    evidence = {"initial_speed_mps": features.initial_speed_mps,
+                "min_speed_mps": features.min_speed_mps,
+                "speed_drop_mps": speed_drop,
+                "stop_event": features.stop_event, "yield_event": features.yield_event,
+                "decelerate_min_speed_drop_mps": thresholds.decelerate_min_speed_drop_mps}
+    if (features.stop_event or features.yield_event
+            or speed_drop >= thresholds.decelerate_min_speed_drop_mps):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "speed_drop", evidence,
+            f"slowed by {speed_drop:.2f} m/s "
+            f"(from {features.initial_speed_mps:.2f} to min {features.min_speed_mps:.2f})",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "speed_drop", evidence,
+        f"speed drop {speed_drop:.2f} m/s below "
+        f"{thresholds.decelerate_min_speed_drop_mps} m/s and no stop/yield event",
+    )
+
+
+def _verify_accelerate(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Accelerate" passes on EITHER the classifier's mean-accel rule
+    (shared threshold, tier 1) OR an end-to-end speed gain — the OR matters
+    because a rollout that cruises first and accelerates late has its mean
+    accel diluted toward zero, yet plainly did accelerate. mean accel uses
+    the native action tensor when the harvester captured it (see
+    TrajectoryFeatures.accel_source), which is why it's preferred as the
+    first clause rather than derived speed deltas alone."""
+    speed_gain = features.final_speed_mps - features.initial_speed_mps
+    evidence = {"mean_acceleration_mps2": features.mean_acceleration_mps2,
+                "accel_source": features.accel_source,
+                "speed_gain_mps": speed_gain,
+                "accelerate_mean_accel_mps2": thresholds.accelerate_mean_accel_mps2,
+                "accelerate_min_speed_gain_mps": thresholds.accelerate_min_speed_gain_mps}
+    if (features.mean_acceleration_mps2 >= thresholds.accelerate_mean_accel_mps2
+            or speed_gain >= thresholds.accelerate_min_speed_gain_mps):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "mean_accel_or_speed_gain", evidence,
+            f"mean accel {features.mean_acceleration_mps2:.2f} m/s^2 ({features.accel_source}), "
+            f"speed gain {speed_gain:.2f} m/s",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "mean_accel_or_speed_gain", evidence,
+        f"mean accel {features.mean_acceleration_mps2:.2f} m/s^2 and "
+        f"speed gain {speed_gain:.2f} m/s both below thresholds",
+    )
+
+
+def _verify_adapt_speed(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Adapt/adjust speed" is the corpus's vaguest commitment — it never
+    says which direction. Verified as ANY meaningful longitudinal response:
+    stop/yield event, or end-to-end change, or a transient dip (initial
+    minus min — covers slow-then-recover, which end-to-end change misses).
+    Deliberately generous: the claim itself is weak, so weak evidence
+    satisfies it, and the strictness belongs to specific claims like
+    "decelerate" instead."""
+    end_to_end_change = abs(features.final_speed_mps - features.initial_speed_mps)
+    transient_dip = features.initial_speed_mps - features.min_speed_mps
+    largest_change = max(end_to_end_change, transient_dip)
+    evidence = {"end_to_end_change_mps": end_to_end_change,
+                "transient_dip_mps": transient_dip,
+                "stop_event": features.stop_event, "yield_event": features.yield_event,
+                "adapt_speed_min_change_mps": thresholds.adapt_speed_min_change_mps}
+    if (features.stop_event or features.yield_event
+            or largest_change >= thresholds.adapt_speed_min_change_mps):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "any_speed_response", evidence,
+            f"speed changed by {largest_change:.2f} m/s",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "any_speed_response", evidence,
+        f"largest speed change {largest_change:.2f} m/s below "
+        f"{thresholds.adapt_speed_min_change_mps} m/s; no stop/yield event",
+    )
+
+
+def _verify_proceed(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Proceed" = kept moving: ends above the proceed floor (== the stop
+    rule's recovery speed, i.e. "not stopped" by the stop rule's own
+    definition) with no stop_event. A yield_event does NOT fail this —
+    "proceed after yielding" is a common corpus pattern and slowing then
+    continuing is still proceeding."""
+    evidence = {"final_speed_mps": features.final_speed_mps,
+                "stop_event": features.stop_event,
+                "proceed_min_final_speed_mps": thresholds.proceed_min_final_speed_mps}
+    if not features.stop_event and features.final_speed_mps >= thresholds.proceed_min_final_speed_mps:
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "kept_moving", evidence,
+            f"ended at {features.final_speed_mps:.2f} m/s with no stop event",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "kept_moving", evidence,
+        f"stop_event={features.stop_event}, final speed {features.final_speed_mps:.2f} m/s",
+    )
+
+
+def _abstain_needs_other_agent(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Keep distance" / "create a gap" are claims about ego's position
+    RELATIVE TO ANOTHER AGENT — truth depends on where that agent was,
+    which ego kinematics cannot say (decelerating is neither necessary nor
+    sufficient: the gap also changes when the other agent moves). These
+    become decidable once obstacle.offline actor tracks are integrated;
+    until then, ABSTAIN, per the module docstring's 'undecidable is not
+    FAIL' stance."""
+    return CommitmentVerdict(
+        claim, Verdict.ABSTAIN, "needs_other_agent_track", {},
+        f"'{claim.maneuver}' is relative to another agent; "
+        "not decidable from ego kinematics alone (needs obstacle.offline)",
+    )
