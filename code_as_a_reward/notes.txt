@@ -45,3 +45,22 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Step 5: Assemble causal claims. If a connective was found, the beat becomes one CausalClaim: effects = the beat's commitments, cause = the subest of its perceptual claims whose span sits after teh connective. So here nudge(left) <- "due to" <- construction_cones (blocking).
 
 # Step 6: bookeeping of what was missed (add thi slater)
+
+# writing notes again because it helps tos cope stuff out: 
+# Thinking about the goal a bit more: The goal is to score Alpmayo reasoning quality by checking chain-of-causation (CoC) claims against the structured scene state, building on the previous work from pref-pairs faithfulness work. 
+
+# Phse 0: groundwork: 
+# The upstream HF dataset has obstacle.offline actor racks (real 3D bbox tracks, present in 97.4% of the clips), but there is no lane geometry or traffic-light ground truth anywhere. 
+# Model decision: we will use Alpamayo 1.5 (RL post-trained, with an existing harvester), rather than AR1-10B
+# Built a 120-trace claim taxonomy: ~62% of claims are actor-checkable once obstacle.offline is integrated; ~27% (cones, signals) have no ground truth at all. Why?
+
+# Implementaiton:
+# coc_claim_parser.py: a rule-based parser that turns CoC text into typed claims - CommitmentClaim, PerceptualClaim, CausalClaim - with unparsed-span tracking so you know what the praser couldn't account for. 
+# built up in layers: claim dataclasses -> maneuever/entity/state/connective lexicons (tuned against the real corpus in pref_pairs/results/scene_reasoning/*.md) -> beat/clause segmentation -> commitment and perceptual claim extraction -> parse_coc_trace orchestration. 
+# A CLI that ingests those scene_reasoning .md reports, and 12 unit tests written against real corpus strings (coc_claim_parser_test.py)
+
+# Not yet done: 
+# The claim verifier itself (i.e., checking commitments against the TrajectoryFeature and perceptual claims against obstcle.offline)
+# The obstacle.offline integration that verification depends on. 
+# An open question here: Whether beat/connective splitting also works for prefix-style CoC text (i.e., "does this also work for the prefix idea?")
+# 
