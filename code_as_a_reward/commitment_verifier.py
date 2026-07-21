@@ -41,7 +41,11 @@ import dataclasses
 from enum import Enum
 from typing import Any
 
-from code_as_a_reward.coc_claim_parser import CommitmentClaim
+from code_as_a_reward.coc_claim_parser import (
+    MANEUVER_PATTERNS,
+    CommitmentClaim,
+    ParsedCoCTrace,
+)
 from pref_pairs.trajectory_features import TrajectoryFeatures
 
 
@@ -550,3 +554,86 @@ def _abstain_needs_other_agent(
         f"'{claim.maneuver}' is relative to another agent; "
         "not decidable from ego kinematics alone (needs obstacle.offline)",
     )
+
+
+# ---------------------------------------------------------------------------
+# Dispatch + orchestration.
+# ---------------------------------------------------------------------------
+
+# One entry per canonical maneuver key the parser can emit. The assertion
+# below makes this an ENFORCED invariant at import time: if a new maneuver
+# is added to the parser's MANEUVER_PATTERNS without a verifier entry here,
+# the first import of this module fails loudly instead of that maneuver's
+# claims silently taking some default path — same "no silent gaps" stance
+# as the parser's unparsed_spans.
+MANEUVER_VERIFIERS = {
+    "lane_change": _verify_lane_change,
+    "keep_lane": _verify_keep_lane,
+    "nudge": _verify_nudge,
+    "merge": _verify_merge,
+    "turn": _verify_turn,
+    "enter": _abstain_needs_lane_geometry,
+    "exit": _abstain_needs_lane_geometry,
+    "adapt_speed": _verify_adapt_speed,
+    "accelerate": _verify_accelerate,
+    "decelerate": _verify_decelerate,
+    "keep_distance": _abstain_needs_other_agent,
+    "create_gap": _abstain_needs_other_agent,
+    "stop": _verify_stop,
+    "yield": _verify_yield,
+    "wait": _verify_wait,
+    "proceed": _verify_proceed,
+}
+
+_PARSER_MANEUVERS = {name for name, _axis, _profile, _pattern in MANEUVER_PATTERNS}
+assert MANEUVER_VERIFIERS.keys() == _PARSER_MANEUVERS, (
+    "commitment_verifier's dispatch table is out of sync with "
+    f"coc_claim_parser.MANEUVER_PATTERNS: missing={_PARSER_MANEUVERS - MANEUVER_VERIFIERS.keys()}, "
+    f"stale={MANEUVER_VERIFIERS.keys() - _PARSER_MANEUVERS}"
+)
+
+
+def verify_commitment(
+    claim: CommitmentClaim,
+    features: TrajectoryFeatures,
+    thresholds: VerifierThresholds | None = None,
+) -> CommitmentVerdict:
+    """Verify one CommitmentClaim against one rollout's TrajectoryFeatures.
+
+    An unknown maneuver key (can only happen if a claim was produced by a
+    NEWER parser than this verifier, since same-version sync is asserted at
+    import) gets ABSTAIN rather than raising: mid-migration, "we can't
+    judge this yet" is true and FAIL would be wrong."""
+    thresholds = thresholds or VerifierThresholds()
+    verifier = MANEUVER_VERIFIERS.get(claim.maneuver)
+    if verifier is None:
+        return CommitmentVerdict(
+            claim, Verdict.ABSTAIN, "unknown_maneuver", {},
+            f"no verifier registered for maneuver '{claim.maneuver}'",
+        )
+    return verifier(claim, features, thresholds)
+
+
+def verify_trace_commitments(
+    trace: ParsedCoCTrace,
+    features: TrajectoryFeatures,
+    thresholds: VerifierThresholds | None = None,
+) -> list[CommitmentVerdict]:
+    """Verify every commitment in one parsed trace against the feature row
+    of the SAME rollout, in claim order.
+
+    Raises ValueError on a scene_id/rollout_id mismatch instead of
+    verifying anyway: a trace checked against another rollout's kinematics
+    would produce well-formed, plausible-looking verdicts that are pure
+    noise — the one failure mode a reward pipeline must never let through
+    silently. IDs that are None on the trace (parse_coc_trace allows that
+    for ad-hoc strings) skip the check, since there is nothing to compare."""
+    if trace.scene_id is not None and trace.scene_id != features.scene_id:
+        raise ValueError(
+            f"trace scene_id {trace.scene_id!r} != features scene_id {features.scene_id!r}"
+        )
+    if trace.rollout_id is not None and trace.rollout_id != features.rollout_id:
+        raise ValueError(
+            f"trace rollout_id {trace.rollout_id!r} != features rollout_id {features.rollout_id!r}"
+        )
+    return [verify_commitment(c, features, thresholds) for c in trace.commitments]
