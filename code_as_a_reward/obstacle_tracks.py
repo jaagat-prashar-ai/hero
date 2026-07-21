@@ -37,10 +37,15 @@ the 3.11+ environment. Harvest-side code (which already runs alpamayo's
 
 from __future__ import annotations
 
+import argparse
 import dataclasses
+import logging
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 # The exact upstream label-class vocabulary, from the same empirical dump
 # that established the frame convention above. Kept as a module constant so
@@ -223,3 +228,101 @@ class SceneObstacles:
                 continue
             result.append(windowed)
         return result
+
+
+# ---------------------------------------------------------------------------
+# Fetching. Cache-first: a clip is fetched from HF once (requires the
+# 3.11+ physical-ai-av env and an HF token authorized for the gated repo),
+# written as a plain parquet, and every later load — including under the
+# project's 3.10 env, where physical_ai_av can't even be imported — reads
+# the cache. code_as_a_reward/testdata/ is itself just a committed instance
+# of this cache format.
+# ---------------------------------------------------------------------------
+
+
+def _cache_path(cache_dir: Path, clip_id: str) -> Path:
+    return cache_dir / f"obstacle_offline_{clip_id}.parquet"
+
+
+def load_obstacle_tracks(
+    clip_id: str,
+    *,
+    cache_dir: str | Path = "code_as_a_reward/testdata",
+    maybe_stream: bool = True,
+    avdi=None,  # physical_ai_av.PhysicalAIAVDatasetInterface | None; untyped to keep import lazy
+) -> SceneObstacles:
+    """Load one clip's obstacle tracks, cache-first.
+
+    On a cache miss this imports physical_ai_av INSIDE the function (it
+    requires Python >= 3.11; the project env is 3.10 — see module
+    docstring) and streams the label from HF, so callers in the project
+    env get a clear ImportError naming the actual fix (run under the
+    alpamayo env, or pre-populate the cache) rather than an import-time
+    crash for a module they may only need the cached path of. Pass a
+    pre-built `avdi` when fetching many clips so the dataset interface's
+    own index isn't re-downloaded per clip."""
+    cache_dir = Path(cache_dir)
+    cached = _cache_path(cache_dir, clip_id)
+    if cached.exists():
+        return SceneObstacles.from_dataframe(pd.read_parquet(cached), clip_id)
+
+    try:
+        import physical_ai_av  # requires Python >= 3.11
+    except ImportError as e:
+        raise ImportError(
+            f"no cached obstacle tracks for clip {clip_id} at {cached} and physical_ai_av "
+            "is not importable (it needs Python >= 3.11; this repo's project env is 3.10). "
+            "Fetch once under the alpamayo/cluster env, or pre-populate the cache dir."
+        ) from e
+
+    if avdi is None:
+        avdi = physical_ai_av.PhysicalAIAVDatasetInterface()
+    feature = avdi.get_clip_feature(
+        clip_id, avdi.features.LABELS.OBSTACLE_OFFLINE, maybe_stream=maybe_stream
+    )
+    df = feature["obstacle.offline"]
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(cached, index=False)
+    logger.info("cached obstacle.offline for clip %s (%d rows) at %s", clip_id, len(df), cached)
+    return SceneObstacles.from_dataframe(df, clip_id)
+
+
+def main() -> None:
+    """CLI: fetch/inspect one clip's obstacle tracks. scene_id-style
+    '<clip_id>_<t0_us>' inputs are accepted and split, since scene_ids are
+    what every artifact downstream of rollout_harvester.py carries."""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("clip_id", help="clip_id, or scene_id of the form <clip_id>_<t0_us>")
+    ap.add_argument("--cache_dir", default="code_as_a_reward/testdata")
+    ap.add_argument(
+        "--window_s",
+        type=float,
+        default=None,
+        help="If clip_id was a scene_id, also print actors present in [t0, t0+window_s].",
+    )
+    args = ap.parse_args()
+
+    clip_id, t0_us = args.clip_id, None
+    if "_" in clip_id:
+        clip_id, t0_str = clip_id.rsplit("_", 1)
+        t0_us = int(t0_str)
+
+    scene = load_obstacle_tracks(clip_id, cache_dir=args.cache_dir)
+    by_class: dict[str, int] = {}
+    for t in scene.tracks:
+        by_class[t.label_class] = by_class.get(t.label_class, 0) + 1
+    logger.info("clip %s: %d tracks %s", clip_id, len(scene.tracks), by_class)
+
+    if t0_us is not None and args.window_s is not None:
+        present = scene.actors_present(t0_us, t0_us + int(args.window_s * 1e6))
+        for t in present:
+            x, y = t.mean_bearing()
+            logger.info(
+                "  %s %s: %d samples, closest %.1fm, mean bearing (%+.1f fwd, %+.1f left)",
+                t.label_class, t.track_id, len(t.timestamps_us), t.min_ego_distance_m(), x, y,
+            )
+
+
+if __name__ == "__main__":
+    main()
