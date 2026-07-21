@@ -26,6 +26,9 @@ Usage: bash rl_posttrain/configs/launch.sh <command> [args...]
 
 Commands:
   local-test           Launch the alpamayo1_x_rl single-node local test (cluster.yaml)
+  llm-judge            Launch GRPO with the LLM-as-judge reasoning reward
+                       (llm_judge_cluster.yaml; bridges ~/.creds/anthropic.key
+                       into ANTHROPIC_API_KEY when unset)
   inspect-logs         GPU-free: read a prior run's per-process cosmos-rl logs
                        from /mnt/work (reward/wandb lines) without re-running
                        the expensive GPU job (inspect_logs.yaml)
@@ -71,6 +74,18 @@ shift
 case "${cmd}" in
     local-test)
         launch_py "${SCRIPT_DIR}/cluster.yaml" "$@"
+        ;;
+
+    llm-judge)
+        # Bridge the project's ~/.creds/anthropic.key convention into
+        # ANTHROPIC_API_KEY (required_environment_variables entry) when the
+        # caller hasn't exported one -- mirrors
+        # pref_pairs.perturbation_generator.load_api_key.
+        if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "${HOME}/.creds/anthropic.key" ]]; then
+            ANTHROPIC_API_KEY="$(<"${HOME}/.creds/anthropic.key")"
+            export ANTHROPIC_API_KEY
+        fi
+        launch_py "${SCRIPT_DIR}/llm_judge_cluster.yaml" "$@"
         ;;
 
     inspect-logs)
