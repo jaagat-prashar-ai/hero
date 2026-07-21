@@ -49,6 +49,37 @@ def _run(cmd: list[str], **kwargs) -> None:
     subprocess.run(cmd, check=True, **kwargs)
 
 
+def _ensure_extra_packages(python_bin: str, packages: tuple[str, ...]) -> None:
+    """Idempotently install packages OUR code (reward/entry scripts) needs
+    into the recipe venv, outside the BOOTSTRAP_OK marker flow: the venv
+    persists on /mnt/work across jobs, so a venv built by an earlier run --
+    before a given extra was needed -- validates fine and skips the sync
+    path entirely, meaning the marker can never be trusted to imply extras
+    are present. Presence is checked by import (assumes import name ==
+    distribution name, true for everything we install this way), so a
+    re-run with everything present costs one subprocess call per package.
+
+    Installed via `uv pip` because `uv venv` environments ship without pip
+    (`python -m pip` would fail inside them)."""
+    missing = [
+        p
+        for p in packages
+        if subprocess.run([python_bin, "-c", f"import {p}"], capture_output=True).returncode != 0
+    ]
+    if not missing:
+        return
+    uv_bin = os.path.expanduser("~/.local/bin/uv")
+    if not os.path.exists(uv_bin):
+        # ~ is pod-local while the venv lives on persistent /mnt/work: a
+        # requeued job on a fresh pod can reach here with the venv present
+        # but uv itself gone.
+        _run(["bash", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
+    env = dict(os.environ)
+    env["UV_NO_CONFIG"] = "1"
+    logger.info("bootstrap: installing extra packages into recipe venv: %s", missing)
+    _run([uv_bin, "pip", "install", "--python", python_bin, *missing], env=env)
+
+
 def _validate(python_bin: str) -> bool:
     check = subprocess.run(
         [python_bin, "-c", _VALIDATE_IMPORT], capture_output=True, text=True
@@ -73,7 +104,9 @@ def wait_for_recipe_venv(venv_dir: str, timeout_s: float = 90 * 60) -> str:
     raise TimeoutError(f"venv at {venv_dir} was not built within {timeout_s:.0f}s")
 
 
-def ensure_recipe_venv(venv_dir: str, recipe_dir: str) -> str:
+def ensure_recipe_venv(
+    venv_dir: str, recipe_dir: str, extra_packages: tuple[str, ...] = ()
+) -> str:
     """Build (once) the alpamayo1_x_rl venv, return the path to its python binary.
 
     Args:
@@ -84,12 +117,18 @@ def ensure_recipe_venv(venv_dir: str, recipe_dir: str) -> str:
             third_party/alpamayo-recipes/recipes/alpamayo1_x_rl (code_assets
             copies the whole repo to the pod, so this exists on disk at job
             runtime).
+        extra_packages: additional pip distributions OUR code needs inside the
+            recipe venv (e.g. ("anthropic",) for the LLM-judge reward).
+            Installed idempotently on EVERY call -- including the
+            venv-already-built early return -- because the persistent venv
+            may predate the need for them (see _ensure_extra_packages).
     """
     python_bin = os.path.join(venv_dir, "bin", "python")
     marker = os.path.join(venv_dir, MARKER_NAME)
     if os.path.exists(marker) and os.path.exists(python_bin):
         if _validate(python_bin):
             logger.info("bootstrap: venv already built at %s, validated, skipping", venv_dir)
+            _ensure_extra_packages(python_bin, extra_packages)
             return python_bin
         logger.warning("bootstrap: venv at %s has a stale/corrupt marker -- rebuilding", venv_dir)
         shutil.rmtree(venv_dir, ignore_errors=True)
@@ -131,6 +170,8 @@ def ensure_recipe_venv(venv_dir: str, recipe_dir: str) -> str:
 
     if not _validate(python_bin):
         raise RuntimeError(f"venv at {venv_dir} failed post-sync validation")
+
+    _ensure_extra_packages(python_bin, extra_packages)
 
     with open(marker, "w") as f:
         f.write("ok\n")
