@@ -56,6 +56,86 @@ class Verdict(str, Enum):
 
 
 @dataclasses.dataclass
+class VerifierThresholds:
+    """Tunable knobs for commitment verification.
+
+    Two provenance tiers, kept visually separate below:
+
+    1. SHARED with pref_pairs/configs/maneuver_thresholds.yaml — defaults
+       here are copied from that file and `from_dict` reads the SAME yaml
+       sections, so loading both configs from one file keeps the verifier
+       and classify_maneuvers.py's rule cascade agreeing on what counts as
+       a lane change / turn / acceleration. Do not retune these here
+       without retuning the classifier: a verifier that calls "lane change"
+       at 2.0m while the classifier requires 2.5m would produce
+       maneuver-label rows and claim verdicts that contradict each other
+       for the same rollout.
+
+    2. VERIFIER-ONLY — no classifier equivalent exists. Values are initial
+       judgment calls (documented per-field), expected to be recalibrated
+       once verdicts can be spot-checked against hand-labeled claims.
+    """
+
+    # --- Tier 1: shared with maneuver_thresholds.yaml ---
+    lane_change_lateral_offset_m: float = 2.5
+    turn_heading_change_deg: float = 45.0
+    accelerate_mean_accel_mps2: float = 0.5
+
+    # --- Tier 2: verifier-only ---
+    # A "nudge" is a deliberate lateral shift SMALLER than a lane change:
+    # lower bound 0.3m is above smoothing/integration noise seen in real
+    # rollout lateral offsets, upper bound is the lane-change threshold
+    # (at which point the maneuver stops being a nudge). Half-open band
+    # [min, lane_change_lateral_offset_m).
+    nudge_min_lateral_offset_m: float = 0.3
+    # "decelerate"/"slow down" must show a real speed drop end-to-end, not
+    # just any momentarily-negative accel sample (braking jitter): initial
+    # minus min speed must exceed this. 1.0 m/s (~3.6 km/h) is small enough
+    # to catch a gentle comfort brake, large enough to not fire on noise.
+    decelerate_min_speed_drop_mps: float = 1.0
+    # "accelerate" analog of the above: final minus initial speed. Used
+    # alongside (OR) the shared mean-accel threshold so a rollout that
+    # accelerates late (mean diluted by an early cruise phase) still passes.
+    accelerate_min_speed_gain_mps: float = 1.0
+    # "proceed" means "keep moving / go": trajectory must end above this
+    # speed with no stop event. 2.0 m/s matches maneuver_thresholds.yaml's
+    # stop.recovery_speed_mps — i.e. "proceeding" is exactly "not stopped"
+    # by the stop rule's own definition of having recovered.
+    proceed_min_final_speed_mps: float = 2.0
+    # "keep lane" requires staying within this lateral band AND below the
+    # turn heading threshold. 0.5m is looser than nudge_min (0.3m) on
+    # purpose: normal in-lane wander on a curving road shouldn't fail a
+    # keep-lane claim, and verifying a stated claim is a different question
+    # from classifying the single best maneuver label.
+    keep_lane_max_lateral_offset_m: float = 0.5
+    # "adapt speed" is the vaguest corpus commitment ("adapt/adjust
+    # speed"): verified as ANY meaningful longitudinal response — a
+    # stop/yield event, or an end-to-end speed change (either sign)
+    # exceeding this.
+    adapt_speed_min_change_mps: float = 1.0
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "VerifierThresholds":
+        """Build from a parsed maneuver_thresholds.yaml dict (same contract
+        as trajectory_features.FeatureConfig.from_dict): tier-1 fields read
+        the classifier's own sections; tier-2 fields read an OPTIONAL
+        `commitment_verifier` section so one yaml can carry both configs,
+        falling back to the dataclass defaults above."""
+        verifier = d.get("commitment_verifier", {})
+        return cls(
+            lane_change_lateral_offset_m=d.get("lane_change", {}).get("lateral_offset_m", 2.5),
+            turn_heading_change_deg=d.get("turn", {}).get("heading_change_deg", 45.0),
+            accelerate_mean_accel_mps2=d.get("proceed_accelerate", {}).get("mean_accel_mps2", 0.5),
+            nudge_min_lateral_offset_m=verifier.get("nudge_min_lateral_offset_m", 0.3),
+            decelerate_min_speed_drop_mps=verifier.get("decelerate_min_speed_drop_mps", 1.0),
+            accelerate_min_speed_gain_mps=verifier.get("accelerate_min_speed_gain_mps", 1.0),
+            proceed_min_final_speed_mps=verifier.get("proceed_min_final_speed_mps", 2.0),
+            keep_lane_max_lateral_offset_m=verifier.get("keep_lane_max_lateral_offset_m", 0.5),
+            adapt_speed_min_change_mps=verifier.get("adapt_speed_min_change_mps", 1.0),
+        )
+
+
+@dataclasses.dataclass
 class CommitmentVerdict:
     """One claim's verification result, with enough evidence attached that
     a human (or the reward-aggregation stage) can audit WHY without
