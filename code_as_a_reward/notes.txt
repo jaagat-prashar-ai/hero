@@ -41,3 +41,7 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Step 3: extract commitments from the commitemnt clause only. MANEUVER_PATTERSN (~17 regexes: nudge, lane change, merge, accelerate, stop, yield, ...) are scanned over the commitment side. Each match becomes a CommitmentClaim with a canonical manauever key, an axis (lateral vs longitudinal), and optionally a direction: "left/right" is searched in a 40-char windo after the verb, capped at the next maneuever verb so compound commitments like "change lanes to the right and enter the ramp" don't both grab the ame "right." Scopin to the commitment side is delibearte: it prevents "vehicle merging from the right" in a cause clause from being read as ego's own merge. 
 
 # Step 4: Extract perceptual claims from the whole beat. ENTITY_PATTERNS (~25 regexes: cones, pedestrian, stopped_vehicle, signal, work_zone, ...) find entity mentions, then each entity is paried with the nearest matching state_word from STATE_PATTERNS (blocking, crossing, red, green, ...). It scans the whole beat reather than just the cause clause because entity and state sometimes straddle the connective ("Adapt speed for the roundabout since a yield-controlled enty is ahead"). 
+
+# Step 5: Assemble causal claims. If a connective was found, the beat becomes one CausalClaim: effects = the beat's commitments, cause = the subest of its perceptual claims whose span sits after teh connective. So here nudge(left) <- "due to" <- construction_cones (blocking).
+
+# Step 6: bookeeping of what was missed (add thi slater)
