@@ -1,0 +1,43 @@
+# The goal for this project is to score Alpamayo reasonign quality by checking chain-of-causation (CoC) claims against structured scenes tate, building on the previous work with the pref-fairs faithfulness work. 
+
+# Phase 0 (thsi is the feasibility investigation).
+# The HF dataset has obstacle.offlien actor tracks (real 3D bounding-box tracks, present in 97.4% of clips), but no lane geometry or traffic-light ground truth anywhere
+# A 120-trace claim taxonomoy showed that ~62% of the claims would be actor-checkable once we integrate obstacle.offline is integrated, while ~27% of it comes from (cones, traffic signals) have no ground truth at all. 
+
+# Implementation - CoC claim parser 
+# This is a rule-based parser tuning CoC text into typed claims such as the CommitmentClaim, PerceptualClaim, and CausalClaim - built up incrementally (typed dataclasses -> lexicons -> beat/clause segmentation -> commitment and perceptual extraction -> orchestration with unparsed-span tracking)
+# Lexicons (maneuevers, entities, states, connectives) were tuned against the real corpus in pre_pairs/results/scene_reasoning/*.md, and the CLI ingests those .md reports directly. 
+# 12 unit tests also in coc_claim_parser_test.py (written against the real corpus strings)
+
+# To-do: claim verifier itself (checking commitment claims against TrajectoryFeatures are perceptual claims against obstacle.offline)
+# The obstacle.offline integration to feed that verifier
+# Feasibility and design decisions are settled, the parsing half of the pipeline is built and tested, and the verifictation half is next. 
+
+# The whole idea of code as a reward is to score the reasonign automatically, check whatever the model said actually matches reality (i.e., the recorded scene data and the trajectory it drove)
+# We can't check a free-form paragraph agianst structured data directly (the parser is the bridge we implement)
+# The parser reads the CoC text and converts it into small, typed, machine-checkable statements ("claims"). Once the reasoning is in that structured form, a downstream verifier (still building this) will test each claim against the ground truth and turn the result into a reward signal. 
+
+# The three claim types, using that example sentence: 
+
+# PerceptualClaim: "i see x." an assertion that some entity exists in the scene, optinally with a state: there is a pedestrian, and it is crossing. This is checkable against the obstacle.offlien actor tracks in the datset - was there really a pedestrian there?
+# CommitmentClaim: "i will do y." A maneuever or speed profile the model says it's going to execute: slow down, keep straight. This is checkable against the trajectory the model actually produced (its TrajectoryFeature) - did it really slow down?
+# CausalClaim: - the "because" glue linking th etwo: I'm slowing down because of th epedestrian. It ties one or more commitments (the effects) to the preceptions that supposedlt causex them. This is what lets you catch reasoning that's unfaithful even when its parts are individually true (e.g., the pedestrian exists and the4 card di dslow, but the stated cause-effect link doesn't hold up)
+
+# Perceptiual is what the model claims tos ee, comitment is what it does, causal is why it claims one led to the other (parser exists so each of those can be fact-checked by code instead of by a human or another LLM).
+
+# how does the parser work?
+
+# rule-based pipeline (regexes and lexcions tuned against ~2000 real CoC strings from pref_pairs/results_scene_reasoning/*md).
+
+# Example sentence: "Nudge left due to construction cones blocking th eright side of our lane, then accelerate"
+
+# Step 1: Split this into beats. The text is split on :, then, or sentence-ending periods (_split_beats). Each beat is one plan step. 
+Here the beat 1 is "Nudge left due to construction cones blocking...," beat 2 is "accelerate." 
+
+# Step 2: split each beat on its causal connective. Within a beat, _split_beat looks for "because / due to / since / as" (with "after / for" as a waker fallback tier, only used if no string connective exist). Everything before the connective is the commitment clause (what ego will do), everything after is the cause clause (why). 
+A beat with no connective is fine (it's just a commitment with no reason).
+# Thought: does this also work for the prefix idea? look more into this!!!!!!!!!!
+
+# Step 3: extract commitments from the commitemnt clause only. MANEUVER_PATTERSN (~17 regexes: nudge, lane change, merge, accelerate, stop, yield, ...) are scanned over the commitment side. Each match becomes a CommitmentClaim with a canonical manauever key, an axis (lateral vs longitudinal), and optionally a direction: "left/right" is searched in a 40-char windo after the verb, capped at the next maneuever verb so compound commitments like "change lanes to the right and enter the ramp" don't both grab the ame "right." Scopin to the commitment side is delibearte: it prevents "vehicle merging from the right" in a cause clause from being read as ego's own merge. 
+
+# Step 4: Extract perceptual claims from the whole beat. ENTITY_PATTERNS (~25 regexes: cones, pedestrian, stopped_vehicle, signal, work_zone, ...) find entity mentions, then each entity is paried with the nearest matching state_word from STATE_PATTERNS (blocking, crossing, red, green, ...). It scans the whole beat reather than just the cause clause because entity and state sometimes straddle the connective ("Adapt speed for the roundabout since a yield-controlled enty is ahead"). 
