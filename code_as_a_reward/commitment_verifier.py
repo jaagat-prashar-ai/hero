@@ -367,6 +367,174 @@ def _verify_proceed(
     )
 
 
+# ---------------------------------------------------------------------------
+# Lateral predicates. Sign convention throughout (from classify_maneuvers.py,
+# ISO 8855): POSITIVE final_lateral_offset_m / total_heading_change_deg mean
+# LEFT. A claim with direction=None (the parser found no left/right word in
+# the direction window) is verified on magnitude alone — absence of a parsed
+# direction is a parser limitation, not a claim the model got wrong.
+# ---------------------------------------------------------------------------
+
+
+def _direction_consistent(direction: str | None, signed_value: float) -> bool:
+    """Whether `signed_value`'s sign agrees with a claimed direction
+    (positive == left). direction=None is vacuously consistent — see the
+    section comment above."""
+    if direction is None:
+        return True
+    return signed_value > 0 if direction == "left" else signed_value < 0
+
+
+def _verify_nudge(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Nudge" = a deliberate lateral shift in the half-open band
+    [nudge_min, lane_change threshold), sign matching the claimed
+    direction. Exceeding the band FAILS rather than passes: a "nudge" that
+    displaced a full lane width is a lane change the model mislabeled, and
+    this verifier's job is exactly to catch stated-vs-actual mismatches,
+    not to grade generosity of movement."""
+    lateral = features.final_lateral_offset_m
+    evidence = {"final_lateral_offset_m": lateral, "claim_direction": claim.direction,
+                "nudge_min_lateral_offset_m": thresholds.nudge_min_lateral_offset_m,
+                "lane_change_lateral_offset_m": thresholds.lane_change_lateral_offset_m}
+    in_band = thresholds.nudge_min_lateral_offset_m <= abs(lateral) < thresholds.lane_change_lateral_offset_m
+    if in_band and _direction_consistent(claim.direction, lateral):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "lateral_band", evidence,
+            f"lateral offset {lateral:+.2f} m in nudge band, direction consistent",
+        )
+    if in_band:
+        return CommitmentVerdict(
+            claim, Verdict.FAIL, "lateral_band", evidence,
+            f"nudge magnitude ok but direction wrong: claimed {claim.direction}, "
+            f"offset {lateral:+.2f} m (positive=left)",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "lateral_band", evidence,
+        f"lateral offset {lateral:+.2f} m outside nudge band "
+        f"[{thresholds.nudge_min_lateral_offset_m}, {thresholds.lane_change_lateral_offset_m})",
+    )
+
+
+def _verify_lane_change(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """Lane change = the classifier's own rule verbatim (tier-1 thresholds):
+    lateral offset at least the lane-change threshold AND total heading
+    change BELOW the turn threshold (a large heading change means the
+    trajectory turned, whatever the lateral offset says), sign matching the
+    claimed direction."""
+    lateral = features.final_lateral_offset_m
+    heading = features.total_heading_change_deg
+    evidence = {"final_lateral_offset_m": lateral, "total_heading_change_deg": heading,
+                "claim_direction": claim.direction,
+                "lane_change_lateral_offset_m": thresholds.lane_change_lateral_offset_m,
+                "turn_heading_change_deg": thresholds.turn_heading_change_deg}
+    if (abs(lateral) >= thresholds.lane_change_lateral_offset_m
+            and abs(heading) < thresholds.turn_heading_change_deg
+            and _direction_consistent(claim.direction, lateral)):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "lane_change_rule", evidence,
+            f"lateral offset {lateral:+.2f} m with heading change {heading:+.1f} deg",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "lane_change_rule", evidence,
+        f"lateral offset {lateral:+.2f} m / heading change {heading:+.1f} deg "
+        f"inconsistent with a {claim.direction or 'stated'} lane change",
+    )
+
+
+def _verify_merge(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Merge" is verified more loosely than lane_change: real merges onto
+    a ramp/lane can show anywhere from nudge-scale to full lane-change
+    lateral displacement depending on where in the merge the clip window
+    falls, so the floor is the nudge minimum, with a direction-sign check
+    when a direction was stated. Without lane geometry (Phase 0: none in
+    the dataset) this is the strongest check ego kinematics support."""
+    lateral = features.final_lateral_offset_m
+    evidence = {"final_lateral_offset_m": lateral, "claim_direction": claim.direction,
+                "nudge_min_lateral_offset_m": thresholds.nudge_min_lateral_offset_m}
+    if (abs(lateral) >= thresholds.nudge_min_lateral_offset_m
+            and _direction_consistent(claim.direction, lateral)):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "lateral_shift", evidence,
+            f"lateral offset {lateral:+.2f} m consistent with a merge",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "lateral_shift", evidence,
+        f"lateral offset {lateral:+.2f} m shows no "
+        f"{claim.direction or ''} merge movement".replace("  ", " "),
+    )
+
+
+def _verify_turn(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Turn" = the classifier's turn rule verbatim (tier-1 threshold):
+    total heading change at least turn_heading_change_deg, sign matching
+    the claimed direction (positive=left)."""
+    heading = features.total_heading_change_deg
+    evidence = {"total_heading_change_deg": heading, "claim_direction": claim.direction,
+                "turn_heading_change_deg": thresholds.turn_heading_change_deg}
+    if (abs(heading) >= thresholds.turn_heading_change_deg
+            and _direction_consistent(claim.direction, heading)):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "turn_rule", evidence,
+            f"heading change {heading:+.1f} deg",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "turn_rule", evidence,
+        f"heading change {heading:+.1f} deg inconsistent with a "
+        f"{claim.direction or 'stated'} turn "
+        f"(threshold {thresholds.turn_heading_change_deg} deg)",
+    )
+
+
+def _verify_keep_lane(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Keep lane" = stayed within the keep-lane lateral band AND below the
+    turn heading threshold. The heading clause matters on its own: a turn
+    can end near lateral offset zero in this t=0-heading frame while
+    plainly not keeping its lane."""
+    lateral = features.final_lateral_offset_m
+    heading = features.total_heading_change_deg
+    evidence = {"final_lateral_offset_m": lateral, "total_heading_change_deg": heading,
+                "keep_lane_max_lateral_offset_m": thresholds.keep_lane_max_lateral_offset_m,
+                "turn_heading_change_deg": thresholds.turn_heading_change_deg}
+    if (abs(lateral) <= thresholds.keep_lane_max_lateral_offset_m
+            and abs(heading) < thresholds.turn_heading_change_deg):
+        return CommitmentVerdict(
+            claim, Verdict.PASS, "keep_lane_band", evidence,
+            f"lateral offset {lateral:+.2f} m, heading change {heading:+.1f} deg",
+        )
+    return CommitmentVerdict(
+        claim, Verdict.FAIL, "keep_lane_band", evidence,
+        f"lateral offset {lateral:+.2f} m / heading change {heading:+.1f} deg "
+        f"outside keep-lane bounds",
+    )
+
+
+def _abstain_needs_lane_geometry(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """"Enter"/"exit" name a MAP FEATURE (ramp, freeway, roundabout,
+    driveway) that ego supposedly moved into or out of. Phase 0 established
+    the dataset has no lane geometry at all, so whether the trajectory
+    actually entered that feature is unknowable here — ABSTAIN, same
+    stance as _abstain_needs_other_agent. (Unlike keep_distance/create_gap
+    these will NOT become decidable when obstacle.offline lands; they'd
+    need map data the dataset simply doesn't have.)"""
+    return CommitmentVerdict(
+        claim, Verdict.ABSTAIN, "needs_lane_geometry", {},
+        f"'{claim.maneuver}' refers to a map feature; dataset has no lane "
+        "geometry ground truth (Phase 0 finding)",
+    )
+
+
 def _abstain_needs_other_agent(
     claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
 ) -> CommitmentVerdict:
