@@ -58,7 +58,11 @@ from __future__ import annotations
 
 import logging
 import os
+import re
+import signal
 import subprocess
+import sys
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -318,6 +322,87 @@ def _summarize_cosmos_logs(log_dir: Path) -> None:
             logger.info("===== %s: reward/wandb lines =====\n%s", f, "\n".join(matches[-100:]))
 
 
+# The cosmos-rl launcher logs this to its stdout when one of its
+# controller/policy/rollout children dies, but then keeps waiting on the
+# surviving processes forever instead of tearing the job down. Observed on
+# canary alpamayo-rl-llm-judge-canary-xgo36t (2026-07-21): the rollout
+# replica died 21 min in ("Process 1 failed with return code 1"), the policy
+# GPUs then idled for 96 min until Lilypad's idle-GPU reaper killed the node
+# (termination_reason IDLE_GPU), and the replica tracebacks were lost with
+# the node-local /mnt/work. Watching for this marker lets us dump the
+# per-process logs and fail fast while the files still exist.
+_COSMOS_REPLICA_FAILURE_RE = re.compile(r"Process \d+ failed with return code \d+")
+
+
+class _CosmosLogTailer(threading.Thread):
+    """Periodically forwards NEW lines from cosmos-rl's per-process log files
+    (controller.log/policy_<i>.log/rollout_<i>.log) into this pod's own log
+    stream. Those files live on node-local /mnt/work and die with the node
+    (confirmed by inspect-logs run alpamayo-rl-inspect-logs-774qca seeing an
+    empty log dir), so shipping their lines to the captured stdout as they are
+    written is the only way a replica traceback survives a hard node kill
+    (e.g. the idle-GPU reaper). Capped per tick so a chatty vLLM startup
+    can't flood OCI log ingestion; the cap drops the middle, not the tail,
+    because tracebacks are what we're here for."""
+
+    def __init__(self, log_dir: Path, interval_s: float = 30.0, max_lines_per_tick: int = 80):
+        super().__init__(daemon=True, name="cosmos-log-tailer")
+        self._log_dir = log_dir
+        self._interval_s = interval_s
+        self._max_lines = max_lines_per_tick
+        self._offsets: dict[Path, int] = {}
+        self._stop_event = threading.Event()
+        self._poll_lock = threading.Lock()
+
+    def run(self) -> None:
+        while not self._stop_event.wait(self._interval_s):
+            self._poll()
+
+    def stop(self) -> None:
+        """Signal the thread to stop, then do one final poll from the caller's
+        thread so lines written right before a failure are always flushed."""
+        self._stop_event.set()
+        self._poll()
+
+    def _poll(self) -> None:
+        with self._poll_lock:
+            for f in sorted(self._log_dir.glob("logs_*/*.log")):
+                try:
+                    size = f.stat().st_size
+                    offset = self._offsets.get(f, 0)
+                    if size <= offset:
+                        continue
+                    with open(f, "r", errors="replace") as fh:
+                        fh.seek(offset)
+                        chunk = fh.read()
+                    self._offsets[f] = size
+                except OSError:
+                    continue
+                lines = chunk.splitlines()
+                if len(lines) > self._max_lines:
+                    skipped = len(lines) - self._max_lines
+                    lines = [f"... [{skipped} lines skipped] ..."] + lines[-self._max_lines :]
+                logger.info("[tail %s]\n%s", f.name, "\n".join(lines))
+
+
+def _terminate_process_group(proc: subprocess.Popen) -> None:
+    """SIGTERM (then SIGKILL) cosmos-rl's whole process group -- the launcher
+    spawns its replicas via shell scripts, so killing just the launcher PID
+    would orphan the GPU-holding children."""
+    if proc.poll() is not None:
+        return
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+    os.killpg(pgid, signal.SIGTERM)
+    try:
+        proc.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        os.killpg(pgid, signal.SIGKILL)
+        proc.wait()
+
+
 def _launch_cosmos_rl(
     python_bin: str,
     toml_path: Path,
@@ -327,28 +412,68 @@ def _launch_cosmos_rl(
 ) -> None:
     cosmos_rl_bin = str(Path(python_bin).parent / "cosmos-rl")
     log_dir.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        cosmos_rl_bin,
+        "--config",
+        str(toml_path),
+        "--policy",
+        "1",
+        "--rollout",
+        "1",
+        "--log-dir",
+        str(log_dir),
+        str(entry_script),
+    ]
+    logger.info("run: %s", " ".join(cmd))
+    # Popen with captured+re-emitted stdout instead of _run_streamed: we must
+    # SEE the launcher's output to catch the replica-failure marker (see
+    # _COSMOS_REPLICA_FAILURE_RE) since the launcher does not exit on it.
+    # start_new_session gives the launcher its own process group to kill.
+    proc = subprocess.Popen(
+        cmd,
+        cwd=RECIPE_ROOT,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        errors="replace",
+        start_new_session=True,
+    )
+    tailer = _CosmosLogTailer(log_dir)
+    tailer.start()
+    failure_line: str | None = None
     try:
-        _run_streamed(
-            [
-                cosmos_rl_bin,
-                "--config",
-                str(toml_path),
-                "--policy",
-                "1",
-                "--rollout",
-                "1",
-                "--log-dir",
-                str(log_dir),
-                str(entry_script),
-            ],
-            cwd=RECIPE_ROOT,
-            env=env,
-        )
-    except subprocess.CalledProcessError:
-        _dump_latest_cosmos_logs(log_dir)
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            if _COSMOS_REPLICA_FAILURE_RE.search(line):
+                failure_line = line.strip()
+                break
+    except BaseException:
+        # Don't leave a half-dead cosmos-rl holding GPUs if WE die (e.g.
+        # Ray task cancellation) -- same idle-GPU-reaper trap as a replica
+        # failure, just entered from the other side.
+        tailer.stop()
+        _terminate_process_group(proc)
         raise
-    else:
-        _summarize_cosmos_logs(log_dir)
+    if failure_line is not None:
+        logger.error(
+            "cosmos-rl replica failure detected (%r) -- the launcher hangs "
+            "instead of exiting here, so dumping per-process logs and "
+            "terminating it ourselves",
+            failure_line,
+        )
+        tailer.stop()
+        _dump_latest_cosmos_logs(log_dir)
+        _terminate_process_group(proc)
+        raise RuntimeError(f"cosmos-rl replica failed: {failure_line}")
+    returncode = proc.wait()
+    tailer.stop()
+    if returncode != 0:
+        _dump_latest_cosmos_logs(log_dir)
+        raise subprocess.CalledProcessError(returncode, cmd)
+    _summarize_cosmos_logs(log_dir)
 
 
 def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
