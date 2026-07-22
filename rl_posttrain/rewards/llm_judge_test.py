@@ -20,6 +20,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from rl_posttrain.rewards.aggregated_reward_llm_judge import (  # noqa: E402
+    _graded_failure_reward,
     _run_judges_parallel,
 )
 from rl_posttrain.rewards.llm_judge import (  # noqa: E402
@@ -181,3 +182,49 @@ class TestRunJudgesParallel:
             [(_REAL_TRACE, None), (_REAL_TRACE, None)], judge_fn=judge, max_workers=2
         )
         assert scores == [5, 5]
+
+
+class TestGradedFailureReward:
+    # Recipe gate constants (see compute_reward_batch).
+    _GATES = {"ade_threshold": 3.0, "reasoning_threshold": -0.4}
+
+    def _r(self, l2, reasoning, cot_decoded=True):
+        return _graded_failure_reward(
+            l2, reasoning, cot_decoded=cot_decoded, **self._GATES
+        )
+
+    def test_band_bounds(self):
+        # Worst case (huge l2, reasoning at the floor) approaches -1.0; best
+        # case (both quantities exactly at their gates) is the band ceiling.
+        assert self._r(1e9, -1.0) == pytest.approx(-1.0, abs=1e-6)
+        assert self._r(3.0, -0.4) == pytest.approx(-0.5)
+
+    def test_always_below_passing_region(self):
+        # The passing branch's floor with the current TOML weights
+        # (traj_l2=0.2, comfort=0.0, reasoning=0.3) is -0.2 (l2 -> 3.0,
+        # judge score 10). Every graded failure must rank strictly below it.
+        passing_floor = -0.2
+        for l2, reasoning in [(3.0, -0.4), (3.0001, 0.0), (17.0, -0.2), (0.5, -0.9)]:
+            assert self._r(l2, reasoning) <= -0.5 < passing_floor
+
+    def test_monotone_in_l2(self):
+        # Groups whose rollouts all blew the ADE gate (e.g. the all-l2>8
+        # groups seen on canary u0j67p) now carry within-group ordering:
+        # closer trajectories rank higher instead of all sitting at -1.0.
+        rewards = [self._r(l2, -0.2) for l2 in (4.0, 8.0, 16.0)]
+        assert rewards == sorted(rewards, reverse=True)
+
+    def test_monotone_in_reasoning(self):
+        rewards = [self._r(1.0, r) for r in (-0.5, -0.7, -0.9)]
+        assert rewards == sorted(rewards, reverse=True)
+
+    def test_failing_gate_capped_by_other_gate(self):
+        # A rollout failing ONLY the reasoning gate has its l2 closeness
+        # capped at 1.0 -- an extra-short l2 must not outrank a shorter one
+        # through the failure band.
+        assert self._r(0.5, -0.9) == pytest.approx(self._r(2.9, -0.9))
+
+    def test_missing_cot_stays_flat(self):
+        # No decoded CoC keeps the vendored flat -1.0 penalty: nothing to
+        # grade, and l2-closeness alone must not make dropping the CoC cheap.
+        assert self._r(0.1, -1.0, cot_decoded=False) == -1.0
