@@ -97,6 +97,13 @@ _DEFAULTS: dict[str, Any] = {
     # (download_pai.py --only-reasoning-chunks) instead of the pai_chunk_ids
     # motion subset; this sets --num-reasoning-clips.
     "num_reasoning_clips": 16,
+    # When set (int N), llm_judge/reasoning modes IGNORE num_reasoning_clips
+    # and instead train on ALL OOD clips within the N chunks densest in OOD
+    # clips (select_dense_ood_chunks.py) -- ~2x more clips per downloaded GB
+    # than the random sampler, measured 2026-07-22: densest 100 chunks carry
+    # 394 of the 1740 OOD clips (~570 GB of cameras) vs 1085 chunks / 6.1 TB
+    # for all of them.
+    "reasoning_dense_chunks": None,
     "num_gpus": 8,
 }
 
@@ -237,6 +244,58 @@ def _download_pai_reasoning(python_bin: str, pai_dir: Path, num_clips: int) -> P
         ],
         cwd=RECIPE_ROOT,
     )
+    return mini_path
+
+
+def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
+    """Download ALL OOD-reasoning clips within the num_chunks OOD-densest PAI
+    chunks (see select_dense_ood_chunks.py for why density beats the vendored
+    random sampler). Two stages, both idempotent behind a completion marker
+    written only after the full download succeeds -- the mini index is written
+    BEFORE the bulk download, so its existence alone (the stock
+    _download_pai_reasoning convention) would wrongly skip a half-finished
+    multi-hundred-GB fetch after a crash."""
+    mini_path = pai_dir / "clip_index_reasoning_mini.parquet"
+    marker = pai_dir / ".dense_download_complete"
+    if marker.exists():
+        logger.info("PAI dense reasoning dataset: %s complete, skipping download", pai_dir)
+        return mini_path
+
+    pai_dir.mkdir(parents=True, exist_ok=True)
+    _run_streamed(
+        [
+            python_bin,
+            str(REPO_ROOT / "rl_posttrain" / "training" / "select_dense_ood_chunks.py"),
+            "--output-dir",
+            str(pai_dir),
+            "--num-chunks",
+            str(num_chunks),
+        ],
+        cwd=RECIPE_ROOT,
+    )
+    chunk_ids = (pai_dir / "dense_chunks.txt").read_text().strip()
+    _run_streamed(
+        [
+            python_bin,
+            "scripts/download_pai.py",
+            "--chunk-ids",
+            chunk_ids,
+            "--camera",
+            *_CAMERA_SUBPARTS,
+            "--calibration",
+            *_CALIBRATION_SUBPARTS,
+            "--labels",
+            "egomotion",
+            "egomotion.offline",
+            "obstacle.offline",
+            "--reasoning",
+            "ood_reasoning.parquet",
+            "--output-dir",
+            str(pai_dir),
+        ],
+        cwd=RECIPE_ROOT,
+    )
+    marker.write_text("ok\n")
     return mini_path
 
 
@@ -517,13 +576,29 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     # scores the decoded CoC, so rollout prompts must come from clips whose
     # data pipeline emits CoC sections) but swaps in our entry/TOML pair that
     # replaces the Lingo-Judge grader with the Anthropic-API judge.
-    pai_reasoning_dir = workspace_dir / "PAI_Reasoning_mini"
+    # Dataset dir carries the selection parameters in its name: /mnt/work is
+    # node-local but PERSISTENT across jobs landing on the same node, and the
+    # download helpers skip when their index/marker already exists -- a fixed
+    # dir name let a 16-clip canary index silently satisfy a full run's
+    # download step (and vice versa).
+    dense_chunks = cfg.get("reasoning_dense_chunks")
+    if dense_chunks is not None:
+        pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_dense{int(dense_chunks)}"
+    else:
+        pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_mini{int(cfg['num_reasoning_clips'])}"
+
+    def _fetch_reasoning_dataset() -> None:
+        if dense_chunks is not None:
+            _download_pai_reasoning_dense(python_bin, pai_reasoning_dir, int(dense_chunks))
+        else:
+            _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+
     if reward_mode == "llm_judge":
-        _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+        _fetch_reasoning_dataset()
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "llm_judge_entry.py"
     elif reward_mode == "reasoning":
-        _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+        _fetch_reasoning_dataset()
         template_path = RECIPE_DIR / "toml" / "alpamayo_rvla_rl_local_test_with_reasoning.toml"
         entry_script = (
             RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_reasoning_entry.py"
