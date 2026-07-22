@@ -74,3 +74,18 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # The commitment verifier - CommitmentClaim vs TrajectoryFeatures  
     # This is the easier half? pref_pairs/trajectory_features.py:113 was explicitly designed for it (this is everything that the maneuever classiifer and the downstream claim verifier need). The work here is mapping from each canonical maneuever key the parser emits (nudge, stop, yield, accelerate, lane change, ...) to a predicate over the feature row -- e.g., stop -> stop_event, yield -> yield_event, nudge(left) -> sign/magnitude of final_lateral_offset_m, accelerate -> mean_acceleration_mps2 above a threshold. 
     # Thresholds can start from the same config values the manuever classifier uses. Since this half has zero dependencies, I'd build it first while deciding how to structure the obstacle loader. 
+
+
+# basic run good
+# next run: 
+# dataloader_shuffle = true (the fixed clip ordering makes metrics hard to read and correlates gradient batches)
+# more clips (num_reasoning_clips from 16 to 64+), 15 epochs over 16 clips is heavy reptition; memorization risk with any higher lr 
+# the hard-clip group (L2 ~7.7) fails the ADE gate unconditonally - the graded band keeps it contributing gradient now, but if those are 00D clips you care about, consider whether ade_threshold=3.0 is right for them. 
+# One unexplained 733s stall remains (between steps ~mid-run) - survivable under the 1h timeout, bit if it recurs at scale it's worth pulling the per-process logs while the node is alive
+
+# Main changes compared to previous training run: alpamayo-rl-llm-judge-canary-grq1cf
+# Change 3: enable dataloader shuffle (fixes the period-3 metric artifact from the canary)
+# Change 4: the full-run cluster config + launch command
+
+# 392 OOD clips across the 100 densest chunks (the empty-events filter trims 9 of the 1740). Launching: 
+# Selector verified 392 OOD clips across the 100 densest chunks (empty-events filter trims 9 of the 1740). Launching: 
