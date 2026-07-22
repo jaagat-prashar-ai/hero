@@ -6,6 +6,49 @@ now, not routine typos.
 
 ---
 
+## 2026-07-22 — llm-judge canary died at step 3: NCCL watchdog killed a reward-starved policy
+
+**Symptom:** `alpamayo-rl-llm-judge-canary-u0j67p` (8-GPU a100 node, reward_mode
+`llm_judge`) hit `EXPERIMENT_FAILED` after 41 min. Steps 1/6 and 2/6 trained
+normally (iteration time ~22-25s, real judge scores flowing), then all policy
+ranks crashed with:
+```
+[Worker] Task <_Task ... timeout_ms=600000> done | timed_out=True
+[NCCL] Aborted communicator idx=0
+TimeoutError: NCCL: non-blocking enqueue timed out
+```
+followed by torchrun `ChildFailedError` → launcher `Process 1 failed with
+return code 1` → our fail-fast wrapper (c3c7ed9) dumped per-rank logs and
+tore the job down as designed.
+
+**Root cause:** three compounding throughput problems, no code crash at all.
+(1) cosmos-rl's NCCL watchdog (`COSMOS_NCCL_TIMEOUT_MS`, default 600 000 ms,
+see `cosmos_rl/utils/pynccl.py` at the pinned rev 747d1bd) aborts any
+communicator whose pending collective exceeds 10 min — after step 2 the
+policy ranks sat in exactly such a collective waiting for the step-3 batch.
+(2) The default reward path scores a 12-rollout GRPO group **serially**, one
+blocking Anthropic API call per rollout (~1-7s each), so reward throughput
+lagged rollout production — controller backlog grew 24 → 96 pending over the
+run. (3) Most groups failed the ADE/reasoning gates uniformly and got the
+flat -1.0 reward → zero within-group advantage variance → GRPO discards
+them, so filling a 48-rollout step with usable groups took even longer.
+Steps 1→2 already took 3.7 min; step 3 never made it under 10.
+
+**Fix (three commits):**
+- `c71cc05` — raise `COSMOS_NCCL_TIMEOUT_MS` to 1h (+ `COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT`
+  to 3600s) in `run.py`, scoped to reward_mode=llm_judge only.
+- `b377b8f` — `group_reward_calculation = true` in the llm_judge TOML +
+  `compute_reward_batch` fans judge HTTPS calls over a thread pool
+  (`LLM_JUDGE_MAX_CONCURRENCY`, default 8); GPU-local decode stays serial.
+- `2692180` — gate-failing rollouts get a graded reward in [-1.0, -0.5]
+  (`_graded_failure_reward`) instead of the flat -1.0, restoring advantage
+  variance in all-fail groups; missing-CoC keeps flat -1.0.
+
+Verification: 27 pure-helper tests pass; end-to-end confirmation needs a
+canary relaunch. Diagnosis details: default `lilypad workload logs` window
+(last 4h) missed the run entirely — pass `--start-time/--end-time` around
+the `workload info` Created/Finished timestamps.
+
 ## 2026-07-02 — masking experiment C failed on every clip: `unknown mask mode: prefix`
 
 **Symptom:** `masking_loop` with `experiment=c` produced zero successful rows —
