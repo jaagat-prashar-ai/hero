@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Derived verbatim from the vendored recipe's
-# toml/alpamayo_rvla_rl_local_test_with_reasoning.toml with exactly two
+# toml/alpamayo_rvla_rl_local_test_with_reasoning.toml with exactly three
 # changes:
 #   1. the [custom.alpamayo] reasoning-grader keys (grader type / cached
 #      model path / device) are dropped, because the LLM-judge reward
@@ -22,6 +22,7 @@
 #      via the Anthropic API instead of a local grader checkpoint. The
 #      [custom.alpamayo.reward] weights keep the same keys/semantics.
 #   2. group_reward_calculation = true (see comment at the key).
+#   3. dataloader_shuffle = true (see comment at the key).
 # Placeholder paths below (output_dir, model_name_or_path) are patched into
 # a scratch copy by rl_posttrain/training/run.py at job time, never edited
 # here.
@@ -91,7 +92,11 @@ experiment_name = "ReasoningVLA_Post_Training"
 [train.train_policy]
 type = "grpo"
 trainer_type = "reasoning_vla_grpo"
-dataloader_shuffle = false
+# Canary grq1cf (2026-07-22) showed why false is a trap here: with a tiny
+# clip set and fixed ordering, each step slot sees the same clips every
+# epoch, so metrics carry a hard period-N cycle (traj_L2 oscillating 1.3 <->
+# 7.8) and gradient batches stay clip-correlated across the whole run.
+dataloader_shuffle = true
 dataset.split = "train"
 # Enable rank-based dispatch (mesh-rank sharding) so each replica consumes a stable shard.
 data_dispatch_as_rank_in_mesh = false
