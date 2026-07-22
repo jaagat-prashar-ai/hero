@@ -17,8 +17,18 @@ already-validated GRPO behavior is preserved):
   - trajectory decode (decode_rollout_trajectory) + ADE (calculate_ade),
   - comfort scoring (compute_comfort, shifted to [-1, 0]),
   - the continuous mixing formula, its TOML weight keys under
-    [custom.alpamayo.reward], the ade_threshold = 3.0 /
-    reasoning_threshold = -0.4 gates, and the -1.0 floor when gates fail.
+    [custom.alpamayo.reward], and the ade_threshold = 3.0 /
+    reasoning_threshold = -0.4 gates.
+
+One deliberate DEPARTURE from the vendored variant: rollouts that fail the
+gates get a GRADED reward in [-1.0, -0.5] (_graded_failure_reward) instead
+of the vendored flat -1.0 floor. A flat floor makes every all-fail group
+zero-advantage (GRPO normalizes within the group), so those rollouts train
+nothing -- on canary alpamayo-rl-llm-judge-canary-u0j67p (2026-07-22) that
+was most groups, wasting most of the judged samples. The band keeps every
+failed rollout strictly below every passing one (pass region floor is
+~-0.2 with the current weights) while restoring within-group ordering
+toward the gates.
 
 What is different -- the reasoning component only:
   - Vendored: LingoJudgeGrader.score(pred_cot, gt_cot) -- a cached local
@@ -81,6 +91,52 @@ def _get_reward_cfg(config: object | None) -> dict[str, float]:
         raise ValueError(f"Missing key(s) in [custom.alpamayo.reward]: {missing}")
 
     return {k: float(reward_cfg[k]) for k in _REQUIRED_REWARD_KEYS}
+
+
+# Width of the graded failure band: gate-failing rollouts land in
+# [-1.0, -1.0 + _FAILURE_BAND_WIDTH]. 0.5 keeps the band's ceiling (-0.5)
+# well below the passing branch's floor (~-0.2 with the current weights:
+# l2 -> ade_threshold gives -traj_l2_weight, reasoning/comfort terms >= 0).
+_FAILURE_BAND_WIDTH = 0.5
+
+
+def _graded_failure_reward(
+    l2_dist: float,
+    reasoning_score: float,
+    *,
+    ade_threshold: float,
+    reasoning_threshold: float,
+    cot_decoded: bool,
+) -> float:
+    """Reward for a rollout that failed the mixing gates: graded by how close
+    each gated quantity came, instead of the vendored flat -1.0.
+
+    Rationale: GRPO advantages are normalized within the rollout group, so a
+    group where every rollout hits the same -1.0 has zero advantage variance
+    and contributes nothing to training. Grading the failure restores an
+    ordering (l2 closer to ade_threshold and reasoning closer to
+    reasoning_threshold rank higher), so all-fail groups still push the
+    policy toward the gates.
+
+    Shape: each closeness term is in [0, 1] (1 = at the gate boundary), and
+    the result is -1.0 + _FAILURE_BAND_WIDTH * mean(closenesses), i.e. in
+    [-1.0, -1.0 + _FAILURE_BAND_WIDTH] -- always below any passing reward.
+
+    A rollout with no decoded CoC stays at the flat -1.0 (the vendored
+    missing-CoC penalty): there is no judged reasoning to grade, and
+    rewarding l2-closeness alone would teach the policy that dropping the
+    CoC is cheap. Pure (no torch/network) so it's directly unit-testable."""
+    if not cot_decoded:
+        return -1.0
+    # 1.0 at l2 == ade_threshold (capped for rollouts that failed on the
+    # reasoning gate only), decaying hyperbolically as l2 grows.
+    l2_closeness = min(1.0, ade_threshold / l2_dist) if l2_dist > 0 else 1.0
+    # reasoning_score lives in [-1, 0]; map [-1, reasoning_threshold] onto
+    # [0, 1] (capped at 1 for rollouts that failed on the l2 gate only).
+    reasoning_closeness = min(
+        1.0, max(0.0, (reasoning_score + 1.0) / (reasoning_threshold + 1.0))
+    )
+    return -1.0 + _FAILURE_BAND_WIDTH * 0.5 * (l2_closeness + reasoning_closeness)
 
 
 # Upper bound on concurrent judge API calls per reward task. 8 comfortably
@@ -211,7 +267,13 @@ def compute_reward_batch(
                 + w["reasoning_weight"] * (reasoning_score / reasoning_threshold)
             )
         else:
-            final_reward = -1.0
+            final_reward = _graded_failure_reward(
+                l2_dist,
+                reasoning_score,
+                ade_threshold=ade_threshold,
+                reasoning_threshold=reasoning_threshold,
+                cot_decoded=pred_cot_decoded,
+            )
 
         logger.debug(
             f"[compute_reward] l2={l2_dist:.3f} judge_raw={judge_raw} reasoning={reasoning_score:.3f} "
