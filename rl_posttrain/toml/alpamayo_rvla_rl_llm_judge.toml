@@ -14,12 +14,14 @@
 # limitations under the License.
 
 # Derived verbatim from the vendored recipe's
-# toml/alpamayo_rvla_rl_local_test_with_reasoning.toml with exactly one
-# change: the [custom.alpamayo] reasoning-grader keys (grader type / cached
-# model path / device) are dropped, because the LLM-judge reward
-# (rl_posttrain/rewards/aggregated_reward_llm_judge.py) scores reasoning via
-# the Anthropic API instead of a local grader checkpoint. The
-# [custom.alpamayo.reward] weights keep the same keys/semantics.
+# toml/alpamayo_rvla_rl_local_test_with_reasoning.toml with exactly two
+# changes:
+#   1. the [custom.alpamayo] reasoning-grader keys (grader type / cached
+#      model path / device) are dropped, because the LLM-judge reward
+#      (rl_posttrain/rewards/aggregated_reward_llm_judge.py) scores reasoning
+#      via the Anthropic API instead of a local grader checkpoint. The
+#      [custom.alpamayo.reward] weights keep the same keys/semantics.
+#   2. group_reward_calculation = true (see comment at the key).
 # Placeholder paths below (output_dir, model_name_or_path) are patched into
 # a scratch copy by rl_posttrain/training/run.py at job time, never edited
 # here.
@@ -102,6 +104,13 @@ mu_iterations = 1
 mini_batch = 1
 min_filter_prefix_tokens = 1
 allowed_outdated_steps = 50
+# Hand each prompt's full rollout group to the reward fn in ONE call so the
+# judge's API latency can be hidden behind a thread pool
+# (aggregated_reward_llm_judge.compute_reward_batch). The default per-rollout
+# serial loop paid 12 x (judge latency) per group -- slow enough to starve
+# train batches past cosmos-rl's 10-min NCCL watchdog on canary
+# alpamayo-rl-llm-judge-canary-u0j67p (2026-07-22).
+group_reward_calculation = true
 
 [train.ckpt]
 enable_checkpoint = true

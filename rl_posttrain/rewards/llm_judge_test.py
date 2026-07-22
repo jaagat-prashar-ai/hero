@@ -19,6 +19,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from rl_posttrain.rewards.aggregated_reward_llm_judge import (  # noqa: E402
+    _run_judges_parallel,
+)
 from rl_posttrain.rewards.llm_judge import (  # noqa: E402
     JudgeRewardError,
     _build_user_message,
@@ -123,3 +126,58 @@ class TestParseSingleJudgment:
 
         with pytest.raises(json.JSONDecodeError):
             _parse_single_judgment("I think this trace is quite good.")
+
+
+class TestRunJudgesParallel:
+    # _run_judges_parallel is the pure fan-out layer of the batched reward
+    # path (group_reward_calculation); judge_fn is injected, so these tests
+    # need no network -- the real judge is only exercised by the canary run.
+
+    def test_preserves_input_order(self):
+        xyz = _straight_constant_speed_xyz()
+        jobs = [(f"trace scoring {n}", xyz) for n in (3, 9, 6)]
+        scores = _run_judges_parallel(jobs, judge_fn=lambda cot, _: int(cot.split()[-1]))
+        assert scores == [3, 9, 6]
+
+    @pytest.mark.parametrize("empty_cot", [None, "", "   "])
+    def test_missing_cot_skipped_without_judge_call(self, empty_cot):
+        calls = []
+
+        def judge(cot, _):
+            calls.append(cot)
+            return 7
+
+        scores = _run_judges_parallel(
+            [(_REAL_TRACE, None), (empty_cot, None)], judge_fn=judge
+        )
+        assert scores == [7, None]
+        assert calls == [_REAL_TRACE]
+
+    def test_all_empty_returns_all_none(self):
+        assert _run_judges_parallel([("", None), (None, None)], judge_fn=None) == [None, None]
+
+    def test_judge_error_propagates(self):
+        # Fail-loud policy: a persistent judge failure must crash the reward
+        # task, not silently feed a placeholder score into GRPO.
+        def judge(cot, _):
+            raise JudgeRewardError("persistent API failure")
+
+        with pytest.raises(JudgeRewardError):
+            _run_judges_parallel([(_REAL_TRACE, None)], judge_fn=judge)
+
+    def test_actually_runs_concurrently(self):
+        # Two judge calls that each block until the other has started can
+        # only both finish if they run on separate threads -- the entire
+        # point of the batched path.
+        import threading
+
+        barrier = threading.Barrier(2, timeout=5)
+
+        def judge(cot, _):
+            barrier.wait()
+            return 5
+
+        scores = _run_judges_parallel(
+            [(_REAL_TRACE, None), (_REAL_TRACE, None)], judge_fn=judge, max_workers=2
+        )
+        assert scores == [5, 5]

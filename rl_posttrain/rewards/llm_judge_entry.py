@@ -72,11 +72,17 @@ from alpamayo1_x_rl.models.reasoning_vla.weight_mapper import ReasoningVLAWeight
 
 
 def _reasoning_vla_reward_fn(to_be_evaluated, reference=None, *args, config=None, **kwargs):
-    """Compute aggregated reward for a single ReasoningVLA rollout.
+    """Compute aggregated reward for ReasoningVLA rollouts.
 
     Same shape as the vendored entry's reward fn; the compute_reward import
     is the one swapped line. sys.path is re-ensured here because cosmos-rl
-    may run this function in a process that never imported this module."""
+    may run this function in a process that never imported this module.
+
+    With [train.train_policy].group_reward_calculation on (our llm_judge
+    TOML), cosmos-rl hands the prompt's WHOLE rollout group as a list in one
+    call and expects (list, list-of-dicts) back -- that's the batched path,
+    which parallelizes the judge API calls. A single str still gets the
+    vendored one-rollout contract, so the fn stays drop-in either way."""
     import sys as _sys
     from pathlib import Path as _Path
 
@@ -85,12 +91,16 @@ def _reasoning_vla_reward_fn(to_be_evaluated, reference=None, *args, config=None
         _sys.path.insert(0, _repo_root)
 
     import alpamayo1_x_rl.state as alp_state
-    from rl_posttrain.rewards.aggregated_reward_llm_judge import compute_reward
+    from rl_posttrain.rewards.aggregated_reward_llm_judge import (
+        compute_reward,
+        compute_reward_batch,
+    )
 
     assert isinstance(reference, dict) and reference, (
         f"Expected a non-empty dict for reference, got {type(reference).__name__}: {reference!r}"
     )
-    return compute_reward(
+    fn = compute_reward_batch if isinstance(to_be_evaluated, list) else compute_reward
+    return fn(
         to_be_evaluated,
         reference,
         tokenizer=alp_state.get_tokenizer(),
