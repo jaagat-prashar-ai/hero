@@ -320,8 +320,6 @@ def _pai_cache_restore(prefix: str, dest: Path) -> bool:
 
     with ThreadPoolExecutor(max_workers=16) as pool:
         list(pool.map(_get, keys))
-    # Local dense-download marker last, so a crash mid-restore re-restores.
-    (dest / ".dense_download_complete").write_text("ok\n")
     logger.info("PAI warm cache: restore complete (%d objects)", len(keys))
     return True
 
@@ -360,16 +358,18 @@ def _pai_cache_upload_async(prefix: str, src: Path) -> None:
 def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
     """Download ALL OOD-reasoning clips within the num_chunks OOD-densest PAI
     chunks (see select_dense_ood_chunks.py for why density beats the vendored
-    random sampler). Two stages, both idempotent behind a completion marker
-    written only after the full download succeeds -- the mini index is written
-    BEFORE the bulk download, so its existence alone (the stock
-    _download_pai_reasoning convention) would wrongly skip a half-finished
-    multi-hundred-GB fetch after a crash."""
+    random sampler).
+
+    Both stages run UNCONDITIONALLY -- no completion-marker short-circuit.
+    The selector is cheap (two small metadata parquets) and must rerun so a
+    warm node never trains on a mini index built by an older selector (the
+    original marker skip would have reused the pre-2f4628c index containing
+    the loader-crashing boundary clips). The bulk download is incremental
+    (snapshot_download skips files already on disk), so on a warm node it
+    only fills gaps -- including chunks newly selected by a changed selector.
+    The marker is still written for the warm-cache upload gate in the caller."""
     mini_path = pai_dir / "clip_index_reasoning_mini.parquet"
     marker = pai_dir / ".dense_download_complete"
-    if marker.exists():
-        logger.info("PAI dense reasoning dataset: %s complete, skipping download", pai_dir)
-        return mini_path
 
     pai_dir.mkdir(parents=True, exist_ok=True)
     _run_streamed(
@@ -698,19 +698,25 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_mini{int(cfg['num_reasoning_clips'])}"
 
     def _fetch_reasoning_dataset() -> None:
+        # Warm-cache restore only PREFILLS bulk chunk data -- it never
+        # short-circuits the dense path, whose selector must always rerun
+        # (see _download_pai_reasoning_dense) and whose incremental download
+        # then costs ~nothing on restored/warm data.
         cache_prefix = cfg.get("pai_s3_cache_prefix")
-        already_complete = (pai_reasoning_dir / ".dense_download_complete").exists()
-        if cache_prefix and not already_complete:
+        had_marker = (pai_reasoning_dir / ".dense_download_complete").exists()
+        restored = False
+        if cache_prefix and not had_marker:
             try:
-                if _pai_cache_restore(str(cache_prefix), pai_reasoning_dir):
-                    return
+                restored = _pai_cache_restore(str(cache_prefix), pai_reasoning_dir)
             except Exception:
                 logger.exception("PAI warm cache: restore failed, falling back to HF download")
         if dense_chunks is not None:
             _download_pai_reasoning_dense(python_bin, pai_reasoning_dir, int(dense_chunks))
         else:
             _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
-        if cache_prefix and not already_complete:
+        # Upload only when this node did the fresh bulk download itself --
+        # re-uploading ~570 GB from a warm node or after a cache hit is waste.
+        if cache_prefix and not restored and not had_marker:
             _pai_cache_upload_async(str(cache_prefix), pai_reasoning_dir)
 
     if reward_mode == "llm_judge":
