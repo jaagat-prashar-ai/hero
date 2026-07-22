@@ -37,19 +37,6 @@ Here the beat 1 is "Nudge left due to construction cones blocking...," beat 2 is
 # Step 2: split each beat on its causal connective. Within a beat, _split_beat looks for "because / due to / since / as" (with "after / for" as a waker fallback tier, only used if no string connective exist). Everything before the connective is the commitment clause (what ego will do), everything after is the cause clause (why). 
 A beat with no connective is fine (it's just a commitment with no reason).
 # Thought: does this also work for the prefix idea? look more into this!!!!!!!!!!
-#
-# ANSWERED 2026-07-21 (empirical sweep, see test_closed_beat_claims_are_stable_under_prefix_truncation):
-# Yes, with one protocol rule. Tested every word-boundary prefix of every corpus string
-# (33,136 prefixes of 2,032 unique CoC strings):
-#   - parse_coc_trace never crashes on a prefix (totality holds).
-#   - Claims from CLOSED beats (beats a delimiter has already moved past) are 100% identical
-#     to what the full text's parse yields for those spans.
-#   - The still-open FINAL beat is provisional: a strong connective arriving later re-splits it.
-#     Example: "Stop for the stop sign" alone splits on weak "for" (commitment = "Stop"), but once
-#     "because cross traffic..." arrives, "because" wins the whole beat and "stop sign" lands on the
-#     commitment side. ~0.5% of prefixes flip a commitment this way; dangling connectives
-#     ("Nudge left due to") also produce empty-cause CausalClaims until the cause streams in.
-# => Prefix-scoring protocol: score closed beats, hold the open beat until it closes.
 
 # Step 3: extract commitments from the commitemnt clause only. MANEUVER_PATTERSN (~17 regexes: nudge, lane change, merge, accelerate, stop, yield, ...) are scanned over the commitment side. Each match becomes a CommitmentClaim with a canonical manauever key, an axis (lateral vs longitudinal), and optionally a direction: "left/right" is searched in a 40-char windo after the verb, capped at the next maneuever verb so compound commitments like "change lanes to the right and enter the ramp" don't both grab the ame "right." Scopin to the commitment side is delibearte: it prevents "vehicle merging from the right" in a cause clause from being read as ego's own merge. 
 
@@ -72,52 +59,18 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # built up in layers: claim dataclasses -> maneuever/entity/state/connective lexicons (tuned against the real corpus in pref_pairs/results/scene_reasoning/*.md) -> beat/clause segmentation -> commitment and perceptual claim extraction -> parse_coc_trace orchestration. 
 # A CLI that ingests those scene_reasoning .md reports, and 12 unit tests written against real corpus strings (coc_claim_parser_test.py)
 
-# Not yet done:
+# Not yet done: 
 # The claim verifier itself (i.e., checking commitments against the TrajectoryFeature and perceptual claims against obstcle.offline)
-# The obstacle.offline integration that verification depends on.
+# The obstacle.offline integration that verification depends on. 
 # An open question here: Whether beat/connective splitting also works for prefix-style CoC text (i.e., "does this also work for the prefix idea?")
-#
 
-# ============ 2026-07-21: the verification half landed ============
-# (everything above is now DONE; per-increment rationale is in the commit messages, design docs in module docstrings)
-#
-# Four new modules, each with tests against REAL data (obstacle fixture is a real slice of clip f0d61901,
-# feature rows always come from the real extract_features, corpus strings verbatim where possible):
-#
-# 1. commitment_verifier.py — CommitmentClaim vs TrajectoryFeatures. Three-valued verdicts:
-#    PASS/FAIL/ABSTAIN, where ABSTAIN = "not decidable from ego kinematics" (keep_distance/create_gap
-#    need the other agent; enter/exit need lane geometry that doesn't exist). Tier-1 thresholds are
-#    the classifier's own yaml values so verifier and classifier can never disagree about what a
-#    lane change is. Dispatch table sync with the parser's maneuver lexicon is ASSERTED at import.
-#
-# 2. obstacle_tracks.py — the obstacle.offline integration. Key empirical fact everything rests on:
-#    every detection is in the EGO RIG FRAME AT ITS OWN INSTANT (reference_frame='rig'), x fwd / y left
-#    — so "pedestrian ahead" is a sign test, no egomotion needed. from_dataframe VALIDATES this per
-#    clip. Cache-first fetch (physical-ai-av needs py>=3.11, project env is 3.10 -> lazy import; fetch
-#    once under the alpamayo env, verify anywhere). Trap documented on the API: apparent_speed is
-#    ego-RELATIVE — a parked car "moves" at ego's speed, so world-frame 'stopped' is NOT checkable
-#    without egomotion differencing (future work).
-#
-# 3. perceptual_verifier.py — PerceptualClaim vs obstacle tracks. Existence and state verdicts kept
-#    SEPARATE, conservatively combined. Every parser entity key has an explicit mapping decision
-#    (asserted in sync): ~62% map to the 6-class vocabulary, the Phase-0 ~27% (cones/signals/zones)
-#    -> ABSTAIN, never FAIL. Attribute-carrying entities (stopped_vehicle/lead_vehicle/...) are
-#    ASYMMETRIC: can FAIL (no vehicle at all = hallucination caught) but a would-be PASS caps at
-#    ABSTAIN (nobody checked 'stopped'). Geometry-decidable states: ahead/crossing/approaching/
-#    pulling_away/blocking/encroaching/nearby.
-#
-# 4. trace_reward.py — CausalClaim = CONJUNCTION check (all effects verified AND >=1 stated cause
-#    real), deliberately NOT causation: the link itself (pedestrian real, car slowed, but not
-#    BECAUSE) needs counterfactual K-rollout machinery — future work, stated not hidden.
-#    Reward = precision over DECIDED claims (ABSTAIN out of the denominator), decided_fraction
-#    reported as the coverage caveat, small unparsed-text penalty, reward=None when nothing decided
-#    (no-signal must be distinguishable from mediocre for DPO pair mining).
-#
-# What's next:
-# - Calibrate thresholds + spot-check verdicts against ~50 hand-labeled claims (know the verifier's
-#   own error rate before trusting it as a reward signal).
-# - Wire score_trace to real harvest outputs (features rows from rollout_harvester + cached obstacle
-#   parquets per clip) and score a full scene_reasoning corpus sweep.
-# - Data audit: does 'protruding_object' cover barricades/barrels? (would move barricades out of the
-#   unverifiable bucket). Egomotion differencing for world-frame states ('stopped').
-# - Causal-link checking via counterfactuals (the pref-pairs K-rollouts are exactly the right data).
+# Understand if this approach is the best way and how we can do better?
+
+# We have worked on parsing (the parsing half is done). Next steps (concretely): 
+# obstacle.offline integration (the blocker for everything else): 
+    # The download path already exists (i.e., third/party/alpamayo-recipes/scripts/download_pai.py)
+    # This already passes obstacle.offline in its --labels flag. What's missing is a loader that turns the raw label files (what specific files are tehse, double check) into a queryable state: per clip, a list of actor tracks with class (pedestrian, vehicle, etc.), 3D positions over time, the ego-relative geometry (distance, side of ego, ahead/behind). This is the ground-truth side that perceptual verification reads from. 
+
+# The commitment verifier - CommitmentClaim vs TrajectoryFeatures  
+    # This is the easier half? pref_pairs/trajectory_features.py:113 was explicitly designed for it (this is everything that the maneuever classiifer and the downstream claim verifier need). The work here is mapping from each canonical maneuever key the parser emits (nudge, stop, yield, accelerate, lane change, ...) to a predicate over the feature row -- e.g., stop -> stop_event, yield -> yield_event, nudge(left) -> sign/magnitude of final_lateral_offset_m, accelerate -> mean_acceleration_mps2 above a threshold. 
+    # Thresholds can start from the same config values the manuever classifier uses. Since this half has zero dependencies, I'd build it first while deciding how to structure the obstacle loader. 
