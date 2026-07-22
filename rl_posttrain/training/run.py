@@ -104,6 +104,11 @@ _DEFAULTS: dict[str, Any] = {
     # 394 of the 1740 OOD clips (~570 GB of cameras) vs 1085 chunks / 6.1 TB
     # for all of them.
     "reasoning_dense_chunks": None,
+    # When set (str), the reasoning dataset dir is restored from / uploaded to
+    # s3://research-datasets-chicago/<prefix> as a warm cache, so a
+    # preemption/requeue re-pulls in-region instead of re-downloading from
+    # HuggingFace. Upload runs in the background after a fresh download.
+    "pai_s3_cache_prefix": None,
     "num_gpus": 8,
 }
 
@@ -678,10 +683,20 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_mini{int(cfg['num_reasoning_clips'])}"
 
     def _fetch_reasoning_dataset() -> None:
+        cache_prefix = cfg.get("pai_s3_cache_prefix")
+        already_complete = (pai_reasoning_dir / ".dense_download_complete").exists()
+        if cache_prefix and not already_complete:
+            try:
+                if _pai_cache_restore(str(cache_prefix), pai_reasoning_dir):
+                    return
+            except Exception:
+                logger.exception("PAI warm cache: restore failed, falling back to HF download")
         if dense_chunks is not None:
             _download_pai_reasoning_dense(python_bin, pai_reasoning_dir, int(dense_chunks))
         else:
             _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
+        if cache_prefix and not already_complete:
+            _pai_cache_upload_async(str(cache_prefix), pai_reasoning_dir)
 
     if reward_mode == "llm_judge":
         _fetch_reasoning_dataset()
