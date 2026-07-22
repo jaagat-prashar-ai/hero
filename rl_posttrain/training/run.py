@@ -247,6 +247,96 @@ def _download_pai_reasoning(python_bin: str, pai_dir: Path, num_clips: int) -> P
     return mini_path
 
 
+# In-region OCI Object Storage bucket used as a warm cache for the raw-PAI
+# reasoning dataset. Same bucket + auth pattern as build_wds (default boto3
+# credential chain + AWS_ENDPOINT_URL_S3 from the cluster yaml constants).
+# Purpose: /mnt/work is node-local, so a preemption/requeue otherwise
+# re-downloads the full dataset from HuggingFace (~570 GB for the dense-100
+# config, 1-2h + HF quota); the in-region cache restores it at datacenter
+# speed. This caches the RAW PAI layout -- it is unrelated to the
+# research-datasets WDS mirror, whose camera content is not validated for
+# training (missing frame_timestamps, see project notes 2026-07-02).
+_PAI_CACHE_BUCKET = "research-datasets-chicago"
+_PAI_CACHE_MARKER = ".cache_complete"
+
+
+def _pai_cache_client():
+    import boto3
+    from botocore.config import Config
+
+    return boto3.client(
+        "s3",
+        endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"),
+        config=Config(retries={"max_attempts": 5, "mode": "adaptive"}),
+    )
+
+
+def _pai_cache_restore(prefix: str, dest: Path) -> bool:
+    """Restore dest from s3://bucket/prefix if a completed cache exists there.
+    Returns False (without partial writes mattering -- the local completion
+    marker is restored last) when the cache is absent or incomplete."""
+    s3 = _pai_cache_client()
+    try:
+        s3.head_object(Bucket=_PAI_CACHE_BUCKET, Key=f"{prefix}/{_PAI_CACHE_MARKER}")
+    except Exception:
+        logger.info("PAI warm cache: no completed cache at s3://%s/%s", _PAI_CACHE_BUCKET, prefix)
+        return False
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    keys: list[str] = []
+    paginator = s3.get_paginator("list_objects_v2")
+    for page in paginator.paginate(Bucket=_PAI_CACHE_BUCKET, Prefix=f"{prefix}/"):
+        keys.extend(obj["Key"] for obj in page.get("Contents", []))
+    marker_key = f"{prefix}/{_PAI_CACHE_MARKER}"
+    keys = [k for k in keys if k != marker_key and not k.endswith("/")]
+    logger.info(
+        "PAI warm cache: restoring %d objects from s3://%s/%s to %s",
+        len(keys), _PAI_CACHE_BUCKET, prefix, dest,
+    )
+
+    def _get(key: str) -> None:
+        rel = key[len(prefix) + 1 :]
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(_PAI_CACHE_BUCKET, key, str(target))
+
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(_get, keys))
+    # Local dense-download marker last, so a crash mid-restore re-restores.
+    (dest / ".dense_download_complete").write_text("ok\n")
+    logger.info("PAI warm cache: restore complete (%d objects)", len(keys))
+    return True
+
+
+def _pai_cache_upload_async(prefix: str, src: Path) -> None:
+    """Best-effort background upload of src to the warm cache; the completion
+    marker is written last so readers never see a partial cache. Runs in a
+    daemon thread so training starts immediately after the HF download."""
+
+    def _upload() -> None:
+        try:
+            s3 = _pai_cache_client()
+            from concurrent.futures import ThreadPoolExecutor
+
+            files = [p for p in src.rglob("*") if p.is_file() and p.name != _PAI_CACHE_MARKER]
+
+            def _put(p: Path) -> None:
+                s3.upload_file(str(p), _PAI_CACHE_BUCKET, f"{prefix}/{p.relative_to(src)}")
+
+            with ThreadPoolExecutor(max_workers=16) as pool:
+                list(pool.map(_put, files))
+            s3.put_object(Bucket=_PAI_CACHE_BUCKET, Key=f"{prefix}/{_PAI_CACHE_MARKER}", Body=b"ok\n")
+            logger.info(
+                "PAI warm cache: uploaded %d objects to s3://%s/%s",
+                len(files), _PAI_CACHE_BUCKET, prefix,
+            )
+        except Exception:
+            logger.exception("PAI warm cache: background upload failed (cache is best-effort)")
+
+    threading.Thread(target=_upload, daemon=True, name="pai-cache-upload").start()
+
+
 def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
     """Download ALL OOD-reasoning clips within the num_chunks OOD-densest PAI
     chunks (see select_dense_ood_chunks.py for why density beats the vendored
