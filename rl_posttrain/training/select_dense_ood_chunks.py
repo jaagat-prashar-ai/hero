@@ -30,6 +30,21 @@ from pathlib import Path
 
 DEFAULT_REPO_ID = "nvidia/PhysicalAI-Autonomous-Vehicles"
 
+# Constants mirroring the recipe runtime (src/alpamayo/data/pai_utils.py and
+# the alpamayo1_5_rvla_rl_pai hydra config): the runtime keeps events with
+# t0 >= START_MARGIN and t0 + END_MARGIN <= CLIP_DURATION, then the loader
+# (alpamayo_r1.load_physical_aiavdataset) asserts STRICTLY
+# t0 > num_history_steps * time_step. The boundary case -- first kept event
+# at exactly 1.6 s -- passes the runtime's >= filter and then crashes the
+# loader ("t0_us must be greater than the history time range"; killed run
+# alpamayo-rl-llm-judge-full-5ieeuh, 2026-07-22). We reproduce the runtime's
+# event view here and drop clips whose FIRST kept event would trip the
+# strict assert (the data packer always uses sample_index_in_clip=0).
+_START_MARGIN_US = int(1.6 * 1_000_000)
+_END_MARGIN_US = int(6.4 * 1_000_000)
+_CLIP_DURATION_US = 20_000_000
+_HISTORY_RANGE_US = int(16 * 0.1 * 1_000_000)  # num_history_steps * time_step
+
 
 def _events_nonempty(events_cell: object) -> bool:
     """Mirror download_pai._ood_reasoning_events_nonempty: drop clips whose
@@ -38,6 +53,36 @@ def _events_nonempty(events_cell: object) -> bool:
         return events_cell is not None and len(events_cell) > 0  # type: ignore[arg-type]
     except TypeError:
         return False
+
+
+def _first_kept_event_t0_us(events_cell: object) -> int | None:
+    """First event t0 (µs) that survives the recipe runtime's margin filter,
+    parsed exactly like pai_utils._read_reasoning_data (event_start_timestamp
+    from a JSON string or an iterable of dicts). None when no event survives."""
+    import json
+
+    import numpy as np
+    import pandas as pd
+
+    if events_cell is None or (np.isscalar(events_cell) and pd.isna(events_cell)):
+        return None
+    parsed = json.loads(events_cell) if isinstance(events_cell, str) else events_cell
+    if parsed is None or not hasattr(parsed, "__iter__"):
+        return None
+    for ev in parsed:
+        if not (isinstance(ev, dict) and "event_start_timestamp" in ev):
+            continue
+        t0 = int(ev["event_start_timestamp"])
+        if t0 >= _START_MARGIN_US and t0 + _END_MARGIN_US <= _CLIP_DURATION_US:
+            return t0
+    return None
+
+
+def _loader_safe(events_cell: object) -> bool:
+    """True when the clip's first runtime-kept event also satisfies the
+    loader's STRICT history assert (t0 > history range)."""
+    t0 = _first_kept_event_t0_us(events_cell)
+    return t0 is not None and t0 > _HISTORY_RANGE_US
 
 
 def main() -> None:
@@ -60,6 +105,14 @@ def main() -> None:
     )
     if "events" in ood.columns:
         ood = ood[ood["events"].map(_events_nonempty)]
+        n_before = len(ood)
+        ood = ood[ood["events"].map(_loader_safe)]
+        if len(ood) < n_before:
+            print(
+                f"[select_dense_ood_chunks] dropped {n_before - len(ood)} clip(s) whose first "
+                "usable event t0 would fail the loader's strict history assert (t0 <= "
+                f"{_HISTORY_RANGE_US} us) or has no event surviving the margin filter"
+            )
 
     ood_ids = set(ood.index.astype(str))
     # Positional bool mask so .loc preserves clip_index's original index
