@@ -44,10 +44,18 @@ Steps 1→2 already took 3.7 min; step 3 never made it under 10.
   (`_graded_failure_reward`) instead of the flat -1.0, restoring advantage
   variance in all-fail groups; missing-CoC keeps flat -1.0.
 
-Verification: 27 pure-helper tests pass; end-to-end confirmation needs a
-canary relaunch. Diagnosis details: default `lilypad workload logs` window
-(last 4h) missed the run entirely — pass `--start-time/--end-time` around
-the `workload info` Created/Finished timestamps.
+Verification: 27 pure-helper tests pass, and relaunch canary
+`alpamayo-rl-llm-judge-canary-grq1cf` (2026-07-22, W&B run
+`research/alpamayo-rl/runs/20260722185529`) confirmed end-to-end:
+EXPERIMENT_COMPLETED, all 45 steps, median inter-step gap 29s (vs ~3.7 min
+serial before), reward_std 0.19-0.35 per step (advantage variance restored).
+One 733s mid-run stall would still have tripped the old 600s watchdog —
+the 1h timeout absorbed it, so both throughput AND timeout fixes were needed.
+Diagnosis details: default `lilypad workload logs` window (last 4h) missed
+the original run entirely — pass `--start-time/--end-time` around the
+`workload info` Created/Finished timestamps. Also: cosmos-rl replica stdout
+only lands in OCI at teardown, so a quiet log stream during training is
+normal; use W&B for live progress.
 
 ## 2026-07-02 — masking experiment C failed on every clip: `unknown mask mode: prefix`
 
