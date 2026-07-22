@@ -624,10 +624,16 @@ def inspect_logs_loop(training_fn_config: dict[str, Any], experiment_tracker: An
     """Lilypad-compatible generic entrypoint: rl_posttrain.training.run.inspect_logs_loop.
 
     GPU-free companion to rl_local_test_loop: reads the per-process cosmos-rl
-    logs already written to workspace_dir/logs by a prior run (persisted on
-    /mnt/work, not accessible from a dev workstation) and prints their
-    reward/wandb-link lines. Use this instead of re-running the full,
-    expensive GPU job just to see what a completed/failed run actually did.
+    logs already written to workspace_dir/logs by a prior run and prints their
+    reward/wandb-link lines.
+
+    CAVEAT (learned 2026-07-21 via alpamayo-rl-inspect-logs-774qca): /mnt/work
+    is node-local, NOT a filesystem shared across workloads -- this entrypoint
+    saw an empty log dir while chasing the llm-judge canary crash, and that
+    canary itself re-bootstrapped its venv from scratch for the same reason.
+    So this only works if it happens to land on the same node as the run it
+    inspects. The reliable path is the live tailing/dumping that
+    _launch_cosmos_rl now does in-run; keep this as a best-effort fallback.
     """
     cfg = {**_DEFAULTS, **training_fn_config}
     log_dir = Path(cfg["workspace_dir"]) / "logs"
