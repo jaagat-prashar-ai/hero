@@ -89,3 +89,20 @@ A beat with no connective is fine (it's just a commitment with no reason).
 
 # 392 OOD clips across the 100 densest chunks (the empty-events filter trims 9 of the 1740). Launching: 
 # Selector verified 392 OOD clips across the 100 densest chunks (empty-events filter trims 9 of the 1740). Launching: 
+
+# What it trains on: 392 OOD clips (every OOD clip inside the 100 chunk densest in OOD clips - x 3 epochs = ~290 GRPO steps with shuffled dataloading).
+# That's 24x canary's clip count for ~570 GB of download instead of the 6.1 TB that literally-all-1740 would have cost (they're scattered 1.6-per-chunk across 1085 chunks).
+
+# S3 point: the recipe can't consume the WDS mirror directly (format mismatch + its camera content failed validation), but the job now mirrors the raw-PAI dataset to 
+# s3://research-datasets-chicago/pai_warm_cache/ood_dense_100chunks in the background after the HF download - so any preemption/requeue restores it in-region in minutes instead of re-paying the 1-2 HF pull 
+
+# Commits: OOD-dense chunk selector + reasoning_dense_chunks mode (verified locally: 392 clips/100 chunks)
+# + part swept into your "notes" commit, S3 warm cache restore/upload#
+# dataloader_shuffle = true (kills the period-3 metric artifact)
+# llm_judge_full_cluster.yaml + launch.sh llm-judge-full
+
+# Timeline: ~1-2 hour dataset download (first time - future runs hit the warm cache), then ~2.5-3h training with ~14k judge calls. WB experiment: 
+# reasoning_vla_llm_judge_full in research/alpamayo-rl. Remember the OCI log stream stays quiet during training - W&B is the live signal. 
+
+# the checkpoints still write to node-local /mnt/work with resume=false, so a preemption restarts training from step 0 (dataset restore is cheap now, but the training progress isn't checkpointed off-node). If preemptions bite, S3-backed checkpointing is the next piece worth building?
+# Saved details to run memory so any later session can pick up monitoring.
