@@ -269,10 +269,22 @@ def _pai_cache_client():
     import boto3
     from botocore.config import Config
 
+    # Mirrors build_wds's _OCI_BOTO_CONFIG: OCI's S3 compat rejects AWS
+    # chunked encoding ("NotImplemented: AWS chunked encoding not supported",
+    # hit on run alpamayo-rl-llm-judge-full-5ieeuh 2026-07-22).
+    # payload_signing_enabled=True disables chunking for single-shot
+    # requests only, so uploads below use put_object, never the multipart
+    # upload_file (s3transfer always chunks regardless of this config).
     return boto3.client(
         "s3",
         endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"),
-        config=Config(retries={"max_attempts": 5, "mode": "adaptive"}),
+        config=Config(
+            signature_version="s3v4",
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+            s3={"payload_signing_enabled": True},
+            retries={"max_attempts": 5, "mode": "adaptive"},
+        ),
     )
 
 
@@ -327,7 +339,10 @@ def _pai_cache_upload_async(prefix: str, src: Path) -> None:
             files = [p for p in src.rglob("*") if p.is_file() and p.name != _PAI_CACHE_MARKER]
 
             def _put(p: Path) -> None:
-                s3.upload_file(str(p), _PAI_CACHE_BUCKET, f"{prefix}/{p.relative_to(src)}")
+                with open(p, "rb") as fh:
+                    s3.put_object(
+                        Bucket=_PAI_CACHE_BUCKET, Key=f"{prefix}/{p.relative_to(src)}", Body=fh
+                    )
 
             with ThreadPoolExecutor(max_workers=16) as pool:
                 list(pool.map(_put, files))
