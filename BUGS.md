@@ -6,6 +6,36 @@ now, not routine typos.
 
 ---
 
+## 2026-07-22 — full OOD run crashed at training start: `t0_us must be greater than the history time range`
+
+**Symptom:** `alpamayo-rl-llm-judge-full-5ieeuh` (first 352-clip-scale llm-judge
+run) hit `EXPERIMENT_FAILED` 33 min in, seconds after vLLM came up — rank0
+raised `AssertionError: t0_us must be greater than the history time range`
+from `alpamayo_r1/load_physical_aiavdataset.py:98` via the prefetch server.
+The fail-fast wrapper surfaced the real traceback immediately.
+
+**Root cause:** boundary disagreement between two vendored components. The
+recipe's `pai_utils.filter_clips_by_event_t0s` keeps OOD events with
+`t0 >= start_safe_margin_seconds` (1.6 s, `>=`), but the loader asserts
+STRICTLY `t0_us > num_history_steps * time_step` = 16 x 0.1 s = the same
+1.6 s. **295 of 1731 OOD clips have their first surviving event at exactly
+1,600,000 µs** (timestamps evidently clamped to the margin when the dataset
+was built), so any of them crashes the loader on first touch. Small random
+canaries (16 clips, seed 42) never sampled one; scale did — 17% odds per
+clip.
+
+**Fix:** `2f4628c` — select_dense_ood_chunks.py reproduces the runtime's
+event-margin filter and drops clips whose first kept event fails the strict
+assert (the data packer always reads `sample_index_in_clip=0`). The margin
+isn't reachable via hydra overrides (the dataset ctor doesn't expose it), so
+selection-time filtering is the only non-vendored-edit fix. Densest-100
+config: 392 -> 352 clips.
+
+Same-day sibling fix: `9bc5bd5` — the S3 warm-cache upload failed with
+`NotImplemented: AWS chunked encoding not supported` (OCI S3 compat);
+uploads must use put_object + payload signing, never boto3 upload_file
+(build_wds already knew this — its `_OCI_BOTO_CONFIG` comment documents it).
+
 ## 2026-07-22 — llm-judge canary died at step 3: NCCL watchdog killed a reward-starved policy
 
 **Symptom:** `alpamayo-rl-llm-judge-canary-u0j67p` (8-GPU a100 node, reward_mode
