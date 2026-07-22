@@ -1,0 +1,96 @@
+name: alpamayo-rl-llm-judge-full
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
+  # cosmos-rl fans out to the node's GPUs itself, so this must be one
+  # process that sees all of them, not Lilypad's per-rank replicas.
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    # ── Workspace ─────────────────────────────────────────────────────────────
+    # SAME persistent root as llm_judge_cluster.yaml: venv + converted model
+    # are reused when the job lands on a warm node; the dataset lands in its
+    # own parameter-stamped subdir (PAI_Reasoning_dense100/), so canary and
+    # full runs can never satisfy each other's download step.
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Reward ────────────────────────────────────────────────────────────────
+    reward_mode: "llm_judge"
+
+    # ── Dataset: the "extensive OOD" configuration ────────────────────────────
+    # All OOD clips inside the 100 chunks densest in OOD clips = 394 of the
+    # 1740 OOD clips for ~570 GB of camera download (vs 6.1 TB for all 1740,
+    # which are scattered ~1.6-per-chunk across 1085 chunks -- measured
+    # 2026-07-22, see select_dense_ood_chunks.py). reasoning_dense_chunks
+    # supersedes num_reasoning_clips.
+    reasoning_dense_chunks: 100
+
+    # Warm-cache the downloaded raw-PAI dataset in the in-region bucket so a
+    # preemption/requeue restores it at datacenter speed instead of paying
+    # the ~570 GB HuggingFace download again.
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+
+    # ── Cosmos-RL TOML overrides ──────────────────────────────────────────────
+    dp_shard_size: 4
+    # 3 epochs over ~394 clips ≈ 295 GRPO steps ≈ 2.5-3h of training and
+    # ~14k judge API calls -- enough repetition for per-clip learning signal
+    # without heavy memorization of a small set.
+    train_epoch: 3
+
+    # ── W&B ───────────────────────────────────────────────────────────────────
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_llm_judge_full"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # Heavy bootstrapped-venv install (torch/vllm/flash-attn from source) --
+  # same allowance as cluster.yaml.
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+    # The LLM-judge reward calls the Anthropic API from the GPU worker.
+    # launch.sh's llm-judge-full command bridges ~/.creds/anthropic.key into
+    # this when unset (same convention as pref_pairs' generators/judges).
+    - ANTHROPIC_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
+      - "^build_wds/"
+      - "^masking/"
+      # UNLIKE cluster.yaml, pref_pairs/ code must ship: the judge reward
+      # imports pref_pairs.judge_reasoning_pairs (waypoint-table derivation)
+      # and pref_pairs.perturbation_generator (credential/JSON helpers).
+      # Only the 46M generated-results tree stays excluded.
+      - "^pref_pairs/results/"
+      - "^autovla/"
+      - "^third_party/alpamayo1.5/"
+      # perplexity/alpamayo/ar1_venv (8.1G, a checked-out venv) and
+      # perplexity/clip_cache (2.1G of sample mp4s) are not needed by this
+      # job and would otherwise dominate the code upload.
+      - "^perplexity/"

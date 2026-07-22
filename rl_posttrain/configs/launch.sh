@@ -29,6 +29,9 @@ Commands:
   llm-judge            Launch GRPO with the LLM-as-judge reasoning reward
                        (llm_judge_cluster.yaml; bridges ~/.creds/anthropic.key
                        into ANTHROPIC_API_KEY when unset)
+  llm-judge-full       Extensive OOD run: all OOD clips in the 100 densest
+                       chunks (~394 clips, ~570 GB), 3 epochs, S3 warm cache
+                       (llm_judge_full_cluster.yaml; same key bridging)
   inspect-logs         GPU-free: read a prior run's per-process cosmos-rl logs
                        from /mnt/work (reward/wandb lines) without re-running
                        the expensive GPU job (inspect_logs.yaml)
@@ -97,7 +100,7 @@ case "${cmd}" in
         launch_py "${SCRIPT_DIR}/cluster.yaml" "$@"
         ;;
 
-    llm-judge)
+    llm-judge|llm-judge-full)
         # Bridge the project's ~/.creds/anthropic.key convention into
         # ANTHROPIC_API_KEY (required_environment_variables entry) when the
         # caller hasn't exported one -- mirrors
@@ -106,7 +109,11 @@ case "${cmd}" in
             ANTHROPIC_API_KEY="$(<"${HOME}/.creds/anthropic.key")"
             export ANTHROPIC_API_KEY
         fi
-        launch_py "${SCRIPT_DIR}/llm_judge_cluster.yaml" "$@"
+        if [[ "${cmd}" == "llm-judge-full" ]]; then
+            launch_py "${SCRIPT_DIR}/llm_judge_full_cluster.yaml" "$@"
+        else
+            launch_py "${SCRIPT_DIR}/llm_judge_cluster.yaml" "$@"
+        fi
         ;;
 
     inspect-logs)
