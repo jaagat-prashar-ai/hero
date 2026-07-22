@@ -55,13 +55,34 @@ source_lilypad_creds() {
     source "${HOME}/.creds/lilypad.env"
 }
 
+# Pick an interpreter that can actually import the lilypad SDK. The naive
+# `python3` fallback breaks when the repo's .venv is active: that venv has no
+# lilypad_py installed, and the repo-root `lilypad/` dir (which holds only our
+# launch.py) then shadows the SDK namespace package entirely, so launch.py
+# dies with `ModuleNotFoundError: No module named 'lilypad.public'`. The
+# system python merges both namespace-package halves (repo lilypad/ + user
+# site-packages lilypad/) and works, so probe candidates instead of assuming.
+find_lilypad_python() {
+    local candidate
+    for candidate in "${LILYPAD_PYTHON}" python3 /usr/bin/python3; do
+        if [[ -x "${candidate}" ]] || command -v "${candidate}" >/dev/null 2>&1; then
+            if "${candidate}" -c "import lilypad.public.schemas.workload_config" >/dev/null 2>&1; then
+                echo "${candidate}"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
 launch_py() {
     source_lilypad_creds || true
-    if [[ -x "${LILYPAD_PYTHON}" ]]; then
-        "${LILYPAD_PYTHON}" "${LAUNCH_PY}" "$@"
-    else
-        python3 "${LAUNCH_PY}" "$@"
+    local py
+    if ! py="$(find_lilypad_python)"; then
+        echo "error: no python with the lilypad SDK found (tried LILYPAD_PYTHON, python3, /usr/bin/python3); pip install lilypad_py" >&2
+        return 1
     fi
+    "${py}" "${LAUNCH_PY}" "$@"
 }
 
 cmd="${1:-}"
