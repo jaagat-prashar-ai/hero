@@ -2,9 +2,12 @@ name: alpamayo-rl-inspect-logs
 model_identifier: other.other.log_inspection.default.v1
 workload_variant_config:
   # GPU-free: just reads cosmos-rl's per-process log files already written to
-  # workspace_dir/logs by a prior rl_local_test_loop run (persisted on
-  # /mnt/work) and prints their reward/wandb lines -- much cheaper than
-  # relaunching the full GPU job just to see what it did.
+  # workspace_dir/logs by a prior rl_local_test_loop run and prints their
+  # reward/wandb lines -- much cheaper than relaunching the full GPU job just
+  # to see what it did. CAVEAT: /mnt/work is node-local, not shared across
+  # workloads (verified 2026-07-21), so this is best-effort only -- it works
+  # only if this job lands on the same node as the run being inspected. The
+  # in-run tailing in _launch_cosmos_rl is the reliable log source.
   workload_type: "generic"
   entrypoint_fn: rl_posttrain.training.run.inspect_logs_loop
   entrypoint_fn_config:
