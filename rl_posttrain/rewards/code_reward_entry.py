@@ -457,12 +457,30 @@ def _reasoning_vla_reward_fn(to_be_evaluated, reference=None, *args, config=None
 
 
 def _read_ckpt_path_from_toml() -> str:
-    """[policy].model_name_or_path from the COSMOS_CONFIG TOML -- tiny copy
-    of the vendored launcher's private helper rather than an import of it,
-    so this file's only vendored dependencies are public entry points."""
+    """[policy].model_name_or_path from the Cosmos TOML -- tiny copy of the
+    vendored launcher's private helper rather than an import of it, so this
+    file's only vendored dependencies are public entry points.
+
+    The TOML path comes from `--config <path>` in sys.argv: cosmos-rl's
+    controller/replica shells invoke the entry as
+    `python entry.py --port ... --config /tmp/<patched>.toml` and do NOT
+    export COSMOS_CONFIG into that process (canary
+    alpamayo-rl-code-reward-b2wwha, 2026-07-23, died on exactly that
+    KeyError -- COSMOS_CONFIG is run.py's head-node convention, kept here
+    only as a fallback)."""
     import tomllib
 
-    toml_path = os.environ["COSMOS_CONFIG"]
+    toml_path = None
+    for i, arg in enumerate(sys.argv):
+        if arg == "--config" and i + 1 < len(sys.argv):
+            toml_path = sys.argv[i + 1]
+            break
+    toml_path = toml_path or os.environ.get("COSMOS_CONFIG")
+    if not toml_path:
+        raise RuntimeError(
+            "No --config <path> in sys.argv and no COSMOS_CONFIG env var -- "
+            "the Cosmos orchestrator should pass --config automatically."
+        )
     with open(toml_path, "rb") as f:
         cfg = tomllib.load(f)
     return cfg["policy"]["model_name_or_path"]
