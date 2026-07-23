@@ -853,15 +853,17 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             # runs in a separate Ray task whose env is inherited independently.
             raise RuntimeError("ANTHROPIC_API_KEY is required for reward_mode=llm_judge")
         subprocess_env["ANTHROPIC_API_KEY"] = anthropic_key
+    if reward_mode in ("llm_judge", "code"):
         # cosmos-rl's NCCL watchdog aborts any communicator whose pending
         # collective hasn't completed within COSMOS_NCCL_TIMEOUT_MS (default
-        # 600000). The judge reward is API-latency-bound, so the policy ranks
-        # legitimately sit in a collective for longer than 10 minutes waiting
-        # for enough judged rollouts to fill a train batch -- exactly how
-        # canary alpamayo-rl-llm-judge-canary-u0j67p died (2026-07-22): step 3
-        # starved >600s, watchdog aborted, "NCCL: non-blocking enqueue timed
-        # out" on all policy ranks. 3600000 = 1h; scoped to llm_judge mode so
-        # a genuine hang in the other modes still fails at the stock 10 min.
+        # 600000). llm_judge's reward is API-latency-bound; code's reward
+        # math itself is cheap, but _load_scene's first touch of each clip's
+        # obstacle.offline chunk is an LRU-cached cold parse that can stall a
+        # rollout group the same way -- llm-judge-canary-u0j67p died from this
+        # (2026-07-22), and code-reward-ketkv3 died the identical way
+        # (2026-07-23): "NCCL: non-blocking enqueue timed out" on ranks 0/1/3.
+        # 3600000 = 1h; scoped to these two reward-path-latency-bound modes so
+        # a genuine hang in reasoning/motion mode still fails at the stock 10 min.
         # COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT (default 600s) guards the rollout
         # worker's command wait against the same reward-bound stall.
         subprocess_env.setdefault("COSMOS_NCCL_TIMEOUT_MS", "3600000")

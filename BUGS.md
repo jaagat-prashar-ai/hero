@@ -6,6 +6,37 @@ now, not routine typos.
 
 ---
 
+## 2026-07-23 — code-reward canary died on NCCL watchdog: same failure as llm_judge, fix never extended to `code` mode
+
+**Symptom:** `alpamayo-rl-code-reward-ketkv3` went `EXPERIMENT_FAILED` at 26
+min. Default `lilypad workload logs` window (last 4h) missed the run entirely
+(it ran hours earlier); `--start-time/--end-time` around `workload info`'s
+Created/Finished timestamps, plus `--content-filter ERROR`, surfaced the real
+traceback out of thousands of non-error lines: `[rank0]`/`[rank1]`/`[rank3]`
+all raised `TimeoutError: NCCL: non-blocking enqueue timed out`, then
+`[cosmos] ERROR - Process 1 failed with return code 1`.
+
+**Root cause:** identical fingerprint to `alpamayo-rl-llm-judge-canary-u0j67p`
+(2026-07-22): cosmos-rl's NCCL watchdog (`COSMOS_NCCL_TIMEOUT_MS`, default
+600000 ms) aborts any communicator whose pending collective runs past 10 min.
+That entry's fix bumped the timeout to 1h, but scoped it to
+`reward_mode == "llm_judge"` only (`run.py`), reasoning that only the judge's
+Anthropic API latency could stall a rollout group that long. `code_reward_entry.py`
+shares the exact same TOML (`group_reward_calculation = true`) by design, and
+while its own docstring calls the reward math itself "cheap, not
+load-bearing," `_load_scene()` is an LRU-cached parse of each clip's
+`obstacle.offline` chunk that its own docstring flags as "the expensive
+part" — on a fresh canary every clip in the first several rollout groups is
+a cold cache miss, which can stall the collective past 600s the same way the
+judge's API calls did. `code` mode never got the timeout bump.
+
+**Fix:** extended the `COSMOS_NCCL_TIMEOUT_MS`/`COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT`
+bump in `run.py`'s `_run_on_gpu_node` to `reward_mode in ("llm_judge", "code")`,
+separating it from the `ANTHROPIC_API_KEY` check (which stays llm_judge-only).
+Relaunched as `alpamayo-rl-code-reward-ketkv3`'s successor.
+
+---
+
 ## 2026-07-23 — llm-judge full run died 3h in on ONE truncated judge response
 
 **Symptom:** `alpamayo-rl-llm-judge-full-mhebtx` went `EXPERIMENT_FAILED` at
