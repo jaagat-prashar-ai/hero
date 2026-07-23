@@ -554,6 +554,51 @@ class _CosmosLogTailer(threading.Thread):
                 logger.info("[tail %s]\n%s", f.name, "\n".join(lines))
 
 
+class _GpuKeepalive(threading.Thread):
+    """Runs a tiny matmul burst on every visible GPU every few seconds so
+    Lilypad's idle-GPU reaper doesn't kill the node during the long CPU-only
+    setup phase. The reaper is real and has struck twice: canary
+    alpamayo-rl-llm-judge-canary-xgo36t (2026-07-21, 96 min idle after a
+    replica died) and full run alpamayo-rl-llm-judge-full-lmhb35 (2026-07-22,
+    SIGINT at 61 min while the ~570 GB dataset download -- venv build,
+    model conversion, snapshot_download, all GPU-free -- was still running).
+    Reserving GPUs via ray.remote(num_gpus=8) does not count; the reaper
+    watches utilization.
+
+    Footprint is deliberately tiny (one 1024x1024 float32 matmul per GPU per
+    tick, ~4 MB); stop() frees everything and empties the CUDA cache before
+    cosmos-rl launches and claims the full devices."""
+
+    def __init__(self, interval_s: float = 5.0):
+        super().__init__(daemon=True, name="gpu-keepalive")
+        self._interval_s = interval_s
+        self._stop_event = threading.Event()
+
+    def run(self) -> None:
+        try:
+            import torch
+
+            if not torch.cuda.is_available():
+                logger.warning("gpu-keepalive: torch sees no CUDA devices, not running")
+                return
+            n = torch.cuda.device_count()
+            mats = [torch.randn(1024, 1024, device=f"cuda:{i}") for i in range(n)]
+            logger.info("gpu-keepalive: nudging %d GPU(s) every %.0fs", n, self._interval_s)
+            while not self._stop_event.wait(self._interval_s):
+                for m in mats:
+                    for _ in range(50):
+                        m @ m
+                torch.cuda.synchronize()
+            del mats
+            torch.cuda.empty_cache()
+        except Exception:
+            logger.exception("gpu-keepalive: failed (setup proceeds without it)")
+
+    def stop(self) -> None:
+        self._stop_event.set()
+        self.join(timeout=30)
+
+
 def _terminate_process_group(proc: subprocess.Popen) -> None:
     """SIGTERM (then SIGKILL) cosmos-rl's whole process group -- the launcher
     spawns its replicas via shell scripts, so killing just the launcher PID
@@ -667,6 +712,12 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     hf_home.mkdir(parents=True, exist_ok=True)
 
     logger.info("rl_posttrain: workspace_dir=%s", workspace_dir)
+
+    # Keep the reserved GPUs measurably busy through venv build / model
+    # conversion / dataset download -- see _GpuKeepalive for the two runs the
+    # idle-GPU reaper killed. Stopped right before cosmos-rl launches.
+    keepalive = _GpuKeepalive()
+    keepalive.start()
 
     from rl_posttrain.training.bootstrap_venv import ensure_recipe_venv
 
@@ -799,6 +850,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         subprocess_env.setdefault("COSMOS_NCCL_TIMEOUT_MS", "3600000")
         subprocess_env.setdefault("COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT", "3600")
 
+    keepalive.stop()
     _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
 
     logger.info("rl_posttrain: cosmos-rl run finished, checkpoints under %s", train_output_dir)
