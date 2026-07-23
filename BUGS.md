@@ -6,6 +6,27 @@ now, not routine typos.
 
 ---
 
+## 2026-07-22 — full OOD run SIGINT'd at 61 min: idle-GPU reaper vs. GPU-free setup phase
+
+**Symptom:** `alpamayo-rl-llm-judge-full-lmhb35` went `EXPERIMENT_STOPPED` at
+1h 1m with zero application errors — "terminated gracefully with SIGINT" at
+22:48:30 while the ~570 GB dataset download (started 21:54) was still
+running. No W&B run was ever created; training never started.
+
+**Root cause:** the entire setup phase — venv build, model conversion,
+`snapshot_download` — is CPU/network-only, and Lilypad's idle-GPU reaper
+watches GPU *utilization*, not ray reservations (`num_gpus=8` doesn't
+count). Second confirmed strike: canary `xgo36t` (2026-07-21) was killed the
+same way after a replica died and the survivors idled 96 min. Run `5ieeuh`
+survived only because its node downloaded fast enough (~21 min) to reach
+vLLM before the threshold; `lmhb35`'s node was slower and crossed ~60 min
+idle.
+
+**Fix:** `2e6f26f` — `_GpuKeepalive` daemon thread in run.py runs a tiny
+matmul burst (1024x1024, ~4 MB) on every visible GPU every 5 s from task
+start until just before cosmos-rl launches, then frees memory and empties
+the CUDA cache. Relaunched as `alpamayo-rl-llm-judge-full-mhebtx`.
+
 ## 2026-07-22 — full OOD run crashed at training start: `t0_us must be greater than the history time range`
 
 **Symptom:** `alpamayo-rl-llm-judge-full-5ieeuh` (first 352-clip-scale llm-judge
