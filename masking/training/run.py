@@ -12,6 +12,7 @@ Experiments
 experiment=a  Masked vs unmasked ADE across all clips (batch experiment A).
 experiment=b  Per-word steering salience, top-20 ranked words (batch experiment B).
 experiment=c  Prefix/suffix threshold sweep: ADE vs. CoT word position (batch experiment C).
+experiment=d  Commitment/perceptual clause-order reversal via forced CoC decode (batch experiment D).
 
 Resuming
 --------
@@ -438,6 +439,9 @@ def masking_loop(
                     result = _run_experiment_b(model, model_inputs, seed, concepts)
                 elif experiment == "c":
                     result = _run_experiment_c(model, model_inputs, seed, threshold_words)
+                elif experiment == "d":
+                    from masking.training.experiment_d_reversal import run_experiment_d
+                    result = run_experiment_d(model, model_inputs, seed)
                 else:
                     raise ValueError(f"Unknown experiment: {experiment!r}")
 
@@ -462,6 +466,12 @@ def masking_loop(
                     logger.info("  n_words=%d  prefix_ade_range=[%.4f, %.4f]",
                                 result.get("n_words_total", 0),
                                 min(sweep_adel, default=0.0), max(sweep_adel, default=0.0))
+                elif experiment == "d":
+                    logger.info("  beats_reversed=%d/%d  ade_control=%.4f  ade_reversal=%s",
+                                result.get("n_beats_reversed", 0), result.get("n_beats", 0),
+                                result.get("ade_control_m", 0.0),
+                                ("%.4f" % result["ade_reversal_m"])
+                                if result.get("ade_reversal_m") is not None else "n/a")
                 else:
                     logger.info("  ade_m=%.4f  n_masked=%d",
                                 result.get("ade_m", 0.0),
