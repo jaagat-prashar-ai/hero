@@ -47,6 +47,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import sys
 import threading
 import time
@@ -138,6 +139,32 @@ def _parse_single_judgment(text: str) -> dict[str, Any]:
     return parsed
 
 
+_SCORE_RE = re.compile(r'"action_consistency_score"\s*:\s*(\d{1,2})\b')
+
+
+def _salvage_score(text: str) -> int | None:
+    """Recovers the judge's score from a response whose JSON is unparseable
+    because it was cut off partway through the rationale STRING -- the score
+    field, emitted first per the output contract, is already complete.
+
+    This is NOT a placeholder score (module docstring's failure policy):
+    it is the exact integer the judge produced; only the log-only rationale
+    is lost. Full run alpamayo-rl-llm-judge-full-mhebtx (2026-07-23) died
+    3h in on exactly this shape -- `Unterminated string starting at ...
+    column 55`, i.e. the char right after `"one_line_rationale": "` --
+    because parse failure burned the single content retry and then raised.
+
+    Returns None (caller falls back to retry-then-raise) unless exactly one
+    score pattern is present and in range -- ambiguity means salvage would
+    be guessing, which IS the corruption the failure policy exists to
+    prevent."""
+    matches = _SCORE_RE.findall(text)
+    if len(matches) != 1:
+        return None
+    score = int(matches[0])
+    return score if 0 <= score <= 10 else None
+
+
 def normalize_score(score: int) -> float:
     """Maps the judge's 0-10 integer onto the recipe's reasoning-score scale.
 
@@ -188,6 +215,10 @@ def _get_client():
 # request) raise immediately -- retrying those only delays the inevitable.
 _BACKOFF_S = (2, 5, 15, 30, 60)
 
+# Fresh-call retries for refusals / unparseable judgments before the
+# fail-loud raise (see judge_trace's docstring for why 1 was too few).
+_CONTENT_RETRIES = 3
+
 
 def judge_trace(
     trace: str,
@@ -202,8 +233,15 @@ def judge_trace(
       - transport layer: transient API errors (rate limit / overload /
         timeout) retry on _BACKOFF_S; the SDK's own built-in retries sit
         below this as a first line of defense.
-      - content layer: a refusal or invalid/unparseable judgment gets ONE
-        fresh call (not a repair turn), then raises JudgeRewardError.
+      - content layer: a refusal or invalid/unparseable judgment gets up to
+        _CONTENT_RETRIES fresh calls (not repair turns), then raises
+        JudgeRewardError. Was 1: full run alpamayo-rl-llm-judge-full-mhebtx
+        (2026-07-23) showed that at ~14k judge calls per run, a failure
+        shape that repeats twice kills an 8-GPU node 3h in -- so truncated
+        JSON is first salvaged (_salvage_score: the score integer is
+        complete even when the rationale string is cut), a max_tokens
+        truncation doubles the budget for the retry, and only then does the
+        fail-loud policy apply.
     """
     import anthropic
 
@@ -211,13 +249,14 @@ def judge_trace(
     waypoint_table = waypoint_table_from_xyz(waypoints_xyz, hz)
     user_message = _build_user_message(trace, waypoint_table)
 
-    content_retries_left = 1
+    content_retries_left = _CONTENT_RETRIES
+    max_tokens = 512
     attempt = 0
     while True:
         try:
             response = client.beta.messages.create(
                 model=model,
-                max_tokens=512,
+                max_tokens=max_tokens,
                 # Same server-side-fallback pattern as the pairwise judge and
                 # perturbation_generator: a Fable 5 policy refusal retries on
                 # Opus 4.8 within the same API call.
@@ -238,16 +277,38 @@ def judge_trace(
         if response.stop_reason == "refusal":
             if content_retries_left > 0:
                 content_retries_left -= 1
-                logger.warning("judge_trace: refused even with fallback, retrying once")
+                logger.warning(
+                    "judge_trace: refused even with fallback, %d retries left",
+                    content_retries_left,
+                )
                 continue
-            raise JudgeRewardError("judge refused after retry")
+            raise JudgeRewardError(f"judge refused after {_CONTENT_RETRIES} retries")
 
         text = next((b.text for b in response.content if b.type == "text"), "")
         try:
             return _parse_single_judgment(text)["action_consistency_score"]
         except (json.JSONDecodeError, JudgeRewardError) as e:
+            salvaged = _salvage_score(text)
+            if salvaged is not None:
+                logger.warning(
+                    "judge_trace: unparseable judgment (%s) but score %d salvaged "
+                    "from response text (rationale lost)", e, salvaged,
+                )
+                return salvaged
             if content_retries_left > 0:
                 content_retries_left -= 1
-                logger.warning("judge_trace: invalid judgment (%s), retrying once", e)
+                if response.stop_reason == "max_tokens" and max_tokens < 2048:
+                    max_tokens *= 2
+                    logger.warning(
+                        "judge_trace: judgment truncated at max_tokens, retrying with %d",
+                        max_tokens,
+                    )
+                else:
+                    logger.warning(
+                        "judge_trace: invalid judgment (%s), %d retries left",
+                        e, content_retries_left,
+                    )
                 continue
-            raise JudgeRewardError(f"invalid judgment after retry: {e}") from e
+            raise JudgeRewardError(
+                f"invalid judgment after {_CONTENT_RETRIES} retries: {e}"
+            ) from e
