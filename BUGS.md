@@ -6,6 +6,52 @@ now, not routine typos.
 
 ---
 
+## 2026-07-23 — llm-judge full run died 3h in on ONE truncated judge response
+
+**Symptom:** `alpamayo-rl-llm-judge-full-mhebtx` went `EXPERIMENT_FAILED` at
+3h 1m (after surviving a node preemption + rebuild): rank0 raised
+`JudgeRewardError: invalid judgment after retry: Unterminated string
+starting at: line 1 column 55 (char 54)` and the whole cosmos-rl job tore
+down.
+
+**Root cause:** the judge's JSON response was cut off immediately after
+`"one_line_rationale": "` (column 55 is that exact position). The score
+integer earlier in the object was complete — but `_parse_single_judgment`
+does a strict `json.loads`, the content-retry budget was a single fresh
+call, and the same truncation shape repeating twice hit the fail-loud
+raise. At ~14k judge calls per full run, a rare per-call failure shape is a
+per-run certainty.
+
+**Fix:** `8e20390` — `_salvage_score` recovers the (complete, unambiguous)
+score integer from truncated response text before burning a retry — it's
+the judge's actual emitted score, only the log-only rationale is lost, so
+the no-placeholder-rewards policy holds; `stop_reason == "max_tokens"`
+doubles the token budget on retry instead of re-rolling; content retries
+1 → 3. Fail-loud raise unchanged after that.
+
+---
+
+## 2026-07-23 — code-reward canary crashed at controller start: `KeyError: 'COSMOS_CONFIG'`
+
+**Symptom:** `alpamayo-rl-code-reward-b2wwha` (first code-as-a-reward
+canary) went `EXPERIMENT_FAILED` 15 min in; every cosmos-rl process died
+immediately with `KeyError: 'COSMOS_CONFIG'` in
+`code_reward_entry._read_ckpt_path_from_toml`.
+
+**Root cause:** the entry's ckpt-path helper was copied from **run.py's**
+`_read_ckpt_path_from_toml` (head-node convention: `COSMOS_CONFIG` env
+var) instead of the **vendored launcher's** same-named helper. cosmos-rl
+invokes entry scripts as `python entry.py --port ... --config
+/tmp/<patched>.toml` and does not export `COSMOS_CONFIG` — the config
+path only exists in argv. Two same-named helpers with different
+contracts; the wrong one was mirrored.
+
+**Fix:** `f06ecc0` — parse `--config <path>` from `sys.argv` (the vendored
+launcher's behavior), keep the env var only as a fallback for head-node
+style invocation.
+
+---
+
 ## 2026-07-22 — full OOD run SIGINT'd at 61 min: idle-GPU reaper vs. GPU-free setup phase
 
 **Symptom:** `alpamayo-rl-llm-judge-full-lmhb35` went `EXPERIMENT_STOPPED` at
