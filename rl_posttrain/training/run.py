@@ -48,7 +48,9 @@ Full config reference (all keys optional, defaults shown):
     reward_mode:        null    # null (derive from `reasoning`) | "motion" |
                                 # "reasoning" | "llm_judge" (Anthropic-API
                                 # trajectory-grounded judge; needs
-                                # ANTHROPIC_API_KEY at submit time)
+                                # ANTHROPIC_API_KEY at submit time) | "code"
+                                # (deterministic code-as-a-reward claim
+                                # verifier; local CPU, no API key)
     num_reasoning_clips: 16     # reasoning/llm_judge modes: download_pai.py
                                 # --num-reasoning-clips (dataset size)
     num_gpus:           8       # GPUs to request for the ray.remote GPU-node task
@@ -88,10 +90,13 @@ _DEFAULTS: dict[str, Any] = {
     "reasoning": False,
     # Reward mode: null (derive from legacy `reasoning` bool: false->"motion",
     # true->"reasoning"), or explicitly one of "motion" | "reasoning" |
-    # "llm_judge". "llm_judge" uses our own entry script + TOML template
-    # (rl_posttrain/rewards/, rl_posttrain/toml/) that swap the recipe's
-    # Lingo-Judge grader for the Anthropic-API trajectory-grounded judge --
-    # requires ANTHROPIC_API_KEY in the environment at submit time.
+    # "llm_judge" | "code". "llm_judge" uses our own entry script + TOML
+    # template (rl_posttrain/rewards/, rl_posttrain/toml/) that swap the
+    # recipe's Lingo-Judge grader for the Anthropic-API trajectory-grounded
+    # judge -- requires ANTHROPIC_API_KEY in the environment at submit time.
+    # "code" swaps in the deterministic code-as-a-reward claim verifier
+    # (rl_posttrain/rewards/code_reward_entry.py) instead: same dataset and
+    # TOML template as llm_judge, no API key, reward computed locally.
     "reward_mode": None,
     # "llm_judge"/"reasoning" modes train on reasoning-bearing PAI clips
     # (download_pai.py --only-reasoning-chunks) instead of the pai_chunk_ids
@@ -454,14 +459,15 @@ def _dump_latest_cosmos_logs(log_dir: Path, tail_lines: int = 200) -> None:
 
 
 def _resolve_reward_mode(cfg: dict[str, Any]) -> str:
-    """Returns one of "motion" | "reasoning" | "llm_judge". The explicit
-    reward_mode key wins; when unset (None), falls back to the legacy
-    `reasoning` bool so pre-existing configs keep their exact behavior."""
+    """Returns one of "motion" | "reasoning" | "llm_judge" | "code". The
+    explicit reward_mode key wins; when unset (None), falls back to the
+    legacy `reasoning` bool so pre-existing configs keep their exact
+    behavior."""
     mode = cfg.get("reward_mode")
     if mode is None:
         return "reasoning" if bool(cfg["reasoning"]) else "motion"
-    if mode not in ("motion", "reasoning", "llm_judge"):
-        raise ValueError(f"reward_mode must be motion|reasoning|llm_judge, got {mode!r}")
+    if mode not in ("motion", "reasoning", "llm_judge", "code"):
+        raise ValueError(f"reward_mode must be motion|reasoning|llm_judge|code, got {mode!r}")
     return mode
 
 
@@ -774,6 +780,17 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         _fetch_reasoning_dataset()
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "llm_judge_entry.py"
+    elif reward_mode == "code":
+        # Same reasoning-bearing dataset as llm_judge (the reward scores
+        # decoded CoC, and its perceptual verifier reads the
+        # obstacle.offline labels this download already includes) and the
+        # SAME TOML template -- the [custom.alpamayo.reward] weights, gates
+        # and group_reward_calculation are shared by design so a code run
+        # differs from a judge run in the reasoning signal only. Only the
+        # entry script changes.
+        _fetch_reasoning_dataset()
+        template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
+        entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "code_reward_entry.py"
     elif reward_mode == "reasoning":
         _fetch_reasoning_dataset()
         template_path = RECIPE_DIR / "toml" / "alpamayo_rvla_rl_local_test_with_reasoning.toml"
@@ -825,9 +842,9 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         subprocess_env["HF_TOKEN"] = hf_token
     if wandb_key:
         subprocess_env["WANDB_API_KEY"] = wandb_key
-    if reward_mode in ("reasoning", "llm_judge"):
-        # Read by the reasoning/llm_judge entry scripts (mutually exclusive
-        # with ALPAMAYO_PAI_LOCAL_DIR, which the motion entry reads).
+    if reward_mode in ("reasoning", "llm_judge", "code"):
+        # Read by the reasoning/llm_judge/code entry scripts (mutually
+        # exclusive with ALPAMAYO_PAI_LOCAL_DIR, which the motion entry reads).
         subprocess_env["ALPAMAYO_PAI_REASONING_LOCAL_DIR"] = str(pai_reasoning_dir)
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     if reward_mode == "llm_judge":
