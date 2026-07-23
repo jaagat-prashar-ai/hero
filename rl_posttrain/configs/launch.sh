@@ -32,6 +32,9 @@ Commands:
   llm-judge-full       Extensive OOD run: all OOD clips in the 100 densest
                        chunks (~394 clips, ~570 GB), 3 epochs, S3 warm cache
                        (llm_judge_full_cluster.yaml; same key bridging)
+  code-reward          Launch GRPO with the deterministic code-as-a-reward
+                       claim verifier (code_reward_cluster.yaml; no
+                       Anthropic key needed -- reward computed on-node)
   inspect-logs         GPU-free: read a prior run's per-process cosmos-rl logs
                        from /mnt/work (reward/wandb lines) without re-running
                        the expensive GPU job (inspect_logs.yaml)
@@ -114,6 +117,10 @@ case "${cmd}" in
         else
             launch_py "${SCRIPT_DIR}/llm_judge_cluster.yaml" "$@"
         fi
+        ;;
+
+    code-reward)
+        launch_py "${SCRIPT_DIR}/code_reward_cluster.yaml" "$@"
         ;;
 
     inspect-logs)
