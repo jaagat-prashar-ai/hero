@@ -27,6 +27,7 @@ from rl_posttrain.rewards.llm_judge import (  # noqa: E402
     JudgeRewardError,
     _build_user_message,
     _parse_single_judgment,
+    _salvage_score,
     normalize_score,
     waypoint_table_from_xyz,
 )
@@ -127,6 +128,35 @@ class TestParseSingleJudgment:
 
         with pytest.raises(json.JSONDecodeError):
             _parse_single_judgment("I think this trace is quite good.")
+
+
+class TestSalvageScore:
+    def test_truncated_rationale_salvages_score(self):
+        # The exact failure shape that killed alpamayo-rl-llm-judge-full-mhebtx
+        # (2026-07-23): JSON cut off right after the rationale string opens.
+        assert _salvage_score('{"action_consistency_score": 7, "one_line_rationale": "the tr') == 7
+
+    def test_two_digit_score(self):
+        assert _salvage_score('{"action_consistency_score": 10, "one_line_rationale": "') == 10
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "no score here at all",
+            '{"action_consistency_score": 11, "one_line_rationale": "out of range',
+            # Two occurrences = ambiguous; salvage must refuse to guess.
+            '{"action_consistency_score": 3} {"action_consistency_score": 8}',
+        ],
+    )
+    def test_unsalvageable_returns_none(self, text):
+        assert _salvage_score(text) is None
+
+    def test_valid_json_still_prefers_full_parse(self):
+        # Salvage only runs after _parse_single_judgment fails; a valid
+        # judgment must keep raising nothing and parsing normally.
+        good = '{"action_consistency_score": 4, "one_line_rationale": "r"}'
+        assert _parse_single_judgment(good)["action_consistency_score"] == 4
+        assert _salvage_score(good) == 4
 
 
 class TestRunJudgesParallel:
