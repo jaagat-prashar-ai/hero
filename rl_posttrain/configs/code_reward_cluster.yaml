@@ -51,7 +51,11 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # NOT preemptible -- same reasoning as llm_judge_full_cluster.yaml: training
+  # has no cosmos-rl resume, so every preemption restarts from step 0 after a
+  # ~35 min env rebuild; llm-judge-full run q00jjc (2026-07-23) proved the
+  # pool preempts A100 workers every ~2h15m, faster than a full run.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true
