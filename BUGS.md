@@ -6,6 +6,49 @@ now, not routine typos.
 
 ---
 
+## 2026-07-23 — llm-judge-full q00jjc could never finish: preemption cadence (~2h15m) shorter than run length, no training resume
+
+**Symptom:** `alpamayo-rl-llm-judge-full-q00jjc` went `EXPERIMENT_FAILED` after
+14h48m. W&B shows 6 crashed `reasoning_vla_llm_judge_full` attempts inside the
+one workload, every one dying at almost exactly `_runtime` ≈ 8100 s at step
+148-149 of 264 — constant *time* of death with slightly varying *step*, across
+different per-step speeds (34-46 s/it) and different nodes.
+
+**Root cause:** external preemption, not a code bug. The job driver logged
+`ray.exceptions.NodeDiedError` for a different worker node each cycle, and the
+worker pod's fluentd sidecar logged `Received graceful stop` (Kubernetes
+SIGTERM) at the exact crash instants (confirmed 08:56 and 21:02 UTC crashes in
+OCI Log Analytics). The config ran `preemptible: always` +
+`requeue_if_preempted: true`, betting the S3 warm cache made requeues cheap —
+but cosmos-rl runs with `train.resume: false` and a freshly timestamped
+`output_dir` per attempt, so its every-50-step checkpoints are never resumed
+and each requeue restarts training at step 0 after ~35 min of env rebuild.
+With the us-chicago-1 A100 pool preempting this worker every ~2h15m and a full
+run needing ~2.5-3h, the run mathematically could not complete; requeueing
+just burned 8 GPUs for 15 hours.
+
+**Fix:** [314a11a](../../commit/314a11a), [4efba47](../../commit/4efba47) —
+`preemptible: never` in `llm_judge_full_cluster.yaml` and
+`code_reward_cluster.yaml` (waits for non-preemptible quota instead of
+being fed to the preemption cycle). Follow-up worth doing if long runs grow
+past quota patience: wire cosmos-rl checkpoint resume across requeues (stable
+`output_dir` + `train.resume: true`), which would make `preemptible: always`
+viable again.
+
+**How this was found:** W&B run list showed every recent run `crashed` with
+near-identical `_runtime`; `lilypad workload logs` only carries fluentd/env
+noise, so the tracebacks were pulled from OCI Log Analytics (`Ray Application
+Logs` source) around each crash timestamp. The 08:56 crash bonus-logged
+"Raylet is terminated ... SIGKILL by the user or system OOM killer" and the
+sidecar's simultaneous graceful stop pinned it as pod termination rather than
+in-process death. (Sibling evidence: `alpamayo-rl-code-reward-12qhs5` trained
+healthily on current master until head+worker both got graceful stops at
+19:20 UTC simultaneously = deliberate `workload stop`, status
+`EXPERIMENT_STOPPED` — distinct signature from preemption, which kills only
+the worker.)
+
+---
+
 ## 2026-07-23 — code-reward canary died on NCCL watchdog: same failure as llm_judge, fix never extended to `code` mode
 
 **Symptom:** `alpamayo-rl-code-reward-ketkv3` went `EXPERIMENT_FAILED` at 26
