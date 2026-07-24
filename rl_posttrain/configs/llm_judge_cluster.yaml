@@ -1,5 +1,9 @@
 name: alpamayo-rl-llm-judge
 model_identifier: other.training.alpamayo15.default.v1
+# Same reward-latency-bound idle-GPU-reaper risk as llm_judge_full_cluster.yaml
+# (see that file for the eigzof incident, 2026-07-24) -- this canary's shorter
+# runtime just makes it less likely to hit the reaper's window, not immune.
+ignore_idle_reaper: true
 workload_variant_config:
   # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
   # cosmos-rl fans out to the node's GPUs itself, so this must be one

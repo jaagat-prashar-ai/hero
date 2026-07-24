@@ -1,5 +1,18 @@
 name: alpamayo-rl-llm-judge-full
 model_identifier: other.training.alpamayo15.default.v1
+# The llm_judge reward blocks the GPU node on Anthropic API latency for each
+# rollout group (aggregated_reward_llm_judge.py's _run_judges_parallel) --
+# same GPU-idle-but-reserved shape as the CPU-only setup phase _GpuKeepalive
+# in run.py exists for, except that thread stops before cosmos-rl launches
+# and has no reach into training. Full run eigzof (2026-07-24) hit exactly
+# this: worker pod replaced 4x at a ~2h40m cadence, each a lone-worker
+# "graceful stop" (BUGS.md's preemption signature) despite preemptible:
+# never -- so Lilypad's idle-GPU reaper, not cloud preemption, was killing
+# it mid-training. Opt out entirely rather than extending the keepalive
+# into the reward fn: unclear whether the reaper watches per-GPU or
+# per-node utilization, and other ranks idle on an NCCL barrier during the
+# same stall regardless of which rank makes the API call.
+ignore_idle_reaper: true
 workload_variant_config:
   # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
   # cosmos-rl fans out to the node's GPUs itself, so this must be one

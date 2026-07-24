@@ -6,6 +6,53 @@ now, not routine typos.
 
 ---
 
+## 2026-07-24 — llm-judge-full eigzof: idle-GPU reaper struck mid-training, not just setup
+
+**Symptom:** `alpamayo-rl-llm-judge-full-eigzof` went `EXPERIMENT_FAILED` after
+11h1m (`preemptible: never`, confirmed via `workload info`). The worker pod
+was replaced four times at an almost perfectly regular ~2h40m cadence
+(`cjrws` 05:40-08:16, `srfrq` 08:27-11:08, `v8rz5` 11:10-13:52, `r5kzx`
+13:55-16:35), the last incarnation raising `ray.exceptions.NodeDiedError`
+and failing the job. Zero step/reward/CUDA content ever reached Ray
+Application Logs across the whole 11h.
+
+**Root cause:** each transition showed the worker pod's fluentd sidecar log
+`Received graceful stop` alone (head pod unaffected, still logging
+afterward) — the exact lone-worker signature the 2026-07-23 entry below
+attributes to external preemption, distinct from a manual `workload stop`
+(which stops head+worker simultaneously, see that entry's `12qhs5`
+sibling). But this job ran `preemptible: never`, ruling out cloud
+preemption — leaving Lilypad's idle-GPU reaper (already confirmed to
+strike twice during setup, see the 2026-07-22 entry below) as the only
+mechanism that kills a lone worker pod regardless of the preemptible flag.
+`_GpuKeepalive` in `run.py` only nudges the GPUs during the CPU-only setup
+phase and explicitly `.stop()`s right before `cosmos-rl` launches
+(`run.py:872`) — it has no reach once training starts. `llm_judge`'s
+reward is Anthropic-API-latency-bound (`aggregated_reward_llm_judge.py`'s
+`_run_judges_parallel`), which can leave the whole node's GPUs
+idle-but-reserved for long stretches during a rollout group's judge calls
+— the same shape as the setup-phase problem, just relocated to training.
+
+**Fix:** `ignore_idle_reaper: true` added to `llm_judge_full_cluster.yaml`,
+`llm_judge_cluster.yaml`, and (preemptively, same rationale as the
+NCCL-timeout extension in the 2026-07-23 entry below) `code_reward_cluster.yaml`
+— the top-level config flag `perplexity/configs/cluster.yaml` already uses
+for its own CPU-only-setup idle-reaper problem. Simpler and more robust
+than extending `_GpuKeepalive` into the reward function: unclear whether
+the reaper watches per-GPU or per-node utilization, and other ranks sit
+idle on an NCCL barrier during the same stall regardless of which rank is
+making the API call — opting the whole job out sidesteps needing to answer
+that.
+
+**How this was found:** `lilypad workload info --show-diff` confirmed
+`Preemptible: No` was live at launch (ruling out a stale config); per-
+transition-window `lilypad workload logs --start-time/--end-time` around
+each worker-pod handoff (not just the failure tail) surfaced the
+`Received graceful stop` line on the worker pod alone, matching the
+signature already documented for q00jjc/12qhs5.
+
+---
+
 ## 2026-07-23 — llm-judge-full q00jjc could never finish: preemption cadence (~2h15m) shorter than run length, no training resume
 
 **Symptom:** `alpamayo-rl-llm-judge-full-q00jjc` went `EXPERIMENT_FAILED` after

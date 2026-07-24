@@ -1,5 +1,12 @@
 name: alpamayo-rl-code-reward
 model_identifier: other.training.alpamayo15.default.v1
+# Same reward-latency-bound idle-GPU-reaper risk as llm_judge_full_cluster.yaml
+# (see that file for the eigzof incident, 2026-07-24): _load_scene's cold
+# obstacle.offline parse can stall a rollout group's reward computation the
+# same way the judge's Anthropic calls do (run.py already extends the
+# NCCL-timeout bump to this mode for the identical reason). Not yet observed
+# here, but cheap to preempt.
+ignore_idle_reaper: true
 workload_variant_config:
   # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
   # cosmos-rl fans out to the node's GPUs itself, so this must be one
