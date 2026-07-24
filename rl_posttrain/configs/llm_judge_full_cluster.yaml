@@ -49,7 +49,13 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # NOT preemptible: run q00jjc (2026-07-23) was preempted every ~2h15m
+  # (worker pod SIGTERM'd, confirmed in OCI logs), and each requeue restarts
+  # training from step 0 (~35 min env setup + no cosmos-rl resume), so at
+  # 264 steps ≈ 2.5-3h the run could never outrun the preemption cadence --
+  # 6 attempts all died at step ~148. Preemption interval < run length means
+  # "always" can never finish; wait for non-preemptible quota instead.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true
