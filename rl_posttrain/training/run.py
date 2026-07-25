@@ -869,8 +869,28 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         subprocess_env.setdefault("COSMOS_NCCL_TIMEOUT_MS", "3600000")
         subprocess_env.setdefault("COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT", "3600")
 
-    keepalive.stop()
-    _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
+    # llm_judge/code are reward-latency-bound (Anthropic API calls / cold
+    # obstacle.offline parses) and can leave all 8 GPUs idle-but-reserved for
+    # long stretches mid-training, not just during this function's CPU-only
+    # setup phase -- confirmed 2026-07-24: ignore_idle_reaper: true (added to
+    # the cluster configs for exactly this) did NOT stop the reaper from
+    # evicting the lone worker pod (llm-judge-full f6pj1y still got "Received
+    # graceful stop" mid-run at the same ~2h45m cadence as before the flag).
+    # The lilypad_py SDK's own schema docstring says the flag "opt[s] out of
+    # the idle GPU reaper alert" -- it silences the alert, not the eviction,
+    # so the workload no longer reports EXPERIMENT_FAILED but silently
+    # crash-loops training back to step 0 forever (resume=false). Keep the
+    # keepalive thread alive through the whole cosmos-rl subprocess for these
+    # two modes instead; its footprint (one tiny matmul burst per GPU every
+    # 5s) is negligible next to cosmos-rl's own kernels.
+    keepalive_through_training = reward_mode in ("llm_judge", "code")
+    if not keepalive_through_training:
+        keepalive.stop()
+    try:
+        _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
+    finally:
+        if keepalive_through_training:
+            keepalive.stop()
 
     logger.info("rl_posttrain: cosmos-rl run finished, checkpoints under %s", train_output_dir)
 

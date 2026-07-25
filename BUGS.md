@@ -6,6 +6,66 @@ now, not routine typos.
 
 ---
 
+## 2026-07-24 (later) — `ignore_idle_reaper: true` didn't fix the mid-training reaper kills; it only hid them
+
+**Symptom:** After the fix below shipped (commit `3f24da6`), both relaunched
+attempts — `alpamayo-rl-code-reward-23i8uk` and
+`alpamayo-rl-llm-judge-full-f6pj1y` — sat at `EXPERIMENT_RUNNING` in
+`lilypad workload list` for 10+ hours, which looked healthy. It wasn't:
+`research/alpamayo-rl`'s W&B runs (queried directly, since Ray Application
+Log stdout only flushes at teardown) showed `llm_judge_full` crashing and
+restarting from a **new** run ID (step 0, `resume=false`) every ~2h45m
+throughout the whole window (`...193143` crashed@step149, `...221727`
+crashed@step148, `...011821` crashed@step148, `...040343` running); `code_reward`
+hadn't produced a single new W&B run in over 10h despite the workload
+supposedly running.
+
+**Root cause:** `ignore_idle_reaper: true` does not do what the 2026-07-24
+(earlier) entry below assumed. Direct log inspection around a crash boundary
+(llm-judge-full, 21:47:26 UTC) showed the exact same signature as before the
+flag: worker pod `...-6zq9q` logs `Received graceful stop` alone (head pod
+untouched), and a **new** worker pod (`...-dkn6q`) appears minutes later
+running the full setup sequence (apt/venv/checkpoint-convert) from scratch.
+The flag only stopped Lilypad from flipping the *workload* to
+`EXPERIMENT_FAILED` — the reaper still evicts the lone idle worker pod, Ray
+now auto-relaunches inside the same workload, and training silently restarts
+from step 0 forever, burning 8xA100-hours with zero net progress while
+`workload list`/`workload info` report `EXPERIMENT_RUNNING` the entire time.
+Confirmed by reading the installed `lilypad_py==2.27.0` SDK source directly
+(`~/.local/lib/python3.10/site-packages/lilypad/public/schemas/workload_config.py:693`):
+the field's own docstring is `"Opt out of the idle GPU reaper **alert**"` —
+it silences a notification, not the termination action.
+
+**Fix:** Do what the earlier entry explicitly declined to do (extend
+`_GpuKeepalive` into the reward path) — that uncertainty is resolved now
+that `ignore_idle_reaper` is confirmed not to work. `run.py`'s
+`_run_on_gpu_node` no longer stops the keepalive thread before launching
+`cosmos-rl` for `reward_mode in ("llm_judge", "code")`; it keeps nudging all
+GPUs every 5s for the whole subprocess lifetime (`try`/`finally` around
+`_launch_cosmos_rl`), only stopping once cosmos-rl exits. Kept
+`ignore_idle_reaper: true` in the cluster configs too (harmless, still
+silences the alert noise) but it is not load-bearing for correctness anymore.
+`reasoning`/motion modes are untouched (stop keepalive before launch as
+before) since they aren't reward-latency-bound and don't need the extra
+GPU contention risk.
+
+**Still open:** `alpamayo-rl-code-reward-23i8uk` and
+`alpamayo-rl-llm-judge-full-f6pj1y` are still running the OLD code
+(pre-this-fix) and will keep crash-looping — they need to be stopped and
+relaunched on the new master once this commit lands. See
+[[project_code_as_reward_not_started]] / [[project_llm_judge_full_run]].
+
+**How this was found:** `lilypad workload list`/`workload info` alone were
+misleading (both showed healthy `EXPERIMENT_RUNNING`); the real signal was
+querying `research/alpamayo-rl` directly via the `wandb` Python API
+(`api.runs(...)`, ordered by `-created_at`) for run `state`/`_step`/
+`created_at`, which exposed the crash-restart cadence, then reading
+`lilypad workload logs --start-time/--end-time` around one exact crash
+boundary and the `lilypad_py` SDK source itself for the flag's real
+semantics.
+
+---
+
 ## 2026-07-24 — llm-judge-full eigzof: idle-GPU reaper struck mid-training, not just setup
 
 **Symptom:** `alpamayo-rl-llm-judge-full-eigzof` went `EXPERIMENT_FAILED` after
