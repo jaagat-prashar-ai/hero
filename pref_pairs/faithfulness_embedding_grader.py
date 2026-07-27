@@ -50,6 +50,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import torch
+
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _DEFAULT_JUDGED_PAIRS_PATH = _REPO_ROOT / "pref_pairs/results/judged_pairs/judged_pairs.jsonl"
 _DEFAULT_MATCHED_PAIRS_PATH = (
@@ -102,3 +104,24 @@ def load_training_triplets(
                 }
             )
     return triplets
+
+
+def waypoints_to_feature_vector(action: dict[str, Any]) -> torch.Tensor:
+    """Flatten a trajectory's (x, y) waypoints into a fixed-size numeric vector.
+
+    Args:
+        action: an `action` dict as stored on reasoning_matched_pairs.jsonl
+            rows -- must have "waypoints", a (T, 3) xyz sequence (z is held
+            constant by Alpamayo's action space, see
+            unicycle_accel_curvature.py, so only x, y carry maneuver info,
+            the same convention pref_pairs/trajectory_features.py relies on).
+
+    Returns:
+        1-D float32 tensor of length T*2 (x, y per waypoint, in time order).
+        This is the raw flattened trajectory -- not any text description or
+        hand-picked summary stat -- so WaypointProjectionHead (added in the
+        next increment) is free to learn which parts of the trajectory
+        shape matter for faithfulness, rather than inheriting our guesses.
+    """
+    xy = torch.tensor(action["waypoints"], dtype=torch.float32)[:, :2]
+    return xy.reshape(-1)
