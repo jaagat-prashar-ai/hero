@@ -46,6 +46,7 @@ inference API -> CLI/tests).
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any
@@ -354,3 +355,76 @@ class FaithfulnessEmbeddingGrader:
         with torch.no_grad():
             traj_embs = self.head(features)
         return (trace_embs * traj_embs).sum(dim=-1).tolist()
+
+
+def _triplets_to_tensors(
+    triplets: list[dict[str, Any]], text_encoder_name: str
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """(features, chosen_embeddings, rejected_embeddings) for a triplet list."""
+    features = torch.stack([waypoints_to_feature_vector(t["action"]) for t in triplets])
+    chosen = embed_traces([t["chosen_trace"] for t in triplets], text_encoder_name)
+    rejected = embed_traces([t["rejected_trace"] for t in triplets], text_encoder_name)
+    return features, chosen, rejected
+
+
+def main() -> None:
+    """Train the projection head and report held-out pairwise accuracy.
+
+    Writes head.pt (the deployable checkpoint FaithfulnessEmbeddingGrader.load
+    consumes) and eval_report.json (config + train/holdout accuracy) to
+    --out-dir. The holdout accuracy in that report is THE validation number
+    for this module -- compare it against llm_judge.py's 84.6% construction
+    agreement before trusting the grader as a pre-filter.
+    """
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    parser.add_argument("--judged-pairs", type=Path, default=_DEFAULT_JUDGED_PAIRS_PATH)
+    parser.add_argument("--matched-pairs", type=Path, default=_DEFAULT_MATCHED_PAIRS_PATH)
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=_REPO_ROOT / "pref_pairs/results/faithfulness_embedding_grader",
+    )
+    parser.add_argument("--text-encoder", default=_DEFAULT_TEXT_ENCODER)
+    parser.add_argument("--holdout-fraction", type=float, default=0.2)
+    parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--margin", type=float, default=0.2)
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--seed", type=int, default=0)
+    args = parser.parse_args()
+
+    triplets = load_training_triplets(args.judged_pairs, args.matched_pairs)
+    train, holdout = split_triplets(triplets, args.holdout_fraction, args.seed)
+    print(f"{len(triplets)} judge-agreed triplets -> {len(train)} train / {len(holdout)} holdout")
+
+    train_tensors = _triplets_to_tensors(train, args.text_encoder)
+    holdout_tensors = _triplets_to_tensors(holdout, args.text_encoder)
+
+    head, history = train_projection_head(
+        *train_tensors,
+        epochs=args.epochs,
+        lr=args.lr,
+        margin=args.margin,
+        batch_size=args.batch_size,
+        seed=args.seed,
+    )
+    report = {
+        "config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
+        "n_triplets": len(triplets),
+        "n_train": len(train),
+        "n_holdout": len(holdout),
+        "loss_first_epoch": history[0],
+        "loss_last_epoch": history[-1],
+        "train_pairwise_accuracy": pairwise_accuracy(head, *train_tensors),
+        "holdout_pairwise_accuracy": pairwise_accuracy(head, *holdout_tensors),
+    }
+
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    save_checkpoint(head, args.text_encoder, args.out_dir / "head.pt")
+    with open(args.out_dir / "eval_report.json", "w") as f:
+        json.dump(report, f, indent=2)
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()

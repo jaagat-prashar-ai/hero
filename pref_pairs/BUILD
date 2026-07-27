@@ -201,6 +201,27 @@ py_test(
 )
 
 py_library(
+    name = "faithfulness_embedding_grader",
+    srcs = ["faithfulness_embedding_grader.py"],
+    deps = [
+        # sentence-transformers is a runtime dep of the train/score paths
+        # only, imported lazily (see embed_traces) -- deliberately NOT listed
+        # here so the pure-helper test target needs torch alone.
+        "@python_deps//torch",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+py_test(
+    name = "faithfulness_embedding_grader_test",
+    srcs = ["faithfulness_embedding_grader_test.py"],
+    deps = [
+        ":faithfulness_embedding_grader",
+        "@python_deps//torch",
+    ],
+)
+
+py_library(
     name = "build_clean_reasoning_actions",
     srcs = ["build_clean_reasoning_actions.py"],
     visibility = ["//visibility:public"],
