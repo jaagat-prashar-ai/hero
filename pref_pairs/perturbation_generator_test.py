@@ -76,7 +76,7 @@ Class counts: proceed=2
 > Second rollout's DIFFERENT reasoning text.
 """
 
-
+# Example of "keep distance to lead vehicle" as the qualitative depiction of quanitty, etc.?
 def test_extract_ground_truth_traces_parses_scene_id_cluster_and_first_trace():
     with tempfile.TemporaryDirectory() as tmp:
         (Path(tmp) / "abc123_999_reasoning.md").write_text(_FIXED_REASONING_MD)
