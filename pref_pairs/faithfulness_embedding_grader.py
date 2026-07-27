@@ -162,3 +162,116 @@ class WaypointProjectionHead(torch.nn.Module):
     def forward(self, waypoint_features: torch.Tensor) -> torch.Tensor:
         """Project (..., num_waypoints*2) features to unit-norm (..., embedding_dim)."""
         return torch.nn.functional.normalize(self.net(waypoint_features), dim=-1)
+
+
+def cosine_triplet_loss(
+    trajectory_embeddings: torch.Tensor,
+    chosen_embeddings: torch.Tensor,
+    rejected_embeddings: torch.Tensor,
+    margin: float = 0.2,
+) -> torch.Tensor:
+    """Margin ranking loss on cosine similarity, batched over triplets.
+
+    All three inputs are (batch, embedding_dim) and assumed unit-norm
+    (WaypointProjectionHead normalizes its output; embed_traces asks the
+    sentence encoder for normalized embeddings), so cosine similarity is a
+    row-wise dot product. The loss for a triplet is
+
+        relu(margin - sim(traj, chosen) + sim(traj, rejected))
+
+    i.e. zero once the faithful trace beats the corrupted one by at least
+    `margin`, so already-separated triplets stop pulling on the head and
+    training effort concentrates on the still-confused ones.
+    """
+    sim_chosen = (trajectory_embeddings * chosen_embeddings).sum(dim=-1)
+    sim_rejected = (trajectory_embeddings * rejected_embeddings).sum(dim=-1)
+    return torch.relu(margin - sim_chosen + sim_rejected).mean()
+
+
+def split_triplets(
+    triplets: list[dict[str, Any]],
+    holdout_fraction: float = 0.2,
+    seed: int = 0,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Deterministic (train, holdout) split of load_training_triplets' output.
+
+    Shuffles with a seeded torch generator so the same seed always yields the
+    same split -- the held-out pairwise accuracy reported by the CLI must be
+    reproducible, and the holdout must never leak into training between runs.
+    """
+    n_holdout = int(len(triplets) * holdout_fraction)
+    order = torch.randperm(
+        len(triplets), generator=torch.Generator().manual_seed(seed)
+    ).tolist()
+    holdout_idx = set(order[:n_holdout])
+    train = [t for i, t in enumerate(triplets) if i not in holdout_idx]
+    holdout = [t for i, t in enumerate(triplets) if i in holdout_idx]
+    return train, holdout
+
+
+def pairwise_accuracy(
+    head: WaypointProjectionHead,
+    feature_vectors: torch.Tensor,
+    chosen_embeddings: torch.Tensor,
+    rejected_embeddings: torch.Tensor,
+) -> float:
+    """Fraction of triplets where the projected trajectory is closer to the
+    faithful trace than to the corrupted one.
+
+    This is the same pairwise-ranking metric the Claude judge's 84.6%
+    construction-agreement figure is expressed in, so the two numbers are
+    directly comparable.
+    """
+    with torch.no_grad():
+        traj = head(feature_vectors)
+        sim_chosen = (traj * chosen_embeddings).sum(dim=-1)
+        sim_rejected = (traj * rejected_embeddings).sum(dim=-1)
+        return (sim_chosen > sim_rejected).float().mean().item()
+
+
+def train_projection_head(
+    feature_vectors: torch.Tensor,
+    chosen_embeddings: torch.Tensor,
+    rejected_embeddings: torch.Tensor,
+    epochs: int = 200,
+    lr: float = 1e-3,
+    margin: float = 0.2,
+    batch_size: int = 64,
+    seed: int = 0,
+) -> tuple[WaypointProjectionHead, list[float]]:
+    """Train a WaypointProjectionHead on precomputed (traj, chosen, rejected) rows.
+
+    Takes tensors, not triplet dicts, so this stays decoupled from the
+    sentence encoder: the caller embeds the traces once up front (they're
+    frozen -- re-embedding per epoch would be pure waste) and this function
+    is plain torch, runnable in tests with synthetic embeddings.
+
+    The full dataset is ~600 triplets so everything sits in memory; epochs
+    are full passes in shuffled minibatches. Returns the trained head and
+    the per-epoch mean loss history (a non-decreasing tail is the CLI's cue
+    that `epochs` is set too high or lr too low).
+    """
+    torch.manual_seed(seed)
+    head = WaypointProjectionHead(
+        num_waypoints=feature_vectors.shape[-1] // 2,
+        embedding_dim=chosen_embeddings.shape[-1],
+    )
+    optimizer = torch.optim.Adam(head.parameters(), lr=lr)
+    history = []
+    for _ in range(epochs):
+        order = torch.randperm(len(feature_vectors))
+        epoch_losses = []
+        for start in range(0, len(order), batch_size):
+            idx = order[start : start + batch_size]
+            loss = cosine_triplet_loss(
+                head(feature_vectors[idx]),
+                chosen_embeddings[idx],
+                rejected_embeddings[idx],
+                margin=margin,
+            )
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            epoch_losses.append(loss.item())
+        history.append(sum(epoch_losses) / len(epoch_losses))
+    return head, history
