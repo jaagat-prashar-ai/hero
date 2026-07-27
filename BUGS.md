@@ -6,6 +6,37 @@ now, not routine typos.
 
 ---
 
+## 2026-07-27 — masking-run9-d died at model load: transformers pin silently lost from requirements.txt
+
+**Symptom:** `masking-run9-d-dz71co` (first-ever launch of experiment D, the
+commitment/perceptual reversal) went `EXPERIMENT_FAILED` 5 minutes in. Every
+rank raised the same error at `_load_model`:
+`ImportError: cannot import name 'Qwen3VLConfig' from 'transformers'
+(/usr/local/lib/python3.10/dist-packages/transformers/__init__.py)` — i.e.
+transformers resolved from the cluster image's old system copy, which predates
+Qwen3-VL support (added in 4.57).
+
+**Root cause:** commit `b79f73b` ("checkpoint pending changes") replaced
+`masking/requirements.txt` with a scratch-notes version, silently dropping
+most of the working pin set from `f47a187`: `transformers==4.57.1`,
+`accelerate`, `hydra-core`, `s3transfer`, `boto3`, `pyarrow`, `scipy`, `av`,
+and the `torch==2.7.1` pin. The same-day fix `3b4d219` restored only the
+torch pin (the one line the launch validator checks) and commented out the
+prose. The `--dry-run` preflight passed because uv only resolves the packages
+*listed* — it cannot know the workload imports transformers. Transformers
+merely failed first; hydra-core/accelerate/av/scipy would have failed next.
+
+**Fix:** restored the full `f47a187` dependency set (merged with the current
+huggingface_hub/pandas floors) and moved the scratch notes out of the file
+(they remain in git history at `b79f73b`).
+
+**Moral:** a requirements.txt that passes `uv` resolution proves nothing
+about import-time completeness; when a "checkpoint pending changes" commit
+touches a requirements file, diff it against the last known-good run's
+revision before launching.
+
+---
+
 ## 2026-07-24 (later) — `ignore_idle_reaper: true` didn't fix the mid-training reaper kills; it only hid them
 
 **Symptom:** After the fix below shipped (commit `3f24da6`), both relaunched
