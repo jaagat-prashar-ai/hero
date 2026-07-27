@@ -6,6 +6,39 @@ now, not routine typos.
 
 ---
 
+## 2026-07-27 (later) — masking-run9-d relaunch died iterating data: run.py was a stale pre-rewrite copy
+
+**Symptom:** `masking-run9-d-o8x0zw` (relaunch after the requirements fix
+below) failed 6m47s in — model load now succeeded, but every Ray train
+worker raised `ImportError: cannot import name 'iter_snapshots' from
+'masking.data.wds_dataset'` as soon as data iteration began. Confirmed via
+full OCI Log Analytics export: exactly one failure mode, 4 identical
+tracebacks.
+
+**Root cause:** the same rogue checkpoint commit as the requirements bug —
+`b79f73b` ("checkpoint pending changes") committed a STALE working-tree copy
+of `masking/training/run.py`, reverting it to the pre-680ac17 "snapshots"
+era. That wiped out: (1) the `iter_clip_events`/`iter_clip_events_from_manifest`
+API usage (wds_dataset.py stopped exporting `iter_snapshots` in the 2026-07-02
+rewrite — hence the crash), (2) `results_s3_prefix` + `_upload_results`
+(without which the results JSONL dies with the pod — the run8-A data-loss
+failure mode), (3) `sample_clips_manifest` range-read feeding, and (4) the
+`delta_xy_per_waypoint` output arrays the dashboard renders. Experiment D
+(`c00a088`) was then built on the regressed file, and since D had never been
+launched, nothing exercised the import until today.
+
+**Fix:** restored `run.py` wholesale from `b79f73b^` (the last good
+revision) and re-applied `c00a088`'s three experiment-D additions (docstring
+line, `elif experiment == "d"` dispatch, D log line) — verified the result
+differs from last-good by exactly those 10 added lines. Relaunched with
+`results_s3_prefix` set so D's results are durably uploaded.
+
+**Moral:** `b79f73b` bundled unrelated stale files; treat every path it
+touched as suspect. requirements.txt and run.py are confirmed casualties —
+if another masking file misbehaves, diff it against `b79f73b^` first.
+
+---
+
 ## 2026-07-27 — masking-run9-d died at model load: transformers pin silently lost from requirements.txt
 
 **Symptom:** `masking-run9-d-dz71co` (first-ever launch of experiment D, the
