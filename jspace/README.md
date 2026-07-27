@@ -1,15 +1,16 @@
 # J-space analysis of Alpamayo-R1
 
 Apply Anthropic's Jacobian lens (J-lens) to the Alpamayo-R1 language backbone
-(Qwen3-VL-2B) to look for a "global workspace" (J-space) in its mid-layers,
-and to ask driving-specific questions:
+(Qwen3-VL family; checkpoint: nvidia/Alpamayo-R1-10B, processor from
+Qwen3-VL-2B-Instruct) to look for a "global workspace" (J-space) in its
+mid-layers, and to ask driving-specific questions:
 
 1. Do driving concepts ("pedestrian", "brake", "yield", "merge") appear as
    silent J-space readouts in mid-layers *before* the CoT verbalizes them?
 2. Are future trajectory tokens (`<i*>`, vocab ids 151669+) disposed in
    J-space before the trajectory block is emitted — i.e. does the model
    "hold the maneuver in mind" while still reasoning in text?
-3. Where does the workspace band sit in a 2B VLA fine-tuned model vs. the
+3. Where does the workspace band sit in a 10B VLA fine-tuned model vs. the
    ~33%-92% depth band reported for Claude models?
 
 ## Method (from the paper)
