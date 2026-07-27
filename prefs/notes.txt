@@ -1,0 +1,124 @@
+
+misc notes, clean this up 
+
+
+Diffusion decode routputs wayopints in an ego-framed anchored at t=0 with heading aligned to +x. z is just held at the last history frame's z (planar output). So the "rotate so initial heading = +x" step is a near-no-op for this data. 
+Estimate heading from the first few waypoints so the featurizer isn't silently wrong if fed trajectoires from a different source later
+- Why do we have to estimate this?
+
+1. trajectory_features.py #classify_maneuevers.py - rule-based classifier + CLI
+2. Maneuever classifier (i.e., for the rollouts) and config 
+3. 
+
+For the lane-change fixture, the estiamted "initial heading" (from waypoints 0->3) picks up ~1.1 degrees of the lane change's own early curvature, and rotating the entire trajectory by that small angle shifts the far end (~40m out) by ~0.8m, turning a 3.0m lane change into a 2.2m. 
+# Small-window heading estimates amplify into large absolute errors far from the origin. The pipeline's actual data (Ground truth and Alpamayo) have exact zero heading at t =0 by construction. 
+# Keep diagnostic estimate, stop apply it ais a rotation?
+
+# Maneuever-class labeling is complete and verified. Summary: 
+
+trajectory_features.py: pure kinematic feature extraction (Speed, heading, lateral offset, stop/yield events) from waypoints, kept separate from classiifcation so a later claim-verifier can reuse it. 
+classify_maneuevers.py: the priority-ordered rule cascade (stop -> turn -> lane_change -> yield -> proceed/accelerate) -> lane_keep default) maneuever_labels.parquet. 
+maneuever_reporty.py: class distribituion (overall + per-scene, uniform vs. diverse), +- 20% threshold-sensititivity sweep, and top-down PNG spot-checks colored by class. 
+synthetic_trajectory_fixtures.py + 3 test files, 22 tests, all passing
+
+# Given the K=20 rollout trajectories, Task 1 produces per driving scene, assign each one exactly one disccrete maneuver label, plus a table of kinematic numbers describing it: speed and heading time series (smoothed), lateral offset over time, intial/final/min speed, total heading change, mean/max deceleration, mean acceleration, and two boolean event flags - stop_event (sustained near-zero speed that never recovers) and yield_event (a speed dip that meaningfully recovers before the trajectory ends)
+# This step doesn't assign a class, it only computes numbers so a later task that checks CoC reasonign claims against the actual kinematics can reuse the table without caring how any classififer used it.
+
+# classify_maneuevers.py takes those features and applies a fixed priorty order of rules (i.e., frst match wins): 
+    - stop (sustained low speed, no recovery)
+    - turn left / turn rigth (heading change beyond +- 45 degrees)
+    - lane change left / lane change right (lateral offset beyond +- 2.5m with heading change still under 45 degrees)
+    - yield (meaningful speed dip that recovers)
+    - proceed/accelerate (net positive acceleration)
+    - lane keep (default, if nothing else fired)
+
+Sample data (OOD), extract features (speed, heading, lateral offset, etc.), classify maneuever. 
+
+    # turn sharp and then stop should be labeled stop, this rule fires first. 
+
+maneuever_report.py audits the classifier's output three ways: overall and per-scene class distribituion (flagging scenes where all 20 rollouts landed on one class vs. scenes spanning many classes), a sensitivity sweep that perturbs each threshold +- 20% and reports what fraction of labels flip (high flip rate is fragile), and top-down matplotlib plots of a sample of scenes' trajectories colored by label.
+
+
+rando notes
+# So curerntly we re-compute an approximatin of that same curvature/accel back out via finite differences on the xyz (plus a smoothing window to fight jitter)
+# this is kinda silly idk, we can just pull the values directly from one step previously. approximate-by-finite-difference when an exact value was computed one step earlier and thrown away. 
+# Change Task 1 to also capture that raw action tensor (same pattern as MaskedAlpamayo1_5._denoise_with_mask), which does return the raw action) and thread it through as an optional field on 
+RolloutReord, so trajectory_features.py uses it directly when present instead of re-deriving it. 
+
+rando fixes: 
+# add all mode to sample_clips.py
+# Build pref_pairs/trainng/run.py Lilypad entrypoint
+# Add pref_pairs Lilypad configs (local.yaml, cluster.yaml) + requirements.txt  
+# BUILD files + tests for training/run.py, verify everything 
+
+# Shard scanning 
+- walking the tar file's internal structure by reading just the 512-byte headers via HTTP range requests - never fetching the actual multi-MB/GB camera or trajectory payloads. 
+- For each member whose filename matches {clip_id}.json where clip_id is one of those ~1,740 target OOD clips, it fetches only that small JSON's bytes and records (clip_id, which shard file, that JSON's contents, byte offset where this clip's file group starts in the tar)
+- Skips over everything else in the shard (other clips, camera .mp4s, egomotion.parquet) by jumping straight past them using the tar header's size field. 
+
+Because --al mode has no early-stop condition (unlike normal capped-sampling mode, which stops once every category has enough candidates).
+# It does this across all 3,212 shards rather than stopping once it's found enough - since the goal is to find every one of the "1740 target clips that's currently uploaded," not "find a representative sample." 
+
+# Scanning 40 shards with concurrency so it is quick and it takes ~5 minutes instead of 3+ hours. 
+# Sample clips - feature extraction - classify maneuever labels - what is next?
+
+# Task 1 (rollout harvester) - done: rollout_harveter.py samples K rollouts/scene, capturing per-rollout coc_text and ground_truth_coc. 
+# Task 2 and 3 (trajectory featurizer + e-calibration/same_action) - done: trajectory_features.py extracts kinematics, classify_maneuevers.py assigns a maneuever_class + boundary_margins, wired end-to-end in training/run.py. 
+# Task 4: claim extraction / same_reasoning - parsing each rollout's coc_text into discrete causal claims and defining a same_Reasonign comparator, mirroring how maneuver-class equaility became the same_action axis. The main design fork: rule-based keyword/pattern extraction (fast, auditable, but likely fragile against the VLM's free-form phrasing) vs. an LLM-based claim parser (more robust to phrasing variance, but adds a model dependency and nondeterminism to a pipeline that's been kept deterministic so far).
+# I'd learn rule-based first to keep this stage as cheap and inspectable as Task 3 was, then fall back to LLM parsing only if the rule cascade's coverage is poor on real coc_text samples. 
+# What does this look like and why do we even have to do this to begin with?
+
+# Real CoT example: "Nudge right to increase clearance to pedestrians on the left" 
+# "Stop to yield to the animals crossing ahead"
+
+# Praphrase problem
+# how to measure semantic proximity at a sentence-level?
+
+CoT
+# Nudge right to increase clearance to pedestrians on the left
+# Nudge left due to construction barriers blocking the right side of our lane
+# Stop to yield to the animals crossing ahead
+# Accelerate to proceed through the intersection since the straight traffic light is green 
+
+event_coc (NVIDIA ground truth for the flagged event):
+# Go straight following temporary traffic delineators
+# Steer right following the temporary lane delineated by traffi ccones through the construction zone
+# Gentle acceleration to proceed along the route while maintaining a safe distance from the geese crossing the road 
+# Decelerate to maintain a safe distance from the vehicle turning into the same lane 
+
+Motivation for Task 4 
+- Paraphrase Problem: 
+    - Rows 1 and 2 above are the same underlying claim - "steer around an obstruction on one side" - but worded completely differently (i.e,. "nudge right...clearance to pedestrians" vs "steer right... traffic cones")
+    - A naive string/exact match on coc_text would treat every rollout as reasoning something unique, even when many are making the identical causal claim 
+    - Since the whole point of "Same_reasoning" pairs is finding rollouts that do claim the same thing but differ in the resulting trajectory (or vice versa), you can't mine any pairs without first normalizing free text into a comparable structure
+    # e.g., {action: nudge_right, cause: obstruction_lane_edge} - the same way Task 3 turned raw (T, 3) waypoints into a comparable maneuever_class label
+
+# Authenticated successfuly as ZeptaTelest for HF? 
+
+check: That's actually a genuine singularity in the fisheye formula itself (shared with NVIDIA's original — dividing by zero when a ray is exactly on the optical axis), not a bug I introduced. Real trajectory points never land there exactly, so let me fix the test to use a near-axis ray instead of the exact singular case.
+
+● Update(pref_pairs/render_trajectory_overlay_test.py)
+// Also, the othe rnotes file? where is it?
+
+# video rendering for the action-space noise floor report: give it a workload_id, clip_id, scene_id, and the clip's shard location, and it pulls the calibration/egomotion/video straight from S3, fetches the rollout from the Lilypad logs (auto-picks the majority-maneuever-class rollout if you don't specify one), and writes an mp4 with the trajectory overlaid - correctly re-projected frame-by-frame as the vehicle moves, using NVIDIA's own fisheye camera math. It's usable now on any of the other 122 scenes, though only the one WORK_ZONES example has actually been visually validates far - worth spot-checking a couple more before trusting it broadly across different cameras. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

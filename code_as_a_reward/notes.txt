@@ -105,4 +105,6 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # reasoning_vla_llm_judge_full in research/alpamayo-rl. Remember the OCI log stream stays quiet during training - W&B is the live signal. 
 
 # the checkpoints still write to node-local /mnt/work with resume=false, so a preemption restarts training from step 0 (dataset restore is cheap now, but the training progress isn't checkpointed off-node). If preemptions bite, S3-backed checkpointing is the next piece worth building?
-# Saved details to run memory so any later session can pick up monitoring.
+# Saved details to run memory so any later session can pick up monitoring. 
+
+

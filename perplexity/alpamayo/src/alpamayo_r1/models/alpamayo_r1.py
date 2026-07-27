@@ -332,3 +332,7 @@ class AlpamayoR1(ReasoningVLA):
 
 AutoConfig.register("alpamayo_r1", AlpamayoR1Config)
 AutoModel.register(AlpamayoR1Config, AlpamayoR1)
+
+# canary 7 is th efirst atetempt with nothing untested left before model load: scan skipped (cached), bootstrap sequence verified locally. 
+# Next milestones in its logs will be the Alpamayo-R1-10B download/load and then the first DISCRETE_VS_DIFFUSION_CLIP_SUMMARY lines. 
+

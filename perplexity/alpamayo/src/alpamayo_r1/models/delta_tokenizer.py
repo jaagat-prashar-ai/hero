@@ -17,7 +17,6 @@ import einops
 import numpy as np
 import torch
 
-
 class DeltaTrajectoryTokenizer:
     """Delta trajectory tokenizers."""
 
@@ -164,6 +163,7 @@ def get_yaw_rotation_matrices(trajectory, window_size=10, poly_order=3):
 
     Returns:
         rotation_matrices: rotation matrices at each point, shape (B, N, 3, 3)
+        # rotation features are 9D? look into the concrete data points. 
     """
     B, N = trajectory.shape[:2]
     rotation_matrices = []

@@ -380,3 +380,11 @@ class UnicycleAccelCurvatureActionSpace(ActionSpace):
         traj_future_rot = rot_2d_to_3d(rotation_matrix_torch(theta[..., 1:]))
 
         return traj_future_xyz, traj_future_rot
+
+# Extension: 
+# Write teokenize_traj(waypoints) -> 128 ids and detokenize_traj(ids) -> waypoints as thin wrappers over T1.1's functions
+# (inverse = ids -> bin centers -> controls -> unicycle rollout)
+# Why the inverse: it powers validation gate T2.1
+# Done when: Both run on one dataset sample without error. 
+
+

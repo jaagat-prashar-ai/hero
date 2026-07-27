@@ -48,7 +48,6 @@ class ActionOnlyLogitsProcessor(LogitsProcessor):
         scores[:, traj_end:] = float("-inf")
         return scores
 
-
 def sample_discrete_action_tokens(
     model,
     sample: dict,
@@ -147,10 +146,13 @@ def sample_discrete_action_tokens(
     # new tokens with no padding, so we can slice by length directly instead
     # of hunting for a stop token the way replace_padding_after_eos does for
     # the reasoning-generation call.
+    # so we pretty much mask out the reasoning and just extract the action tokens?
     generated_vocab_ids = sequences[0, prefix_len:]
     assert generated_vocab_ids.shape[0] == n_action, (
         f"expected exactly {n_action} generated tokens, got {generated_vocab_ids.shape[0]}"
     )
+
+    # are these the 3000 bin ids? figure this out. 
 
     bin_ids = generated_vocab_ids - model.config.traj_token_start_idx
     if bool(((bin_ids < 0) | (bin_ids >= model.config.traj_vocab_size)).any()):
@@ -159,3 +161,9 @@ def sample_discrete_action_tokens(
             "ActionOnlyLogitsProcessor -- masking bug, investigate before trusting output."
         )
     return bin_ids.unsqueeze(0)
+
+
+# canary 6: discrete-vs-diffusion-canary6-ttg5mt is now running with a background monitor on it. It should be the fastest attempt yet; the scan is fully skipped this time (the v2 manifest cache from canary5 gets reused - that code path gets its first live test), so it goes 
+# straight to venv bootstrap -> model load -> 9 clips of inference. 
+# 9 for scenarios?
+

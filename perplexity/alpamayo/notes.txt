@@ -1,0 +1,79 @@
+T1.1 Extract the action tokenization machinery
+    - src/alpamayo_r1/action_space/config.py
+    
+    1. Waypoints -> (accel, curvature) fit
+    Where: action_space/unicycle_accel_curvature.py, UnicycleAccelCurvatureActionSpace.traj_to_action (lines 227-298), which calls
+    _v_to_a (127-160) and _theta_v_a_to_kappa (152-205). The actual regularized solver is solve_xs_eq_y in action_space/utils.py (241-313).
+
+    Pipeline (all under @torch.no_grad(), fp32-forced):
+    1. theta = unwrapped heading from traj_future_rot, itself smoothed via a 3rd-order-Tikhonov single-point constrained solve (theta_smooth, utils.py: 491-514)
+    2. v (velocity) solved from dxy/theta by trapezoidal integration constraint, 3rd-order smoothing, constrained to v0 estimated from history (dxy_theta_to_v, utils.py: 405-485)
+    3. accel = dv/dt, solved via solve_xs_eq_y with 2nd-order Tikhonov smoothing (penalizes jerk-of-jerk, not jerk itself)
+    4. kappa = dtheta / s where s = dt dot v + dt^2 / 2a (arc length), also 2nd-order smoothed, lam=kappa_lambda=1e-4, ridge=kappa_ridge=1e-4. 
+    5. Both channels normalized: (x-mean) / std. 
+    
+    The regularized least-squares problem solved by solve_xs_eq_y (utils.py: 241-313):
+    min_x sigma w_data_i (x_i dot s_i - y_i)^2 + lambda||D_k x||^2 + ridge dot ||x||^2
+
+    solved as the normal equations (A^TA + D^TD + ridge dot I)x = A^Tb via Cholesky (construct_DTD, utils.py: 841-159, builds the banded difference-operator D^TD for order-1/2/3 smoothing). 
+
+    Actual fitted normalization constants for this checkpoint (config.json action_space_cfg):
+    accel_mean = 0.0290269707164455
+    curvature_mean = 0.0002692167976330542
+    accel_bounds = (-9.8, 9.8)
+    dt = 0.1     n_waypoints = 64
+    accel_std = 0.6810426736454882
+    curvature_std = 0.026148280660833106
+    curvature_bounds = (-0.33, 0.33)
+
+    Quantization spec 
+    Where: action_space/discrete_action_space.py, DiscreteTrajectoryTokenizer.encode (lines 47-78): 
+    action = (action - dims_min) / (dims_max - dims_min) 
+    action = (action * (num_bins - 1)).round().long()
+    action = action.clamp(0, num_bins - 1)
+
+    Actual values for this checkpoint (config.json traj_tokenizer_cfg):
+    dims_min = [-10, -10]
+    dims_max = [10, 10] (in normalized-std units, per channel: accel, kappa)
+    num_bins = 3000 (uniform, same bin count both channels) 
+    -> bin width = 20 /2999 = 0.006669 in normalized units
+
+    Per waypoint: 2 tokens (accel bin, kappa bin), 64 waypoints -> 128 tokens/trajectory (tokens_per_future_traj: 128 in config, matches)
+
+    3. Bin index -> vocabulary token ID 
+
+    Where tokens are minted: models/base_model.py: 263-267 (and mirrored at 338-341):
+    discrete_tokens = [f"<i{v}>" for v in range(config.traj_vocab_size)] # <io> ... <i3999> 
+    tokenizer.add_tokens(discrete_tokens)
+    tokenizer.traj_token_start_idx = tokenizer.convert_tokens_to_ids("<io>")
+
+    # Where the offset is applied: models/base_model.py:394 sets future_token_start_idx = traj_token_start_idx; encoding adds it in tokenize_history_trajectory (line 118, same pattern used for future)
+    # i.e., vocab_id = bin_index + start_idx. Decoding subtracts it back in models/token_utils.py: 109 (extract_traj_tokens)
+
+    Actual values for this checkpoint (config.json):
+    traj_token_start_idx = 151669 
+    traj_vocab_size = 4000 (reserved block size, <io>..<i3999>)
+    So for the future trajectory: vocab_id = 151669 + bin_index, bin_index is in [0, 2999] -> valid vocab-id range [151669, 154668]
+
+    Note the block is 4000 wide but only 3000 slots are ever emitted by this tokenizer (num_bins=3000) - the remaining [154669, 155668] is exactly where history-trajectory tokens get shifted to instead 
+    (base_model.py: 396-399: hist_token_start_idx += traj_tokenizer.vocab_size, i.e., 154669+), since history uses a separate DeltaTrajectoryTokenizer (config hist_traj_tokenizer_cfg) but is folded into the same reserved <i*> block, just past the future tokenizer's used range. 
+
+    Token order within the 128-trajectory block is [accel_0, kappa_0, accel_1, kappa_2, ..., accel_63, kappa_63] (row-major flatten of the (N=64, 2) action tensor, discrete_action_space.py: 78)
+
+    
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    

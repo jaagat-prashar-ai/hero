@@ -28,6 +28,7 @@ from alpamayo_r1 import helper
 # Example clip ID
 clip_id = "030c760c-ae38-49aa-9ad8-f5650a545d26"
 print(f"Loading dataset for clip_id: {clip_id}...")
+# why do we start at t0_us=5_100_000 (get back to this, look at github)
 data = load_physical_aiavdataset(clip_id, t0_us=5_100_000)
 print("Dataset loaded.")
 messages = helper.create_message(data["image_frames"].flatten(0, 1))
@@ -75,3 +76,19 @@ print(
     "hardware differences, etc. With num_traj_samples=1 (set for GPU memory compatibility), "
     "variance in minADE is expected. For visual sanity checks, see notebooks/inference.ipynb"
 )
+
+
+# there is the "prompt construction" part if you will 
+# and then the reasoning + discrete trajectory (the expert diffusion head does not attend to trajectory KV cache)
+# and then the actual continuous action waypoints (64 waypoints)
+
+# Example for perplexity: 
+# exact numbers: full per-token NLL arrays and the exact sequence structure (token counts at each stage) - before designing anything. 
+
+
+# set up autoresearch and see how you can continue to find the right semantic maximal perturbation boundaries. 
+
+
+
+
+

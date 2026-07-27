@@ -103,7 +103,6 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
     nlls = -log_probs.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
     return nlls.cpu().numpy()
 
-
 # score.py deliberately calls the low-level forward interface (model.vlm(input_ids=..., ...), the same thing PyTorch/transformers calls model(...)) rather than 
 # model.vlm.generate(...). It's a different Python method entirely - not a special mode of the same method, and not something a chat product would expose. 
 # there is genuinely no text output in the conversational sense anywhere in score.py - the only thing that comes out is the logits tensor, which gets turned into 128 floating-point numbers
@@ -151,3 +150,4 @@ def score(model, sample: dict, reasoning_text: str) -> np.ndarray:
 # Why do we need timestamps vs indices?
 
 # prefix compression. 
+

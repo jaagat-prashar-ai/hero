@@ -19,7 +19,7 @@ from typing import Any
 
 import torch
 import collections.abc
-
+# how did we define these metrics and what if we scale them?
 MIN_PIXELS = 163840
 MAX_PIXELS = 196608
 BASE_PROCESSOR_NAME = "Qwen/Qwen3-VL-2B-Instruct"

@@ -345,6 +345,11 @@ def generate_perturbation(
     return parsed
 
 
+# turn left by 5 degrees
+ #come to a stop by 5 meters
+ # verifiable quantities
+ 
+
 def generate_all_perturbations(
     client: anthropic.Anthropic,
     ground_truth_traces: list[dict[str, Any]],
