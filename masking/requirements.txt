@@ -3,6 +3,9 @@
 # torch/transformers/einops are expected to be present in the cluster image.
 
 # Masking inference
+# torch pin is REQUIRED by lilypad/launch.py validation: the base image ships
+# torch 2.1.1, too old for transformers>=4.57, so the pip overlay must bring 2.7.1.
+torch==2.7.1
 webdataset>=0.2.86
 einops>=0.7
 
@@ -40,7 +43,7 @@ pandas>=2.0              # parquet loading for metadata / splits
 # Tab C (prefix/suffix tree): prefix_sweep/suffix_sweep now each carry delta_xy_per_waypoint per threshold, which is what's needed to draw the line chart showing divergence-vs-waypoint per branch, not just the endpoint. 
 
 # Once run8's JSONL results land in S3 (masking_results/run8/), the next step is wiring the dashboard's file-picker/fetch to load those real files and extending 
-tabs A/C to render the per-waypoint arrays (currently only the summary ade_m bars are wired up for real data - the per-waypoint line rendering iteslf hasn't been built yet, since this field didn't exist until this session). 
+# tabs A/C to render the per-waypoint arrays (currently only the summary ade_m bars are wired up for real data - the per-waypoint line rendering iteslf hasn't been built yet, since this field didn't exist until this session). 
 # Check once results are in. 
 
 # All three runs progressing sensibly, varied ADE ranges across clip, 52 manifest clips
