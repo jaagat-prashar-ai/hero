@@ -16,6 +16,19 @@ workload_variant_config:
     # Omit or set to null to download all shards.
     max_shards: null
 
+    # 52-clip OOD sample manifest: clips are pulled from S3 via range reads at
+    # iteration time, skipping shard downloads entirely. WITHOUT this, rank 0
+    # mirrors the ENTIRE s3_prefix onto node-local /mnt/work — run
+    # masking-run9-d-cr0skx (2026-07-27) killed its node that way (~26 min of
+    # bulk shard downloads until the node died; ActorDiedError: "node has
+    # died") before processing a single clip. Runs 8 a/b/c only worked because
+    # this was passed as a -o override at launch.
+    sample_clips_manifest: "masking/configs/sample_clips.json"
+
+    # Durable S3 upload of the results JSONL after every write — outdir below
+    # is node-local and dies with the pod (run8-A's results were lost that way).
+    results_s3_prefix: "masking_results/run9"
+
     # ── Model ─────────────────────────────────────────────────────────────────
     checkpoint: "nvidia/Alpamayo-1.5-10B"
 
@@ -78,5 +91,4 @@ runtime_environment:
       - "^research-core/"
       - "^docker/"
       - "^lockfiles/"
-
 

@@ -6,6 +6,35 @@ now, not routine typos.
 
 ---
 
+## 2026-07-27 (3rd) — masking-run9-d node died mid-setup: no manifest → full WDS prefix mirrored to /mnt/work
+
+**Symptom:** `masking-run9-d-cr0skx` (third attempt, on the restored run.py)
+died 25m50s in with `ray.exceptions.ActorDiedError: The actor died because
+its node has died` — no Python traceback anywhere. OCI log export showed the
+worker's entire lifetime was rank 0's `masking.data.s3_download` bulk-
+downloading shard after shard (`shard_005_*`, `shard_006_*`, …) of the whole
+`wds/train/` prefix; not one clip was ever processed.
+
+**Root cause:** launched without `sample_clips_manifest`, so run.py's
+`_acquire_shards` mirrors EVERYTHING under `s3_prefix` onto node-local
+/mnt/work. The full WDS mirror is orders of magnitude larger than the node
+disk, which eventually killed the node (hence a node death, not a process
+error). Runs 8 a/b/c never hit this because they were launched with the
+52-clip `masking/configs/sample_clips.json` manifest passed as a `-o`
+override — manifest mode skips shard acquisition entirely and pulls each
+clip via S3 range reads at iteration time.
+
+**Fix:** `sample_clips_manifest: masking/configs/sample_clips.json` and
+`results_s3_prefix: masking_results/run9` are now defaults in
+`masking/configs/cluster.yaml` instead of launch-time overrides someone has
+to remember. Relaunched as `masking-run9-d-mhycqz` with both set.
+
+**Moral:** a config default that downloads-the-world is a footgun when the
+safe behavior lives only in somebody's shell history; promote required
+overrides into the yaml.
+
+---
+
 ## 2026-07-27 (later) — masking-run9-d relaunch died iterating data: run.py was a stale pre-rewrite copy
 
 **Symptom:** `masking-run9-d-o8x0zw` (relaunch after the requirements fix
