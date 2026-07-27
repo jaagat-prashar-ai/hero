@@ -125,3 +125,40 @@ def waypoints_to_feature_vector(action: dict[str, Any]) -> torch.Tensor:
     """
     xy = torch.tensor(action["waypoints"], dtype=torch.float32)[:, :2]
     return xy.reshape(-1)
+
+
+class WaypointProjectionHead(torch.nn.Module):
+    """Small MLP projecting a flattened waypoint vector into text-embedding space.
+
+    Input is waypoints_to_feature_vector's output (num_waypoints * 2 floats);
+    output is a unit-norm vector in the SAME space as the frozen text
+    encoder's trace embeddings, so faithfulness is a plain dot product /
+    cosine similarity between the two. Output normalization lives here (not
+    in the caller) so every consumer -- triplet loss, inference, eval --
+    gets the same geometry for free.
+
+    Defaults match all-MiniLM-L6-v2 (384-dim), the intended frozen encoder
+    (added with the inference API increment). With only ~600 training
+    triplets (717 judged pairs minus judge/construction disagreements),
+    the head is kept deliberately small; if held-out pairwise accuracy
+    shows overfitting, shrink hidden_dim before reaching for regularizers.
+    """
+
+    def __init__(
+        self,
+        num_waypoints: int = 64,
+        embedding_dim: int = 384,
+        hidden_dim: int = 256,
+    ) -> None:
+        super().__init__()
+        self.net = torch.nn.Sequential(
+            torch.nn.Linear(num_waypoints * 2, hidden_dim),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_dim, hidden_dim),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_dim, embedding_dim),
+        )
+
+    def forward(self, waypoint_features: torch.Tensor) -> torch.Tensor:
+        """Project (..., num_waypoints*2) features to unit-norm (..., embedding_dim)."""
+        return torch.nn.functional.normalize(self.net(waypoint_features), dim=-1)
