@@ -38,6 +38,12 @@ pyarrow>=14.0
 # pref_pairs-specific: thresholds_config YAML loading.
 pyyaml>=6.0
 
+# faithfulness_embedding_grader.py-specific: frozen text encoder for the
+# distilled faithfulness scorer. Imported lazily (embed_traces), so only the
+# train/score paths need it -- the pure helpers and their tests run on torch
+# alone.
+sentence-transformers>=5.0
+
 # perturbation_generator.py-specific: calls Claude Fable 5 to synthesize
 # semantic perturbations of ground-truth reasoning traces. This is a local/
 # workstation script, not a Lilypad workload dependency like the rest of this

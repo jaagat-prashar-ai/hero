@@ -275,3 +275,82 @@ def train_projection_head(
             epoch_losses.append(loss.item())
         history.append(sum(epoch_losses) / len(epoch_losses))
     return head, history
+
+
+_DEFAULT_TEXT_ENCODER = "sentence-transformers/all-MiniLM-L6-v2"
+
+
+def embed_traces(traces: list[str], model_name: str = _DEFAULT_TEXT_ENCODER) -> torch.Tensor:
+    """Embed reasoning traces with the frozen sentence encoder, unit-normalized.
+
+    sentence_transformers is imported lazily so that everything above this
+    line (the pure helpers + the head, i.e. all the pytest-covered surface)
+    stays importable with torch alone -- the Bazel test target doesn't have
+    sentence-transformers in @python_deps, and doesn't need it.
+    """
+    from sentence_transformers import SentenceTransformer
+
+    model = SentenceTransformer(model_name)
+    return model.encode(
+        traces, convert_to_tensor=True, normalize_embeddings=True
+    ).cpu()
+
+
+def save_checkpoint(head: WaypointProjectionHead, text_encoder_name: str, path: Path | str) -> None:
+    """Persist the trained head + the encoder identity it was trained against.
+
+    The encoder name travels WITH the weights because the head is only
+    meaningful in that specific encoder's embedding space -- loading it and
+    scoring against a different encoder's embeddings would silently produce
+    garbage similarities.
+    """
+    torch.save(
+        {
+            "state_dict": head.state_dict(),
+            "num_waypoints": head.net[0].in_features // 2,
+            "embedding_dim": head.net[-1].out_features,
+            "hidden_dim": head.net[0].out_features,
+            "text_encoder_name": text_encoder_name,
+        },
+        path,
+    )
+
+
+class FaithfulnessEmbeddingGrader:
+    """Local, no-API faithfulness scorer: cosine(trace embedding, projected trajectory).
+
+    Usage:
+        grader = FaithfulnessEmbeddingGrader.load("head.pt")
+        score = grader.score(trace_text, action_dict)   # in [-1, 1], higher = more faithful
+
+    Scores are relative, not calibrated probabilities: use them to RANK
+    rollouts or threshold against percentiles measured on judged data, per
+    the module docstring's pre-filter-not-replacement caveat.
+    """
+
+    def __init__(self, head: WaypointProjectionHead, text_encoder_name: str) -> None:
+        self.head = head.eval()
+        self.text_encoder_name = text_encoder_name
+
+    @classmethod
+    def load(cls, checkpoint_path: Path | str) -> "FaithfulnessEmbeddingGrader":
+        ckpt = torch.load(checkpoint_path, weights_only=True)
+        head = WaypointProjectionHead(
+            num_waypoints=ckpt["num_waypoints"],
+            embedding_dim=ckpt["embedding_dim"],
+            hidden_dim=ckpt["hidden_dim"],
+        )
+        head.load_state_dict(ckpt["state_dict"])
+        return cls(head, ckpt["text_encoder_name"])
+
+    def score(self, trace: str, action: dict[str, Any]) -> float:
+        """Faithfulness of one reasoning trace to one trajectory."""
+        return self.score_batch([trace], [action])[0]
+
+    def score_batch(self, traces: list[str], actions: list[dict[str, Any]]) -> list[float]:
+        """Batched scoring -- one encoder call for all traces, one head pass."""
+        trace_embs = embed_traces(traces, self.text_encoder_name)
+        features = torch.stack([waypoints_to_feature_vector(a) for a in actions])
+        with torch.no_grad():
+            traj_embs = self.head(features)
+        return (trace_embs * traj_embs).sum(dim=-1).tolist()
