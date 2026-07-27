@@ -1,0 +1,21 @@
+{
+  "config": {
+    "judged_pairs": "/home/jaagat-prashar/workspace/research-project-template-main/pref_pairs/results/judged_pairs/judged_pairs.jsonl",
+    "matched_pairs": "/home/jaagat-prashar/workspace/research-project-template-main/pref_pairs/results/reasoning_matched_pairs/reasoning_matched_pairs.jsonl",
+    "out_dir": "/home/jaagat-prashar/workspace/research-project-template-main/pref_pairs/results/faithfulness_embedding_grader",
+    "text_encoder": "sentence-transformers/all-MiniLM-L6-v2",
+    "holdout_fraction": 0.2,
+    "epochs": 200,
+    "lr": 0.001,
+    "margin": 0.2,
+    "batch_size": 64,
+    "seed": 0
+  },
+  "n_triplets": 594,
+  "n_train": 476,
+  "n_holdout": 118,
+  "loss_first_epoch": 0.16483349353075027,
+  "loss_last_epoch": 0.06015863781794906,
+  "train_pairwise_accuracy": 1.0,
+  "holdout_pairwise_accuracy": 0.8389830589294434
+}
