@@ -24,7 +24,10 @@ from rl_posttrain.rewards.aggregated_reward_llm_judge import (  # noqa: E402
     _run_judges_parallel,
 )
 from rl_posttrain.rewards.llm_judge import (  # noqa: E402
+    SYSTEM_PROMPT,
+    SYSTEM_PROMPT_SCENE,
     JudgeRewardError,
+    _build_user_content,
     _build_user_message,
     _parse_single_judgment,
     _salvage_score,
@@ -89,6 +92,40 @@ class TestBuildUserMessage:
         assert table in msg
         # Single-trace prompt: the pairwise A/B framing must not leak in.
         assert "Trace A" not in msg and "Trace B" not in msg
+
+
+class TestBuildUserContent:
+    def _table(self):
+        return waypoint_table_from_xyz(_straight_constant_speed_xyz())
+
+    def test_text_only_is_byte_identical_to_original(self):
+        # The offline judged-pairs calibration was measured against exactly
+        # _build_user_message's string; the no-image path must not drift.
+        assert _build_user_content(_REAL_TRACE, self._table()) == _build_user_message(
+            _REAL_TRACE, self._table()
+        )
+
+    def test_scene_mode_prepends_image_block(self):
+        import base64
+
+        jpeg = b"\xff\xd8fake-jpeg-payload"
+        blocks = _build_user_content(_REAL_TRACE, self._table(), scene_jpeg=jpeg)
+        assert isinstance(blocks, list) and len(blocks) == 2
+        assert blocks[0]["type"] == "image"
+        assert blocks[0]["source"]["media_type"] == "image/jpeg"
+        assert base64.b64decode(blocks[0]["source"]["data"]) == jpeg
+        # The full text-only message (trace + table) rides along unchanged.
+        assert _build_user_message(_REAL_TRACE, self._table()) in blocks[1]["text"]
+
+    def test_scene_prompt_keeps_output_contract(self):
+        # _parse_single_judgment / _salvage_score are shared between modes;
+        # both prompts must demand the identical JSON contract.
+        for fragment in (
+            '"action_consistency_score": <0-10 int>',
+            '"one_line_rationale": "<string>"',
+        ):
+            assert fragment in SYSTEM_PROMPT
+            assert fragment in SYSTEM_PROMPT_SCENE
 
 
 class TestParseSingleJudgment:
