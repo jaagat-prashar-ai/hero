@@ -96,3 +96,39 @@ def select_t0_front_wide_frame(image_frames: Any, camera_indices: Any) -> np.nda
         # preprocessing step upstream -- fail loud rather than guess a scale.
         raise ValueError(f"expected uint8 frame data, got dtype {arr.dtype}")
     return np.transpose(arr, (1, 2, 0))
+
+
+def project_waypoints_ftheta(
+    waypoints_xyz: np.ndarray,
+    cam_intr: dict[str, float],
+    cam_extr: dict[str, float],
+) -> tuple[np.ndarray, np.ndarray]:
+    """Projects (T, 3) ego-frame-at-t0 waypoints to (T, 2) pixels via the
+    f-theta model, plus a (T,) validity mask (in front of the camera, inside
+    the image, finite). Unlike the vendored viz.py original this keeps the
+    full T rows so callers can draw a time-ordered polyline."""
+    wp = np.asarray(waypoints_xyz, dtype=np.float64)
+    rot = Rotation.from_quat([cam_extr[k] for k in ("qx", "qy", "qz", "qw")]).as_matrix()
+    cam_t = np.array([cam_extr[k] for k in ("x", "y", "z")], dtype=np.float64)
+
+    cam_points = (wp - cam_t) @ rot
+    x, y, z = cam_points.T
+    r_xy = np.sqrt(x**2 + y**2)
+    theta = np.arctan2(r_xy, z)
+    radius = sum(cam_intr[f"fw_poly_{i}"] * theta**i for i in range(5))
+    scale = radius / (r_xy + 1e-8)
+    u = cam_intr["cx"] + x * scale
+    v = cam_intr["cy"] + y * scale
+
+    pixels = np.stack([u, v], axis=1)
+    with np.errstate(invalid="ignore"):
+        valid = (
+            (z > 0)
+            & np.isfinite(u)
+            & np.isfinite(v)
+            & (u >= 0)
+            & (u < cam_intr["width"])
+            & (v >= 0)
+            & (v < cam_intr["height"])
+        )
+    return pixels, valid
