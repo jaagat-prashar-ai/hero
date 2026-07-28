@@ -119,4 +119,11 @@ timesteps. Standard ADE definition, XY-only (heading not included).
 
 At time T, the car #16 was 10m ahead-left, this big, facing this way." The reward code turns these rows into per-object tracks and checks the models' claims ("there's a pedestrian on the right") against them. On eclip's worth is tiny - about 250 KB. 
 
-# HOW DO WE COMPARE THIS AGAINST SOME GOOD UNIVERSAL BASELOINE. 
+# HOW DO WE COMPARE THIS AGAINST SOME GOOD UNIVERSAL BASELINE. 
+
+# Clip ID fix: 
+# Yes — the chunk file has a clip-ID column. But a column isn't an index. Parquet is compressed column storage: to find the rows where clip_id == X, you have to decompress and parse the whole file, then filter. There's no way to seek straight to clip X's bytes. That full parse is the 50 minutes, and it's paid every time the reward touches a clip it hasn't cached, mid-training, with all 8 GPUs waiting.
+The fix: at setup time, parse each chunk file once, group by clip ID, and write each clip's ~3,000 rows to its own file — obstacles/<clip_id>.parquet (~250 KB). The filename becomes the index. At reward time, "load clip X" = open one tiny file directly. No search, no parse of anything you don't need.
+#Why it's better:
+# Same total parsing work, moved to where it's free. Every chunk gets parsed exactly once, during the CPU-only setup phase — before the GPUs are even reserved. Today the same parse happens repeatedly during training while the GPUs idle.
+# Training-time lookups drop from ~50 min to milliseconds, so the 35-steps-in-17-hours problem goes away entirely, rather than just happening less often (which is all the caching fix would buy).
