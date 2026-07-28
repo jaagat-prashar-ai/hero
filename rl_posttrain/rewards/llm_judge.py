@@ -3,7 +3,11 @@
 llm_judge.py -- single-trace LLM-judge scorer used as the GRPO reasoning
 reward: given ONE chain-of-causation (CoC) trace and the trajectory the SAME
 rollout actually produced, ask Claude Fable 5 how consistent the stated
-reasoning is with that trajectory (0-10).
+reasoning is with that trajectory (0-10). Optionally scene-grounded: when
+the caller passes a camera image with the trajectory drawn on it
+(scene_overlay.py), the judge also verifies the trace's claims against what
+is actually visible -- closing the text-only variant's known blind spot
+(a fabricated-but-plausible hazard with matching braking scored high).
 
 Relationship to pref_pairs/judge_reasoning_pairs.py: that module is the
 validated pairwise (blind A/B) judge that produced
@@ -294,11 +298,18 @@ _CONTENT_RETRIES = 3
 def judge_trace(
     trace: str,
     waypoints_xyz: Any,
+    scene_jpeg: bytes | None = None,
     hz: float = TRAJECTORY_HZ,
     model: str = "claude-fable-5",
 ) -> int:
     """Scores one CoC trace against the trajectory it produced. Returns the
     raw 0-10 integer (callers wanting the recipe scale apply normalize_score).
+
+    scene_jpeg: optional JPEG of the scene with THIS rollout's trajectory
+    drawn on it (scene_overlay.render_scene_overlay). When given, the judge
+    runs scene-grounded (SYSTEM_PROMPT_SCENE): it additionally checks the
+    trace's claims against what is visible. When None, the request is
+    byte-identical to the original text-only judge.
 
     Two nested retry layers, mirroring the pairwise judge's conventions:
       - transport layer: transient API errors (rate limit / overload /
@@ -318,7 +329,8 @@ def judge_trace(
 
     client = _get_client()
     waypoint_table = waypoint_table_from_xyz(waypoints_xyz, hz)
-    user_message = _build_user_message(trace, waypoint_table)
+    user_content = _build_user_content(trace, waypoint_table, scene_jpeg)
+    system_prompt = SYSTEM_PROMPT if scene_jpeg is None else SYSTEM_PROMPT_SCENE
 
     content_retries_left = _CONTENT_RETRIES
     max_tokens = 512
@@ -333,8 +345,8 @@ def judge_trace(
                 # Opus 4.8 within the same API call.
                 betas=["server-side-fallback-2026-06-01"],
                 fallbacks=[{"model": "claude-opus-4-8"}],
-                system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
-                messages=[{"role": "user", "content": user_message}],
+                system=[{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}],
+                messages=[{"role": "user", "content": user_content}],
             )
         except (anthropic.RateLimitError, anthropic.InternalServerError, anthropic.APIConnectionError, anthropic.APITimeoutError) as e:
             if attempt >= len(_BACKOFF_S):
