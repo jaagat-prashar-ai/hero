@@ -54,3 +54,8 @@ timesteps. Standard ADE definition, XY-only (heading not included).
 # Verification against vendored recipe: Diffed against alpamayo1_x_rl/rewards/aggregated_reward_with_reasoning.py:72-82 (the NVIDIA original our reward file is a drop-in replacement of) - the decode call and calculate_ade invocation are line-for-line identical. Our file only swaps out the reasoning gradeer 
     # i.e., LingoJudge replaced by trajectory-grounded LLM Judge; the ADE component itself was deliberately untouched (docstring aggregated_reward_llm_judge.py:14-21 states). 
         # review the code in the aggregated_reward_llm scriptgit a
+
+# ADE is real and ground-truth-anchored, not a stub (integration happens via traj_tokenizer.decode) 
+
+# Debugging
+# 1. pyproject.toml:52 and lockfiles/requirements_lock.txt:4 embed the ursa PyPi credential neuron:sVUz... in plaintext in git. Should be rotated and scrubbed. 
