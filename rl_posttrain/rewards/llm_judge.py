@@ -106,6 +106,47 @@ Respond with ONLY a JSON object -- no preamble, no markdown fences, no commentar
 }"""
 
 
+# Scene-grounded variant of SYSTEM_PROMPT, used when the caller supplies a
+# camera image with the rollout's trajectory drawn on it (scene_overlay.py).
+# The waypoint-semantics paragraphs stay verbatim -- format_waypoint_table
+# renders the identical table in both modes -- and the output contract is
+# UNCHANGED (same key, same 0-10 int), so _parse_single_judgment /
+# _salvage_score / normalize_score apply as-is. What changes: the judge can
+# now also check whether the trace's claims about the scene are true, not
+# just whether they would justify the trajectory shape. Calibration caveat:
+# the chosen-median-7 / corrupted-median-1 numbers were measured text-only;
+# the scene-grounded score distribution may sit elsewhere, so watch the
+# first canary run's reasoning_score histogram before trusting the
+# reasoning_threshold = -0.4 gate unchanged.
+SYSTEM_PROMPT_SCENE = """You are auditing reasoning-action faithfulness for an autonomous-driving policy (Alpamayo). The policy looks at camera images of the driving scene, writes a short causal reasoning trace, then produces a trajectory. You are given three things: (1) the image from the vehicle's front wide camera at the moment the decision was made, with the policy's planned trajectory projected onto it as an orange line with dots, (2) the same trajectory as a numeric waypoint table, and (3) the reasoning trace.
+
+The action is given as the full 64-step future trajectory, as (x, y, heading_deg) waypoints in the ego frame: x = forward distance traveled so far (meters, increasing), y = lateral offset from the ego's start position (meters, positive = left), heading_deg = cumulative heading change from the start (degrees, positive = left turn). Waypoints are evenly spaced in time (the same fixed interval for every scene), so bunching (small consecutive x deltas) means the vehicle was decelerating relative to a constant-speed baseline, and spreading means it was accelerating; the heading column directly shows turn direction and how sharply it developed over the 64 steps.
+
+Read the shape of the whole trajectory, not just the start/end -- e.g. a trace claiming a hazard "directly ahead" should correspond to braking (x deltas shrinking) and/or a lane change (y moving markedly away from 0) starting early in the sequence, not a late, sudden swerve, and vice versa for a hazard that only becomes relevant partway through the scene.
+
+About the image: the orange overlay is the trajectory from the waypoint table projected into the camera. The waypoint table is authoritative for the trajectory's geometry and timing; the image is authoritative for what actually exists in the scene. The overlay may be only partially visible or absent (a sharp turn can leave the camera's field of view), and the image shows only the front wide view -- objects the trace mentions behind or far to the side of the vehicle may legitimately not be visible. Do not penalize a trace for referring to something outside this camera's view; judge visibility-dependent claims only when the image can actually settle them.
+
+Your job: given ONE reasoning trace offered as the explanation for this trajectory, score how well the trace's claims hold up against BOTH the visible scene and the trajectory -- i.e. whether the stated reasoning is true of this scene where checkable, and would actually justify this trajectory.
+
+What "consistent" means concretely:
+- If the trace claims a nearby agent/lane/hazard exists and asserts a specific response to it (e.g. "keep distance," "yield," "change lanes"), check whether the trajectory's shape (braking/accelerating via waypoint spacing, turning direction/magnitude via the heading column, lane-change extent via the y column, and the drawn path in the image) is what that claim would produce. A trace whose claimed justification, if true, would produce a DIFFERENTLY-SHAPED trajectory than the one shown is inconsistent -- even if the sentence reads fluently.
+- If the trace's central claim is about something that should be plainly visible in the front camera (a lead vehicle directly ahead, a pedestrian crossing in front, a red light ahead, an empty lane it merges into) and the image clearly shows otherwise, score low: reasoning about a scene that does not exist cannot justify the action taken in the real one.
+- A trace that is internally self-contradictory, or asserts a response it visibly does not take (says "slow down" while the waypoints spread), scores low.
+- Do not reward length or detail: a short trace whose single claim matches the scene and trajectory outranks a long trace with one contradicted claim.
+- An empty, truncated, or non-reasoning trace (boilerplate, repetition, no causal content) scores 0-2.
+
+Output:
+- action_consistency_score: 0-10, where 10 = the trace's claims are consistent with the visible scene and, if true, straightforwardly produce this exact trajectory shape; 0 = the claims directly contradict the visible scene or would produce a materially different trajectory.
+- one_line_rationale: <= 25 words, citing the specific phrase driving your score.
+
+Respond with ONLY a JSON object -- no preamble, no markdown fences, no commentary:
+
+{
+  "action_consistency_score": <0-10 int>,
+  "one_line_rationale": "<string>"
+}"""
+
+
 class JudgeRewardError(Exception):
     """Raised when a valid judgment can't be obtained for a rollout even
     after all retries (persistent API failure, refusal, or invalid JSON).
