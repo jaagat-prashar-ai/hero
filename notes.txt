@@ -104,3 +104,15 @@ timesteps. Standard ADE definition, XY-only (heading not included).
 
 # Parses the entire chunk file - every clip's dense per-frame obstacle tracks (into pandas just to pull out one clip's rows 6)
 
+# What the obstacle data actually is: 
+# For each 20-second driving clip, it's a plain table: one row per obstacle per moment in time. 
+# 3100 rows covering 41 tracked objects, with columns such as: 
+
+┌─────────┬───────┬─────────┬────────┬─────────┬─────────┐
+│ timesta │ track │ center_ │ size_x │ orienta │ label_c │
+│  mp_us  │  _id  │  x/y/z  │  /y/z  │  tion   │  lass   │
+├─────────┼───────┼─────────┼────────┼─────────┼─────────┤
+│         │       │ -10.2,  │ 4.3 ×  │ quatern │ automob │
+│ 19779   │ 16    │ 0.55,   │ 2.0 ×  │ ion     │ ile     │
+│         │       │ 0.71    │ 1.5    │         │         │
+└─────────┴───────┴─────────┴────────┴─────────┴─────────┘
