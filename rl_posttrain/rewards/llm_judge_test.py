@@ -203,35 +203,52 @@ class TestRunJudgesParallel:
 
     def test_preserves_input_order(self):
         xyz = _straight_constant_speed_xyz()
-        jobs = [(f"trace scoring {n}", xyz) for n in (3, 9, 6)]
-        scores = _run_judges_parallel(jobs, judge_fn=lambda cot, _: int(cot.split()[-1]))
+        jobs = [(f"trace scoring {n}", xyz, b"jpeg") for n in (3, 9, 6)]
+        scores = _run_judges_parallel(jobs, judge_fn=lambda cot, _, __: int(cot.split()[-1]))
         assert scores == [3, 9, 6]
+
+    def test_per_job_scene_image_reaches_judge(self):
+        # Each rollout's overlay carries ITS OWN predicted path -- the image
+        # must stay paired with its trace through the fan-out.
+        xyz = _straight_constant_speed_xyz()
+        seen = {}
+
+        def judge(cot, _, jpeg):
+            seen[cot] = jpeg
+            return 5
+
+        _run_judges_parallel(
+            [("trace a", xyz, b"overlay-a"), ("trace b", xyz, b"overlay-b")], judge_fn=judge
+        )
+        assert seen == {"trace a": b"overlay-a", "trace b": b"overlay-b"}
 
     @pytest.mark.parametrize("empty_cot", [None, "", "   "])
     def test_missing_cot_skipped_without_judge_call(self, empty_cot):
         calls = []
 
-        def judge(cot, _):
+        def judge(cot, _, __):
             calls.append(cot)
             return 7
 
         scores = _run_judges_parallel(
-            [(_REAL_TRACE, None), (empty_cot, None)], judge_fn=judge
+            [(_REAL_TRACE, None, b"jpeg"), (empty_cot, None, b"jpeg")], judge_fn=judge
         )
         assert scores == [7, None]
         assert calls == [_REAL_TRACE]
 
     def test_all_empty_returns_all_none(self):
-        assert _run_judges_parallel([("", None), (None, None)], judge_fn=None) == [None, None]
+        assert _run_judges_parallel(
+            [("", None, None), (None, None, None)], judge_fn=None
+        ) == [None, None]
 
     def test_judge_error_propagates(self):
         # Fail-loud policy: a persistent judge failure must crash the reward
         # task, not silently feed a placeholder score into GRPO.
-        def judge(cot, _):
+        def judge(cot, _, __):
             raise JudgeRewardError("persistent API failure")
 
         with pytest.raises(JudgeRewardError):
-            _run_judges_parallel([(_REAL_TRACE, None)], judge_fn=judge)
+            _run_judges_parallel([(_REAL_TRACE, None, b"jpeg")], judge_fn=judge)
 
     def test_actually_runs_concurrently(self):
         # Two judge calls that each block until the other has started can
@@ -241,12 +258,14 @@ class TestRunJudgesParallel:
 
         barrier = threading.Barrier(2, timeout=5)
 
-        def judge(cot, _):
+        def judge(cot, _, __):
             barrier.wait()
             return 5
 
         scores = _run_judges_parallel(
-            [(_REAL_TRACE, None), (_REAL_TRACE, None)], judge_fn=judge, max_workers=2
+            [(_REAL_TRACE, None, b"jpeg"), (_REAL_TRACE, None, b"jpeg")],
+            judge_fn=judge,
+            max_workers=2,
         )
         assert scores == [5, 5]
 
