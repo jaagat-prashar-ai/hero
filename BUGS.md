@@ -6,6 +6,43 @@ now, not routine typos.
 
 ---
 
+## 2026-07-28 — code-reward ~51-min reward-time stalls: obstacle.offline chunk-zip access, now pre-extracted at setup
+
+**Symptom:** `alpamayo-rl-code-reward-a1npli` (first clean-finish code-reward
+run) completed only 35 optimizer steps in 16h53m. W&B `_runtime` deltas show
+bimodal step times: ~30 s normally, but ~19 stall events quantized at ~51 min
+(1x/2x/3x back-to-back: 51/~102/~158 min) consuming ~16 h of the run. Same
+stall previously killed `ketkv3` outright via the stock 600 s NCCL watchdog
+(bumped to 1 h for this mode as a workaround, which is why a1npli survived
+but crawled).
+
+**Root cause (localized, low-level mechanism still open):** the stall is
+specific to the code reward path — llm-judge-full runs on the identical
+dataset/dataloader/node do ~149 steps per 2h45m (~66 s/step, no stalls), and
+the only extra I/O code mode does is `_load_scene` →
+`avdi.get_clip_feature(clip_id, "obstacle.offline")`. NOTE: an earlier
+"whole-chunk parquet parse" theory (echoed in old run.py comments) is
+FALSIFIED — features.csv shows obstacle.offline ships as
+`obstacle.offline.chunk_NNNN.zip` holding one small parquet PER CLIP
+(~250 KB), so reads amplify at the zip/chunk level (multi-GB zip access at
+reward time while all ranks wait on the NCCL barrier), not via pandas
+parsing. Why one chunk touch costs ~51 min (storage contention from the
+background 570 GB warm-cache upload? per-open cost on /mnt/work?) was not
+pinned down.
+
+**Fix:** stop touching chunk zips at reward time entirely. run.py
+`_extract_obstacles_by_clip` unzips every per-clip member into
+`obstacles_by_clip/` during the CPU-only setup phase (idempotent, runs
+before GPUs are reserved; code mode only), and `_load_scene` reads
+`obstacles_by_clip/<clip_id>.obstacle.offline.parquet` directly, falling
+back to the old avdi path when the extraction is absent. Verified via
+`code_as_a_reward` suite (63 passed) plus a smoke test loading the testdata
+clip through the new path (41 tracks, no alp_state needed). Self-diagnosing:
+if a future run still stalls ~51 min/step, scene loading is exonerated and
+the cause is elsewhere (rollout/infra).
+
+---
+
 ## 2026-07-27 (3rd) — masking-run9-d node died mid-setup: no manifest → full WDS prefix mirrored to /mnt/work
 
 **Symptom:** `masking-run9-d-cr0skx` (third attempt, on the restored run.py)
