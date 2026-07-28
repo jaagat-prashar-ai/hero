@@ -26,6 +26,41 @@ GENERATOR_MODEL = "claude-opus-5"
 FALLBACK_MODEL = "claude-opus-4-8"
 MAX_TOKENS = 8000
 
+# Hard spend ceiling across ALL calls in a run -- checked before every
+# request; the run aborts rather than exceed it. Opus 5 pricing per Mtok.
+BUDGET_USD = 5.0
+_PRICE = {"in": 5.0, "out": 25.0, "cache_read": 0.50, "cache_write": 6.25}
+
+
+class BudgetExceeded(Exception):
+    """The run would exceed BUDGET_USD; nothing further is sent."""
+
+
+class CostTracker:
+    """Accumulates real usage from API responses into dollars."""
+
+    def __init__(self, budget_usd: float = BUDGET_USD):
+        self.budget_usd = budget_usd
+        self.spent_usd = 0.0
+        self.calls = 0
+
+    def check(self) -> None:
+        # Worst-case cost of one more call (~10K in + MAX_TOKENS out).
+        worst_next = (10_000 * _PRICE["in"] + MAX_TOKENS * _PRICE["out"]) / 1e6
+        if self.spent_usd + worst_next > self.budget_usd:
+            raise BudgetExceeded(
+                f"spent ${self.spent_usd:.2f} of ${self.budget_usd:.2f}; refusing the next call"
+            )
+
+    def add(self, usage) -> None:
+        self.calls += 1
+        self.spent_usd += (
+            (usage.input_tokens or 0) * _PRICE["in"]
+            + (usage.output_tokens or 0) * _PRICE["out"]
+            + (getattr(usage, "cache_read_input_tokens", 0) or 0) * _PRICE["cache_read"]
+            + (getattr(usage, "cache_creation_input_tokens", 0) or 0) * _PRICE["cache_write"]
+        ) / 1e6
+
 _SYSTEM = """\
 You write per-scene reward functions for an autonomous-driving RL pipeline.
 
@@ -146,7 +181,9 @@ def extract_code(text: str) -> str:
     return blocks[-1].strip() + "\n"
 
 
-def _call(client, messages: list[dict]) -> "object":
+def _call(client, messages: list[dict], tracker: CostTracker | None = None) -> "object":
+    if tracker is not None:
+        tracker.check()
     response = client.beta.messages.create(
         model=GENERATOR_MODEL,
         max_tokens=MAX_TOKENS,
@@ -157,6 +194,8 @@ def _call(client, messages: list[dict]) -> "object":
         ],
         messages=messages,
     )
+    if tracker is not None:
+        tracker.add(response.usage)
     if response.stop_reason == "refusal":
         raise GenerationRefused("generator request refused by safety classifiers")
     return response
@@ -171,6 +210,7 @@ def generate_reward_fn(
     dossier: str,
     feedback: str | None = None,
     prior_transcript: list[dict] | None = None,
+    tracker: CostTracker | None = None,
 ) -> GenerationResult:
     """One generation attempt. First attempt runs the 3-step chain; retry
     attempts (feedback set) continue the prior transcript with gate results.
@@ -183,17 +223,17 @@ def generate_reward_fn(
             raise ValueError("feedback retry requires the prior transcript")
         messages = list(prior_transcript)
         messages.append({"role": "user", "content": _RETRY.format(feedback=feedback)})
-        response = _call(client, messages)
+        response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
     else:
         messages = [{"role": "user", "content": _STEP1.format(dossier=dossier)}]
-        response = _call(client, messages)
+        response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
         messages.append({"role": "user", "content": _STEP2})
-        response = _call(client, messages)
+        response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
         messages.append({"role": "user", "content": _STEP3.format(api_reference=_API_REFERENCE)})
-        response = _call(client, messages)
+        response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
 
     source = extract_code(_text(response))

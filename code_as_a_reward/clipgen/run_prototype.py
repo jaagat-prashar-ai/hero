@@ -31,7 +31,12 @@ import pandas as pd
 
 from code_as_a_reward.clipgen import dossier as dossier_mod
 from code_as_a_reward.clipgen import gate as gate_mod
-from code_as_a_reward.clipgen.generate import GenerationRefused, generate_reward_fn
+from code_as_a_reward.clipgen.generate import (
+    BudgetExceeded,
+    CostTracker,
+    GenerationRefused,
+    generate_reward_fn,
+)
 from code_as_a_reward.clipgen.sandbox import RewardFnError
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
@@ -67,7 +72,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
     (out / "transcripts").mkdir(exist_ok=True)
     clips = [_load_clip(e) for e in json.loads(Path(manifest_path).read_text())]
 
-    client = None
+    client, tracker = None, CostTracker()
     if not dry_run:
         import anthropic
 
@@ -90,7 +95,13 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
         transcript, feedback = None, None
         for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
-                result = generate_reward_fn(client, text, feedback=feedback, prior_transcript=transcript)
+                result = generate_reward_fn(
+                    client, text, feedback=feedback, prior_transcript=transcript, tracker=tracker
+                )
+            except BudgetExceeded as e:
+                entry["attempts"].append({"attempt": attempt, "error": str(e)})
+                report["aborted"] = f"budget ceiling: {e}"
+                break
             except (RewardFnError, GenerationRefused) as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})
                 feedback, transcript = f"the reply was invalid: {e}", transcript or []
@@ -122,6 +133,8 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
 
     n_pass = sum(1 for e in report["clips"].values() if e["passed"])
     report["summary"] = f"{n_pass}/{len(clips)} clips passed the gate (success bar: >=4/5)"
+    report["api_cost_usd"] = round(tracker.spent_usd, 4)
+    report["api_calls"] = tracker.calls
     (out / "report.json").write_text(json.dumps(report, indent=2, default=str))
     return report
 
