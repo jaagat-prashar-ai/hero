@@ -3,11 +3,14 @@
 
 Derived verbatim from the vendored recipe's
 models/reasoning_vla/alpamayo_cosmos_rl_post_training_reasoning_entry.py
-with exactly one functional change: the reward function imports
-rl_posttrain.rewards.aggregated_reward_llm_judge instead of the recipe's
-aggregated_reward_with_reasoning (whose Lingo-Judge grader compares
-predicted CoC to reference CoC and needs a cached local model -- see the
-reward module's docstring for the full rationale).
+with exactly two functional changes:
+  - the reward function imports rl_posttrain.rewards.aggregated_reward_llm_judge
+    instead of the recipe's aggregated_reward_with_reasoning (whose
+    Lingo-Judge grader compares predicted CoC to reference CoC and needs a
+    cached local model -- see the reward module's docstring);
+  - launch goes through _launch_with_scene_reference (a copy of the vendored
+    launcher) so the dataset is SceneReferenceDataset, whose reference dicts
+    carry the scene frame + calibration the scene-grounded judge requires.
 
 Everything else -- env-var contract (ALPAMAYO_PAI_REASONING_LOCAL_DIR),
 vLLM registration, ModelSpec components, hydra config/overrides -- is kept
@@ -126,5 +129,46 @@ REASONING_VLA_SPEC = ModelSpec(
     ],
 )
 
+
+def _launch_with_scene_reference(spec: ModelSpec) -> None:
+    """Copy of the vendored alpamayo1_x_rl.launcher.launch_alpamayo_model
+    with exactly one functional change: launch_worker gets
+    SceneReferenceDataset instead of AlpamayoCosmosDataset, so every
+    reference dict carries the judge's scene payload (frame + calibration).
+    The vendored launcher hardcodes its dataset class -- same
+    copy-with-one-block-changed convention as the reward module itself."""
+    from cosmos_rl.launcher.worker_entry import main as launch_worker
+    from cosmos_rl.policy.model.base import ModelRegistry
+
+    import alpamayo1_x_rl.state as alp_state
+    from alpamayo1_x_rl.launcher import _read_ckpt_path_from_toml
+
+    from rl_posttrain.rewards.scene_reference_dataset import SceneReferenceDataset
+
+    ckpt_path = _read_ckpt_path_from_toml()
+
+    alp_state.init_once(
+        ckpt_path,
+        hydra_config_path=spec.hydra_config_path,
+        hydra_config_name=spec.hydra_config_name,
+        overrides=spec.hydra_overrides,
+    )
+
+    ModelRegistry.register_model(
+        spec.cosmos_wrapper,
+        spec.weight_mapper,
+        data_packer_cls=spec.data_packer_cls,
+    )
+
+    launch_worker(
+        dataset=lambda config: SceneReferenceDataset(split="train"),
+        data_packer=spec.data_packer_cls(),
+        reward_fns=[spec.reward_fn],
+        val_dataset=lambda config: SceneReferenceDataset(split="val"),
+        val_data_packer=spec.data_packer_cls(),
+        val_reward_fns=[spec.reward_fn],
+    )
+
+
 if __name__ == "__main__":
-    REASONING_VLA_SPEC.launch()
+    _launch_with_scene_reference(REASONING_VLA_SPEC)
