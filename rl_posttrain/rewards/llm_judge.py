@@ -44,6 +44,7 @@ unit-tested. Real verification is the canary cluster run.
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import os
@@ -164,6 +165,35 @@ def _build_user_message(trace: str, waypoint_table: str) -> str:
         f"{waypoint_table}\n\n"
         f'Reasoning trace: "{trace}"'
     )
+
+
+def _build_user_content(
+    trace: str, waypoint_table: str, scene_jpeg: bytes | None = None
+) -> str | list[dict[str, Any]]:
+    """User-turn content for one rollout. Without an image this is exactly
+    _build_user_message's string (the offline-calibrated text-only request
+    stays byte-identical); with one, an Anthropic image block precedes the
+    same text, with one leading line tying the overlay to the table."""
+    text = _build_user_message(trace, waypoint_table)
+    if scene_jpeg is None:
+        return text
+    return [
+        {
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": base64.b64encode(scene_jpeg).decode("ascii"),
+            },
+        },
+        {
+            "type": "text",
+            "text": (
+                "Front wide camera at decision time; the orange line is the "
+                "trajectory tabulated below.\n\n" + text
+            ),
+        },
+    ]
 
 
 def _parse_single_judgment(text: str) -> dict[str, Any]:
