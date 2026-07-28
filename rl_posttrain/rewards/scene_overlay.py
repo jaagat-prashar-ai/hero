@@ -138,3 +138,52 @@ def encode_frame_jpeg(frame_hwc: np.ndarray, quality: int = 90) -> bytes:
     buf = io.BytesIO()
     Image.fromarray(frame_hwc).save(buf, format="JPEG", quality=quality)
     return buf.getvalue()
+
+
+def render_scene_overlay(
+    frame: bytes | np.ndarray,
+    waypoints_xyz: np.ndarray,
+    cam_intr: dict[str, float],
+    cam_extr: dict[str, float],
+    max_dim: int = _MAX_IMAGE_DIM,
+    jpeg_quality: int = 85,
+) -> bytes:
+    """Draws one trajectory onto the scene frame and returns JPEG bytes for
+    the judge request.
+
+    `frame` is either JPEG bytes (the reference-dict transport form) or an
+    (H, W, 3) uint8 array. Drawing happens at the frame's native resolution
+    -- the calibration's pixel coordinates only apply there -- and the
+    finished image is downscaled to max_dim afterwards.
+
+    A trajectory that projects (partly) outside the image gets (partly) no
+    overlay -- e.g. a sharp turn leaving the 120 degree FOV, or all-behind
+    geometry from a degenerate rollout. That is deliberate: the judge's
+    prompt tells it the waypoint table is authoritative for geometry and the
+    image may show only part of the path, so an honest partial overlay beats
+    refusing to render."""
+    if isinstance(frame, (bytes, bytearray)):
+        img = Image.open(io.BytesIO(frame)).convert("RGB")
+    else:
+        img = Image.fromarray(frame)
+
+    pixels, valid = project_waypoints_ftheta(waypoints_xyz, cam_intr, cam_extr)
+    # Calibration coords assume the native sensor resolution; if the frame
+    # ever arrives pre-resized, scale the projection to match.
+    sx = img.width / float(cam_intr["width"])
+    sy = img.height / float(cam_intr["height"])
+    pts = [(float(u) * sx, float(v) * sy) for (u, v), ok in zip(pixels, valid) if ok]
+
+    draw = ImageDraw.Draw(img)
+    if len(pts) > 1:
+        draw.line(pts, fill=_OVERLAY_COLOR, width=6, joint="curve")
+    for u, v in pts[::4]:
+        draw.ellipse([u - 5, v - 5, u + 5, v + 5], fill=_OVERLAY_COLOR, outline=_OVERLAY_OUTLINE)
+
+    if max(img.size) > max_dim:
+        ratio = max_dim / max(img.size)
+        img = img.resize((round(img.width * ratio), round(img.height * ratio)), Image.LANCZOS)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=jpeg_quality)
+    return buf.getvalue()
