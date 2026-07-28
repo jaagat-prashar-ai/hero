@@ -132,3 +132,9 @@ def project_waypoints_ftheta(
             & (v < cam_intr["height"])
         )
     return pixels, valid
+
+
+def encode_frame_jpeg(frame_hwc: np.ndarray, quality: int = 90) -> bytes:
+    buf = io.BytesIO()
+    Image.fromarray(frame_hwc).save(buf, format="JPEG", quality=quality)
+    return buf.getvalue()
