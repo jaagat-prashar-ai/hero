@@ -187,3 +187,33 @@ def render_scene_overlay(
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=jpeg_quality)
     return buf.getvalue()
+
+
+def build_scene_reference(sample: dict[str, Any]) -> dict[str, Any]:
+    """Extracts the judge's scene payload from one PAI dataset sample:
+    {scene_frame_jpeg, scene_cam_intr, scene_cam_extr}.
+
+    Runs on the dataset side (SceneReferenceDataset.get_reference_answer) so
+    the reference dict ships ONE JPEG-compressed frame (~hundreds of KB)
+    instead of the sample's full image_frames stack (~100 MB of uint8 for
+    4 cams x 4 frames at native resolution) through cosmos-rl's controller.
+
+    Calibration rows are flattened to plain float dicts: DataFrame rows are
+    an avoidable serialization risk in reward-worker transport, and the
+    projection only needs the 9+7 scalars."""
+    intr_df = sample.get("intr")
+    extr_df = sample.get("extr")
+    if intr_df is None or extr_df is None:
+        raise KeyError(
+            "sample has no 'intr'/'extr' calibration -- the dataset must be "
+            "built with include_extr_intr=true (the alpamayo1_5_rvla_rl_pai "
+            "hydra config sets this; check the dataset overrides)"
+        )
+    intr_row = intr_df.loc[FRONT_WIDE_CAMERA]
+    extr_row = extr_df.loc[FRONT_WIDE_CAMERA]
+    frame = select_t0_front_wide_frame(sample["image_frames"], sample["camera_indices"])
+    return {
+        "scene_frame_jpeg": encode_frame_jpeg(frame),
+        "scene_cam_intr": {k: float(intr_row[k]) for k in _INTR_COLUMNS},
+        "scene_cam_extr": {k: float(extr_row[k]) for k in _EXTR_COLUMNS},
+    }
