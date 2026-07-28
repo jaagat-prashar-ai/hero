@@ -60,10 +60,11 @@ Structure, top to bottom:
 
 Obstacle data at reward time: reward_mode="code" downloads the same PAI
 reasoning subset as llm_judge, whose --labels already include
-obstacle.offline (run.py). _load_scene reads a clip's tracks straight from
-that local download via the recipe's own dataset interface (alp_state is
-initialized in every cosmos-rl process because each replica executes this
-entry), LRU-cached per clip. Degradation is deliberate and LOUD, never
+obstacle.offline (run.py). _load_scene reads a clip's tracks from the
+per-clip parquets run.py pre-extracts into obstacles_by_clip/ at setup
+(falling back to the recipe's dataset interface over the chunk zips when
+the extraction is absent; alp_state is initialized in every cosmos-rl
+process because each replica executes this entry), LRU-cached per clip. Degradation is deliberate and LOUD, never
 silent: unknown label classes / class-inconsistent tracks are dropped with
 a logged warning (the entity mapping only maps to known classes, so
 dropping unknowns cannot flip any computable verdict), and if a clip's
@@ -189,10 +190,21 @@ def _load_scene(clip_id: str):
     from code_as_a_reward.obstacle_tracks import OBSTACLE_LABEL_CLASSES, SceneObstacles
 
     try:
-        import alpamayo1_x_rl.state as alp_state
+        raw = None
+        local_dir = os.environ.get("ALPAMAYO_PAI_REASONING_LOCAL_DIR")
+        if local_dir:
+            per_clip = Path(local_dir) / "obstacles_by_clip" / f"{clip_id}.obstacle.offline.parquet"
+            if per_clip.exists():
+                raw = pd.read_parquet(per_clip)
+        if raw is None:
+            # Fallback: recipe interface over the chunk zips (slow first
+            # touch per chunk -- kept so a missing extraction degrades
+            # instead of dying; run.py's _extract_obstacles_by_clip is what
+            # populates obstacles_by_clip/ at setup).
+            import alpamayo1_x_rl.state as alp_state
 
-        avdi = alp_state.get_dataloaders()["train"].dataset.avdi
-        raw = avdi.get_clip_feature(clip_id, "obstacle.offline")
+            avdi = alp_state.get_dataloaders()["train"].dataset.avdi
+            raw = avdi.get_clip_feature(clip_id, "obstacle.offline")
         # get_clip_feature returns a DataFrame for parquet-chunk features and
         # a {filename: DataFrame} dict for zip-chunk features it has no
         # dedicated reader for -- accept both layouts.

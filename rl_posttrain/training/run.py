@@ -65,6 +65,7 @@ import signal
 import subprocess
 import sys
 import threading
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -412,6 +413,27 @@ def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: in
     )
     marker.write_text("ok\n")
     return mini_path
+
+
+def _extract_obstacles_by_clip(pai_dir: Path) -> None:
+    """Unzip every obstacle.offline chunk's per-clip parquet members into
+    obstacles_by_clip/ so reward-time _load_scene never opens the multi-GB
+    chunk zips mid-training while all ranks wait on the NCCL barrier (the
+    code-reward stall: ~51 min per chunk touch, quantized 1x/2x/3x in run
+    a1npli's step times). One pass here, CPU-only, before the GPUs are
+    reserved; idempotent -- existing files are skipped."""
+    src = pai_dir / "labels" / "obstacle.offline"
+    dst = pai_dir / "obstacles_by_clip"
+    dst.mkdir(parents=True, exist_ok=True)
+    n_new = 0
+    for zpath in sorted(src.glob("obstacle.offline.chunk_*.zip")):
+        with zipfile.ZipFile(zpath) as zf:
+            for member in zf.namelist():
+                out = dst / Path(member).name
+                if not out.exists():
+                    out.write_bytes(zf.read(member))
+                    n_new += 1
+    logger.info("obstacles_by_clip: extracted %d new per-clip files into %s", n_new, dst)
 
 
 def _patch_toml(
@@ -789,6 +811,9 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         # differs from a judge run in the reasoning signal only. Only the
         # entry script changes.
         _fetch_reasoning_dataset()
+        # Code reward reads per-clip obstacle ground truth at reward time;
+        # pre-extract it so those reads never touch the chunk zips.
+        _extract_obstacles_by_clip(pai_reasoning_dir)
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "code_reward_entry.py"
     elif reward_mode == "reasoning":
