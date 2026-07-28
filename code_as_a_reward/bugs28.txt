@@ -1,0 +1,12 @@
+bug fixes
+
+What shipped:
+
+- e901539 — the fix, two files:
+  - run.py: new _extract_obstacles_by_clip() unzips every per-clip obstacle parquet out of the chunk zips into obstacles_by_clip/ during the CPU-only setup phase. Idempotent, runs only in the code reward branch, before GPUs are reserved.
+  - code_reward_entry.py: _load_scene now reads obstacles_by_clip/<clip_id>.obstacle.offline.parquet directly (a ~250 KB file open), falling back to the old recipe-interface path if the extraction is missing. Docstring updated to match.
+- 3cc4a7c — BUGS.md entry documenting the stall, the falsified parse theory, the judge-run comparison that localized it, and the fix.
+
+Verified: all 63 code_as_a_reward tests pass, plus a smoke test that loaded the testdata clip through the new fast path (41 tracks, no alp_state needed).
+
+Next step when you're ready: relaunch the code-reward run. Success signal is step time — if the fix is right, steps should run at roughly the judge-run cadence (~1 min) instead of 2/hour, and a 45-step run should finish in about an hour instead of 17. If ~51-minute stalls still show up, scene loading is definitively exonerated and we look at the rollout/infra side instead.
