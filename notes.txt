@@ -26,4 +26,31 @@ reasoning position - no re-running needed
 2. Counterfactual sweep (Counterfactual_sweep): For selected positions (ranked by entropy or runner-up probability), inject a ForcedTokenAtStep logits processor that hard-forces an alternative token at step S, lets subsequent reasoning re-sample condiitoned on that choice, 
 that runs the diffusion expert with a common seed to isolate trajectory impact.
 
+# How samples are generated: 
+- The ReasoningVLA policy generates rollouts via vLLM, sampling at temperature=0.6, top_p=0.98, repetition_penalty=1. 
+- 12 rollouts per prompt during training ([rollout] n_generation = 12) - this is the GRPO group size. Validation uses 6 (temperature=0.6)
+- [rollout] batch_size = 2 prompts per rollout step; train_batch_per_replica = 48 
 
+# "Atomic" and "causal" - important classification
+# These don't decompose the reward. 
+
+# code as a reward; precise definition and approach. 
+
+# for the current code as a reward project there is a deterministic verifier program once and this runs identically on every sample (there is no LLM writing/executing checking code per-example)
+
+# so
+
+# generate a bunch of samples, eyeball the data
+# turning left / turning right, easy to tell, not interesting
+# we need more complex scenarios (models czn do this well without LLMs)
+
+# ADE computation 
+# 1. Decode: decode_rollout_trajectory() extracts the generated traj tokens from the rollout text, then calls traj_tokenizer.decode(hist_xyz=ego_history_xyz, hist_rot=ego_history_rot, tokens=traj_tokens_ids). 
+    # This integrates the model's quantized unicycle controls (accel, kappa) forward from the real ego history state into actual (x, y, heading) positions - predicted_fut_xyz. 
+# 2. Ground truth: gt_fut_xyz = reference["ego_future_xyz"], the real future ego trajectory from the dataset (base_dataset.py:71). 
+# 3. ADE: calculate_ade(predicted_fut_xyz[0], gt_fut_zyx[0]) in third_party/alpamayo-recipes/.../traj_reward.py:21-29 - takes only the (x, y) components of both trajectories, computes per-timestep Euclidean (L2) norm of the differnce, and averages over all 64 
+timesteps. Standard ADE definition, XY-only (heading not included). 
+
+# Verification against vendored recipe: Diffed against alpamayo1_x_rl/rewards/aggregated_reward_with_reasoning.py:72-82 (the NVIDIA original our reward file is a drop-in replacement of) - the decode call and calculate_ade invocation are line-for-line identical. Our file only swaps out the reasoning gradeer 
+    # i.e., LingoJudge replaced by trajectory-grounded LLM Judge; the ADE component itself was deliberately untouched (docstring aggregated_reward_llm_judge.py:14-21 states). 
+        # review the code in the aggregated_reward_llm scriptgit a
