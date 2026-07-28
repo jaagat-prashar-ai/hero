@@ -59,3 +59,48 @@ timesteps. Standard ADE definition, XY-only (heading not included).
 
 # Debugging
 # 1. pyproject.toml:52 and lockfiles/requirements_lock.txt:4 embed the ursa PyPi credential neuron:sVUz... in plaintext in git. Should be rotated and scrubbed. 
+# 2. research-core submodule is half-deleted
+    # Three places in the repo claim research-core exists: 
+        # .gitmodules declares it as a submodule, WORKSPACE does local_reposiotry(path="research-core") - 
+            Bazel expects a directory there, 
+        # -pyproject.toml has a [tool.uv.sources] entry pointing at path = "research-core"
+
+    But the directory doesn't exist, and it's also gone from git's index (git submodule status doesn't list it). So it was removed at some point. 
+
+# 3. discrete-sampling range bug in perplexity/sample_discrete_traj.py 
+    # Background: the model's vocabulary has a block of 4,000 special tokens <i0>...<i3999> starting at id 151669? What does this correspond to in terms of [accel, curvature]
+    # They're split by purpose:
+        # ids 151669-154668 (the first 3,000) = the future-action bins each encodes a quantized (accel, curvature), value, 
+        # ids 154669-155668 (the last 1,000) = history bins - used by a different tokenizer to encode ego history, with a completely different meaning. 
+            # How do we visualize this difference though? Betwene future-action bins and the history bins for tokenization. 
+
+    # sample_discrete_traj.py forces the model to emit only action tokens by masking logits. But the mask is built from traj_vocab_size (4000), not num_bins (3000):
+
+    # sample_discrete_traj.py:46-48 - allows the whole 4000-token block 
+    # So during sampling, the model is allowed to emit a history-bin token where an action token should be. 
+    # The post-hoc validity check at line 157 makes the same mistake, so it wouldn't catch it. 
+    # If that happens, the decoder does bin = token_id - 151669, gets a bin index >= 3000, and dequantizes it into a nonsense 
+
+# reason for llm judge crash:
+    # Worker pod identity changed - a new worker pod (worker-fllvg) cam eup and immediately re-ran the entire setup: select_dense_ood_chunks (re-selecting the 352 OOD clips) and a fresh
+    # huggingface_hub download of dataset chunks - while the head pod stayed the same (head-nc74h). That's the exact signature from the earlier eigzog/f6pj1y incidents: only the worker gets replaced, not the head, at a roughly fixed
+    cadence (here, ~2h48m between run 20260728112114 at 11:21:15 and the next at 14:09:58 - consistent with the historical ~2h45m)
+
+    # Find the "received grateful stop" / eviction message itself in that log window - it likely rolled off before the window started, or the specific signal text has changed. 
+    
+    # The theory was "the idle-GPU reaper kills the worker because nothing is touching the GPUs during Anthropic-API-latency stalls in the judge reward - so keep _GpuKeepalive running through the whole cosmos-rl subprocess instead of stopping it early."
+    # Given the crash cadence is unchanged even with that keepalive suposedly running the whole time, one of these is true:
+        # The keepalive isn't actually running when it should be (a bug in the reward_mode in (llm_judge, code) condition, or it's silently dying)
+        # The repaer isn't the real cause anymore - something else recurring on a similar ~2h45m period is killing the worker (a node-level max-runtime policy, an NCCL/health-check timeout, an OOM, a spot-preemption cycle)
+
+    
+    # Another bug: 
+
+    # Root cause is the read-amplification bug in how the reward loads ground-truth obstacle data
+    # One clip's scene load parses an entire multi-clip chunk file, and the cache is keyeed at the wrong granularity so it happens over and over?
+
+    # Every rollout group's reward calls _load_scene(clip_id), which avdi.get_clip_feature(clip_id, "obstacle.offline") from the vendored recipe. 
+    # The amplification. get_clip_feature (third_party/alpamayo-recipe)
+
+# Parses the entire chunk file - every clip's dense per-frame obstacle tracks (into pandas just to pull out one clip's rows 6)
+
