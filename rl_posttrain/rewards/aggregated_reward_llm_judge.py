@@ -36,10 +36,15 @@ What is different -- the reasoning component only:
     annotation. (Never wired up in our runner: needs a downloaded grader
     checkpoint, and similarity-to-reference is not the faithfulness signal
     this project is after.)
-  - Ours: llm_judge.judge_trace(pred_cot, predicted trajectory) -- scores
-    whether the rollout's stated reasoning is consistent with the trajectory
-    that SAME rollout produced. This is exactly the trajectory-grounded
-    rubric validated offline on the 717 judged pairs. Consequences:
+  - Ours: llm_judge.judge_trace(pred_cot, predicted trajectory, scene image)
+    -- scores whether the rollout's stated reasoning is consistent with the
+    trajectory that SAME rollout produced AND with the actual scene: the
+    judge sees the t0 front-wide camera frame with the rollout's predicted
+    path drawn on it (scene_overlay.py), from reference keys shipped by
+    SceneReferenceDataset. The text rubric is the trajectory-grounded one
+    validated offline on the 717 judged pairs, extended with scene checks
+    (the offline calibration medians were measured text-only -- see
+    llm_judge.SYSTEM_PROMPT_SCENE's caveat). Consequences:
       * no gt_cot dependence: clips without a CoC annotation still get a
         reasoning score (the vendored variant fell back to the -1.0 penalty
         path for those), and reward-hacking toward parroting the reference
@@ -146,14 +151,16 @@ _DEFAULT_JUDGE_CONCURRENCY = 8
 
 
 def _run_judges_parallel(
-    jobs: list[tuple[str | None, Any]],
-    judge_fn: Callable[[str, Any], int],
+    jobs: list[tuple[str | None, Any, bytes | None]],
+    judge_fn: Callable[[str, Any, bytes | None], int],
     max_workers: int | None = None,
 ) -> list[int | None]:
     """Fans judge calls out over a thread pool. `jobs` is an ordered list of
-    (pred_cot, waypoints_xyz) pairs, one per rollout; entries whose pred_cot
-    is empty/None are skipped (score None) without spending an API call.
-    Returns the raw 0-10 scores (or None) in input order.
+    (pred_cot, waypoints_xyz, scene_jpeg) triples, one per rollout -- the
+    scene image carries that rollout's OWN trajectory overlay, so it is
+    per-job, not shared; entries whose pred_cot is empty/None are skipped
+    (score None) without spending an API call. Returns the raw 0-10 scores
+    (or None) in input order.
 
     Pure fan-out with judge_fn injected so it's unit-testable without the
     network, per the project's no-fake-model-tests convention. Threads, not
@@ -166,11 +173,11 @@ def _run_judges_parallel(
             os.environ.get("LLM_JUDGE_MAX_CONCURRENCY", str(_DEFAULT_JUDGE_CONCURRENCY))
         )
     scores: list[int | None] = [None] * len(jobs)
-    runnable = [(i, cot, xyz) for i, (cot, xyz) in enumerate(jobs) if cot and cot.strip()]
+    runnable = [(i, cot, xyz, jpeg) for i, (cot, xyz, jpeg) in enumerate(jobs) if cot and cot.strip()]
     if not runnable:
         return scores
     with ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(runnable)))) as pool:
-        futures = [(i, pool.submit(judge_fn, cot, xyz)) for i, cot, xyz in runnable]
+        futures = [(i, pool.submit(judge_fn, cot, xyz, jpeg)) for i, cot, xyz, jpeg in runnable]
         for i, fut in futures:
             scores[i] = fut.result()
     return scores
@@ -207,12 +214,31 @@ def compute_reward_batch(
     from alpamayo1_x_rl.utils.trajectory_decode import decode_rollout_trajectory
 
     from rl_posttrain.rewards.llm_judge import judge_trace, normalize_score
+    from rl_posttrain.rewards.scene_overlay import render_scene_overlay
 
     w = _get_reward_cfg(config)
     gt_fut_xyz = reference["ego_future_xyz"]
 
-    # Stage 1 (serial, GPU-local): geometry + CoC extraction per rollout.
-    per_rollout: list[tuple[float, float, str, Any]] = []
+    # Scene payload for the judge's image. Fail loud, not fall back: these
+    # keys are guaranteed by SceneReferenceDataset (wired in llm_judge_entry);
+    # their absence means the launch used the vendored dataset, and silently
+    # degrading to the text-only judge would run a different experiment than
+    # the one the operator thinks they launched.
+    try:
+        scene_frame_jpeg = reference["scene_frame_jpeg"]
+        scene_cam_intr = reference["scene_cam_intr"]
+        scene_cam_extr = reference["scene_cam_extr"]
+    except KeyError as e:
+        raise KeyError(
+            f"reference dict lacks {e.args[0]!r} -- the scene-grounded judge "
+            "needs SceneReferenceDataset's reference keys; check that the "
+            "entry script (llm_judge_entry.py) launched with it"
+        ) from e
+
+    # Stage 1 (serial, GPU-local): geometry, CoC extraction, and the
+    # per-rollout overlay render (CPU PIL work, milliseconds -- not worth
+    # threading) per rollout.
+    per_rollout: list[tuple[float, float, str, Any, bytes]] = []
     for to_be_evaluated in to_be_evaluated_list:
         predicted_fut_xyz, predicted_fut_rot = decode_rollout_trajectory(
             to_be_evaluated,
@@ -238,14 +264,19 @@ def compute_reward_batch(
         # predicted_fut_xyz is (1, T, 3) on the worker's device; the judge
         # wants a plain (T, 3) CPU array.
         pred_xyz_np = predicted_fut_xyz[0].detach().float().cpu().numpy()
-        per_rollout.append((float(l2_dist), comfort_score, pred_cot, pred_xyz_np))
+        # This rollout's own predicted path drawn on the shared t0 scene
+        # frame -- each rollout in the group gets a different overlay.
+        overlay_jpeg = render_scene_overlay(
+            scene_frame_jpeg, pred_xyz_np, scene_cam_intr, scene_cam_extr
+        )
+        per_rollout.append((float(l2_dist), comfort_score, pred_cot, pred_xyz_np, overlay_jpeg))
 
     # Stage 2 (parallel): the API-bound judge calls. Rollouts with no decoded
     # CoC keep score None (the -1.0 "missing" value below, matching the
     # vendored missing-CoC penalty) -- no point paying an API call to confirm
     # empty text is unfaithful.
     judge_raws = _run_judges_parallel(
-        [(pred_cot, pred_xyz_np) for (_, _, pred_cot, pred_xyz_np) in per_rollout],
+        [(pred_cot, pred_xyz_np, overlay_jpeg) for (_, _, pred_cot, pred_xyz_np, overlay_jpeg) in per_rollout],
         judge_fn=judge_trace,
     )
 
@@ -256,7 +287,7 @@ def compute_reward_batch(
 
     rewards: list[float] = []
     reward_dicts: list[dict[str, float]] = []
-    for (l2_dist, comfort_score, pred_cot, _), judge_raw in zip(per_rollout, judge_raws):
+    for (l2_dist, comfort_score, pred_cot, _, _), judge_raw in zip(per_rollout, judge_raws):
         reasoning_score = -1.0 if judge_raw is None else normalize_score(judge_raw)
         pred_cot_decoded = bool(pred_cot and len(pred_cot.strip()) > 0)
 
