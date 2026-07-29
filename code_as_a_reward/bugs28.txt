@@ -48,3 +48,12 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
 # iteration_time (22 s vs 22 s)
 
 # ~16x faster and code_atomic_precision / code_reward_raw not carry real values on every step? why?
+
+# The complete root cause: 
+  # code_reward_entry.py:366-369: 
+    # "code_reward_raw": float(r) if r is not None else math.nan, 
+    # "code_atomic_precision": float(atomic_precision) if atomic_precision is not None else math.nan, 
+
+    # How do we decide the decided claims? Look into this! 
+    # When a rollout has zero decided claims, r = (n_pass / decided) if decided else None -> None -> the code writes math.nan as a "no data" sentinel. 
+    # 
