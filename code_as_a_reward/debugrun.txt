@@ -5,3 +5,5 @@
 # 2. The real logs live on the node's local disk. W&B has logs. 
 # 3. The fix that was already commited is aimed at the wrong target. The fix assumes the slowness came from opening "multi-GB chunk zips." I checked 
 # the actual dataset, those files are ~50 MB. 
+
+# load scene end to end is ~0.5 seconds (0.08 seconds zip and 0.4 seconds parse). 
