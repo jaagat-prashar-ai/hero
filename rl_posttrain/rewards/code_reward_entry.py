@@ -83,6 +83,9 @@ import logging
 import math
 import os
 import sys
+import threading
+import time
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -99,6 +102,72 @@ try:
     from cosmos_rl.utils.logging import logger  # pyright: ignore[reportMissingImports]
 except ImportError:
     logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Stall diagnosis (run a1npli, 2026-07-27).
+#
+# That run spent ~16h of its 16h53m parked in ~1h stalls -- 19 events, 35
+# optimizer steps total -- and still exited 0, because run.py raises
+# COSMOS_NCCL_TIMEOUT_MS / COSMOS_ROLLOUT_CMD_WAIT_TIMEOUT to 1h for this
+# reward mode, so each stall is absorbed instead of aborting. The stall was
+# attributed to _load_scene's cold obstacle.offline parse and "fixed" twice
+# (COSMOS_* bump, then e901539's per-clip pre-extraction), but that parse
+# measures ~0.5s end-to-end against the real dataset: a 53.9 MB chunk zip
+# opens in 0.003s, one member reads in 0.079s, and from_dataframe takes
+# 0.01-0.40s. So the hang is real but still UNNAMED, and no amount of reading
+# will name it -- three attributions have already been wrong.
+#
+# _StackSampler dumps every thread's stack on a fixed interval. A stall of any
+# length therefore leaves the SAME frame repeated across consecutive dumps,
+# which points at a file and line instead of inviting a fourth guess. It runs
+# in every replica process (main() starts it), covering the rollout and
+# dataloader paths too -- the hang need not be in the reward at all.
+#
+# Output goes through cosmos-rl's logger into this replica's log file on
+# node-local /mnt/work, which run.py's _CosmosLogTailer ships to captured
+# stdout; that forwarding only reaches OCI now that run.py configures its
+# logger. Cost is one wakeup per interval, so it is safe to leave enabled.
+class _StackSampler(threading.Thread):
+    def __init__(self, interval_s: float = 300.0):
+        super().__init__(daemon=True, name="code-reward-stack-sampler")
+        self._interval_s = interval_s
+        self._stop_event = threading.Event()
+
+    def run(self) -> None:
+        while not self._stop_event.wait(self._interval_s):
+            try:
+                names = {t.ident: t.name for t in threading.enumerate()}
+                parts = [
+                    f"--- thread {names.get(tid, '?')} ({tid}) ---\n"
+                    + "".join(traceback.format_stack(frame))
+                    for tid, frame in sys._current_frames().items()
+                ]
+                # WARNING, not INFO: cosmos-rl's own level is configurable and
+                # a sample that gets filtered out is worthless.
+                logger.warning("[code_reward] stack sample:\n%s", "\n".join(parts))
+            except Exception:
+                logger.exception("[code_reward] stack sampler failed")
+
+    def stop(self) -> None:
+        self._stop_event.set()
+
+
+def _timed(fn):
+    """Logs wall time for fn. Applied UNDER functools.lru_cache so only cache
+    MISSES are timed -- the cold path is the one under suspicion."""
+
+    @functools.wraps(fn)
+    def _wrap(*args, **kwargs):
+        _t0 = time.perf_counter()
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            logger.warning(
+                "[code_reward] %s%r took %.2fs (cold)", fn.__name__, args, time.perf_counter() - _t0
+            )
+
+    return _wrap
 
 
 # ---------------------------------------------------------------------------
@@ -166,6 +235,7 @@ _UNDECIDED_REASONING_SCORE = -0.2
 
 
 @functools.lru_cache(maxsize=256)
+@_timed
 def _load_scene(clip_id: str):
     """One clip's SceneObstacles from the locally-downloaded PAI labels, or
     None when unavailable (callers then score commitments only).
@@ -501,6 +571,12 @@ def _read_ckpt_path_from_toml() -> str:
 def main() -> None:
     os.environ.setdefault("COSMOS_HEARTBEAT_TIMEOUT", "600")
     os.environ.setdefault("COSMOS_LOG_LEVEL", "DEBUG")
+
+    # Names the a1npli stall (see _StackSampler). 0 disables.
+    _sample_s = float(os.getenv("CODE_REWARD_STACK_SAMPLE_S", "300"))
+    if _sample_s > 0:
+        _StackSampler(interval_s=_sample_s).start()
+        logger.warning("[code_reward] stack sampler armed, every %.0fs", _sample_s)
 
     pai_reasoning_local_dir = os.getenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR")
     if not pai_reasoning_local_dir:

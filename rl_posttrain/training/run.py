@@ -72,6 +72,20 @@ from typing import Any
 import ray
 
 logger = logging.getLogger(__name__)
+# Without this, EVERY diagnostic in this module is silently discarded: the root
+# logger defaults to WARNING, and all of _CosmosLogTailer's forwarded lines,
+# _summarize_cosmos_logs' reward/wandb summary, the gpu-keepalive notice and the
+# launched cosmos-rl command are logger.info. Run a1npli (2026-07-27) has ZERO
+# OCI records across 15 straight hours for exactly this reason, and since the
+# per-process logs live on node-local /mnt/work and die with the node, the whole
+# run's telemetry was unrecoverable. Handler is attached directly (not
+# basicConfig) so this does not fight Ray's own root-logger setup.
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    _h = logging.StreamHandler(sys.stdout)
+    _h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+    logger.addHandler(_h)
+    logger.propagate = False
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RECIPE_ROOT = REPO_ROOT / "third_party" / "alpamayo-recipes"

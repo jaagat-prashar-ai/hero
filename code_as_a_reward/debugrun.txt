@@ -7,3 +7,25 @@
 # the actual dataset, those files are ~50 MB. 
 
 # load scene end to end is ~0.5 seconds (0.08 seconds zip and 0.4 seconds parse). 
+
+# Issue: Something in the code-reward rollout path hands for about an hour at a time. It happened 19 times, which ate ~16 of the run's 17 hours and left only 35 training steps. 
+# The run reported success because a timeout was raised to 1 hour, so each hang gets absorbed instead of failing. 
+
+# Stall was misidiagnosed. It was blamed on loading obstacle data. I measured that: 0.5 seconds. Two commits were written to fix it, and neither addresses the real problem. 
+# There is no evidence. run.py never configures its logger, so every diagnostic message is discarded. 15 straight hours of that run have zero log records, and the real logs died with that node. 
+
+# We don't know which call hangs. Turn th elogs back on, add a watchdog to the reward path (if any reward call exceeds ~120 seconds, dump every thread's stack. An hour-long hang becomes a stack trace with a file and line number.)
+# Run one short canary, handful of steps is enough, since the hang hit 19 times in one run. 
+# Fix the cause. Drop the timeouts back to 10 minutes so a future hang fails loudly in minutes instead of hiding for an hour. 
+
+code_reward_entry.py 
+    # _StackSampler - daemon thread dumping every thread's stack every 300 s (CODE_REWARD_STACK_SAMPLE_S=0 disables). Started in main(), 
+    so it runs in both replica processes (important, since the hang may be in the rollout or dataloader, not the reward). 
+
+    # _timed on _load_scene, applied under lru_cache so only cold misses are timed - this tests the dead theory against production data instead of just any local measurement. 
+
+    # During a stall, yoou'll get ~10 consecutive dumps with the same frame on top. That's the culrpit, by file and line. 
+    # And _load_scene ... took N.NNs (cold) will either confirm ~0.5 s in production - closing out the misattribution. 
+
+    
+    
