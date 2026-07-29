@@ -27,3 +27,9 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
 # The ~51 min quantum is cosmos-rl's stock retry ladder exhausting, not any computation: max_retries=60, jitter (1+random())*delay, initial_delay=1s, backoff x2 capped at 60s, jitter (1+random())*delay => expected 3172 seconds = 52.9 minutes. 
 # a1npli's 14 slow steps measured 50.0-54.2 min in 1x/2x/3x multiples (19 quanta); train/iteration_time stayed flat at 22s because the stall is entirely outside the training step. 
 
+# train/iteration_time stayed flat at 22s because the stall is entriely outside the training step 
+
+# Capping max_retries to 20 (~1.9 min) alsio makes client.py:578's except run, logging the underlying exception at ERRO -- the remaining unknown, since per-attempt failures log at DEBUG. 
+
+# Also raises _CosmosLogTrailer's 80-line cap to 1200: eivn91 dropped 4900 lines in 25 min and, because the cap keeps the tail, always discarded the stack-sample header. 
+# Supersedes the obstacle-parse attribution in run.py: 885-889 and e901539: _load_scene measures 0.10-0.55s per cold clip in production (1.96s for all 12), and code_scene_available was 1.00 on all 35 of a1npli's steps. 

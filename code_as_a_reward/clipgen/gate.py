@@ -12,10 +12,28 @@ from trajectories it shouldn't (VLM-CaR's expert-vs-random check, adapted):
   * GT claims paired with a flattened (no-reaction, constant-speed) trajectory
   * other clips' claims paired with the GT trajectory
 
+  # How do we develop a good arena/benchmark for what trajectories should be accepted? i.e., what constitutes good and bad ones to be tested? 
+
 Negatives transform WAYPOINTS and re-extract features, so derived fields
 (events, min speed) stay consistent rather than being hand-edited.
 """
 
+# implement the counterfactuals here. 
+# deeper look at counterfactual VLA. 
+# When the trajectory doesn't pass, the ADE (l2_dist < ade_threshold=3.0) or the reasoning gate (reasoning_score > reasoning_threshold=-0.4) fails, 
+# rl_posttrain/rewards/aggregated_reward_llm_judge.py:108 (_graded_failure_reward) computes the reward instead of the continuous mixing formula: 
+
+# No CoC decoded at all -> flat -1.0 (matches the vendored behaviir; there's nothing to grade)
+# CoC present but a gate failed -> reward is graded within [-1.0, -0.5] based on how close the rollout came to passing:
+    # l2_closeness = min(1.0, ade_threshold / l2_dist) - 1.0 right at the threshold, decaying hyperbolically as the trajectory error grows. 
+    # reasoning_closeness - maps the judge's reasoning score linearly from [-1, reasoning_threshold] onto [0, 1]
+    # Final: -1.0 + 0.5 * 0.5 * (l2_closeness + reasoning_closeness)
+
+# The point (per the module's docstring) is to avoid the vendored variant's flat -1.0 for every gate failure: since GRPO normalizes advantages within a rollout group, an 
+# all-fail group with identical -1.0 rewards has zero variance and contributes no gradient. This graded band keeps failed rollouts ordered by "how close to passing" while staying strictly below every passing rollout's reward (whose floor is ~'-0.2' with current weights), so failing groups still push 
+# the policy toward the gate boundary instead of training nothing. 
+
+ 
 from __future__ import annotations
 
 import dataclasses
