@@ -578,6 +578,50 @@ def main() -> None:
         _StackSampler(interval_s=_sample_s).start()
         logger.warning("[code_reward] stack sampler armed, every %.0fs", _sample_s)
 
+    # ── The a1npli stall, root-caused (canary eivn91, 2026-07-29) ────────────
+    # Stack samples caught both sides of it: the rollout parked in
+    # post_rollout_completion -> make_request_with_retry -> time.sleep(jitter)
+    # (client.py:570, network_util.py:135) while all 4 policy ranks spun in
+    # grouped_send -> nccl_group_end -> time.sleep(0.001) (rl_worker.py:410,
+    # pynccl.py:228) waiting on the weight-sync collective for a rollout that
+    # could not report. One failed localhost HTTP POST idles all 5 GPUs.
+    #
+    # The ~51 min quantum was never a computation -- it is cosmos-rl's stock
+    # retry ladder running to exhaustion. CosmosHttpRetryConfig defaults are
+    # max_retries=60, retries_per_delay=5, initial_delay=1s, backoff x2 capped
+    # at 60s, and each failed attempt sleeps (1+random())*delay, so the
+    # expected total is 3172s = 52.9 min (jitter range 35.2-70.5 min). Run
+    # a1npli's 14 slow steps measured 50.0-54.2 min, dead centre, in 1x/2x/3x
+    # multiples -- i.e. the ladder exhausting once, twice or three times.
+    # train/iteration_time stayed flat at 22s throughout because the stall is
+    # entirely OUTSIDE the training step.
+    #
+    # A ~53 min blocking retry is defensible for a background job riding out a
+    # network blip; it is indefensible on the critical path of a synchronous
+    # distributed step. Capping it does two things at once: the stall drops to
+    # ~1.9 min, AND post_rollout_completion's own `except` (client.py:578)
+    # finally runs, logging the underlying exception at ERROR -- the one fact
+    # still missing, since network_util logs per-attempt failures at DEBUG
+    # where run.py's tailer truncation was dropping them.
+    #
+    # Read at ApiClient construction time (client.py:86), NOT at import, so
+    # patching here -- before launch_worker builds the client -- takes effect.
+    # 20 keeps a real ~2 min retry budget so a transient blip still recovers.
+    try:
+        from cosmos_rl.utils import constant as _cosmos_constant
+
+        _prev = _cosmos_constant.COSMOS_HTTP_RETRY_CONFIG.max_retries
+        _cap = int(os.getenv("CODE_REWARD_HTTP_MAX_RETRIES", "20"))
+        _cosmos_constant.COSMOS_HTTP_RETRY_CONFIG.max_retries = _cap
+        logger.warning(
+            "[code_reward] COSMOS_HTTP_RETRY_CONFIG.max_retries %d -> %d "
+            "(caps the rollout-report stall at ~1.9 min instead of ~52.9 min)",
+            _prev,
+            _cap,
+        )
+    except Exception:
+        logger.exception("[code_reward] could not cap COSMOS_HTTP_RETRY_CONFIG.max_retries")
+
     pai_reasoning_local_dir = os.getenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR")
     if not pai_reasoning_local_dir:
         raise RuntimeError(

@@ -556,7 +556,16 @@ class _CosmosLogTailer(threading.Thread):
     can't flood OCI log ingestion; the cap drops the middle, not the tail,
     because tracebacks are what we're here for."""
 
-    def __init__(self, log_dir: Path, interval_s: float = 30.0, max_lines_per_tick: int = 80):
+    # max_lines_per_tick was 80, which measurably destroyed evidence: canary
+    # eivn91 dropped 4900 lines in 25 min (10 ticks x 3 files, ~396 skipped per
+    # rollout tick), and because the cap keeps the TAIL, a stack sample's
+    # "[code_reward] stack sample:" header and the leading threads were always
+    # the part discarded. The frames only survived by luck. cosmos-rl also logs
+    # per-attempt HTTP failures at DEBUG (network_util.py) and COSMOS_LOG_LEVEL
+    # is DEBUG for this entry, so the flood is expected -- the cap has to clear
+    # it. 1200 covers the observed ~500 lines/tick plus a full multi-thread
+    # dump; the middle-drop is kept as a backstop against an unbounded flood.
+    def __init__(self, log_dir: Path, interval_s: float = 30.0, max_lines_per_tick: int = 1200):
         super().__init__(daemon=True, name="cosmos-log-tailer")
         self._log_dir = log_dir
         self._interval_s = interval_s

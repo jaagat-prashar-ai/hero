@@ -17,3 +17,13 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
 # RL LLM-judge reward scene-grounded: scene_overlay.py, scene_reference_dataset.py, llm_judge.py, aggregated_reward_llm_judge.py, llm_judge_entry.py
 # commitment and perceptual verification on a few data logs:  
   # Headline results. Machinery works: parsing, both verifiers, causal conjunction, and reward aggregation all run end-to-end, and hallucination-catching works (the fake scooter vs caught; real pedestrians verified)
+
+# Bugs 29 
+
+ #Canary eivn91 stack samples caught the rolloout parked in post_rollout_completion -> make_request_with_retry -> time.sleep(jitter)
+ # (client.py:570, network_util.py:135) while al 4 policy ranks spun in grouped_send -> nccl_group_send -> time.sleep(0.001) (rl_worker.py:410, pynccl.py:228) awaiting the weight-snc collective. 
+# One failed localhost HTTP POST idles all 5 GPUs. 
+
+# The ~51 min quantum is cosmos-rl's stock retry ladder exhausting, not any computation: max_retries=60, jitter (1+random())*delay, initial_delay=1s, backoff x2 capped at 60s, jitter (1+random())*delay => expected 3172 seconds = 52.9 minutes. 
+# a1npli's 14 slow steps measured 50.0-54.2 min in 1x/2x/3x multiples (19 quanta); train/iteration_time stayed flat at 22s because the stall is entirely outside the training step. 
+
