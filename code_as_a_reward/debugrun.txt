@@ -1,0 +1,7 @@
+# Training run bugs: 
+
+# 1. The reward function was slow. Every time the reward needed ground-truth obstacle data for a clip it hadn't seen yet, it took ~51 minutes. 
+# That happened 19 times, eating ~16 of the 17 hours. Result: 35 training steps in 17 hours. 
+# 2. The real logs live on the node's local disk. W&B has logs. 
+# 3. The fix that was already commited is aimed at the wrong target. The fix assumes the slowness came from opening "multi-GB chunk zips." I checked 
+# the actual dataset, those files are ~50 MB. 

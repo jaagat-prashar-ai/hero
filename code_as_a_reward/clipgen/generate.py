@@ -45,8 +45,12 @@ class CostTracker:
         self.calls = 0
 
     def check(self) -> None:
-        # Worst-case cost of one more call (~10K in + MAX_TOKENS out).
-        worst_next = (10_000 * _PRICE["in"] + MAX_TOKENS * _PRICE["out"]) / 1e6
+        # Worst-case cost of one more call: 24K input (a 3rd-attempt retry
+        # carries the whole transcript; ~2x margin over the observed shape)
+        # billed entirely at the cache-WRITE rate, plus a full MAX_TOKENS
+        # completion. The API's own max_tokens cap makes the output side a
+        # hard bound, so spent + worst_next <= budget is a true ceiling.
+        worst_next = (24_000 * _PRICE["cache_write"] + MAX_TOKENS * _PRICE["out"]) / 1e6
         if self.spent_usd + worst_next > self.budget_usd:
             raise BudgetExceeded(
                 f"spent ${self.spent_usd:.2f} of ${self.budget_usd:.2f}; refusing the next call"
