@@ -52,7 +52,19 @@ logger = logging.getLogger(__name__)
 # the perceptual verifier's entity->class mapping can assert against it:
 # a typo'd class name should fail loudly, not silently match zero tracks.
 OBSTACLE_LABEL_CLASSES = frozenset(
-    {"automobile", "person", "rider", "other_vehicle", "trailer", "protruding_object"}
+    {
+        "automobile",
+        "person",
+        "rider",
+        "other_vehicle",
+        "trailer",
+        "protruding_object",
+        # Added 2026-07-28 from the clipgen 5-clip OOD sample (chunks 174 and
+        # 1694) -- the original set was derived from a single fixture clip.
+        "bus",
+        "heavy_truck",
+        "animal",
+    }
 )
 
 
