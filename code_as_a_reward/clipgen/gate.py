@@ -61,6 +61,17 @@ def flattened_waypoints(waypoints: np.ndarray) -> np.ndarray:
     return w[0] + steps * v
 
 
+def _too_similar(a: np.ndarray, b: np.ndarray, min_dev_m: float = 2.0) -> bool:
+    """A transformed trajectory that barely deviates from the GT is not a
+    valid counterfactual (stationary clips: reversing or flattening a
+    parked ego reproduces the positive) -- such negatives are skipped."""
+    a, b = np.asarray(a, dtype=np.float64), np.asarray(b, dtype=np.float64)
+    n = min(len(a), len(b))
+    if n == 0:
+        return True
+    return float(np.max(np.linalg.norm(a[:n] - b[:n], axis=1))) < min_dev_m
+
+
 def build_cases(
     clip_id: str,
     gt_claims,
@@ -75,22 +86,26 @@ def build_cases(
     """
     gt_traj = _refeature(gt_waypoints, hz, clip_id, "gt")
     cases = [GateCase("positive:gt", gt_claims, gt_traj, "positive")]
-    cases.append(
-        GateCase(
-            "negative:reversed_traj",
-            gt_claims,
-            _refeature(np.asarray(gt_waypoints)[::-1].copy(), hz, clip_id, "rev"),
-            "negative",
+    reversed_wp = np.asarray(gt_waypoints)[::-1].copy()
+    if not _too_similar(gt_waypoints, reversed_wp):
+        cases.append(
+            GateCase(
+                "negative:reversed_traj",
+                gt_claims,
+                _refeature(reversed_wp, hz, clip_id, "rev"),
+                "negative",
+            )
         )
-    )
-    cases.append(
-        GateCase(
-            "negative:no_reaction_traj",
-            gt_claims,
-            _refeature(flattened_waypoints(gt_waypoints), hz, clip_id, "flat"),
-            "negative",
+    flat_wp = flattened_waypoints(gt_waypoints)
+    if not _too_similar(gt_waypoints, flat_wp):
+        cases.append(
+            GateCase(
+                "negative:no_reaction_traj",
+                gt_claims,
+                _refeature(flat_wp, hz, clip_id, "flat"),
+                "negative",
+            )
         )
-    )
     for i, (other_claims, other_wp) in enumerate(others):
         cases.append(
             GateCase(

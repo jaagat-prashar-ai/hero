@@ -100,15 +100,21 @@ def ego_lines(traj: TrajectoryFeatures) -> list[str]:
     t_min = float(np.argmin(speed)) * traj.dt_s
     drop = traj.initial_speed_mps - traj.min_speed_mps
     lat = np.asarray(traj.lateral_offset_m, dtype=np.float64)
+    dist = float(np.sum(speed) * traj.dt_s)
     lines = [
-        f"duration: {traj.n_waypoints * traj.dt_s:.1f} s at dt={traj.dt_s:.2f} s",
+        f"duration: {traj.n_waypoints * traj.dt_s:.1f} s at dt={traj.dt_s:.2f} s, distance {dist:.1f} m",
         f"speed: {traj.initial_speed_mps:.1f} m/s initial -> min {traj.min_speed_mps:.1f} m/s"
         f" at t={t_min:.1f} s -> {traj.final_speed_mps:.1f} m/s final (drop {drop:.1f} m/s)",
         f"lateral offset: final {traj.final_lateral_offset_m:+.2f} m,"
         f" max |offset| {float(np.max(np.abs(lat))):.2f} m",
-        f"total heading change: {traj.total_heading_change_deg:+.1f} deg",
         f"events: stop={traj.stop_event} yield={traj.yield_event}",
     ]
+    # Heading is undefined at near-zero speed; on a stationary clip the
+    # accumulated number is pure noise and would mislead the generator.
+    if dist >= 5.0:
+        lines.insert(3, f"total heading change: {traj.total_heading_change_deg:+.1f} deg")
+    else:
+        lines.append("note: ego is nearly stationary this clip; correct behavior is staying stopped/creeping")
     return lines
 
 
