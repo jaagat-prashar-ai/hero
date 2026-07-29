@@ -55,5 +55,6 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
     # "code_atomic_precision": float(atomic_precision) if atomic_precision is not None else math.nan, 
 
     # How do we decide the decided claims? Look into this! 
+    # In which cases do we observe this? 
     # When a rollout has zero decided claims, r = (n_pass / decided) if decided else None -> None -> the code writes math.nan as a "no data" sentinel. 
-    # 
+    
