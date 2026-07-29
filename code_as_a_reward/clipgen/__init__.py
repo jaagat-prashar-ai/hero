@@ -8,3 +8,5 @@ run_prototype.py (5-clip end-to-end harness + report).
 
 Design doc: https://claude.ai/code/artifact/14a64f93-9304-4037-97bb-69e1890ddf5b
 """
+
+# This
