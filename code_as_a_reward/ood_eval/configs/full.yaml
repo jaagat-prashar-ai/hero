@@ -1,0 +1,66 @@
+# Phase 2: all ~1740 clips' events (every event across reasoning/
+# ood_reasoning.parquet's 9 event_cluster types, all_events=null means no
+# truncation), ground-truth AND model-rollout verification, on a single GPU.
+#
+# Do NOT launch this before smoke.yaml has passed and its per-event timing
+# has been reviewed -- no reliable rollout-only throughput number exists
+# anywhere in this repo, so the real wall-clock for ~1740+ events is
+# genuinely unknown until the smoke test measures it.
+name: ood-verifier-full
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
+  training_fn_config:
+    max_events: null  # no truncation -- every valid event in the manifest
+    skip_model: false
+    s3_bucket: "research-datasets-chicago"
+    results_s3_key: "code_as_a_reward/ood_eval/full_results.jsonl"
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    local_output: "/mnt/work/tmp/ood_eval/full_results.jsonl"
+    cache_dir: "code_as_a_reward/testdata"
+
+  experiment_tracker: {}
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  # Preemptible + requeue: a long single-GPU run should ride out
+  # preemptions rather than hold non-preemptible quota for its whole
+  # duration. This is what makes run.py's S3-backed resume (download
+  # existing results before starting, periodic sync while running, final
+  # sync in `finally`) load-bearing rather than cosmetic.
+  preemptible: always
+  requeue_if_preempted: true
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/ood_eval/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"

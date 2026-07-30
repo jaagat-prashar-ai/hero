@@ -1,0 +1,72 @@
+# Phase 1 smoke test: ~20 OOD events (sampled across the 9 event_cluster
+# types by manifest.py's natural row order truncation), on a single GPU.
+# Purpose: confirm run.py -> bootstrap_venv.py -> worker.py works end to end
+# (venv build, HF fetch via physical_ai_av, Alpamayo 1.5 inference, verifier
+# scoring, S3 sync), and measure real per-event wall-clock -- no reliable
+# throughput number exists anywhere in this repo today. Do NOT launch
+# full.yaml before this passes and its timing/cost has been reviewed.
+name: ood-verifier-smoke
+model_identifier: other.training.alpamayo15.default.v1
+# Long CPU-only phase (manifest build + venv bootstrap + 22GB model download)
+# before the GPU does anything -- same idle-GPU-reaper risk perplexity's
+# canary.yaml documents.
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
+  training_fn_config:
+    max_events: 20
+    skip_model: false
+    s3_bucket: "research-datasets-chicago"
+    results_s3_key: "code_as_a_reward/ood_eval/smoke_results.jsonl"
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    local_output: "/mnt/work/tmp/ood_eval/smoke_results.jsonl"
+    cache_dir: "code_as_a_reward/testdata"
+
+  experiment_tracker: {}  # no W&B -- this produces a results file, not a training curve
+
+cluster_resources:
+  # 1 GPU carved off an a100.8 node (Alpamayo 1.5 inference needs ~24GB
+  # VRAM per third_party/alpamayo1.5/README.md -- one GPU is sufficient,
+  # no distributed/cosmos-rl setup needed).
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  # Non-preemptible: losing the node mid-venv-bootstrap would re-pay the
+  # multi-minute install cost for a smoke test that's supposed to be cheap
+  # and fast to iterate on.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  # venv bootstrap (uv python install + torch/transformers download + pip
+  # install) plus the 22GB model download takes several minutes cold.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    # This config lives at code_as_a_reward/ood_eval/configs/ -- 3 levels
+    # below repo root.
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/ood_eval/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"

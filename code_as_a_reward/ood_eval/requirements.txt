@@ -1,0 +1,19 @@
+# Dependencies for run.py itself, installed into Lilypad's BASE Python 3.10
+# worker environment (pip_requirements_path) -- NOT where the actual
+# verification work runs. That happens in a separate, self-bootstrapped
+# Python 3.12 venv (bootstrap_venv.py) built by run.py at job start, same
+# split as perplexity/requirements.txt's identical comment explains for
+# AlpamayoR1.
+#
+# torch==2.7.1 is dead weight here (never actually used by run.py) but is
+# REQUIRED by lilypad/launch.py's preflight validator for any
+# pip_requirements_path-based workload.
+torch==2.7.1
+
+# Needed by run.py/manifest.py/analyze.py in the base env: manifest
+# building (reasoning/ood_reasoning.parquet) and S3 sync run BEFORE the
+# Python 3.12 venv exists.
+pandas>=2.3.3
+pyarrow
+huggingface_hub>=0.36.0
+boto3>=1.34
