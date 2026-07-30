@@ -294,16 +294,142 @@ _BACKOFF_S = (2, 5, 15, 30, 60)
 # fail-loud raise (see judge_trace's docstring for why 1 was too few).
 _CONTENT_RETRIES = 3
 
+# Judge model selection: LLM_JUDGE_MODEL env overrides the default at call
+# time (read per-call so cosmos-rl reward workers pick it up from the
+# workload env without TOML plumbing). "gpt-*" routes to the OpenAI Chat
+# Completions API; anything else uses the Anthropic path, byte-identical to
+# the calibrated original.
+_JUDGE_MODEL_ENV = "LLM_JUDGE_MODEL"
+_DEFAULT_JUDGE_MODEL = "claude-fable-5"
+_OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+_OPENAI_TRANSIENT_STATUS = frozenset({408, 409, 429, 500, 502, 503, 504})
+_DEFAULT_OPENAI_KEY_PATH = Path.home() / ".creds" / "openai.key"
+
+
+class _OpenAITransientError(Exception):
+    """Retryable OpenAI HTTP status, so the transport ladder can catch it."""
+
+
+def load_openai_key(key_path: Path = _DEFAULT_OPENAI_KEY_PATH) -> None:
+    """OPENAI_API_KEY twin of pref_pairs' load_api_key: bridges the
+    ~/.creds/openai.key convention into the env, never shadowing an
+    already-set credential."""
+    if os.environ.get("OPENAI_API_KEY"):
+        return
+    if key_path.exists():
+        os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
+    else:
+        raise RuntimeError(
+            f"No OpenAI credential found: OPENAI_API_KEY unset and {key_path} missing"
+        )
+
+
+def _build_openai_messages(
+    system_prompt: str, trace: str, waypoint_table: str, scene_jpeg: bytes | None
+) -> list[dict[str, Any]]:
+    """Translates _build_user_content's Anthropic-shaped content into OpenAI
+    chat messages. Pure so the translation is unit-testable; the text and
+    image bytes are exactly what the Anthropic path sends."""
+    content = _build_user_content(trace, waypoint_table, scene_jpeg)
+    if not isinstance(content, str):
+        content = [
+            {
+                "type": "image_url",
+                "image_url": {"url": "data:image/jpeg;base64," + content[0]["source"]["data"]},
+            },
+            {"type": "text", "text": content[1]["text"]},
+        ]
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": content},
+    ]
+
+
+def _judge_trace_openai(
+    trace: str, waypoint_table: str, scene_jpeg: bytes | None, model: str
+) -> int:
+    """OpenAI twin of judge_trace's Anthropic loop: same _BACKOFF_S transport
+    ladder, same _CONTENT_RETRIES/salvage/max_tokens-doubling content layer,
+    same fail-loud JudgeRewardError. Plain `requests` instead of the openai
+    SDK -- already in the recipe venv (vllm dependency), so no bootstrap
+    change. temperature=0: this path has no sampling lineage to preserve,
+    and a deterministic judge makes runs easier to compare."""
+    import requests
+
+    load_openai_key()
+    system_prompt = SYSTEM_PROMPT if scene_jpeg is None else SYSTEM_PROMPT_SCENE
+    messages = _build_openai_messages(system_prompt, trace, waypoint_table, scene_jpeg)
+
+    content_retries_left = _CONTENT_RETRIES
+    max_tokens = 512
+    attempt = 0
+    while True:
+        try:
+            resp = requests.post(
+                _OPENAI_CHAT_URL,
+                headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]},
+                json={"model": model, "temperature": 0, "max_tokens": max_tokens, "messages": messages},
+                timeout=120,
+            )
+            if resp.status_code in _OPENAI_TRANSIENT_STATUS:
+                raise _OpenAITransientError(f"HTTP {resp.status_code}: {resp.text[:200]}")
+            resp.raise_for_status()  # non-transient 4xx (auth, bad request): fail immediately
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            _OpenAITransientError,
+        ) as e:
+            if attempt >= len(_BACKOFF_S):
+                raise JudgeRewardError(
+                    f"transient API failure persisted after {attempt} backoff retries: {e}"
+                ) from e
+            delay = _BACKOFF_S[attempt]
+            attempt += 1
+            logger.warning("judge_trace[openai]: transient error (%s), retry %d in %ds", e, attempt, delay)
+            time.sleep(delay)
+            continue
+
+        choice = resp.json()["choices"][0]
+        message = choice.get("message") or {}
+        text = message.get("content") or ""
+        if message.get("refusal") or not text.strip():
+            if content_retries_left > 0:
+                content_retries_left -= 1
+                logger.warning("judge_trace[openai]: refusal/empty, %d retries left", content_retries_left)
+                continue
+            raise JudgeRewardError(f"judge refused/empty after {_CONTENT_RETRIES} retries")
+
+        try:
+            return _parse_single_judgment(text)["action_consistency_score"]
+        except (json.JSONDecodeError, JudgeRewardError) as e:
+            salvaged = _salvage_score(text)
+            if salvaged is not None:
+                logger.warning("judge_trace[openai]: unparseable (%s), score %d salvaged", e, salvaged)
+                return salvaged
+            if content_retries_left > 0:
+                content_retries_left -= 1
+                if choice.get("finish_reason") == "length" and max_tokens < 2048:
+                    max_tokens *= 2
+                    logger.warning("judge_trace[openai]: truncated, retrying with %d", max_tokens)
+                else:
+                    logger.warning("judge_trace[openai]: invalid judgment (%s), %d retries left", e, content_retries_left)
+                continue
+            raise JudgeRewardError(f"invalid judgment after {_CONTENT_RETRIES} retries: {e}") from e
+
 
 def judge_trace(
     trace: str,
     waypoints_xyz: Any,
     scene_jpeg: bytes | None = None,
     hz: float = TRAJECTORY_HZ,
-    model: str = "claude-fable-5",
+    model: str | None = None,
 ) -> int:
     """Scores one CoC trace against the trajectory it produced. Returns the
     raw 0-10 integer (callers wanting the recipe scale apply normalize_score).
+
+    model: None resolves LLM_JUDGE_MODEL from the env (default
+    claude-fable-5); "gpt-*" models route to _judge_trace_openai, everything
+    else uses the Anthropic path below unchanged.
 
     scene_jpeg: optional JPEG of the scene with THIS rollout's trajectory
     drawn on it (scene_overlay.render_scene_overlay). When given, the judge
@@ -325,10 +451,15 @@ def judge_trace(
         truncation doubles the budget for the retry, and only then does the
         fail-loud policy apply.
     """
+    waypoint_table = waypoint_table_from_xyz(waypoints_xyz, hz)
+    if model is None:
+        model = os.environ.get(_JUDGE_MODEL_ENV, _DEFAULT_JUDGE_MODEL)
+    if model.startswith("gpt"):
+        return _judge_trace_openai(trace, waypoint_table, scene_jpeg, model)
+
     import anthropic
 
     client = _get_client()
-    waypoint_table = waypoint_table_from_xyz(waypoints_xyz, hz)
     user_content = _build_user_content(trace, waypoint_table, scene_jpeg)
     system_prompt = SYSTEM_PROMPT if scene_jpeg is None else SYSTEM_PROMPT_SCENE
 

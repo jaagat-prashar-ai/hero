@@ -27,6 +27,7 @@ from rl_posttrain.rewards.llm_judge import (  # noqa: E402
     SYSTEM_PROMPT,
     SYSTEM_PROMPT_SCENE,
     JudgeRewardError,
+    _build_openai_messages,
     _build_user_content,
     _build_user_message,
     _parse_single_judgment,
@@ -126,6 +127,37 @@ class TestBuildUserContent:
         ):
             assert fragment in SYSTEM_PROMPT
             assert fragment in SYSTEM_PROMPT_SCENE
+
+
+class TestBuildOpenaiMessages:
+    def _table(self):
+        return waypoint_table_from_xyz(_straight_constant_speed_xyz())
+
+    def test_roles_and_image_first_ordering(self):
+        # OpenAI translation must preserve the Anthropic payload's shape:
+        # system prompt as the system turn, image block before the text.
+        jpeg = b"\xff\xd8fake-jpeg-payload"
+        messages = _build_openai_messages(SYSTEM_PROMPT_SCENE, _REAL_TRACE, self._table(), jpeg)
+        assert [m["role"] for m in messages] == ["system", "user"]
+        assert messages[0]["content"] == SYSTEM_PROMPT_SCENE
+        user = messages[1]["content"]
+        assert isinstance(user, list) and user[0]["type"] == "image_url"
+
+    def test_image_and_text_identical_to_anthropic_path(self):
+        import base64
+
+        jpeg = b"\xff\xd8fake-jpeg-payload"
+        anthropic_blocks = _build_user_content(_REAL_TRACE, self._table(), scene_jpeg=jpeg)
+        user = _build_openai_messages(SYSTEM_PROMPT_SCENE, _REAL_TRACE, self._table(), jpeg)[1]["content"]
+        url = user[0]["image_url"]["url"]
+        assert url.startswith("data:image/jpeg;base64,")
+        assert base64.b64decode(url.split(",", 1)[1]) == jpeg
+        assert user[1]["text"] == anthropic_blocks[1]["text"]
+
+    def test_text_only_passthrough(self):
+        # No image -> the user turn is exactly the calibrated text-only string.
+        messages = _build_openai_messages(SYSTEM_PROMPT, _REAL_TRACE, self._table(), None)
+        assert messages[1]["content"] == _build_user_message(_REAL_TRACE, self._table())
 
 
 class TestParseSingleJudgment:
