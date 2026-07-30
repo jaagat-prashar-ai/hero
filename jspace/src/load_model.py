@@ -23,9 +23,20 @@ from masking.bootstrap import ensure_alpamayo1_5  # noqa: E402
 ensure_alpamayo1_5()
 
 import jlens  # noqa: E402
+from alpamayo1_5.models import base_model as _base_model  # noqa: E402
 from alpamayo1_5.models.alpamayo1_5 import Alpamayo1_5  # noqa: E402
 
 CHECKPOINT = "nvidia/Alpamayo-1.5-10B"
+
+
+def _tie_weights(self, **kwargs) -> None:
+    """transformers>=5 passes recompute_mapping; forward it to the nested VLM."""
+    if hasattr(self.vlm, "tie_weights"):
+        self.vlm.tie_weights(**kwargs)
+
+
+# Vendored alpamayo1.5 targets transformers 4.x; jlens needs >=5.5.
+_base_model.ReasoningVLA.tie_weights = _tie_weights
 
 
 def load_lens_model(
