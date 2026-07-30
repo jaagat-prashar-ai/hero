@@ -119,7 +119,11 @@ group_reward_calculation = true
 
 [train.ckpt]
 enable_checkpoint = true
-save_freq = 50
+# 15, not 50: code-reward runs estimate ~45 total steps and actually finish
+# at 32-35 (GRPO dynamic sampling discards all-same-reward groups, so the
+# dataloader exhausts before the estimate) -- with save_freq=50 neither
+# a1npli nor vtx3ys ever saved a single checkpoint.
+save_freq = 15
 save_mode = "async"
 max_keep = 10
 
