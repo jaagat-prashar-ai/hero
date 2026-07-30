@@ -24,7 +24,7 @@ workload_variant_config:
     # ── Reward ────────────────────────────────────────────────────────────────
     # LLM-as-judge reasoning reward: every rollout's decoded CoC is scored
     # 0-10 against the trajectory that SAME rollout produced, via the
-    # Anthropic API (rl_posttrain/rewards/llm_judge.py -- the single-trace
+    # judge LLM API (rl_posttrain/rewards/llm_judge.py -- the single-trace
     # sibling of the validated pref_pairs pairwise judge), mixed with
     # ADE + comfort exactly like the recipe's joint reward. Needs
     # ANTHROPIC_API_KEY (see required_environment_variables).
@@ -64,12 +64,14 @@ runtime_environment:
   required_environment_variables:
     - HF_TOKEN
     - WANDB_API_KEY
-    # The LLM-judge reward calls the Anthropic API from the GPU worker.
-    # launch.sh's llm-judge command bridges ~/.creds/anthropic.key into this
-    # when unset (same convention as pref_pairs' generators/judges).
-    - ANTHROPIC_API_KEY
+    # The LLM-judge reward calls the OpenAI API from the GPU worker
+    # (LLM_JUDGE_MODEL below routes rl_posttrain/rewards/llm_judge.py to it;
+    # switch back to the Anthropic judge by dropping that pin and requiring
+    # ANTHROPIC_API_KEY here again).
+    - OPENAI_API_KEY
 
   constant_environment_variables:
+    LLM_JUDGE_MODEL: "gpt-4o"
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"

@@ -1,6 +1,6 @@
 name: alpamayo-rl-llm-judge-full
 model_identifier: other.training.alpamayo15.default.v1
-# The llm_judge reward blocks the GPU node on Anthropic API latency for each
+# The llm_judge reward blocks the GPU node on judge-API latency for each
 # rollout group (aggregated_reward_llm_judge.py's _run_judges_parallel) --
 # same GPU-idle-but-reserved shape as the CPU-only setup phase _GpuKeepalive
 # in run.py exists for, except that thread stops before cosmos-rl launches
@@ -81,12 +81,14 @@ runtime_environment:
   required_environment_variables:
     - HF_TOKEN
     - WANDB_API_KEY
-    # The LLM-judge reward calls the Anthropic API from the GPU worker.
-    # launch.sh's llm-judge-full command bridges ~/.creds/anthropic.key into
-    # this when unset (same convention as pref_pairs' generators/judges).
-    - ANTHROPIC_API_KEY
+    # The LLM-judge reward calls the OpenAI API from the GPU worker
+    # (LLM_JUDGE_MODEL below routes rl_posttrain/rewards/llm_judge.py to it;
+    # switch back to the Anthropic judge by dropping that pin and requiring
+    # ANTHROPIC_API_KEY here again).
+    - OPENAI_API_KEY
 
   constant_environment_variables:
+    LLM_JUDGE_MODEL: "gpt-4o"
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
