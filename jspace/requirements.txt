@@ -1,4 +1,12 @@
-# On top of perplexity/alpamayo's ar1_venv (torch, transformers, einops);
-# jlens pulls transformers up to 5.x, under which alpamayo1_5 still imports.
+# Dedicated venv (jlens needs transformers>=5.5, which breaks the AR1 and
+# alpamayo1_5 4.x-era envs — load_model.py shims the one incompatibility):
+#   uv venv --python 3.12 jspace/.venv
+#   uv pip install --python jspace/.venv/bin/python \
+#     --extra-index-url https://download.pytorch.org/whl/cu128 -r requirements.txt
+torch==2.8.0
+einops
+hydra-core
+scipy
+accelerate
 # J-lens reference implementation (Anthropic, Apache-2.0):
 jlens @ git+https://github.com/anthropics/jacobian-lens
