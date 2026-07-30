@@ -101,6 +101,64 @@ code-reward runs for NaN steps and flat -1.0 `reward_min` rollouts.
 
 ---
 
+## 2026-07-29 — code-reward ~51-min stalls, for real this time: cosmos-rl's HTTP retry ladder exhausting on a failed rollout-report POST
+
+**Symptom:** the obstacle-extraction fix below (`e901539`) didn't change the
+stall shape. Direct profiling against the real dataset put end-to-end
+`_load_scene` at ~0.5s (0.003s to open a 53.9 MB chunk zip, 0.08s to read the
+one member, 0.01-0.40s to parse) — an order of magnitude too fast to explain
+a 51-minute stall, and `run.py` was never configuring its logger, so all 16h
+of stall time in run `a1npli` left zero diagnostic records. Two prior fixes
+(the COSMOS_NCCL_TIMEOUT_MS/rollout-wait bump to 1h, and `e901539`) had both
+targeted the wrong thing — the 1h timeout bump was actively hiding the
+failure by letting each stall get absorbed instead of aborting loudly.
+
+**Root cause:** with logging fixed and a `_StackSampler` daemon thread added
+(dumps every thread's stack every 300s in both replica processes, so the hang
+need not be in the reward path at all), a short canary (`eivn91`) caught it
+directly: the rollout was parked in `post_rollout_completion ->
+make_request_with_retry -> time.sleep(jitter)` (`client.py:570`,
+`network_util.py:135`) while all 4 policy ranks spun in `grouped_send ->
+nccl_group_end -> time.sleep(0.001)` (`rl_worker.py:410`, `pynccl.py:228`)
+waiting on the weight-sync collective for a rollout that could never report
+back. One failed localhost HTTP POST was idling all 5 GPUs. The ~51-minute
+quantum is cosmos-rl's stock retry ladder running to exhaustion, not any
+computation: `max_retries=60`, backoff x2 capped at 60s, jitter
+`(1+random())*delay`, initial delay 1s → expected total 3172s = 52.9 min.
+`a1npli`'s 14 slow steps measured 50.0-54.2 min in clean 1x/2x/3x multiples
+(19 quanta total, ~16 of the run's 16h53m); `train/iteration_time` stayed
+flat at 22s throughout because the stall is entirely outside the training
+step. Separately, `_CosmosLogTailer`'s 80-line-per-tick cap (keeps the tail,
+drops the middle) was discarding the stack-sample header on every tick —
+`eivn91` dropped 4900 lines in 25 minutes — so even with the sampler running,
+the evidence was getting truncated away.
+
+**Fix:** [b29dfbc](../../commit/b29dfbc) — caches
+`cosmos_rl.utils.constant.COSMOS_HTTP_RETRY_CONFIG.max_retries` down to 20
+(`CODE_REWARD_HTTP_MAX_RETRIES`, ~1.9 min budget — still enough to ride out a
+real transient blip), patched at `ApiClient` construction time in `main()`
+before `launch_worker` builds the client. This both caps the stall and lets
+`post_rollout_completion`'s own `except` (`client.py:578`) finally run and
+log the real underlying error at ERROR instead of the DEBUG level
+`network_util` was using per attempt. Also raises `_CosmosLogTailer`'s cap
+80 → 1200 lines/tick so that log stops getting truncated. Supersedes the
+obstacle-extraction attribution below: `e901539` is real and harmless (avoids
+a ~0.5s-per-cold-clip zip touch) but was never the cause of the 51-minute
+stalls.
+
+**Validated** (run `vtx3ys` vs. `a1npli`, same 45-step config): wall clock
+16h42m → 62.5 min; steps completed 35 → 32; steps over 20 min 14 → 0; worst
+step 158 min → 6.1 min; median step ~0.5 min → 0.57 min;
+`train/iteration_time` flat at 22s in both, confirming the win is entirely
+the stall going away, not a training speedup.
+
+**How this was found:** debugrun.txt notes record the pushback that started
+this — profiling `_load_scene` directly against production data disproved
+the obstacle-parse theory, which prompted turning `run.py`'s logger back on
+and adding the stack sampler instead of guessing a fourth explanation.
+
+---
+
 ## 2026-07-28 — code-reward ~51-min reward-time stalls: obstacle.offline chunk-zip access, now pre-extracted at setup
 
 **Symptom:** `alpamayo-rl-code-reward-a1npli` (first clean-finish code-reward
