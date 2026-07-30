@@ -57,4 +57,42 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
     # How do we decide the decided claims? Look into this! 
     # In which cases do we observe this? 
     # When a rollout has zero decided claims, r = (n_pass / decided) if decided else None -> None -> the code writes math.nan as a "no data" sentinel. 
+
+# Reward pipeline code; starting from where the NaN sentinel is written, then the decided/abstain logic upstream - and build a lit of diagnostics to run. 
+
+# Bugs July 30th: 
+# Apply the metrics: 
+  # Fixes the latent NaN-poisoning and the missing-key 0-bias that already fired once in vtx3ys; W&B gains code_undecided_cnt / code_no_cot_cnt visibility. 
+  
+  # Abstain reward: 
+  # How should the reward treat an all-abstain (zero-decided) trace, given it currently gets neutral ~0.2 and PASSES the gate while a half-verified trace (~0.5) FAILS it?
+  # Coverage-scale credit: 
+     # Blend: effective r = decided_fraction * r + (1 - decided_fraction) * 0.8 neutral prior. Smooth, no cliff at zero-decided, removes the "say only unverifiable things' incentive; undecided traces keep exactly today's -0.2. Also apply unparsed_penalty in the undecided path. 
+     
+     # How do we quantify pass, fail, and abstain?
+
+# 110 tests pass and the fill logic checks out? 
+
+# How do we decide the decided claims? 
+  # Commitment claims are decided against the rollout's own trajecotry kinematics (except relative-to-agent ones like keep_distance, which abstain)? why?
+  # Perceptual claims are decided against obstacle.offline tracks (abstaining for no-ground-truth classes like cone/crosswalks/lanes, and for unverifiable attributes like "lead vehicle"); causal claims are a conjunction that abstains if either side does (i.e., of comitment or perceprtual is abstain, causal becomes abstain as well).
+    # TO-DO: we currently abstain for no-ground-truth classes, but how do we include them? Can we make a dict for cones/crosswalks/lanes, etc. for the protruding objects? How do we be more inclusive here? Run object detection on the model with depth estimation ro something like gassuain splatting?
+
+    # Zero-decided claims - what is this failure case? A trace made only of abstaining claims. The canonical shape is "keep a safe distance from the lead vehicle."
+    # The single most natural driving prhasing (where both the commitment and perceptual claim abstain). Real data: 5.2% of the 1434 the judged_pairs traces have no decidable commitment; your 5 GT clip traces ranged 0.20-0.80 decided_fraction. // It never actually NaN'd a step in any of the 69 logged steps across a1npli/eivn91/vtx3ys, but it was latent, and its sibling (the no-CoC missing-keys bug) did fire once in vtx3ys. 
     
+  # Three bugs fixed: 
+    # NaN poisons W&B step means - cosmos-rl's aggregate_report_Data uses plain np.mean; undecided rollouts now carry the group's decided-only mean instead of NaN. 
+    # Missing aux keys count as 0 - the no-CoC branch emitted only one key, and the aggregator (?) 0-fills missing keys into means; every rollout nwo emits the full key set. 
+    # Perverse abstain ordering - all-abstain scored -0.2 (gate PASS) while half-verified scored -0.5 (gate FAIL). Now coverage-blended: r_eff = decided_fraction + (1-df)*0.8, with the unparsed penalty aplied in the previously short-circuited undecided path. Sanity check on a real scene: all-abstain -0.263 < partially-verified GT -0.145; false "stop" claim still fails the gate at -0.600. 
+
+    # all 100 tests passing (the scene_overlay_test.py collection error pre-exists my change - missing dep in this venv) plus behavioral checks on real clip data (what clips are we specifically referencing?)
+    
+   # BUGS.md 
+
+   # code-reward W&B metrics silently biased/NaN-poisoned + all-abstain traces out-scored half-verified ones? what does this really mean?
+   # what does it mean for something to be half-verified in thsi case?
+
+   # Symptom: code_reward_raw/code_atomic_precision are written as math.nan when a rollout decides nothing, and the no-CoC branch emitted an aux dict with only code_scene_available.
+
+   # Keys: metric names in that dictionary:
