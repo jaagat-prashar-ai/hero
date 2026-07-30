@@ -6,14 +6,21 @@
 # throughput number exists anywhere in this repo today. Do NOT launch
 # full.yaml before this passes and its timing/cost has been reviewed.
 #
-# workload_type "generic" (GenericWorkloadRunner just calls
-# entrypoint_fn(entrypoint_fn_config) directly), NOT "training" -- this is a
-# one-off batch script, not a hyperparameter-sweep training loop, and
-# "training" wraps everything in a Ray Tune Tuner/TorchTrainer that this
-# job has no use for (ood-verifier-smoke-wyhix0 crashed inside that wrapper,
-# in Lilypad's own Ray Tune internals, before ood_verifier_loop ever ran --
-# "generic" sidesteps that layer entirely, matching build_wds/configs/
-# smoke.yaml's established pattern for one-off jobs).
+# workload_type "training" (not "generic"): confirmed by direct source read
+# that GenericWorkloadRunner (lilypad/public/ray_driver/runners/
+# generic_workload.py) just calls entrypoint_fn(config) in the bare Ray job
+# driver process with NO GPU resource reservation -- ood-verifier-smoke-
+# v3lxcd ran the venv bootstrap + HF model fetch (~56s for the 22GB
+# checkpoint) fine, then hit "RuntimeError: Found no NVIDIA driver" on
+# .to("cuda"), because nothing ever requested a GPU for that process.
+# "training"'s Ray Train TorchTrainer (ScalingConfig(use_gpu=True)) is what
+# actually reserves a GPU worker in this harness -- that's the one that
+# needs a real GPU. The earlier crash under "training"
+# (ood-verifier-smoke-wyhix0, ray.tune.error.TuneError: "Improper 'run' -
+# not string nor trainable", inside Lilypad's own Tuner/TorchTrainer
+# construction, before ood_verifier_loop ever ran) is being retried here --
+# if it reproduces, that's evidence of an environment/lilypad-py-version
+# issue rather than something in this config.
 name: ood-verifier-smoke
 model_identifier: other.training.alpamayo15.default.v1
 # Long CPU-only phase (manifest build + venv bootstrap + 22GB model download)
@@ -22,9 +29,9 @@ model_identifier: other.training.alpamayo15.default.v1
 ignore_idle_reaper: true
 
 workload_variant_config:
-  workload_type: "generic"
-  entrypoint_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
-  entrypoint_fn_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
+  training_fn_config:
     max_events: 20
     skip_model: false
     s3_bucket: "research-datasets-chicago"
@@ -32,6 +39,13 @@ workload_variant_config:
     venv_dir: "/mnt/work/tmp/alpamayo15_venv"
     local_output: "/mnt/work/tmp/ood_eval/smoke_results.jsonl"
     cache_dir: "code_as_a_reward/testdata"
+
+  experiment_tracker:
+    # A real cluster submission is rejected server-side ("missing
+    # experiment tracker") without this, for workload_type "training".
+    wandb:
+      entity: research
+      project: code-as-reward-ood-eval
 
 cluster_resources:
   # 1 GPU carved off an a100.8 node (Alpamayo 1.5 inference needs ~24GB
