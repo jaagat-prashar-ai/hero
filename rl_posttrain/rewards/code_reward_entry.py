@@ -37,12 +37,18 @@ Structure, top to bottom:
 
      Abstention: r is None when NOTHING in the trace was decided (all
      claims hit missing ground truth -- Phase 0's ~27% unverifiable
-     claim mass). Punishing that would grade the model on OUR data gaps,
-     so an undecided trace gets the fixed NEUTRAL score -0.2: it passes
-     the reasoning gate and contributes the midpoint of the passing
-     band's reasoning term, and `code_decided_fraction` is logged per
-     rollout so W&B shows exactly how much of the reward is riding on
-     this neutral fallback.
+     claim mass; the canonical shape is "keep a safe distance from the
+     lead vehicle", where keep_distance and the 'lead' attribute both
+     abstain). Punishing that would grade the model on OUR data gaps,
+     so precision is coverage-blended toward a neutral prior:
+     r_eff = decided_fraction * r + (1 - decided_fraction) * 0.8, and a
+     fully undecided trace lands exactly on the neutral -0.2 (minus the
+     unparsed penalty). The blend, not a fixed fallback, is what keeps
+     the ordering honest -- a fixed neutral passed the gate while a
+     half-verified trace failed it, making "say only unverifiable
+     things" strictly beat "be half right". `code_decided_fraction` and
+     `code_undecided_cnt` are logged so W&B shows how much of the reward
+     rides on the prior.
 
   2. ENTRY HALF -- mirrors llm_judge_entry.py (env contract, vLLM
      registration, ModelSpec components, hydra overrides), plus one piece
@@ -226,11 +232,11 @@ def _graded_failure_reward(
     return -1.0 + _FAILURE_BAND_WIDTH * 0.5 * (l2_closeness + reasoning_closeness)
 
 
-# Reasoning score substituted when the verifier decided NOTHING in a trace
-# (r is None). -0.2 is the midpoint of the gate-passing band (-0.4, 0]:
-# the trace passes the reasoning gate (our missing ground truth must not
-# read as model unfaithfulness) and its reasoning term contributes exactly
-# halfway between a barely-passing and a fully-verified trace.
+# Neutral anchor of the coverage blend in _score_cot (there, 1.0 + this =
+# the neutral prior r=0.8 that decided_fraction interpolates against), and
+# exactly where a fully-undecided trace lands: -0.2 is the midpoint of the
+# gate-passing band (-0.4, 0], because our missing ground truth must not
+# read as model unfaithfulness.
 _UNDECIDED_REASONING_SCORE = -0.2
 
 
@@ -339,7 +345,7 @@ def _score_cot(
     scene, which is exactly an all-abstain on that half."""
     from code_as_a_reward.coc_claim_parser import parse_coc_trace
     from code_as_a_reward.commitment_verifier import Verdict, verify_trace_commitments
-    from code_as_a_reward.trace_reward import score_trace
+    from code_as_a_reward.trace_reward import RewardConfig, score_trace
     from pref_pairs.trajectory_features import extract_features
 
     trace = parse_coc_trace(pred_cot, scene_id=scene_id, rollout_id=rollout_id)
@@ -352,6 +358,7 @@ def _score_cot(
         decided_fraction = tr.decided_fraction
         n_fail = float(sum(tr.n_fail.values()))
         atomic_precision = tr.atomic_precision
+        unparsed_fraction = tr.unparsed_char_fraction
     else:
         verdicts = verify_trace_commitments(trace, features)
         n_pass = sum(v.verdict is Verdict.PASS for v in verdicts)
@@ -360,8 +367,27 @@ def _score_cot(
         r = (n_pass / decided) if decided else None
         decided_fraction = (decided / len(verdicts)) if verdicts else 0.0
         atomic_precision = r
+        unparsed_chars = sum(e - s for s, e in trace.unparsed_spans)
+        unparsed_fraction = (unparsed_chars / len(trace.raw_text)) if trace.raw_text else 0.0
 
-    reasoning_score = (r - 1.0) if r is not None else _UNDECIDED_REASONING_SCORE
+    # Coverage-scaled credit: precision r is blended toward the neutral prior
+    # by decided_fraction, so what a trace can gain or lose from verification
+    # is proportional to how much of it was verifiable. This removes the
+    # all-abstain cliff: previously a fully-undecided trace took a fixed -0.2
+    # and PASSED the reasoning gate while a trace with half its claims
+    # verified took -0.5 and FAILED it, so "say only unverifiable things"
+    # (keep_distance + no-ground-truth entities, the most natural
+    # lead-vehicle phrasing there is) strictly beat "be half right". A fully
+    # undecided trace keeps exactly the old -0.2 -- now minus the unparsed
+    # penalty score_trace could not apply (r=None short-circuits it there),
+    # so unparseable text cannot ride the neutral prior either.
+    neutral_r = 1.0 + _UNDECIDED_REASONING_SCORE
+    if r is None:
+        r_eff = max(0.0, neutral_r - RewardConfig().unparsed_penalty * unparsed_fraction)
+    else:
+        r_eff = decided_fraction * r + (1.0 - decided_fraction) * neutral_r
+    reasoning_score = r_eff - 1.0
+
     aux = {
         "code_reward_raw": float(r) if r is not None else math.nan,
         "code_atomic_precision": float(atomic_precision)
@@ -370,6 +396,8 @@ def _score_cot(
         "code_decided_fraction": float(decided_fraction),
         "code_n_fail": n_fail,
         "code_scene_available": 0.0 if scene is None else 1.0,
+        "code_undecided_cnt": 0.0 if r is not None else 1.0,
+        "code_no_cot_cnt": 0.0,
     }
     return reasoning_score, aux
 
@@ -444,8 +472,19 @@ def compute_reward_batch(
             )
         else:
             # No decoded CoC: nothing to verify; flat -1.0 below (the
-            # vendored missing-CoC penalty), same as the judge reward.
-            reasoning_score, aux = -1.0, {"code_scene_available": 0.0 if scene is None else 1.0}
+            # vendored missing-CoC penalty), same as the judge reward. The
+            # aux still carries the FULL key set (NaN for the two precision
+            # metrics, replaced with the group mean after the loop): the
+            # vendored aggregator 0-fills missing keys into step means.
+            reasoning_score, aux = -1.0, {
+                "code_reward_raw": math.nan,
+                "code_atomic_precision": math.nan,
+                "code_decided_fraction": 0.0,
+                "code_n_fail": 0.0,
+                "code_scene_available": 0.0 if scene is None else 1.0,
+                "code_undecided_cnt": 1.0,
+                "code_no_cot_cnt": 1.0,
+            }
 
         if pred_cot_decoded and reasoning_score > reasoning_threshold and l2_dist < ade_threshold:
             final_reward = (
@@ -477,6 +516,23 @@ def compute_reward_batch(
                 **aux,
             }
         )
+
+    # cosmos-rl's aggregate_report_data (utils/util.py) reduces these dicts
+    # into per-step W&B metrics with np.mean(data.get(k, 0)): a single NaN
+    # poisons the step's mean, and a missing key silently counts as 0 (which
+    # for the two precision metrics means "everything failed"). So undecided
+    # rollouts carry the group's decided-only mean instead of the NaN
+    # sentinel -- neutral w.r.t. the step mean -- falling back to the r-scale
+    # neutral prior when the whole group decided nothing. The _cnt counters
+    # above (summed per step by the aggregator's suffix convention) keep the
+    # fill-in rate visible in W&B.
+    neutral_r = 1.0 + _UNDECIDED_REASONING_SCORE
+    for key in ("code_reward_raw", "code_atomic_precision"):
+        vals = [d[key] for d in reward_dicts if not math.isnan(d[key])]
+        fill = (sum(vals) / len(vals)) if vals else neutral_r
+        for d in reward_dicts:
+            if math.isnan(d[key]):
+                d[key] = fill
 
     return rewards, reward_dicts
 
