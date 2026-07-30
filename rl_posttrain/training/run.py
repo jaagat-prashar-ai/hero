@@ -129,6 +129,12 @@ _DEFAULTS: dict[str, Any] = {
     # preemption/requeue re-pulls in-region instead of re-downloading from
     # HuggingFace. Upload runs in the background after a fresh download.
     "pai_s3_cache_prefix": None,
+    # When set (str), cosmos-rl checkpoints are continuously persisted to
+    # s3://research-datasets-chicago/<prefix> while training runs
+    # (_CheckpointUploader). Without it checkpoints land ONLY on node-local
+    # /mnt/work and die with the pod -- run o08s80 (2026-07-30) saved
+    # checkpoints successfully and lost every one at teardown.
+    "ckpt_s3_prefix": None,
     "num_gpus": 8,
 }
 
@@ -373,6 +379,96 @@ def _pai_cache_upload_async(prefix: str, src: Path) -> None:
             logger.exception("PAI warm cache: background upload failed (cache is best-effort)")
 
     threading.Thread(target=_upload, daemon=True, name="pai-cache-upload").start()
+
+
+class _CheckpointUploader(threading.Thread):
+    """Continuously persists cosmos-rl's output_dir to S3 while training runs.
+
+    cosmos-rl saves checkpoints to node-local /mnt/work, which dies with the
+    pod: run o08s80 (2026-07-30) logged "checkpoint saved successfully" at
+    every save point and still ended with zero surviving checkpoints. This
+    thread scans output_dir every interval_s and uploads files only once
+    they are QUIESCENT -- same (size, mtime) on two consecutive scans --
+    because save_mode=async means shards appear over a window and a
+    half-written file must never ship. final_sync() runs after cosmos-rl
+    has exited (nothing can still be writing) and uploads whatever remains,
+    including after a crash: the caller's finally block is exactly the
+    last chance to save a dead run's progress.
+
+    put_object with a file handle, never upload_file: OCI's S3 endpoint
+    rejects s3transfer's multipart chunked encoding (BUGS.md 2026-07-01).
+    Best-effort throughout -- a failed upload logs and retries next scan;
+    checkpoint persistence must never take down training. A warm node may
+    carry a previous run's outputs/ subtree; those files re-upload to the
+    same keys (idempotent overwrite), which is accepted rather than
+    special-cased."""
+
+    def __init__(self, output_dir: Path, prefix: str, interval_s: float = 120.0):
+        super().__init__(daemon=True, name="ckpt-uploader")
+        self._output_dir = output_dir
+        self._prefix = prefix.rstrip("/")
+        self._interval_s = interval_s
+        self._stop_event = threading.Event()
+        self._last_seen: dict[Path, tuple[int, float]] = {}
+        self._uploaded: dict[Path, tuple[int, float]] = {}
+
+    def _scan(self) -> dict[Path, tuple[int, float]]:
+        if not self._output_dir.exists():
+            return {}
+        out: dict[Path, tuple[int, float]] = {}
+        for p in self._output_dir.rglob("*"):
+            try:
+                if p.is_file():
+                    st = p.stat()
+                    out[p] = (st.st_size, st.st_mtime)
+            except OSError:
+                continue  # deleted mid-scan (max_keep pruning)
+        return out
+
+    def _upload(self, path: Path, sig: tuple[int, float]) -> None:
+        key = f"{self._prefix}/{path.relative_to(self._output_dir)}"
+        try:
+            s3 = _pai_cache_client()
+            with open(path, "rb") as fh:
+                s3.put_object(Bucket=_PAI_CACHE_BUCKET, Key=key, Body=fh)
+            self._uploaded[path] = sig
+            logger.info(
+                "ckpt-uploader: %s -> s3://%s/%s (%.1f MB)",
+                path.name, _PAI_CACHE_BUCKET, key, sig[0] / 1e6,
+            )
+        except Exception:
+            logger.exception("ckpt-uploader: upload failed for %s (will retry)", path)
+
+    def _sync(self, require_quiescent: bool) -> None:
+        current = self._scan()
+        for path, sig in current.items():
+            if self._uploaded.get(path) == sig:
+                continue
+            if require_quiescent and self._last_seen.get(path) != sig:
+                continue  # still being written; pick it up next scan
+            self._upload(path, sig)
+        self._last_seen = current
+
+    def run(self) -> None:
+        while not self._stop_event.wait(self._interval_s):
+            try:
+                self._sync(require_quiescent=True)
+            except Exception:
+                logger.exception("ckpt-uploader: scan failed (will retry)")
+
+    def final_sync(self) -> None:
+        """Stop periodic scanning and upload everything not yet shipped.
+        Called after the cosmos-rl subprocess has exited -- also on the
+        failure path, where whatever is on disk is all that's left."""
+        self._stop_event.set()
+        try:
+            self._sync(require_quiescent=False)
+            logger.info(
+                "ckpt-uploader: final sync done (%d files at s3://%s/%s)",
+                len(self._uploaded), _PAI_CACHE_BUCKET, self._prefix,
+            )
+        except Exception:
+            logger.exception("ckpt-uploader: final sync failed")
 
 
 def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
@@ -934,11 +1030,26 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     keepalive_through_training = reward_mode in ("llm_judge", "code")
     if not keepalive_through_training:
         keepalive.stop()
+
+    ckpt_uploader = None
+    ckpt_prefix = cfg.get("ckpt_s3_prefix")
+    if ckpt_prefix:
+        ckpt_uploader = _CheckpointUploader(train_output_dir, str(ckpt_prefix))
+        ckpt_uploader.start()
+        logger.info(
+            "rl_posttrain: checkpoint persistence on -> s3://%s/%s",
+            _PAI_CACHE_BUCKET, ckpt_prefix,
+        )
+
     try:
         _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
     finally:
         if keepalive_through_training:
             keepalive.stop()
+        # Runs on the failure path too: whatever checkpoints made it to disk
+        # before a crash are all that's left of the run -- ship them.
+        if ckpt_uploader is not None:
+            ckpt_uploader.final_sync()
 
     logger.info("rl_posttrain: cosmos-rl run finished, checkpoints under %s", train_output_dir)
 
