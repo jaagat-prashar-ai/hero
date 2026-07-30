@@ -32,6 +32,7 @@ from rl_posttrain.rewards.llm_judge import (  # noqa: E402
     _build_user_message,
     _parse_single_judgment,
     _salvage_score,
+    judge_trace,
     normalize_score,
     waypoint_table_from_xyz,
 )
@@ -158,6 +159,35 @@ class TestBuildOpenaiMessages:
         # No image -> the user turn is exactly the calibrated text-only string.
         messages = _build_openai_messages(SYSTEM_PROMPT, _REAL_TRACE, self._table(), None)
         assert messages[1]["content"] == _build_user_message(_REAL_TRACE, self._table())
+
+
+class TestMockJudge:
+    """The zero-API smoke mode (LLM_JUDGE_MODEL=mock) must never touch the
+    network and must behave like a real judge statistically: integer scores
+    in 0-10, deterministic per trace (reward workers must agree), different
+    across traces (GRPO needs within-group variance)."""
+
+    def test_deterministic_in_range_no_network(self, monkeypatch):
+        monkeypatch.setenv("LLM_JUDGE_MOCK_LATENCY_S", "0,0")
+        xyz = _straight_constant_speed_xyz()
+        first = judge_trace(_REAL_TRACE, xyz, model="mock")
+        assert isinstance(first, int) and 0 <= first <= 10
+        assert judge_trace(_REAL_TRACE, xyz, model="mock") == first
+
+    def test_scores_vary_across_traces(self, monkeypatch):
+        monkeypatch.setenv("LLM_JUDGE_MOCK_LATENCY_S", "0,0")
+        xyz = _straight_constant_speed_xyz()
+        scores = {judge_trace(f"{_REAL_TRACE} variant {i}", xyz, model="mock") for i in range(16)}
+        assert len(scores) > 1
+
+    def test_env_routing(self, monkeypatch):
+        # model=None + LLM_JUDGE_MODEL=mock must take the mock path (i.e.
+        # succeed with no credential of any kind in the environment).
+        monkeypatch.setenv("LLM_JUDGE_MODEL", "mock")
+        monkeypatch.setenv("LLM_JUDGE_MOCK_LATENCY_S", "0,0")
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        assert 0 <= judge_trace(_REAL_TRACE, _straight_constant_speed_xyz()) <= 10
 
 
 class TestParseSingleJudgment:

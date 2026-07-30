@@ -41,9 +41,22 @@ if not _PAI_REASONING_LOCAL_DIR:
         "Missing required env var ALPAMAYO_PAI_REASONING_LOCAL_DIR "
         "(expected PAI reasoning dataset root, e.g. /path/to/PAI_Reasoning_mini)."
     )
-# Fail fast on a missing Anthropic credential at launch time, not thousands
-# of GPU-seconds later when the first reward is scored.
-if not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")):
+# Fail fast on a missing judge credential at launch time, not thousands of
+# GPU-seconds later when the first reward is scored. Routed by
+# LLM_JUDGE_MODEL exactly like judge_trace: "mock" needs no key at all
+# (zero-API infra smoke mode), "gpt-*" needs an OpenAI key, everything else
+# is the Anthropic path. (Before 2026-07-30 this unconditionally required
+# the Anthropic key, which would have killed a gpt-4o run at entry.)
+_JUDGE_MODEL = os.getenv("LLM_JUDGE_MODEL", "claude-fable-5")
+if _JUDGE_MODEL == "mock":
+    pass
+elif _JUDGE_MODEL.startswith("gpt"):
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError(
+            f"Missing OPENAI_API_KEY -- LLM_JUDGE_MODEL={_JUDGE_MODEL} scores "
+            "every rollout via the OpenAI API."
+        )
+elif not (os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN")):
     raise RuntimeError(
         "Missing ANTHROPIC_API_KEY/ANTHROPIC_AUTH_TOKEN -- the LLM-judge "
         "reward scores every rollout via the Anthropic API."
@@ -171,4 +184,31 @@ def _launch_with_scene_reference(spec: ModelSpec) -> None:
 
 
 if __name__ == "__main__":
+    # Same instrumentation that root-caused the code-mode ~51-min stalls
+    # (BUGS.md 2026-07-28/30): the judge full-run crash loop (every attempt
+    # dead at steps 137-149, ~2h40m cadence) is still unnamed, and an
+    # uninstrumented crash teaches nothing. _StackSampler leaves repeated
+    # frames pointing at the hang site; the retry-ladder cap turns a silent
+    # ~53-min rollout-report stall into an ERROR-level exception log.
+    from rl_posttrain.rewards.code_reward_entry import _StackSampler
+
+    _sample_s = float(os.getenv("CODE_REWARD_STACK_SAMPLE_S", "300"))
+    if _sample_s > 0:
+        _StackSampler(interval_s=_sample_s).start()
+        logger.warning("[llm_judge] stack sampler armed, every %.0fs", _sample_s)
+    try:
+        from cosmos_rl.utils import constant as _cosmos_constant
+
+        _prev = _cosmos_constant.COSMOS_HTTP_RETRY_CONFIG.max_retries
+        _cap = int(os.getenv("CODE_REWARD_HTTP_MAX_RETRIES", "20"))
+        _cosmos_constant.COSMOS_HTTP_RETRY_CONFIG.max_retries = _cap
+        logger.warning(
+            "[llm_judge] COSMOS_HTTP_RETRY_CONFIG.max_retries %d -> %d "
+            "(caps the rollout-report stall at ~1.9 min instead of ~52.9 min)",
+            _prev,
+            _cap,
+        )
+    except Exception:
+        logger.exception("[llm_judge] could not cap COSMOS_HTTP_RETRY_CONFIG.max_retries")
+
     _launch_with_scene_reference(REASONING_VLA_SPEC)

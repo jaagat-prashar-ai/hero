@@ -38,6 +38,10 @@ Commands:
   code-reward-full     Extensive OOD run: same 352-clip dense dataset as
                        llm-judge-full, 3 epochs, S3 warm cache + S3
                        checkpoint persistence (code_reward_full_cluster.yaml)
+  llm-judge-mock       Zero-API judge infra smoke test: full-run workload
+                       shape with a mock judge (sleep + fake scores, no key)
+                       to reproduce the step-137-149 crash loop for $0
+                       (llm_judge_mock_cluster.yaml)
   inspect-logs         GPU-free: read a prior run's per-process cosmos-rl logs
                        from /mnt/work (reward/wandb lines) without re-running
                        the expensive GPU job (inspect_logs.yaml)
@@ -128,6 +132,12 @@ case "${cmd}" in
 
     code-reward-full)
         launch_py "${SCRIPT_DIR}/code_reward_full_cluster.yaml" "$@"
+        ;;
+
+    llm-judge-mock)
+        # Zero-API judge infra smoke test (LLM_JUDGE_MODEL=mock) -- no key
+        # bridging on purpose; the config requires no judge credential.
+        launch_py "${SCRIPT_DIR}/llm_judge_mock_cluster.yaml" "$@"
         ;;
 
     inspect-logs)

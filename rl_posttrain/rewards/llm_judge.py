@@ -345,6 +345,28 @@ def _build_openai_messages(
     ]
 
 
+def _judge_trace_mock(trace: str) -> int:
+    """Zero-API stand-in for infra smoke tests (LLM_JUDGE_MODEL=mock).
+
+    The llm-judge-full crash loop (every attempt dead at steps 137-149,
+    ~2h40m cadence, cause still unnamed as of 2026-07-28) can only be
+    reproduced by running the judge's WORKLOAD SHAPE -- GPUs idle-but-
+    reserved while the reward thread pool waits out per-call latency -- for
+    hours, and paying ~14k real API calls (~$100-200) to test
+    infrastructure wastes a key. So: sleep a realistic per-call latency
+    (uniform over LLM_JUDGE_MOCK_LATENCY_S="lo,hi" seconds, default the
+    observed 1-7 s judge range) and return a per-trace-deterministic score
+    with real 0-10 spread (sha256, not hash(): the latter is salted per
+    process, and reward workers must agree), so group advantage variance
+    and dynamic sampling behave like a live run."""
+    import hashlib
+    import random
+
+    lo, hi = (float(x) for x in os.environ.get("LLM_JUDGE_MOCK_LATENCY_S", "1,7").split(","))
+    time.sleep(random.uniform(lo, hi))
+    return hashlib.sha256(trace.encode()).digest()[0] % 11
+
+
 def _judge_trace_openai(
     trace: str, waypoint_table: str, scene_jpeg: bytes | None, model: str
 ) -> int:
@@ -428,7 +450,8 @@ def judge_trace(
     raw 0-10 integer (callers wanting the recipe scale apply normalize_score).
 
     model: None resolves LLM_JUDGE_MODEL from the env (default
-    claude-fable-5); "gpt-*" models route to _judge_trace_openai, everything
+    claude-fable-5); "mock" routes to the zero-API _judge_trace_mock (infra
+    smoke tests); "gpt-*" models route to _judge_trace_openai; everything
     else uses the Anthropic path below unchanged.
 
     scene_jpeg: optional JPEG of the scene with THIS rollout's trajectory
@@ -454,6 +477,8 @@ def judge_trace(
     waypoint_table = waypoint_table_from_xyz(waypoints_xyz, hz)
     if model is None:
         model = os.environ.get(_JUDGE_MODEL_ENV, _DEFAULT_JUDGE_MODEL)
+    if model == "mock":
+        return _judge_trace_mock(trace)
     if model.startswith("gpt"):
         return _judge_trace_openai(trace, waypoint_table, scene_jpeg, model)
 

@@ -1,0 +1,87 @@
+name: alpamayo-rl-llm-judge-mock
+model_identifier: other.training.alpamayo15.default.v1
+# ZERO-API infra smoke test for the llm-judge full run (2026-07-30).
+#
+# Purpose: every llm-judge-full attempt to date died at steps 137-149 on a
+# ~2h40m cadence (q00jjc, eigzof, f6pj1y, 2s1n7i -- see BUGS.md 2026-07-23/24)
+# and the cause is STILL unnamed: preemption was ruled out (preemptible:
+# never), ignore_idle_reaper only silences the alert, and the 656fe95 GPU
+# keepalive did not stop it either. Re-testing with a real judge costs ~14k
+# API calls (~$100-200) per attempt. This config reproduces the judge's exact
+# workload shape -- same dataset, same SceneReferenceDataset scene payloads,
+# same reward thread pool blocking on per-call latency -- with
+# LLM_JUDGE_MODEL=mock (llm_judge.py sleeps the observed 1-7s per call and
+# returns deterministic varied scores; NO key, NO network). If this run
+# crashes at ~2h40m, the failure is infra and reproducible for $0 (and the
+# newly-armed stack sampler + retry cap in llm_judge_entry.py leave the
+# evidence); if it survives to completion, the crash loop is specific to
+# real API calls (rate limits / key plumbing), not the workload shape.
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    # Same persistent root as the other rl_posttrain configs (venv + model
+    # reuse); same dense dataset subdir as the judge/code full runs.
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+    reward_mode: "llm_judge"
+
+    # Identical dataset to llm_judge_full_cluster.yaml -- the crash loop is
+    # what we're reproducing, so everything but the judge transport matches.
+    reasoning_dense_chunks: 100
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+
+    dp_shard_size: 4
+    # 3 epochs ≈ 264 steps: the crash window is ~2h40m in (steps 137-149 at
+    # real-judge cadence), so the run must comfortably outlast it. With the
+    # 1-7s mock latency the cadence approximates the real judge's ~66s/step.
+    train_epoch: 3
+
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_llm_judge_mock"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # Same rationale as the full config: preemption cadence < run length.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 7200
+
+  # NO judge API key required -- that is the point of this config. The env
+  # var below routes llm_judge.py to the zero-API mock path; run.py and
+  # llm_judge_entry.py both skip credential checks for it.
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    LLM_JUDGE_MODEL: "mock"
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
+      - "^build_wds/"
+      - "^masking/"
+      # pref_pairs/ code must ship (judge reward imports its helpers); only
+      # the 46M generated-results tree stays excluded.
+      - "^pref_pairs/results/"
+      - "^autovla/"
+      - "^third_party/alpamayo1.5/"
+      - "^perplexity/"
