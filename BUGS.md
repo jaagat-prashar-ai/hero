@@ -6,6 +6,58 @@ now, not routine typos.
 
 ---
 
+## 2026-07-30 — code-reward W&B metrics silently biased/NaN-poisoned + all-abstain traces out-scored half-verified ones
+
+**Symptom:** bugs28.txt open question ("zero decided claims? what is this
+failure case about?"). `code_reward_raw`/`code_atomic_precision` were written
+as `math.nan` when a rollout decided nothing, and the no-CoC branch emitted an
+aux dict containing only `code_scene_available`.
+
+**Root cause (three compounding, all around zero-decided rollouts):**
+
+1. cosmos-rl's `aggregate_report_data` (`cosmos_rl/utils/util.py:1387`)
+   reduces per-rollout report_metrics into per-step W&B values with
+   `np.mean([data.get(k, 0) ...])`. A single NaN rollout therefore NaNs the
+   whole step's metric (latent — zero NaN steps in all 69 logged steps
+   across a1npli/eivn91/vtx3ys, because multi-claim rollouts rarely
+   all-abstain).
+2. The same `data.get(k, 0)` treats a *missing* key as literal 0 — for a
+   precision metric, "every claim failed". The no-CoC branch's one-key aux
+   dict hit exactly this: vtx3ys had one step whose `reward_min` is exactly
+   -1.0 (the flat no-CoC penalty), so that step's code metrics are biased
+   low in W&B.
+3. Reward semantics: a fully-undecided trace took the fixed neutral -0.2
+   and PASSED the reasoning gate while a half-verified trace (r=0.5 →
+   -0.5) FAILED it — "say only unverifiable things" strictly beat "be
+   half right". Not hypothetical phrasing: the all-abstain shape is
+   "keep a safe distance from the lead vehicle" (keep_distance commitment
+   abstains as relative-to-agent; the 'lead' attribute has no ground
+   truth), and 5.2% of the 1434 judged_pairs traces have no decidable
+   commitment at all.
+
+**Fix:** [8a69ac3](../../commit/8a69ac3) — every rollout emits the full aux
+key set; undecided rollouts carry the group's decided-only mean instead of
+NaN (mean-neutral by construction); new `code_undecided_cnt` /
+`code_no_cot_cnt` counters (summed per step via the aggregator's `_cnt`
+suffix convention) keep the fill-in rate visible. Reasoning credit is now
+coverage-blended — `r_eff = decided_fraction·r + (1-df)·0.8` — so credit is
+proportional to how much of the trace was verifiable; a fully-undecided
+trace keeps exactly the old -0.2 minus the unparsed penalty that
+`score_trace` could never apply to it (r=None short-circuited the penalty).
+Verified: 110 tests pass; on a real clipgen scene, all-abstain scores
+-0.263 < partially-verified GT -0.145, and a false "stop" claim still
+gate-fails at -0.600. Note: the blend compresses reasoning scores toward
+-0.2, so `reasoning_threshold = -0.4` no longer reads "60% of decided
+claims verified" — recalibrate against the next run's gate pass-rate.
+
+**How this was found:** code-reading `aggregate_report_data` after
+bugs28.txt flagged the NaN sentinel; parse-sweep over 1434 judged_pairs
+traces + full-path scoring of the 5 clipgen GT clips (which also surfaced
+the canonical all-abstain trace shape); W&B history scan of all three
+code-reward runs for NaN steps and flat -1.0 `reward_min` rollouts.
+
+---
+
 ## 2026-07-28 — code-reward ~51-min reward-time stalls: obstacle.offline chunk-zip access, now pre-extracted at setup
 
 **Symptom:** `alpamayo-rl-code-reward-a1npli` (first clean-finish code-reward
