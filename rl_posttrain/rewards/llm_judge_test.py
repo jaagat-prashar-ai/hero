@@ -288,7 +288,9 @@ class TestGradedFailureReward:
     def test_always_below_passing_region(self):
         # The passing branch's floor with the current TOML weights
         # (traj_l2=0.2, comfort=0.0, reasoning=0.3) is -0.2 (l2 -> 3.0,
-        # judge score 10). Every graded failure must rank strictly below it.
+        # reasoning at the gate -- since the 2026-07-30 term mirror, worst
+        # passing reasoning earns 0 reasoning credit and perfect earns the
+        # full +0.3). Every graded failure must rank strictly below it.
         passing_floor = -0.2
         for l2, reasoning in [(3.0, -0.4), (3.0001, 0.0), (17.0, -0.2), (0.5, -0.9)]:
             assert self._r(l2, reasoning) <= -0.5 < passing_floor

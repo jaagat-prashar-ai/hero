@@ -21,19 +21,22 @@ Structure, top to bottom:
      hiding) don't apply; group_reward_calculation stays enabled in the
      shared TOML and is simply cheap here.
 
-     Everything around the reasoning component is kept VERBATIM from
-     aggregated_reward_llm_judge (itself verbatim from the vendored
-     variant): trajectory decode + ADE, comfort, the continuous mixing
-     formula and its TOML weight keys under [custom.alpamayo.reward], the
-     ade_threshold = 3.0 / reasoning_threshold = -0.4 gates, and the
-     graded failure band -- so a code-reward run differs from the running
-     llm-judge experiments in the reasoning signal ONLY.
+     Everything around the reasoning component is kept IDENTICAL to
+     aggregated_reward_llm_judge: trajectory decode + ADE, comfort, the
+     mixing formula and its TOML weight keys under
+     [custom.alpamayo.reward], the ade_threshold = 3.0 /
+     reasoning_threshold = -0.4 gates, and the graded failure band -- so
+     a code-reward run differs from the running llm-judge experiments in
+     the reasoning signal ONLY. (Both entries deliberately mirror the
+     vendored reasoning term, which was inverted -- full weight at
+     barely-passing, zero at perfect; fixed 2026-07-30, see BUGS.md.)
 
      Score mapping: TraceReward.reward r in [0, 1] -> reasoning_score
      r - 1.0 in [-1, 0], the same scale the judge's normalize_score and
-     the vendored grader's `sigmoid - 1.0` land on, so the recipe's
-     reasoning_threshold = -0.4 means "at least 60% of decided claims
-     verified".
+     the vendored grader's `sigmoid - 1.0` land on. Before the coverage
+     blend below, reasoning_threshold = -0.4 meant "at least 60% of
+     decided claims verified"; under the blend the bar is
+     coverage-dependent (r > 0.8 - 0.2/decided_fraction).
 
      Abstention: r is None when NOTHING in the trace was decided (all
      claims hit missing ground truth -- Phase 0's ~27% unverifiable
@@ -487,10 +490,20 @@ def compute_reward_batch(
             }
 
         if pred_cot_decoded and reasoning_score > reasoning_threshold and l2_dist < ade_threshold:
+            # DELIBERATE deviation from the vendored formula (and from every
+            # run before 2026-07-30): the vendored reasoning term was
+            # `w * (reasoning_score / reasoning_threshold)`, which DECREASES
+            # in reasoning quality -- perfect reasoning (score 0) earned 0
+            # while barely-passing (score -> -0.4) earned the full weight, so
+            # inside the passing band the gradient pushed reasoning DOWN
+            # toward the gate. `1 - score/threshold` is the same quantity
+            # mirrored: 0 at the gate, full weight at perfect. The l2 and
+            # comfort terms already pointed the right way; reasoning was the
+            # only inverted component. See BUGS.md 2026-07-30 (2nd entry).
             final_reward = (
                 -w["traj_l2_weight"] * (l2_dist / ade_threshold)
                 + w["comfort_weight"] * comfort_score
-                + w["reasoning_weight"] * (reasoning_score / reasoning_threshold)
+                + w["reasoning_weight"] * (1.0 - reasoning_score / reasoning_threshold)
             )
         else:
             final_reward = _graded_failure_reward(

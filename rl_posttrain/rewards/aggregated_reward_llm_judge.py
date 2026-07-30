@@ -16,13 +16,17 @@ already-validated GRPO behavior is preserved):
   - the compute_reward signature and (reward, reward_dict) return contract,
   - trajectory decode (decode_rollout_trajectory) + ADE (calculate_ade),
   - comfort scoring (compute_comfort, shifted to [-1, 0]),
-  - the continuous mixing formula, its TOML weight keys under
+  - the continuous mixing structure, its TOML weight keys under
     [custom.alpamayo.reward], and the ade_threshold = 3.0 /
     reasoning_threshold = -0.4 gates.
 
-One deliberate DEPARTURE from the vendored variant: rollouts that fail the
-gates get a GRADED reward in [-1.0, -0.5] (_graded_failure_reward) instead
-of the vendored flat -1.0 floor. A flat floor makes every all-fail group
+Two deliberate DEPARTURES from the vendored variant. First, the vendored
+reasoning term `w * (score/threshold)` is inverted -- it pays the full
+weight at barely-passing reasoning and zero at perfect -- so the passing
+branch uses the mirrored `w * (1 - score/threshold)` (fixed 2026-07-30,
+see BUGS.md; every run before that date trained on the inverted term).
+Second, rollouts that fail the gates get a GRADED reward in [-1.0, -0.5]
+(_graded_failure_reward) instead of the vendored flat -1.0 floor. A flat floor makes every all-fail group
 zero-advantage (GRPO normalizes within the group), so those rollouts train
 nothing -- on canary alpamayo-rl-llm-judge-canary-u0j67p (2026-07-22) that
 was most groups, wasting most of the judged samples. The band keeps every
@@ -280,8 +284,9 @@ def compute_reward_batch(
         judge_fn=judge_trace,
     )
 
-    # Stage 3 (serial): mix components -- thresholds/formula verbatim from
-    # the vendored variant.
+    # Stage 3 (serial): mix components -- thresholds verbatim from the
+    # vendored variant; the reasoning term is deliberately mirrored (module
+    # docstring: the vendored form was inverted).
     ade_threshold = 3.0
     reasoning_threshold = -0.4
 
@@ -292,10 +297,17 @@ def compute_reward_batch(
         pred_cot_decoded = bool(pred_cot and len(pred_cot.strip()) > 0)
 
         if pred_cot_decoded and reasoning_score > reasoning_threshold and l2_dist < ade_threshold:
+            # DELIBERATE deviation from the vendored formula (see
+            # code_reward_entry.py for the full rationale and BUGS.md
+            # 2026-07-30 2nd entry): the vendored reasoning term
+            # `w * (score/threshold)` was inverted -- it gave the full
+            # weight to barely-passing reasoning and zero to perfect.
+            # `1 - score/threshold` mirrors it: 0 at the gate, full
+            # weight at judge score 10.
             final_reward = (
                 -w["traj_l2_weight"] * (l2_dist / ade_threshold)
                 + w["comfort_weight"] * comfort_score
-                + w["reasoning_weight"] * (reasoning_score / reasoning_threshold)
+                + w["reasoning_weight"] * (1.0 - reasoning_score / reasoning_threshold)
             )
         else:
             final_reward = _graded_failure_reward(
