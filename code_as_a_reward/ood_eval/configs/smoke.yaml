@@ -5,6 +5,15 @@
 # scoring, S3 sync), and measure real per-event wall-clock -- no reliable
 # throughput number exists anywhere in this repo today. Do NOT launch
 # full.yaml before this passes and its timing/cost has been reviewed.
+#
+# workload_type "generic" (GenericWorkloadRunner just calls
+# entrypoint_fn(entrypoint_fn_config) directly), NOT "training" -- this is a
+# one-off batch script, not a hyperparameter-sweep training loop, and
+# "training" wraps everything in a Ray Tune Tuner/TorchTrainer that this
+# job has no use for (ood-verifier-smoke-wyhix0 crashed inside that wrapper,
+# in Lilypad's own Ray Tune internals, before ood_verifier_loop ever ran --
+# "generic" sidesteps that layer entirely, matching build_wds/configs/
+# smoke.yaml's established pattern for one-off jobs).
 name: ood-verifier-smoke
 model_identifier: other.training.alpamayo15.default.v1
 # Long CPU-only phase (manifest build + venv bootstrap + 22GB model download)
@@ -13,9 +22,9 @@ model_identifier: other.training.alpamayo15.default.v1
 ignore_idle_reaper: true
 
 workload_variant_config:
-  workload_type: "training"
-  training_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
-  training_fn_config:
+  workload_type: "generic"
+  entrypoint_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
+  entrypoint_fn_config:
     max_events: 20
     skip_model: false
     s3_bucket: "research-datasets-chicago"
@@ -23,16 +32,6 @@ workload_variant_config:
     venv_dir: "/mnt/work/tmp/alpamayo15_venv"
     local_output: "/mnt/work/tmp/ood_eval/smoke_results.jsonl"
     cache_dir: "code_as_a_reward/testdata"
-
-  experiment_tracker:
-    # Lilypad's LaunchWorkload rejects a real cluster submission with an
-    # empty tracker ("missing experiment tracker") -- only workload_type
-    # "local" jobs (gpu_machine_type: local, e.g. masking/configs/local.yaml)
-    # can skip this. This job doesn't produce a training curve, but still
-    # needs a valid tracker block to submit at all.
-    wandb:
-      entity: research
-      project: code-as-reward-ood-eval
 
 cluster_resources:
   # 1 GPU carved off an a100.8 node (Alpamayo 1.5 inference needs ~24GB

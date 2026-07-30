@@ -6,14 +6,17 @@
 # has been reviewed -- no reliable rollout-only throughput number exists
 # anywhere in this repo, so the real wall-clock for ~1740+ events is
 # genuinely unknown until the smoke test measures it.
+# workload_type "generic" -- see smoke.yaml's comment: this is a one-off
+# batch script, not a training loop, and "training" wraps it in a Ray Tune
+# Tuner/TorchTrainer that crashed before ood_verifier_loop ever ran.
 name: ood-verifier-full
 model_identifier: other.training.alpamayo15.default.v1
 ignore_idle_reaper: true
 
 workload_variant_config:
-  workload_type: "training"
-  training_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
-  training_fn_config:
+  workload_type: "generic"
+  entrypoint_fn: code_as_a_reward.ood_eval.run.ood_verifier_loop
+  entrypoint_fn_config:
     max_events: null  # no truncation -- every valid event in the manifest
     skip_model: false
     s3_bucket: "research-datasets-chicago"
@@ -21,13 +24,6 @@ workload_variant_config:
     venv_dir: "/mnt/work/tmp/alpamayo15_venv"
     local_output: "/mnt/work/tmp/ood_eval/full_results.jsonl"
     cache_dir: "code_as_a_reward/testdata"
-
-  experiment_tracker:
-    # See smoke.yaml's comment: a real cluster submission requires a
-    # non-empty tracker.
-    wandb:
-      entity: research
-      project: code-as-reward-ood-eval
 
 cluster_resources:
   gpu_machine_type: a100.8
