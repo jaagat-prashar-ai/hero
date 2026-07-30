@@ -6,6 +6,49 @@ now, not routine typos.
 
 ---
 
+## 2026-07-30 (2nd) — vendored reasoning term INVERTED inside the passing band: full credit at barely-passing, zero at perfect
+
+**Symptom:** none observable in aggregate curves — found by re-deriving the
+passing-branch arithmetic while answering "how will the coverage blend move
+the gate pass-rate". With `reasoning_weight = 0.3` and
+`reasoning_threshold = -0.4`, the passing branch computed
+`+ w * (reasoning_score / reasoning_threshold)`: perfect reasoning
+(score 0) earned **0.0** while barely-passing reasoning (score -0.39)
+earned **+0.29**. The term DECREASES in reasoning quality.
+
+**Root cause:** the vendored recipe's `aggregated_reward_with_reasoning.py`
+divides a negative score by the negative threshold, producing a ratio that
+is 1 at the gate and 0 at perfect — the mirror of what a reward should be.
+The l2 term (`-w * l2/ade`) and comfort term point the right way; reasoning
+is the only inverted component, which is why it reads as plausible. Both of
+our entries (`aggregated_reward_llm_judge.py`, `code_reward_entry.py`)
+copied it verbatim under the "change only the reasoning source" principle,
+so EVERY llm-judge and code-reward run to date trained with a
+within-passing-band gradient pushing reasoning quality DOWN toward the
+gate. Impact was bounded because most rollouts fail the gate (where
+`_graded_failure_reward`'s ordering is correct) and GRPO advantage is
+group-normalized — but the model's best-reward strategy inside the band
+was "be barely faithful enough", and with the coverage blend an
+all-abstain trace (score -0.2 → +0.15) out-earned a fully-verified one
+(score ~0 → ~0) at the final-reward level even after the gate-ordering
+fix in the entry below.
+
+**Fix:** [683dd4d](../../commit/683dd4d) — passing-branch reasoning term mirrored to
+`w * (1 - reasoning_score / reasoning_threshold)` in BOTH entries: 0 at
+the gate, full weight at perfect. The passing floor stays -0.2 (now at
+barely-passing instead of, absurdly, at perfect reasoning), so graded
+failures still rank strictly below every passing rollout; the ceiling
+rises from 0 to +0.3 (harmless under GRPO's within-group normalization).
+The vendored submodule itself is untouched, per rl_posttrain convention;
+comparability caveat: reward curves before/after this date are not
+directly comparable in either reward mode.
+
+**How this was found:** user asked how the coverage blend would compress
+reasoning scores and shift the gate pass-rate; plugging the band endpoints
+into the mixing formula exposed the inversion.
+
+---
+
 ## 2026-07-30 — code-reward W&B metrics silently biased/NaN-poisoned + all-abstain traces out-scored half-verified ones
 
 **Symptom:** bugs28.txt open question ("zero decided claims? what is this
