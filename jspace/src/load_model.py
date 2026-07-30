@@ -43,13 +43,18 @@ def load_lens_model(
     checkpoint: str = CHECKPOINT,
     device: str = "cuda",
     dtype: torch.dtype = torch.bfloat16,
+    attn_implementation: str = "sdpa",
 ) -> tuple[Alpamayo1_5, "jlens.hf.HFLensModel"]:
     """Return (alpamayo, lens_model).
 
     Keep the Alpamayo1_5 handle: jlens.from_hf freezes all params in place, so
     this model instance is for lens work only — don't reuse it for training.
+    attn defaults to sdpa: the checkpoint asks for flash_attention_2, which
+    isn't installed in jspace/.venv, and sdpa backprops fine for the fit.
     """
-    alpamayo = Alpamayo1_5.from_pretrained(checkpoint, dtype=dtype).to(device)
+    alpamayo = Alpamayo1_5.from_pretrained(
+        checkpoint, dtype=dtype, attn_implementation=attn_implementation
+    ).to(device)
     lens_model = jlens.from_hf(alpamayo.vlm, alpamayo.tokenizer)
     return alpamayo, lens_model
 
