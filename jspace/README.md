@@ -1,8 +1,9 @@
-# J-space analysis of Alpamayo-R1
+# J-space analysis of Alpamayo 1.5
 
-Apply Anthropic's Jacobian lens (J-lens) to the Alpamayo-R1 language backbone
-(Qwen3-VL family; checkpoint: nvidia/Alpamayo-R1-10B, processor from
-Qwen3-VL-2B-Instruct) to look for a "global workspace" (J-space) in its
+Apply Anthropic's Jacobian lens (J-lens) to the Alpamayo 1.5 language backbone
+(checkpoint: nvidia/Alpamayo-1.5-10B; Cosmos-Reason2-8B / Qwen3-VL text
+decoder — 36 layers, d_model 4096, vocab extended with 4000 `<i*>` trajectory
+tokens from id 151669) to look for a "global workspace" (J-space) in its
 mid-layers, and to ask driving-specific questions:
 
 1. Do driving concepts ("pedestrian", "brake", "yield", "merge") appear as
@@ -33,7 +34,8 @@ mid-layers, and to ask driving-specific questions:
 
 ## Layout
 
-- `src/load_model.py` — load the Alpamayo-R1 checkpoint, expose the text
+- `src/load_model.py` — load the Alpamayo 1.5 checkpoint (vendored
+  third_party/alpamayo1.5 source via masking.bootstrap), expose the text
   backbone as a `jlens` LensModel (`jlens.from_hf(model.vlm, tokenizer)`).
 - `src/prompts.py` — driving-domain fitting/eval prompt corpus.
 - `src/fit_lens.py` — fit J_l over the corpus (checkpointed, resumable).
@@ -46,3 +48,5 @@ mid-layers, and to ask driving-specific questions:
 - Phase 1 is text-only (`input_ids`): CoT text and `<i*>` tokens work; real
   camera-frame inputs need a custom apply via `inputs_embeds` (later phase).
 - The lens only surfaces concepts that map to single vocabulary tokens.
+- Run inside `perplexity/alpamayo/ar1_venv` (Python 3.12; has jlens +
+  transformers 5.x, under which the vendored alpamayo1_5 imports fine).
