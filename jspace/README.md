@@ -48,5 +48,6 @@ mid-layers, and to ask driving-specific questions:
 - Phase 1 is text-only (`input_ids`): CoT text and `<i*>` tokens work; real
   camera-frame inputs need a custom apply via `inputs_embeds` (later phase).
 - The lens only surfaces concepts that map to single vocabulary tokens.
-- Run inside `perplexity/alpamayo/ar1_venv` (Python 3.12; has jlens +
-  transformers 5.x, under which the vendored alpamayo1_5 imports fine).
+- Run inside `jspace/.venv` (see requirements.txt; jlens needs transformers
+  >=5.5, so it gets its own venv rather than the 4.x-era ar1_venv).
+- Loading needs the gated-repo HF token: `source ~/.creds/lilypad.env`.
