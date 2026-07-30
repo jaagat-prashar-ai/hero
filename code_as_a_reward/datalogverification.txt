@@ -1,0 +1,134 @@
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ Ready to code?
+ Here is Claude's plan:                                                                                                                                                ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ OOD ground-truth vs. model-rollout comparison for the code-as-reward verifiers
+
+ Context
+
+ code_as_a_reward's commitment/perceptual verifiers (commitment_verifier.py,
+ perceptual_verifier.py, aggregated by trace_reward.py::score_trace) have never
+ been run as a standalone batch tool — only inside unit tests or live inside the
+ GRPO training loop (rl_posttrain/rewards/code_reward_entry.py). The goal here is
+ to characterize this "global heuristic" (as opposed to the separate, deferred
+ clipgen per-clip LLM-reward prototype) across real, diverse driving scenarios:
+ find where it decides correctly, where it's forced to abstain, and where it
+ disagrees with itself — as a foundation for calibrating thresholds later.
+
+ The plan runs the full verifier pipeline over all 1740 clips in
+ nvidia/PhysicalAI-Autonomous-Vehicles's reasoning/ood_reasoning.parquet (9
+ event_cluster types), in two modes per clip, so results are directly comparable:
+
+ - Ground truth: the dataset's own annotated CoC text + the clip's real
+ recorded future trajectory. Tests whether the verifier logic itself is
+ well-calibrated on real scenarios (any FAIL/ABSTAIN here is a verifier
+ bug or a dataset gap, not a model mistake).
+ - Model rollout: Alpamayo 1.5 run directly on the same clip (single
+ forward pass, num_traj_samples=1 — no rollout_harvester.py, no k=20
+ preference-pair harness, no cosmos-rl; that machinery is for a different
+ experiment). Tests the verifier against actual model behavior.
+
+ Both modes turn out to need the same per-clip data fetch
+ (load_physical_aiavdataset, straight from HF via physical_ai_av, works on
+ any arbitrary clip_id, no WDS shards) — so the earlier 392-vs-1740 scoping
+ conflict is now moot: one script, one GPU, full 1740-clip coverage, per-clip
+ GT-vs-model comparison for every clip.
+
+ Data flow (confirmed against the actual code, not assumed)
+
+ Per (clip_id, t0_us) event pulled from reasoning/ood_reasoning.parquet's
+ events list (its coc field is the ground-truth CoC text for that event):
+
+ 1. load_physical_aiavdataset(clip_id, t0_us) (vendored,
+ third_party/alpamayo1.5/src/alpamayo1_5/load_physical_aiavdataset.py) —
+ one HF fetch (maybe_stream=True) returns image_frames, camera_indices,
+ ego_history_xyz/rot, ego_future_xyz (already ego-frame-at-t0, 64
+ waypoints @ 10Hz — exactly trace_reward's default horizon_us=6_400_000).
+ 2. load_obstacle_tracks(clip_id) (code_as_a_reward/obstacle_tracks.py) —
+ same per-clip HF fetch pattern, cached once per clip and reused across all
+ of that clip's events, gives the SceneObstacles both verifiers need.
+ 3. Ground-truth branch: extract_features(ego_future_xyz, hz=10.0, scene_id=f"{clip_id}_{t0_us}", rollout_id=0)
+ (pref_pairs/trajectory_features.py) + parse_coc_trace(gt_coc, scene_id=..., rollout_id=0)
+ (code_as_a_reward/coc_claim_parser.py) → score_trace(trace, features, scene).
+ 4. Model branch: build the chat messages (helper.create_message), run
+ Alpamayo1_5.from_pretrained("nvidia/Alpamayo-1.5-10B", dtype=torch.bfloat16).to("cuda")
+ once at job start, then per event call
+ model.sample_trajectories_from_data_with_vlm_rollout(data=model_inputs, top_p=0.98, temperature=0.6, num_traj_samples=1, max_generation_length=256, return_extra=True)
+ → pred_xyz, extra["cot"][0]. Same extract_features/parse_coc_trace/score_trace
+ calls as the GT branch, rollout_id=1.
+ 5. Dump both TraceVerifications (parsed claims, TrajectoryFeatures,
+ every commitment/perceptual/causal verdict with its evidence dict, and the
+ aggregate TraceReward) for this event, plus a comparison block, as one
+ JSONL row. Single-GPU VRAM need is ~24GB per the vendored README — no
+ multi-node/cosmos-rl setup required.
+
+ No new adapter code is needed for data loading — every piece above already
+ exists and is directly reusable. The only new code is the driver that wires
+ them together and dumps results.
+
+ New code
+
+ New subpackage code_as_a_reward/ood_eval/:
+
+ - manifest.py — downloads/reads reasoning/ood_reasoning.parquet (tiny
+ metadata file, via physical_ai_av/HF, no WDS) and yields every
+ (clip_id, t0_us, gt_coc, event_cluster) tuple across all 1740 clips' event
+ lists (processing all events per clip, not just one — flag this in the
+ run summary since some clips have more than one event).
+ - run_comparison.py — the driver: loads the model once, iterates the
+ manifest, caches SceneObstacles per clip_id, runs the GT branch always
+ and the model branch when enabled, and appends each event's result to
+ a JSONL output file immediately (flushed per row). On startup it reads any
+ existing output file to build a skip-set of already-done (clip_id, t0_us)
+ keys — this is what makes a long single-GPU run resumable after a
+ preemption instead of restarting from zero.
+ - analyze.py — loads the output JSONL, produces a flat summary
+ parquet/CSV (TraceReward.to_row_dict() fields, gt_/model_ prefixed,
+ one row per event) plus aggregate stats grouped by event_cluster ×
+ {ground_truth, model}: reward distribution, decided_fraction, and
+ PASS/FAIL/ABSTAIN counts broken down by claim maneuver/entity — this is
+ the "successful points / edge cases / failure cases" characterization.
+
+ Reused as-is, no modifications: load_physical_aiavdataset,
+ Alpamayo1_5/helper (vendored), load_obstacle_tracks, parse_coc_trace,
+ extract_features, score_trace, and all verifier internals.
+
+ Execution (Lilypad)
+
+ Single-GPU generic job (no Bazel image needed — same pip_requirements_path
+ - root_directory pattern as build_wds/perplexity configs), modeled on
+ masking/configs/local.yaml's single-GPU setup for the same 10B checkpoint:
+
+ - code_as_a_reward/ood_eval/configs/smoke.yaml — Phase 1, ~20 clips
+ sampled across the 9 event clusters, entrypoint_fn_config: {max_events: 20}.
+ Purpose: confirm the driver is correct end-to-end, measure real per-event
+ wall-clock (no reliable throughput number exists anywhere in-repo today —
+ treat it as unknown until measured), and check the actual obstacle.offline
+ hit rate on this specific clip population (Phase 0 measured 97.4% overall,
+ not confirmed for this exact set).
+ - code_as_a_reward/ood_eval/configs/full.yaml — Phase 2, all 1740
+ clips (all events), launched only after Phase 1 confirms cost/correctness.
+ preemptible: true, requeue_if_preempted: true, output path on a
+ persistent/S3-backed location so the resume-by-skip-set logic actually
+ survives a requeue.
+
+ Launch via python lilypad/launch.py code_as_a_reward/ood_eval/configs/smoke.yaml -n ood-verifier-smoke --dry-run first, then for real; same pattern for full.yaml ce smoke passes. I will show you both configs and the dry-run output before submitting either for real.
+
+rification
+
+ 1. Before touching the cluster: dry-run the driver locally/in a dev shell
+ against 1-2 known-good clips (the existing test fixture clip
+ f0d61901-... used by trace_reward_test.py/commitment_verifier_test.py,
+ and/or the clipgen fixture 40597645-81a0-... which already has cached
+ obstacle/egomotion data) to catch shape/plumbing bugs without spending GPU
+ time.
+ 2. Run the smoke config (Phase 1), inspect a handful of JSONL rows by hand
+ confirm GT and model verdicts both look sane (right claim counts,
+ evidence populated, no crashes on ABSTAIN-heavy clips).
+ 3. Run the full config (Phase 2), then analyze.py to produce the summary
+ table.
+ 4. Once real data exists, build a small static HTML viewer artifact (raw CoC
+ text with claim spans, verdicts + evidence, GT vs. model side by side per
+ clip) so you can browse the full traces and decisions — this is built
+ after the run, from real output, not before.
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
