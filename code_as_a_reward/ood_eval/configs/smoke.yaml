@@ -24,7 +24,15 @@ workload_variant_config:
     local_output: "/mnt/work/tmp/ood_eval/smoke_results.jsonl"
     cache_dir: "code_as_a_reward/testdata"
 
-  experiment_tracker: {}  # no W&B -- this produces a results file, not a training curve
+  experiment_tracker:
+    # Lilypad's LaunchWorkload rejects a real cluster submission with an
+    # empty tracker ("missing experiment tracker") -- only workload_type
+    # "local" jobs (gpu_machine_type: local, e.g. masking/configs/local.yaml)
+    # can skip this. This job doesn't produce a training curve, but still
+    # needs a valid tracker block to submit at all.
+    wandb:
+      entity: research
+      project: code-as-reward-ood-eval
 
 cluster_resources:
   # 1 GPU carved off an a100.8 node (Alpamayo 1.5 inference needs ~24GB

@@ -22,7 +22,12 @@ workload_variant_config:
     local_output: "/mnt/work/tmp/ood_eval/full_results.jsonl"
     cache_dir: "code_as_a_reward/testdata"
 
-  experiment_tracker: {}
+  experiment_tracker:
+    # See smoke.yaml's comment: a real cluster submission requires a
+    # non-empty tracker.
+    wandb:
+      entity: research
+      project: code-as-reward-ood-eval
 
 cluster_resources:
   gpu_machine_type: a100.8
