@@ -990,13 +990,18 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         # Read by the reasoning/llm_judge/code entry scripts (mutually
         # exclusive with ALPAMAYO_PAI_LOCAL_DIR, which the motion entry reads).
         subprocess_env["ALPAMAYO_PAI_REASONING_LOCAL_DIR"] = str(pai_reasoning_dir)
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     if reward_mode == "llm_judge":
-        if not anthropic_key:
+        judge_model = os.environ.get("LLM_JUDGE_MODEL", "claude-fable-5")
+        judge_key_var = "OPENAI_API_KEY" if judge_model.startswith("gpt") else "ANTHROPIC_API_KEY"
+        judge_key = os.environ.get(judge_key_var)
+        if not judge_key:
             # Validated on the head node already; re-checked here because this
             # runs in a separate Ray task whose env is inherited independently.
-            raise RuntimeError("ANTHROPIC_API_KEY is required for reward_mode=llm_judge")
-        subprocess_env["ANTHROPIC_API_KEY"] = anthropic_key
+            raise RuntimeError(
+                f"{judge_key_var} is required for reward_mode=llm_judge (judge model {judge_model})"
+            )
+        subprocess_env[judge_key_var] = judge_key
+        subprocess_env["LLM_JUDGE_MODEL"] = judge_model
     if reward_mode in ("llm_judge", "code"):
         # cosmos-rl's NCCL watchdog aborts any communicator whose pending
         # collective hasn't completed within COSMOS_NCCL_TIMEOUT_MS (default
@@ -1071,11 +1076,16 @@ def rl_local_test_loop(training_fn_config: dict[str, Any], experiment_tracker: A
         )
     if not os.environ.get("HF_TOKEN"):
         raise RuntimeError("HF_TOKEN is required in the environment (gated PAI dataset + model)")
-    if _resolve_reward_mode(cfg) == "llm_judge" and not os.environ.get("ANTHROPIC_API_KEY"):
-        # Fail on the head node before any GPU worker (venv build, model
-        # download) spends time -- the judge reward can't score a single
-        # rollout without it.
-        raise RuntimeError("ANTHROPIC_API_KEY is required for reward_mode=llm_judge")
+    if _resolve_reward_mode(cfg) == "llm_judge":
+        judge_model = os.environ.get("LLM_JUDGE_MODEL", "claude-fable-5")
+        judge_key_var = "OPENAI_API_KEY" if judge_model.startswith("gpt") else "ANTHROPIC_API_KEY"
+        if not os.environ.get(judge_key_var):
+            # Fail on the head node before any GPU worker (venv build, model
+            # download) spends time -- the judge reward can't score a single
+            # rollout without it.
+            raise RuntimeError(
+                f"{judge_key_var} is required for reward_mode=llm_judge (judge model {judge_model})"
+            )
 
     if not ray.is_initialized():
         ray.init(address="auto", ignore_reinit_error=True, log_to_driver=True)
