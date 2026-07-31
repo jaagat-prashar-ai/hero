@@ -95,4 +95,101 @@ Next step when you're ready: relaunch the code-reward run. Success signal is ste
 
    # Symptom: code_reward_raw/code_atomic_precision are written as math.nan when a rollout decides nothing, and the no-CoC branch emitted an aux dict with only code_scene_available.
 
-   # Keys: metric names in that dictionary:
+   # Keys: metric names in that dictionary: 
+    
+    {
+      "code_reward_raw": 0.4,        # fraction of decided claims that verified
+      "code_atomic_precision": 0.5,
+      "code_decided_fraction": 0.6,
+      "code_n_fail": 2.0,
+      "code_scene_available": 1.0,
+    }
+
+  # 48 rollouts of the step? (why specifically 48)? 
+  At the end of each training step, cosmos-rl collects these dictionaries from all ~48 rollouts of the step and, for each metric name, averages the value across rollouts. 
+  # That average is what you see as train/code_reward_raw in W&B. We don't control that averaging code - it's inside the cosmos-rl pip package. 
+
+  # Where the NaN comes from: 
+
+  
+  # The "one key" problem:  
+    # There's a separate branch for rollouts where the model produced no chain-of-thought text at all (nothing between the CoT markers). There's nothing to verify, so the old code returned 
+    a dictionary containing only one entry: 
+      # {"code_scene_available": 1.0}
+
+  # Two failures modes: 
+    # NaN in the dictionary - step avearage becomes NaN (metric vanishes)
+    # Name missing from the dictionary - counted as fake 0 (metric biased low)
+
+  # The only value that's safe to put in the dictionary is a real, representative number. 
+
+  # But why would the name miss from the dictionary? i understand if something can be abstained because the commtiment or perception can't verify it?
+
+  # What the fix does:
+    # every rollout now emits the full key set just means: every rollout's dictionary now always contains all seven metric names: no name is ever absent (this kills the fake 0 problem) and NaN is never left in. 
+    # hwo doe sthis fix the 0 prooblem? because we need these keys and they can only be there if we have the complete reasoning trace. 
+
+    # For a rollout that genuinely has no data (zero decided claims, or no CoC), we have to write something - so we write the average of the other rollouts in the same group that did have data. 
+
+    # what is the -0.2 passes the gate ordering problem to begin with? Fixed idnependently by the coverage blend. 
+
+    # Relaunch the run and check for: 
+      # code_undecided_cnt / code_no_cot_cnt show up in W&B and code_reward_raw stays clean; 
+      # the coverage-blend reward distribution looks sane in the wild (reward_std doesn't collapse, gate pass-rate reasonable). 
+      # the still-unnamed HTTP excedption finally gets logged - the retry cap makes the except at client.py:578 fire at ERROR level, so the next stall (if any) names its cause. 
+    
+# post-trained checkpoint, compare this to the baseline model and see how the results perforem on the alpamayo internal benchmarks 
+
+# The current training run uses the global hand-picked rulebook. The current training run alpamayo-rl-code-reward-voevpz uses the global hand-picked rulebook. The per-scene replacement (clipgen) is built.
+
+# The reward for alpamayo-rl-code-reward-voevpz: 
+  # When the model produces a rollout (a driving plan plus a written explanation), the reward code does this: 
+    # 1. Parse the explanation into individual claims. "I will decelearte because a pedestrian is crossing" becomes two checkable claims: decelerate (a claim about what the car will do) and pedestrian present (a claim about what's in the scene). 
+    # 2. Verify each claim against ground truth. Each claim gets one of three verdicts: pass (checked, true), fail (checked, false), or abstain (we simplt can't check it -- e.g., our dataset has no ground truth for traffic cones, so a claim about cones is unjdudgeable). TO-DO, HOW DO WE FIX THIS?
+    # 3. Score with precision: r = passes + (passes + fails), counting only the claims we could check. If 3 claims were checkable and 2 passed, r = 0.67. 
+    # 4. Coverage-blend (yesteraday's work): decided_fraction (df) is the share of claims we should check. The blended score is r_eff = df*r + (1-df)*0.8. In words: the aprt of the trace we could check contributes its measured precision; the part we couldn't check contributes a fixed benefit-of-the-doubt value of 0.8. 
+    # The reasonign_score = r_eff - 1, shifting it ot the range -1.0 where 0 is the best. 
+
+    # How do we get this 0.8 benefit of doubt value? 
+    # The 0.8 benefit-of-the-doubt value corresponds to a reasoning_score of -0.2. The more of a trace we couldn't check, the more its score is dragged oward that -0.2, no amtter how good or bad the checkable part was. 
+
+    # Concrete example: a trace where we could only check 30% of the claims (df=0.3): But how do we parse more than 2 claims here? assuming commitment and perceptual as defaults?
+    # Even if every checkable claim was true (r=1): score = 0.3*1 + 0.7*0.8 - 1 = -0.06. Can't reach 0. 
+    # Even if every checkable claim was false (r=0): szcore = 0.3*0 + 0.7*0.8 -1 = -0.44. Can't reach -1. 
+
+    # So a mostly-uncheckable trace gets squeezed into a narrow band around -02. It can't be scored as excellent or terrible. That's deliberate: we only measured a third of it, so we shouldn't, so we shouldn't make strong statements either way. A fully-checkbale trace (df=1) still spans the whole -1.0 range. 
+
+    # After scoring, there's a hard cutoff: rollouts only get the "real" mixed reward if reasoning_score > -0.4 (and their trajectory error is small enough). Everything else falls into a penalty band between -1.0 and -0.5. Under the old code, score > -0.4 meant exactly "more than 60% of checked claims were true." 
+
+# Fixes: 
+  # train/code_undecided_cnt, train/code_no_cot_cnt should appear in W&B and code_reward_raw / code_atomic_precision should stay clean real numbers on every step (no NaN, no silent dips from a no-CoC rollout). This is the direct test of yesterday's main fix. 
+  # How often does the zero-decided case actually happen? Until now we could only infer it indirectly (it never NaN'd a step, so we guessed it was rare). The code_undecided_cnt counter now counts it exactly, per step. This tells us how much of the reward signal rides on the benefit-of-the-doubt prior in practice?
+  # What's the gate pass-rate under the coverage blend? The blend lowered the effective bar (at typical coverage ~0.5, a rollout now passes with 40% verified instead of 60%). This run easures how many rollouts actually pass now, the number that decides whether we tighten reasoning_threshold from -0.4 to -0.3. Related: does reward_std stay healthy, since GRPO needs within-group variance to learn at all?
+  # Does checkpointing finally work? With save_freq=15, checkpoints hsould land at steps 15 and 30 - the first ever saved by a code-reward run. Also confirms whether the run again stops early a 32-35 of 45 step s(which would suport th ebnign duynamic-smappling-exhaustion explanation).
+  # If a stall recurs, name it. Step times should stay ~1-2 min like vtx3ys. If the ~hour-long hang ever comes back, the retry cap now forces the underlying hTTP exception tobe logged at ERROR, th eone fact still missing from the stall stage. 
+  # If a stall recurs, name it. Step times should stay ~1-2 min like vtx3ys. If the ~hour-long hang ever comes back, the retry cpa now forces the underlying HTTP exception to be logged at ERROR - the one fac still missing from the stall saga. 
+
+# Does reward_std stay healthy, since GRPO needs within-group variance to learn at all?
+
+# We want to find the points where the model decides correctly, where it is forced to abstain, and where it disagrees with itself - as a foundation for calibrating thresholds later. 
+
+# The plan runs the full verifier pipeline over all 1740 clips in nvidia/PhysicalAI-Autonomous-Vehicle's reasoning/ood_reasoning.parquet (9 event_cluster types): 
+  # in two modes per clip, so results are directly comparable
+
+# Ground truth: the dataset's own annotated CoC text and the clip's real recorded trajectory. Tests whether the verifier logic itself is well-calibrated on real scenarios (any FAIL/ABSTAIN here is a verifier bug or a dataset gap, not a model mistake). 
+# Model rollout: Alpamayo 1.5 run directly on the same clip (single forward pass, num_traj_samples=1 - no rollout_harvester.py, no k=20 preference-pair harness, no cosmos-rl; that machinery is for a different experiment). Tests the verifier against the actual model behavior. 
+
+// helper.create_message
+  # 
+
+
+# 0 completion tokens
+# The counter expects tokens, but this recipe doesn't hand it tokens
+# Normally, in cosmos-rl, a rollout worker sends back the completion list of token IDs (say 3,480 of them), and the controller adds up their lengths to report "completion tokens."
+
+# The Alpamayo recipe instead sends back each completion as one custom object (the decoded reasoning text plus the trajectory). The controller looks for tokens to count, finds none, and reports 0. 
+Some reason completion_length shows exactly 1: each rollout is one object, so its "length" is 1. 
+# The model really did generate thousands of tokens (you can see that in generated_tokens: 3480 profile lines). The counter is just looking in a place this recipe doesn't fill in. 
+
+
+
