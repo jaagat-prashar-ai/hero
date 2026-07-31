@@ -6,6 +6,45 @@ now, not routine typos.
 
 ---
 
+## 2026-07-31 — checkpoints fill the node's root disk → kubelet evicts the pod at the 3rd save: EVERY full-run attempt died 44-45 min in ("reaper"/NodeDiedError, both reward modes)
+
+**Symptom:** `alpamayo-rl-code-reward-full-rovn5p` (12h26m) ended
+`EXPERIMENT_FAILED` with `ray.exceptions.NodeDiedError` from `ray.get` at
+`run.py:1084`. OCI logs show SEVEN training attempts across six recreated
+Ray clusters, each starting from step 0 (no cross-requeue resume), each
+dying within ~1 min of a checkpoint-upload burst. The parallel
+`alpamayo-rl-llm-judge-mock-qq9r6y` died in lockstep (every W&B run for
+both workloads lasted 44-45 min). Training itself never crashed once.
+Fluentd sidecars shut down gracefully at each death — pod eviction, not
+hardware failure.
+
+**Root cause:** disk arithmetic. `/mnt/work` lives on the node's 992 GB
+root filesystem, whose baseline after setup is ~764 GB (77%: 570 GB
+dataset warm cache + venv + HF and converted models). cosmos-rl saves a
+~60 GB checkpoint every 15 steps (4x5 GB model + 4x10 GB optimizer);
+`_CheckpointUploader` shipped them to S3 but never deleted local copies,
+and `max_keep = 10` meant cosmos-rl wouldn't prune until 10 (600 GB)
+accumulated. W&B system metrics for the final attempt: 77.0% flat →
+step_30 save +56 GB → 82.7% → step_45 save begins → **85.3%** at
+09:57:32, node declared dead at 09:57:38 — kubelet's default
+`imagefs.available<15%` DiskPressure hard-eviction threshold. At ~48
+s/step the third save lands ~44 min in, hence the metronomic lifetime.
+This also retro-explains the llm-judge-full "step ~148 reaper" crash
+loop: at judge step cadence the disk wall arrives near checkpoint 9-10 ≈
+step 148. Three earlier attributions (idle-GPU reaper, HF throttling,
+reward stalls) were wrong.
+
+**Fix:** [52859d9](../../commit/52859d9) — `_CheckpointUploader` deletes
+each checkpoint tensor file (>1 MiB, under `checkpoints/`) after a
+successful `put_object`, capping the local footprint at one in-flight
+checkpoint (~83% peak, verified against kubelet's 85% line); failed
+uploads keep the file for retry. [684f315](../../commit/684f315) —
+`max_keep = 1` as the in-framework backstop. Headroom is still only ~19
+GB at peak — if a future run grows the baseline (bigger dataset, extra
+caches), revisit trimming the warm cache after per-clip pre-extraction.
+
+---
+
 ## 2026-07-30 (2nd) — vendored reasoning term INVERTED inside the passing band: full credit at barely-passing, zero at perfect
 
 **Symptom:** none observable in aggregate curves — found by re-deriving the
