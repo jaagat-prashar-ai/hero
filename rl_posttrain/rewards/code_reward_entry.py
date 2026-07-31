@@ -88,6 +88,7 @@ signal.
 from __future__ import annotations
 
 import functools
+import io
 import logging
 import math
 import os
@@ -177,6 +178,110 @@ def _timed(fn):
             )
 
     return _wrap
+
+
+# ---------------------------------------------------------------------------
+# W&B overlay visualization (2026-07-31, user request).
+#
+# cosmos-rl's controller owns the main W&B run and its report pipeline is
+# scalar-only (aggregate_report_data np.mean's every key), so images cannot
+# ride the reward_dicts. Instead the rank-0 reward worker lazily opens its
+# own SIBLING W&B run in the same project, named
+# "<experiment_name>/images-<stamp>", and logs a sampled group's scene
+# overlays there: the ground-truth future trajectory plus up to
+# _OVERLAY_MAX_ROLLOUTS rollout trajectories, each drawn on the shared t0
+# front-wide frame by scene_overlay.render_scene_overlay (the judge's
+# renderer, PIL-only so it is safe inside cosmos-rl reward workers).
+#
+# Volume control: one group in every _overlay_every() is logged (default 8;
+# at 4 groups/step that is ~every 2 steps, ~5 JPEGs a time). Everything is
+# best-effort behind a broad except -- visualization must never take down
+# or slow the reward. CODE_REWARD_WANDB_IMAGES=0 disables it entirely.
+# ---------------------------------------------------------------------------
+
+_OVERLAY_MAX_ROLLOUTS = 4
+_overlay_lock = threading.Lock()
+_overlay_group_counter = 0
+_overlay_run = None  # lazily-created sibling wandb run (rank 0 only)
+
+
+def _overlay_every() -> int:
+    try:
+        return max(1, int(os.environ.get("CODE_REWARD_WANDB_IMAGES_EVERY", "8")))
+    except ValueError:
+        return 8
+
+
+def _overlay_enabled() -> bool:
+    return (
+        os.environ.get("CODE_REWARD_WANDB_IMAGES", "1") != "0"
+        and int(os.environ.get("RANK", "0")) == 0
+    )
+
+
+def _get_overlay_run(config: object | None):
+    """The sibling run, created on first use. Project/experiment come from
+    the TOML [logging] section (same source cosmos-rl's own run uses);
+    entity from WANDB_ENTITY (run.py exports it to every replica)."""
+    global _overlay_run
+    if _overlay_run is not None:
+        return _overlay_run
+    import wandb
+
+    logging_cfg = getattr(config, "logging")
+    experiment = logging_cfg["experiment_name"]
+    _overlay_run = wandb.init(
+        project=logging_cfg["project_name"],
+        entity=os.environ.get("WANDB_ENTITY") or None,
+        name=f"{experiment}/images-{time.strftime('%Y%m%d%H%M%S')}",
+        job_type="overlay-images",
+        settings=wandb.Settings(start_method="thread"),
+    )
+    return _overlay_run
+
+
+def _maybe_log_overlays(
+    reference: dict[str, Any],
+    scene_id: str,
+    gt_xyz_np: Any,
+    rollouts: list[tuple[int, Any, float, float]],  # (rollout_id, pred_xyz_np, reward, l2)
+    config: object | None,
+) -> None:
+    """Log this group's overlays to the sibling W&B run (sampled; rank 0)."""
+    global _overlay_group_counter
+    if not _overlay_enabled():
+        return
+    with _overlay_lock:
+        _overlay_group_counter += 1
+        n = _overlay_group_counter
+    if n % _overlay_every() != 0:
+        return
+    try:
+        frame = reference.get("scene_frame_jpeg")
+        intr = reference.get("scene_cam_intr")
+        extr = reference.get("scene_cam_extr")
+        if not (frame is not None and intr and extr):
+            return  # dataset degraded to the scene-less reference for this sample
+        import wandb
+        from PIL import Image
+
+        from rl_posttrain.rewards.scene_overlay import render_scene_overlay
+
+        def _img(xyz, caption):
+            jpeg = render_scene_overlay(frame, xyz, intr, extr)
+            return wandb.Image(Image.open(io.BytesIO(jpeg)), caption=caption)
+
+        images = [_img(gt_xyz_np, f"{scene_id} GT future")]
+        # Best and worst rollouts first -- the pair a human actually compares.
+        for rollout_id, xyz, reward, l2 in sorted(rollouts, key=lambda r: -r[2])[
+            :_OVERLAY_MAX_ROLLOUTS
+        ]:
+            images.append(
+                _img(xyz, f"{scene_id} rollout {rollout_id} r={reward:.3f} l2={l2:.2f}")
+            )
+        _get_overlay_run(config).log({"overlays": images, "overlay_group": n})
+    except Exception:
+        logger.exception("[code_reward] W&B overlay logging failed (continuing)")
 
 
 # ---------------------------------------------------------------------------
@@ -447,6 +552,7 @@ def compute_reward_batch(
 
     rewards: list[float] = []
     reward_dicts: list[dict[str, float]] = []
+    overlay_rollouts: list[tuple[int, Any, float, float]] = []
     for rollout_id, to_be_evaluated in enumerate(to_be_evaluated_list):
         predicted_fut_xyz, predicted_fut_rot = decode_rollout_trajectory(
             to_be_evaluated,
@@ -520,6 +626,7 @@ def compute_reward_batch(
             f"final={final_reward:.4f} aux={aux}"
         )
         rewards.append(float(final_reward))
+        overlay_rollouts.append((rollout_id, pred_xyz_np, float(final_reward), l2_dist))
         reward_dicts.append(
             {
                 "traj_L2": l2_dist,
@@ -546,6 +653,12 @@ def compute_reward_batch(
         for d in reward_dicts:
             if math.isnan(d[key]):
                 d[key] = fill
+
+    # gt_fut_xyz is (1, T, 3), torch on the worker's device in production
+    # (same shape contract as predicted_fut_xyz); tolerate ndarray for tests.
+    gt0 = gt_fut_xyz[0]
+    gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
+    _maybe_log_overlays(reference, scene_id, gt_np, overlay_rollouts, config)
 
     return rewards, reward_dicts
 
