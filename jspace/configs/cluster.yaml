@@ -1,0 +1,50 @@
+name: jspace-fit-lens
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: jspace.training.run.fit_lens_loop
+  training_fn_config:
+    n_prompts: 100          # 22 built-ins + coc top-up from ood_reasoning.parquet
+    use_coc: true
+    layers: [2, 6, 10, 14, 18, 22, 26, 30, 34]
+    dim_batch: 32
+    max_seq_len: 128
+    skip_first: 16
+    chunk_size: 5           # W&B log + S3 ckpt sync cadence
+    outdir: "/mnt/work/tmp/jspace"
+    # Durable outputs — /mnt/work is node-local and dies with the pod:
+    s3_bucket: "research-datasets-chicago"
+    results_s3_prefix: "jspace/lens_full_v1"
+    wandb_project: "jspace"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1               # a100.8 permits {1, 4} node-split; fit is single-GPU
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true   # safe: ckpt resumes from S3
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: .
+    pip_requirements_path: jspace/requirements_lilypad.txt
+    regex_excludes:
+      - "^build_wds/"
+      - "^mnist/"
+      - "^research-core/"
+      - "^docker/"
+      - "^lockfiles/"
+      - "^jspace/out/"      # 766 MB of local smoke artifacts
+      - "^jspace/\\.venv/"
