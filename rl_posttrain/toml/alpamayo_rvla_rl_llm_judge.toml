@@ -125,7 +125,14 @@ enable_checkpoint = true
 # a1npli nor vtx3ys ever saved a single checkpoint.
 save_freq = 15
 save_mode = "async"
-max_keep = 10
+# 1, not 10: checkpoints are 60 GB and the node's 992 GB root disk already
+# carries the ~570 GB dataset, so 10 local checkpoints can never exist --
+# kubelet evicts the pod at 85% used, which rovn5p hit at the THIRD save
+# (and llm-judge-full runs hit around step ~148, the "reaper" crash loop).
+# Durability lives in S3 via run.py's _CheckpointUploader, which deletes
+# each tensor file locally after upload; max_keep=1 is the in-framework
+# backstop that prunes whole step dirs if the uploader ever falls behind.
+max_keep = 1
 
 [rollout.parallelism]
 n_init_replicas = 1
