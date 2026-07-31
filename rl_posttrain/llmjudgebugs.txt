@@ -13,3 +13,26 @@ right up to the node death. Meanwhile each rollout flush logs [Rollout] Flushing
 # A fixed-rate memory leak hits the node's RAM ceiling at a config-dependent step count. This mock config just leaks faster (bigger payloads or smaller headroom), dying at ~42 instead of ~148. 
 # What is accumulating and killing the node?
 
+# The W&B system metrics show the disk curve for the final attempt: 
+    # Steady at 77.0% (764 GB of the node's 992 GB root disk) after setup
+    # 09:44 - step-30 checkpoint written: 
+    # 09:57:32 - step-45 checkpoint starts writing: 85.3^
+    # 09:57:38 - node declared dead, 6 seconds later 
+
+
+    # 85% uses = 15% available, which is exactly the kubelet's default imagefs.available<15% hard-eviction threshold. Every attempt died 44-45 minutes into training, precisely the time it takes to reach the third checkpoiont. 
+
+    # The exact bug: alpamayo-rl-code-reward-full-rovn5p failed because the GPU worker fills its node-local disk with checkpoints and get evicted by kubelete DiskPressure at the third checkpoint save, ~44 minutes into every attempt. The training code never crashed! 
+
+# Two code-side causes combine: 
+1. _CheckpointUploader in rl_posttrain/training/run.py (line ~428) uploads every checkpoint file to S3 but never unlinks the local copy - it explicitly defers pruning to cosmos-rl's max_keep. 
+2. max_keep = 10 in the TOML, so cosmos-rl won't prune anything until 10 checkpoints (600 GB) exist - the node dies at 3. 
+
+# The full failure chain, reconstructed from OCI logs: the workload went through seven identical cycles across six recreated Ray clusters (training starts 23:04, 00:22, 01:39, 02:56, 04:12, 07:58, 09:12 UTC; each death within ~1 minute of a checkpoint-uplaod burst; each requeue re-runs the ~30 min-3 h bootstrap). On the last cycle the Ray task retry was exhausted, so ray.get at run.py:1084 surfaced ray.exceptions.NodeDiedError (node 10.245.72.185), the driver exited 1, and the job went EXPERIEMNT_FAILED at 09:57:41. 
+
+# 1. One fix is to delete-after-upload (uploader fix): once a checkpoint file is safely in S3, the local copy is redundant (it exists only because nothing removes it). Deleting it returns disk to the ~764 GB baseline between checkpoints, so the peak is baseline + on in-flight checkpoint (~824 GB, 83.1%) instead of growing +60 GB per checkpoint forever. This is the actual bug fix. 
+
+# 2. max_keep = 1: a defense-in-depth backstrop. If the uploader thread dies or falls behind, cosmos-rl itself will still cap local checkpoints at 1. Belt and supsnders for the same disk budget?
+# Trim the on-disk footprint: the fixes above leave only ~19 GB of headroom below the 85% eviction threshold - one fat log file or image pull could still kill that node. 
+    # Freeing baseline space (e.g., drop the 570 GB warm cachea fter per-clip pre-extraction, or don't write the 40GB optimizer state) buys the real margin. 
+    
