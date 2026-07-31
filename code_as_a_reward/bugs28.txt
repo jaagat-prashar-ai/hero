@@ -192,3 +192,19 @@ Some reason completion_length shows exactly 1: each rollout is one object, so it
 # The model really did generate thousands of tokens (you can see that in generated_tokens: 3480 profile lines). The counter is just looking in a place this recipe doesn't fill in. 
 
 # J-SPACE EXPEIRMENTS! 
+
+# Why images don't show up? Wandb visualizations. The overlay JPEGs are built inside the reward function (rollout-worker process) purely as judge input and thrown away: the W&B run is owned by the cosmos-rl controller in a different process, so the reward path can't safely log into it (out-of-band log() calls would corrupt the controller's step counter). 
+# The clean pattern is a companion W&B run - same project, 
+
+# The idea to have a companion run for visualizations is not a convention, this i sforced by process ownership. 
+
+# Images: 
+  # For every rollout, the reward pipeline already builds the exact picture the LLM judge sees: the clip's front-wide camera frame at the decision moment (t0), with that rollout's own predicted trajectory projected onto the road as an orange polyline with waypoint dots (scene_overlay.pg does the f-theta camera projection). Until now that JPEG lived for miliseconds - built, sent to the judge, garbage-collected. The change captures a sample of them into W&B instead of throwing them all away. 
+
+  What gets logged? Once per sampled rollout group (a group = 12 rollouts of the same prompt; we sample every 4th group, once per training step), two images: 
+    # scene_overlay/best - the highest-reward rollout in that group 
+    # scene_overlay/woprst - the lowest-reward one
+
+  Each carries a caption: rewards=..judge=... l2=|<fisrst 100 charst of the CoT text>. The best/worst pairing is deliberate - same scene, same prompt, so you can eyeball why the judge and the ADE separated them (e.g., worst one's path drafts into the cones its CoT claims to avoiud). 
+
+  # where you'll see it: in the same training run you already monitor, a "Scene_overlay" media panel appears allongside teh reward/loss charts, with aslider over loggeed stps. nothing moves it to a separate rtun. 
