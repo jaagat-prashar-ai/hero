@@ -127,10 +127,15 @@ def fit_lens_loop(training_fn_config: dict[str, Any], experiment_tracker: Any = 
 
     import wandb
 
-    run = wandb.init(
-        entity=cfg["wandb_entity"], project=cfg["wandb_project"],
-        config={k: v for k, v in cfg.items()},
-    )
+    if wandb.run is not None:
+        # Lilypad's experiment_tracker already opened a run — piggyback on it.
+        run = wandb.run
+        run.config.update(dict(cfg), allow_val_change=True)
+    else:
+        run = wandb.init(
+            entity=cfg["wandb_entity"], project=cfg["wandb_project"],
+            config=dict(cfg),
+        )
     print(f"W&B run URL: {run.url}", flush=True)
 
     import jlens
