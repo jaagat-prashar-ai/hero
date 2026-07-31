@@ -6,6 +6,55 @@ now, not routine typos.
 
 ---
 
+## 2026-07-31 (3rd) — ckpt-uploader loses race vs cosmos-rl marker cleanup: every S3 checkpoint missing .rank_3_complete, one lost a 10 GB optimizer shard (both reward modes)
+
+**Symptom:** In `alpamayo-rl-llm-judge-mock-4dgpaq` logs, `ckpt-uploader:
+upload failed ... (will retry)` + `FileNotFoundError` for
+`.rank_3_complete` at *every* checkpoint (steps 15/30/45/60/75) and once
+for `step_60/policy/optimizer_rank_1.pth` (10 GB) — none of these ever
+reached S3, so step_60's S3 copy is not fully resumable. Same rank-3
+marker gap in `code-reward-full-n3sxdq` step_30 (silently — no error
+when deletion beats the scan itself).
+
+**Root cause:** cosmos-rl deletes its `.rank_N_complete` markers shortly
+after all ranks finish saving. `_CheckpointUploader` scans, then uploads
+sequentially in directory order — a pass shipping multi-GB shards runs for
+minutes, so files deleted after the scan hit `FileNotFoundError` at their
+upload turn. Rank 3 saves last, so its marker systematically lost the
+race. The "(will retry)" log line was also false for this case: retry
+works by rescanning, and a deleted file never reappears.
+
+**Fix:** [24eb078](../../commit/24eb078) — small checkpoint files are
+snapshotted into memory at scan time (uploaded from the snapshot if since
+deleted), each pass uploads smallest-first so markers don't queue behind
+optimizer shards, and vanished files log an honest "NOT retrying" error.
+
+**How this was found:** log inspection of both live 2026-07-31 full runs;
+grep showed `.rank_0/1/2_complete` uploaded for every step but `.rank_3`
+for none.
+
+---
+
+## 2026-07-31 (2nd) — code-reward overlay images never logged: LoggingConfig treated as a dict
+
+**Symptom:** `alpamayo-rl-code-reward-full-n3sxdq` logged `[code_reward]
+W&B overlay logging failed (continuing)` with `TypeError: 'LoggingConfig'
+object is not subscriptable` on every sampled group (54×) — zero overlay
+images, sibling W&B run never created. Training itself unaffected.
+
+**Root cause:** `_get_overlay_run` in `rl_posttrain/rewards/code_reward_entry.py`
+read `logging_cfg["experiment_name"]` / `["project_name"]`, but cosmos-rl's
+`config.logging` is a `LoggingConfig` object (attribute access only). The
+llm-judge overlay path (`aggregated_reward_llm_judge.py`) already used
+`config.logging.project_name` correctly — the dict style crept in only in
+the code-reward sibling-run variant, and the blanket `except` around
+overlay logging hid it from the smoke run.
+
+**Fix:** [2ed26ab](../../commit/2ed26ab) — attribute access, matching the
+working llm-judge path and the runtime config dump.
+
+---
+
 ## 2026-07-31 — checkpoints fill the node's root disk → kubelet evicts the pod at the 3rd save: EVERY full-run attempt died 44-45 min in ("reaper"/NodeDiedError, both reward modes)
 
 **Symptom:** `alpamayo-rl-code-reward-full-rovn5p` (12h26m) ended
