@@ -425,6 +425,12 @@ class _CheckpointUploader(threading.Thread):
                 continue  # deleted mid-scan (max_keep pruning)
         return out
 
+    # Files smaller than this stay on disk after upload: .rank_N_complete
+    # markers, scheduler/extra_info stubs, and anything log-like costs
+    # nothing to keep, and cosmos-rl's own bookkeeping gets to keep seeing
+    # the directory shape it wrote.
+    _PAYLOAD_MIN_BYTES = 1 << 20
+
     def _upload(self, path: Path, sig: tuple[int, float]) -> None:
         key = f"{self._prefix}/{path.relative_to(self._output_dir)}"
         try:
@@ -438,6 +444,28 @@ class _CheckpointUploader(threading.Thread):
             )
         except Exception:
             logger.exception("ckpt-uploader: upload failed for %s (will retry)", path)
+            return
+        self._free_local(path, sig)
+
+    def _free_local(self, path: Path, sig: tuple[int, float]) -> None:
+        """Delete a checkpoint tensor file once it is safely in S3.
+
+        The full-run node budget is ~764 GB (dataset warm cache + venv +
+        models) on a 992 GB root disk; every 60 GB checkpoint kept locally
+        walks the node into kubelet's 85%-used DiskPressure eviction at the
+        third save (rovn5p, 2026-07-31 -- seven attempts, all evicted 44-45
+        min in). Deleting uploaded payloads caps the local footprint at one
+        in-flight checkpoint (~83% peak). Deletion only applies to large
+        files under checkpoints/ -- everything else (markers, logs) stays."""
+        if "checkpoints" not in path.relative_to(self._output_dir).parts:
+            return
+        if sig[0] < self._PAYLOAD_MIN_BYTES:
+            return
+        try:
+            path.unlink(missing_ok=True)
+            logger.info("ckpt-uploader: freed local %s (%.1f MB)", path, sig[0] / 1e6)
+        except OSError:
+            logger.exception("ckpt-uploader: could not delete %s (leaving it)", path)
 
     def _sync(self, require_quiescent: bool) -> None:
         current = self._scan()
