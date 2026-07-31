@@ -66,6 +66,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
@@ -185,6 +186,76 @@ def _run_judges_parallel(
         for i, fut in futures:
             scores[i] = fut.result()
     return scores
+
+
+# --- W&B scene-overlay logging ----------------------------------------------
+# Logs sampled judge overlays INTO THE TRAINING W&B RUN. The cosmos-rl
+# controller owns that run in a different process (wandb_logger.init_wandb:
+# id = config.train.timestamp, resume="allow"), and train.timestamp is baked
+# into the config every worker receives -- so the reward process attaches to
+# the same run id as a SECONDARY writer via wandb shared mode. x_primary=False
+# + x_update_finish_state=False mean this writer can neither finish nor
+# clobber the controller's run, and images are logged WITHOUT an explicit
+# step so they never fight the controller's step=global_step scalar logging
+# (media panels render by log order regardless).
+#
+# Fail-safe by construction: any error disables image logging for the rest of
+# the run and never touches the reward result. LLM_JUDGE_WANDB_IMAGE_EVERY=0
+# disables it; the default logs every 4th rollout group (~1 group per train
+# step at the 4-groups/step cadence), best + worst rollout of the group for
+# contrast.
+_WANDB_IMG_LOCK = threading.Lock()
+_wandb_img_state: dict[str, Any] = {"run": None, "calls": 0, "disabled": False}
+
+
+def _log_overlays_to_wandb(
+    config: Any,
+    per_rollout: list[tuple[float, float, str, Any, bytes]],
+    judge_raws: list[Any],
+    rewards: list[float],
+) -> None:
+    every = int(os.environ.get("LLM_JUDGE_WANDB_IMAGE_EVERY", "4"))
+    if every <= 0 or _wandb_img_state["disabled"] or not rewards:
+        return
+    with _WANDB_IMG_LOCK:
+        _wandb_img_state["calls"] += 1
+        if (_wandb_img_state["calls"] - 1) % every:
+            return
+        try:
+            import io
+
+            import wandb
+            from PIL import Image
+
+            if _wandb_img_state["run"] is None:
+                _wandb_img_state["run"] = wandb.init(
+                    project=config.logging.project_name,
+                    id=str(config.train.timestamp),
+                    resume="allow",
+                    settings=wandb.Settings(
+                        mode="shared",
+                        x_primary=False,
+                        x_label="llm-judge-reward",
+                        x_update_finish_state=False,
+                    ),
+                )
+            ranked = sorted(range(len(rewards)), key=lambda i: rewards[i])
+            payload = {}
+            for tag, i in {"worst": ranked[0], "best": ranked[-1]}.items():
+                l2, _comfort, pred_cot, _xyz, overlay_jpeg = per_rollout[i]
+                payload[f"scene_overlay/{tag}"] = wandb.Image(
+                    Image.open(io.BytesIO(overlay_jpeg)),
+                    caption=(
+                        f"reward={rewards[i]:.3f} judge={judge_raws[i]} "
+                        f"l2={l2:.2f} | {(pred_cot or '')[:180]}"
+                    ),
+                )
+            _wandb_img_state["run"].log(payload)
+        except Exception:
+            _wandb_img_state["disabled"] = True
+            from cosmos_rl.utils.logging import logger  # pyright: ignore[reportMissingImports]
+
+            logger.exception("[llm_judge] W&B overlay logging disabled after error")
 
 
 def compute_reward_batch(
@@ -332,6 +403,7 @@ def compute_reward_batch(
             }
         )
 
+    _log_overlays_to_wandb(config, per_rollout, judge_raws, rewards)
     return rewards, reward_dicts
 
 
