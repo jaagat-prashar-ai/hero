@@ -50,16 +50,29 @@ DRIVING_PROMPTS = [
 def load_coc_prompts(parquet_path: str | Path, max_prompts: int = 1000) -> list[str]:
     """Extract chain-of-causation strings from ood_reasoning.parquet.
 
-    One row per OOD clip; each row's `events` is a list of dicts whose `coc`
-    field is the natural-language chain of causation. Rows/events without a
-    non-empty coc are skipped. Stops as soon as max_prompts are collected.
+    One row per OOD clip; each row's `events` is a JSON-encoded list of dicts
+    (or NA) whose `coc` field is the natural-language chain of causation —
+    iterating the raw cell yields characters, which crashed run
+    jspace-fit-lens-ug9q8g. Rows/events without a non-empty coc are skipped.
+    Stops as soon as max_prompts are collected.
     """
+    import json
+
     import pandas as pd
 
     df = pd.read_parquet(parquet_path, columns=["events"])
     prompts: list[str] = []
     for events in df["events"]:
+        if isinstance(events, str):
+            try:
+                events = json.loads(events)
+            except json.JSONDecodeError:
+                continue
+        if not isinstance(events, (list, tuple)):
+            continue  # NA / unexpected rows
         for event in events:
+            if not isinstance(event, dict):
+                continue
             coc = (event.get("coc") or "").strip()
             if coc:
                 prompts.append(coc)
