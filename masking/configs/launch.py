@@ -178,7 +178,10 @@ def _validate_requirements_static(req_path: pathlib.Path) -> tuple[list[str], li
                 f"{req_path.name}:{lineno}: {stripped!r} must be torch==2.7.1 "
                 "(Lilypad pip overlay; base image torch 2.1.1 is too old for transformers>=4.57)"
             )
-        elif stripped.startswith("torch") and not stripped.startswith("torch==2.7.1"):
+        # Match only the torch package itself — torchvision/torchaudio pins are fine.
+        elif re.match(r"^torch(\[|==|>=|<=|~=|!=|<|>|\s|$)", stripped) and not stripped.startswith(
+            "torch==2.7.1"
+        ):
             errors.append(
                 f"{req_path.name}:{lineno}: pin torch as torch==2.7.1, not {stripped!r}"
             )
