@@ -215,4 +215,25 @@ Some reason completion_length shows exactly 1: each rollout is one object, so it
   # Cost/knobs: 2 images x 264 steps = 500 images/run at 200-400 KB each - 150 MB of W&B media, negligibiel upload bandwidth, zero GPU cost (the jpegs were alreayd beign rendered)
   # lLM_JUDGE_WANDB_IMAGE_EVERY controls the density: 4 default (~1 group/step), 1 (every group), 0 (off)
 
-  
+  # The controller's writer is vendored code not opened in a shared mode, and W&B prefers all writer use it. If the attach fails on this run you'll see a single W&B overlay logging disabled after error line in the logs instead of images (that's the fallback behaavior). 
+
+  # The workload only gets created after the 5 GB code upload finishes - and that upload is still actively running (the process has a live connection to OCI object storage with a full send buffer, so bytes are flowing; it's not hung). It's at 28 minutes elapsed, and this morning's launch took 32 minutes end-to-end, so it's on the same pace (should submit and appear soon in 5 minutes). 
+
+  # alpamayo-rl 
+
+  # two more neat bug fixes! 
+  # gotcha! 
+  # bug 1: image loggign. the overlay code needs to know which W&B project/experiment to log to, and it reads that from the training config. The config's logging section is a Python object with attributes, but the code treats it like a dictionary: 
+    # logging_cfg["experiment_name"] # what the code does - crashes 
+    # logging_cfg.experiment_name # what it should do 
+
+  # So the very first line that touches the config throws TypeError, before any image is ever created. The error is caught and training carries on, but it means every single overlay attempt dies at the same spot (the images W&B run never even gets created. It's a one-line fix). 
+
+  # Bug 2 - the uploader race. Two independent processes are touching the same checkpoint folder: 
+    # 1. cosmos-rl (the trainer) saves a checkpoint. Each GPU rank drops a tiny .rank_N_complete marker file when its done, and once all four markers exist, cosmos-rl cleans them up -deletes them 
+    # 2. Our uploader runs on a timer: it scans the folder, then uploads what it found, file by file, in name order. 
+
+  # The race: the uploader takes a "photo" of the foler (the scan), then starts upoading from taht photo. If cosmos-rl deletes a file after the scan but before the uploader gets to it, the upload fails with "file not found." because uploads og in name order, .rank_3_complete is awlays last in line - so i tloses the race every time. 
+  # That's why rank 0, 1, 2, markers are all in S3, but rank 3's never is. 
+
+  # Usually the causality is just an empty marker file. Once the same scan-then-upload gap swalloed a real 10GB optimizer file, so the one checkpoint in S3 is incpmplete. ok
