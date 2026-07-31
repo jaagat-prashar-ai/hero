@@ -46,6 +46,15 @@ workload_variant_config:
     # the ~570 GB HuggingFace download again.
     pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
 
+    # ── Checkpoint persistence ────────────────────────────────────────────────
+    # Same disk-eviction fix as code_reward_full (BUGS.md 2026-07-31): the
+    # 570 GB dataset + 60 GB/checkpoint on the 992 GB root disk crosses
+    # kubelet's 85% DiskPressure eviction threshold at the third save --
+    # the step ~148 "reaper" crash loop was this eviction all along.
+    # _CheckpointUploader ships each checkpoint file to S3 and deletes the
+    # local copy; the TOML's max_keep=1 is the in-framework backstop.
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/llm_judge_full"
+
     # ── Cosmos-RL TOML overrides ──────────────────────────────────────────────
     dp_shard_size: 4
     # 3 epochs over ~394 clips ≈ 295 GRPO steps ≈ 2.5-3h of training and

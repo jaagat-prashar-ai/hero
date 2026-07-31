@@ -32,6 +32,16 @@ workload_variant_config:
     reasoning_dense_chunks: 100
     pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
 
+    # ── Checkpoint persistence ────────────────────────────────────────────────
+    # Same disk-eviction fix as code_reward_full (BUGS.md 2026-07-31): the
+    # 570 GB dataset + 60 GB/checkpoint on the 992 GB root disk crosses
+    # kubelet's 85% DiskPressure eviction threshold, killing the worker pod
+    # every ~75 min -- THE cause of this run's crash loop. _CheckpointUploader
+    # ships each checkpoint file to S3 and deletes the local copy, capping
+    # local footprint at one in-flight checkpoint (~83% peak); the TOML's
+    # max_keep=1 is the in-framework backstop.
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/llm_judge_mock"
+
     dp_shard_size: 4
     # 3 epochs ≈ 264 steps: the crash window is ~2h40m in (steps 137-149 at
     # real-judge cadence), so the run must comfortably outlast it. With the
