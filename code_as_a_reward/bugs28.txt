@@ -208,3 +208,11 @@ Some reason completion_length shows exactly 1: each rollout is one object, so it
   Each carries a caption: rewards=..judge=... l2=|<fisrst 100 charst of the CoT text>. The best/worst pairing is deliberate - same scene, same prompt, so you can eyeball why the judge and the ADE separated them (e.g., worst one's path drafts into the cones its CoT claims to avoiud). 
 
   # where you'll see it: in the same training run you already monitor, a "Scene_overlay" media panel appears allongside teh reward/loss charts, with aslider over loggeed stps. nothing moves it to a separate rtun. 
+
+  # How it's wired (and why its's afe). The trianing run is owned by the cosmos-rl controller process; the reward code runs in a different process. The reward process attaches to the same run ID as a secondary writer (W&B sharead mode), flagged so it can never finish the run or touch the controller's step counter. 
+  # The whole thing is wrapped so that any W&B hiccup permanently disables image logging for that r4un and leaves reward computation untouched; it can't crash or slow training. 
+
+  # Cost/knobs: 2 images x 264 steps = 500 images/run at 200-400 KB each - 150 MB of W&B media, negligibiel upload bandwidth, zero GPU cost (the jpegs were alreayd beign rendered)
+  # lLM_JUDGE_WANDB_IMAGE_EVERY controls the density: 4 default (~1 group/step), 1 (every group), 0 (off)
+
+  
