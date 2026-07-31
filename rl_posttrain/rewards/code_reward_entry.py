@@ -229,9 +229,9 @@ def _get_overlay_run(config: object | None):
     import wandb
 
     logging_cfg = getattr(config, "logging")
-    experiment = logging_cfg["experiment_name"]
+    experiment = logging_cfg.experiment_name
     _overlay_run = wandb.init(
-        project=logging_cfg["project_name"],
+        project=logging_cfg.project_name,
         entity=os.environ.get("WANDB_ENTITY") or None,
         name=f"{experiment}/images-{time.strftime('%Y%m%d%H%M%S')}",
         job_type="overlay-images",
