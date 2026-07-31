@@ -721,15 +721,32 @@ def main() -> None:
     from alpamayo1_x_rl.models.reasoning_vla.trainer import ReasoningVLAGRPOTrainer  # noqa: F401 (Cosmos registry)
     from alpamayo1_x_rl.models.reasoning_vla.weight_mapper import ReasoningVLAWeightMapper
 
-    class _SceneTaggedDataset(AlpamayoCosmosDataset):
-        """Vendored dataset + two reference keys the code reward needs:
-        scene_id (f"{clip_id}_{t0_us}") and future_hz. Both are derived the
-        same way the underlying PAIDataset's __getitem__ derives them, from
-        the same dataset attributes, so the tag always names the window the
-        sample was actually built from."""
+    from rl_posttrain.rewards.scene_reference_dataset import SceneReferenceDataset
+
+    class _SceneTaggedDataset(SceneReferenceDataset):
+        """Vendored dataset + two reference keys the code reward needs --
+        scene_id (f"{clip_id}_{t0_us}") and future_hz -- plus, via the
+        SceneReferenceDataset base, the judge's scene payload
+        (scene_frame_jpeg / scene_cam_intr / scene_cam_extr), which the code
+        reward uses only for W&B overlay visualization. Unlike the judge
+        (where a missing frame must fail the run -- it would silently change
+        the experiment), the overlay here is cosmetic, so scene-payload
+        failures degrade to the plain reference instead of raising.
+
+        scene_id/future_hz are derived the same way the underlying
+        PAIDataset's __getitem__ derives them, from the same dataset
+        attributes, so the tag always names the window the sample was
+        actually built from."""
 
         def get_reference_answer(self, idx: int) -> dict[str, Any]:
-            ref = super().get_reference_answer(idx)
+            try:
+                ref = super().get_reference_answer(idx)
+            except Exception:
+                logger.exception(
+                    f"[code_reward] scene payload failed for idx={idx}; "
+                    "continuing without W&B overlay keys"
+                )
+                ref = AlpamayoCosmosDataset.get_reference_answer(self, idx)
             if not ref:
                 return ref
             ds = self.dataset
