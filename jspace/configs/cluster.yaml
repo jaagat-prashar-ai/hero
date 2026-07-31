@@ -18,6 +18,13 @@ workload_variant_config:
     wandb_project: "jspace"
     wandb_entity: "research"
 
+  # Required by the training workload schema; run.py reuses this run if
+  # Lilypad already initialized it, else inits its own with the same target.
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: jspace
+
 cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 1               # a100.8 permits {1, 4} node-split; fit is single-GPU
