@@ -1,0 +1,15 @@
+# Lilypad pip overlay for the J-lens fit — torch==2.7.1 is REQUIRED by
+# launch.py validation (base image torch 2.1.1 is too old). The local
+# jspace/.venv uses requirements.txt (torch 2.8.0 cu128) instead.
+torch==2.7.1
+torchvision==0.22.1
+pillow
+einops>=0.7
+hydra-core>=1.3.2
+scipy>=1.15.0
+accelerate>=1.12.0
+boto3>=1.34
+pandas>=2.3.3
+pyarrow
+# J-lens reference implementation (pulls transformers>=5.5, huggingface_hub):
+jlens @ git+https://github.com/anthropics/jacobian-lens
