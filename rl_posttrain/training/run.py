@@ -398,7 +398,11 @@ class _CheckpointUploader(threading.Thread):
     put_object with a file handle, never upload_file: OCI's S3 endpoint
     rejects s3transfer's multipart chunked encoding (BUGS.md 2026-07-01).
     Best-effort throughout -- a failed upload logs and retries next scan;
-    checkpoint persistence must never take down training. A warm node may
+    checkpoint persistence must never take down training. Small checkpoint
+    files are snapshotted into memory at scan time and uploaded before the
+    multi-GB shards, because cosmos-rl deletes its .rank_N_complete markers
+    shortly after a save completes and used to win that race against the
+    upload loop (every .rank_3_complete of llm-judge 20260731212601). A warm node may
     carry a previous run's outputs/ subtree; those files re-upload to the
     same keys (idempotent overwrite), which is accepted rather than
     special-cased."""
@@ -411,18 +415,33 @@ class _CheckpointUploader(threading.Thread):
         self._stop_event = threading.Event()
         self._last_seen: dict[Path, tuple[int, float]] = {}
         self._uploaded: dict[Path, tuple[int, float]] = {}
+        self._small_bytes: dict[Path, tuple[tuple[int, float], bytes]] = {}
 
     def _scan(self) -> dict[Path, tuple[int, float]]:
         if not self._output_dir.exists():
             return {}
         out: dict[Path, tuple[int, float]] = {}
+        small: dict[Path, tuple[tuple[int, float], bytes]] = {}
         for p in self._output_dir.rglob("*"):
             try:
                 if p.is_file():
                     st = p.stat()
-                    out[p] = (st.st_size, st.st_mtime)
+                    sig = (st.st_size, st.st_mtime)
+                    out[p] = sig
+                    # Snapshot small un-uploaded checkpoint files into memory
+                    # now: cosmos-rl deletes the .rank_N_complete markers once
+                    # every rank has saved, so by the time the upload loop
+                    # reaches them the file may be gone (run 20260731212601
+                    # lost .rank_3_complete of every checkpoint this way).
+                    if (
+                        sig[0] < self._PAYLOAD_MIN_BYTES
+                        and "checkpoints" in p.relative_to(self._output_dir).parts
+                        and self._uploaded.get(p) != sig
+                    ):
+                        small[p] = (sig, p.read_bytes())
             except OSError:
                 continue  # deleted mid-scan (max_keep pruning)
+        self._small_bytes = small
         return out
 
     # Files smaller than this stay on disk after upload: .rank_N_complete
@@ -433,15 +452,29 @@ class _CheckpointUploader(threading.Thread):
 
     def _upload(self, path: Path, sig: tuple[int, float]) -> None:
         key = f"{self._prefix}/{path.relative_to(self._output_dir)}"
+        snapshot = self._small_bytes.get(path)
         try:
             s3 = _pai_cache_client()
-            with open(path, "rb") as fh:
-                s3.put_object(Bucket=_PAI_CACHE_BUCKET, Key=key, Body=fh)
+            if snapshot is not None and snapshot[0] == sig:
+                s3.put_object(Bucket=_PAI_CACHE_BUCKET, Key=key, Body=snapshot[1])
+            else:
+                with open(path, "rb") as fh:
+                    s3.put_object(Bucket=_PAI_CACHE_BUCKET, Key=key, Body=fh)
             self._uploaded[path] = sig
             logger.info(
                 "ckpt-uploader: %s -> s3://%s/%s (%.1f MB)",
                 path.name, _PAI_CACHE_BUCKET, key, sig[0] / 1e6,
             )
+        except FileNotFoundError:
+            # Deleted locally after the scan (trainer cleanup) with no
+            # snapshot to fall back on. It will never reappear, so "retry"
+            # would be a lie: the S3 copy of this checkpoint stays without it.
+            logger.error(
+                "ckpt-uploader: %s vanished before upload -- NOT retrying; "
+                "s3://%s/%s will be missing from the checkpoint",
+                path, _PAI_CACHE_BUCKET, key,
+            )
+            return
         except Exception:
             logger.exception("ckpt-uploader: upload failed for %s (will retry)", path)
             return
@@ -469,7 +502,10 @@ class _CheckpointUploader(threading.Thread):
 
     def _sync(self, require_quiescent: bool) -> None:
         current = self._scan()
-        for path, sig in current.items():
+        # Smallest first: a pass shipping several 10 GB optimizer shards runs
+        # for minutes, and the tiny completion markers must not wait in line
+        # behind them while cosmos-rl's post-save cleanup can still win.
+        for path, sig in sorted(current.items(), key=lambda kv: kv[1][0]):
             if self._uploaded.get(path) == sig:
                 continue
             if require_quiescent and self._last_seen.get(path) != sig:
