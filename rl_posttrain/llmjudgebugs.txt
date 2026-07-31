@@ -1,0 +1,15 @@
+July 31st Debugging 
+
+TL;DR: the mock run successfuly reproduced the crash loop - and the logs now point to a specific cause: the worker node dies (almost certainly host-RAM exhaustion) at step ~42 every single time, while the controller's pending-rollout backlog grows unbounded at ~15 MB per rollout. 
+
+# Lilypad tears the RayJob down and builds a completely new one - new head/worker pods, full apt+pip reinstall (~30-40 minutes of setup each cycle).
+# Training restarts from step 0 (no checkpoint resume; every DATA_FETC command shows do_save: False), and the cycle repeats. 
+
+# On the final cycle, the driver's NodeDiedError propagated as exit code 1 and the workload was marked EXPERIMENT_FAILED instead of retrying again. 
+# The smoking gun: within the final attempt, the controller's Stat: lines show the pending-rollout queue growing linearly with no backpressure: 0 pending at t=15s -> 792 pending at t=2450s, 
+right up to the node death. Meanwhile each rollout flush logs [Rollout] Flushing 1 completions, 15 MB - so ~800 pending rollouts = 12 GB sitting in the controller process, still climbing. 
+# That 15 MB/completion payload is suspiciously large for a 1-token completion (camera frame + trajectory overlay) is riding along every inside rollout payuload. 
+
+# A fixed-rate memory leak hits the node's RAM ceiling at a config-dependent step count. This mock config just leaks faster (bigger payloads or smaller headroom), dying at ~42 instead of ~148. 
+# What is accumulating and killing the node?
+
