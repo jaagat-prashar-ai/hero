@@ -6,6 +6,44 @@ now, not routine typos.
 
 ---
 
+## 2026-08-02 — S3 audit of mock-4dgpaq: step_255 checkpoint mostly lost to max_keep=1 pruning; 24eb078 doesn't cover multi-GB payload
+
+**Symptom:** post-run S3 audit of `alpamayo-rl-llm-judge-mock-4dgpaq`
+(otherwise fully successful: 264/264 steps in one attempt, disk-eviction
+fix held, final checkpoint intact). Beyond the marker losses already
+logged in the entry below, `step_255/policy/` has only **6 of ~21
+objects** on S3 (no `model_rank_0/3`, no `optimizer_rank_0/1/3`, no
+`cosmos_config`, one marker) — not resumable. `step_75` has all 20
+payload files but no `.rank_3_complete`. All 16 other intermediate
+checkpoints and final `step_264` are complete, including all four
+markers (the final checkpoint is never pruned, so it escapes the race).
+
+**Root cause:** this run predates [24eb078](../../commit/24eb078) (the
+entry below was written FROM this run's logs), but the mechanism it
+exposes is one 24eb078 does not fix: with `max_keep = 1`
+([684f315](../../commit/684f315)), cosmos-rl prunes checkpoint N in
+full the moment N+1 finishes saving. step_264's save landed at 01:18
+UTC while the uploader was still shipping step_255's multi-GB shards;
+everything not yet uploaded vanished mid-pass, and rescan-based retry
+can never recover a deleted file (the 01:19 "(will retry)" ERROR lines
+were false promises). 24eb078 snapshots only small files into memory —
+model/optimizer shards still upload from disk over a multi-minute pass,
+so the second-to-last checkpoint of every run remains exposed. The two
+disk fixes interact: max_keep=1 (needed to stop pod eviction) made
+pruning aggressive enough to widen the race from markers to payload.
+
+**Fix:** none yet — final checkpoint is what the real-API run needs and
+it verifies complete, so this only bites a run that must resume from
+the second-to-last checkpoint after a late crash. If that matters:
+have the uploader pin/rename a checkpoint dir aside until its pass
+completes, or make pruning wait for upload confirmation.
+
+**How this was found:** log grep for `ckpt-uploader`/`FileNotFoundError`
+(10 hits) cross-checked object-by-object against
+`aws --profile oci.chi s3 ls` for every affected step prefix.
+
+---
+
 ## 2026-07-31 (3rd) — ckpt-uploader loses race vs cosmos-rl marker cleanup: every S3 checkpoint missing .rank_3_complete, one lost a 10 GB optimizer shard (both reward modes)
 
 **Symptom:** In `alpamayo-rl-llm-judge-mock-4dgpaq` logs, `ckpt-uploader:
