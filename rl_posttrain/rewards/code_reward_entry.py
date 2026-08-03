@@ -44,14 +44,14 @@ Structure, top to bottom:
      lead vehicle", where keep_distance and the 'lead' attribute both
      abstain). Punishing that would grade the model on OUR data gaps,
      so precision is coverage-blended toward a neutral prior:
-     r_eff = decided_fraction * r + (1 - decided_fraction) * 0.8, and a
-     fully undecided trace lands exactly on the neutral -0.2 (minus the
-     unparsed penalty). The blend, not a fixed fallback, is what keeps
-     the ordering honest -- a fixed neutral passed the gate while a
-     half-verified trace failed it, making "say only unverifiable
-     things" strictly beat "be half right". `code_decided_fraction` and
-     `code_undecided_cnt` are logged so W&B shows how much of the reward
-     rides on the prior.
+     r_eff = df * r + (1 - df) * prior. Since 2026-08-02 the prior is a
+     clamped EMA of observed decided precision (see _neutral_prior), not
+     the fixed 0.8 the first full run used -- 0.8 sat far above achieved
+     precision (~0.46), so r_eff decreased in coverage and unverifiable
+     phrasing outscored half-right phrasing (n3sxdq post-mortem).
+     `code_decided_fraction`, `code_undecided_cnt`, and
+     `code_neutral_prior` are logged so W&B shows how much of the reward
+     rides on the prior and what the anchor was.
 
   2. ENTRY HALF -- mirrors llm_judge_entry.py (env contract, vLLM
      registration, ModelSpec components, hydra overrides), plus one piece
@@ -378,12 +378,39 @@ def _soft_gate_blend(
     return g * pass_reward + (1.0 - g) * fail_reward
 
 
-# Neutral anchor of the coverage blend in _score_cot (there, 1.0 + this =
-# the neutral prior r=0.8 that decided_fraction interpolates against), and
-# exactly where a fully-undecided trace lands: -0.2 is the midpoint of the
-# gate-passing band (-0.4, 0], because our missing ground truth must not
-# read as model unfaithfulness.
-_UNDECIDED_REASONING_SCORE = -0.2
+# Abstention prior (2026-08-02, post-n3sxdq). The coverage blend in
+# _score_cot interpolates precision toward this prior by decided_fraction.
+# It used to be the fixed constant 0.8 ("midpoint of the gate-passing
+# band") -- far above the precision the model actually achieves (~0.46 all
+# of n3sxdq), which made r_eff DECREASE in coverage whenever r < 0.8:
+# saying unverifiable things strictly beat being half right (observed as
+# reward/decided_fraction corr -0.49). Anchoring the prior to a running
+# mean of observed decided precision makes coverage incentive-neutral by
+# construction: an unverifiable claim scores "assume average", and you
+# beat the prior only by being better than average where you CAN be
+# checked. Clamped so a cold start or a pathological batch can't drag the
+# anchor into a death spiral (floor) and can't exceed the old constant
+# (ceiling). Per-worker state: each cosmos reward process converges on its
+# own EMA from the rollouts it scores; they see IID slices of the same
+# stream, so the anchors agree to within noise (alpha 0.02 ~= a 50-group
+# half-life). The current value is logged per rollout as
+# code_neutral_prior so W&B shows exactly what the blend anchored to.
+_PRIOR_INIT = 0.5  # ~n3sxdq's observed mean decided precision
+_PRIOR_ALPHA = 0.02
+_PRIOR_MIN, _PRIOR_MAX = 0.35, 0.8
+_prior_lock = threading.Lock()
+_prior_ema = _PRIOR_INIT
+
+
+def _neutral_prior() -> float:
+    with _prior_lock:
+        return min(_PRIOR_MAX, max(_PRIOR_MIN, _prior_ema))
+
+
+def _observe_precision(r: float) -> None:
+    global _prior_ema
+    with _prior_lock:
+        _prior_ema += _PRIOR_ALPHA * (r - _prior_ema)
 
 
 @functools.lru_cache(maxsize=256)
@@ -527,14 +554,18 @@ def _score_cot(
     # undecided trace keeps exactly the old -0.2 -- now minus the unparsed
     # penalty score_trace could not apply (r=None short-circuits it there),
     # so unparseable text cannot ride the neutral prior either.
-    neutral_r = 1.0 + _UNDECIDED_REASONING_SCORE
+    neutral_r = _neutral_prior()
     if r is None:
         r_eff = max(0.0, neutral_r - RewardConfig().unparsed_penalty * unparsed_fraction)
     else:
         r_eff = decided_fraction * r + (1.0 - decided_fraction) * neutral_r
+        # Update AFTER computing this rollout's blend so a rollout is scored
+        # against the prior its group siblings see, not one it just moved.
+        _observe_precision(float(r))
     reasoning_score = r_eff - 1.0
 
     aux = {
+        "code_neutral_prior": neutral_r,
         "code_reward_raw": float(r) if r is not None else math.nan,
         "code_atomic_precision": float(atomic_precision)
         if atomic_precision is not None
@@ -624,6 +655,7 @@ def compute_reward_batch(
             # metrics, replaced with the group mean after the loop): the
             # vendored aggregator 0-fills missing keys into step means.
             reasoning_score, aux = -1.0, {
+                "code_neutral_prior": _neutral_prior(),
                 "code_reward_raw": math.nan,
                 "code_atomic_precision": math.nan,
                 "code_decided_fraction": 0.0,
@@ -704,10 +736,9 @@ def compute_reward_batch(
     # neutral prior when the whole group decided nothing. The _cnt counters
     # above (summed per step by the aggregator's suffix convention) keep the
     # fill-in rate visible in W&B.
-    neutral_r = 1.0 + _UNDECIDED_REASONING_SCORE
     for key in ("code_reward_raw", "code_atomic_precision"):
         vals = [d[key] for d in reward_dicts if not math.isnan(d[key])]
-        fill = (sum(vals) / len(vals)) if vals else neutral_r
+        fill = (sum(vals) / len(vals)) if vals else _neutral_prior()
         for d in reward_dicts:
             if math.isnan(d[key]):
                 d[key] = fill

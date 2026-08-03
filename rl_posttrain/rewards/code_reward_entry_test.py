@@ -20,6 +20,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+import rl_posttrain.rewards.code_reward_entry as cre  # noqa: E402
 from rl_posttrain.rewards.code_reward_entry import (  # noqa: E402
     _graded_failure_reward,
     _soft_gate_blend,
@@ -92,3 +93,32 @@ class TestGradedFailureUnchanged:
                     l2, s, ade_threshold=ADE_T, reasoning_threshold=R_T, cot_decoded=True
                 )
                 assert -1.0 <= r <= -0.5
+
+
+class TestNeutralPrior:
+    @pytest.fixture(autouse=True)
+    def _reset_ema(self, monkeypatch):
+        monkeypatch.setattr(cre, "_prior_ema", cre._PRIOR_INIT)
+
+    def test_init_value(self):
+        assert cre._neutral_prior() == pytest.approx(cre._PRIOR_INIT)
+
+    def test_ema_tracks_observations(self):
+        for _ in range(600):
+            cre._observe_precision(0.7)
+        assert cre._neutral_prior() == pytest.approx(0.7, abs=1e-3)
+
+    def test_clamped_floor_and_ceiling(self):
+        for _ in range(600):
+            cre._observe_precision(0.0)
+        assert cre._neutral_prior() == cre._PRIOR_MIN
+        for _ in range(2000):
+            cre._observe_precision(1.0)
+        assert cre._neutral_prior() == cre._PRIOR_MAX
+
+    def test_coverage_neutral_at_prior(self):
+        # The property the fixed 0.8 violated: when a rollout's precision
+        # equals the prior, its blended score must not depend on coverage.
+        prior = cre._neutral_prior()
+        r_effs = [df * prior + (1.0 - df) * prior for df in (0.0, 0.3, 0.7, 1.0)]
+        assert max(r_effs) - min(r_effs) < 1e-12
