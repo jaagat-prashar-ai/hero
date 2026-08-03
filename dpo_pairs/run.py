@@ -250,7 +250,11 @@ def dpo_measure_loop(training_fn_config: dict[str, Any], experiment_tracker: Any
     from masking.data.wds_dataset import iter_clip_events_from_manifest
     from pref_pairs.rollout_harvester import build_tokenized_inputs
 
-    from dpo_pairs.ar_forced_rollout import build_template_sequence, sample_traj_tokens_given_coc
+    from dpo_pairs.ar_forced_rollout import (
+        _special_ids,
+        build_template_sequence,
+        sample_traj_tokens_given_coc,
+    )
 
     by_scene = load_perturbations_by_scene(cfg["perturbations_path"])
     logger.info("perturbation corpus: %d scenes, %d rows (%s)",
@@ -258,6 +262,19 @@ def dpo_measure_loop(training_fn_config: dict[str, Any], experiment_tracker: Any
 
     logger.info("Loading model %s on %s ...", cfg["checkpoint"], device)
     model = _load_model(cfg["checkpoint"], device=device)
+
+    # Everything mine_pairs.py needs to reassemble full DPO completion token
+    # sequences (token_math.assemble_completion_ids) WITHOUT loading the
+    # model — stamped into every row so the measurement output is
+    # self-contained. tokens_per_future_traj is deliberately read off the
+    # real checkpoint here (config default 64 vs the RL brief's 128 — plan
+    # risk R2 — the smoke run settles it and every row records the answer).
+    token_constants = {
+        **_special_ids(model),
+        "traj_token_start_idx": int(model.config.traj_token_start_idx),
+        "traj_vocab_size": int(model.config.traj_vocab_size),
+        "tokens_per_future_traj": int(model.config.tokens_per_future_traj),
+    }
 
     n_samples = int(cfg["n_samples"])
     sample_batch_size = int(cfg["sample_batch_size"])
@@ -332,6 +349,9 @@ def dpo_measure_loop(training_fn_config: dict[str, Any], experiment_tracker: Any
             "t0_us": event["t0_us"],
             "sampling_params": sampling_params,
             "model_version": cfg["checkpoint"],
+            "token_constants": token_constants,
+            "manifest_path": cfg["manifest_path"],
+            "bucket": cfg["bucket"],
             "rank": rank,
             "world_size": world_size,
         }
@@ -342,6 +362,13 @@ def dpo_measure_loop(training_fn_config: dict[str, Any], experiment_tracker: Any
             template = build_template_sequence(
                 model, data, seed=template_seed, **sampling_kwargs,
             )
+            # Fingerprint of the fused prompt ids: a DPO data loader that
+            # reconstructs the prompt from (manifest_path, clip_id, t0_us,
+            # checkpoint) verifies its reconstruction against this rather
+            # than trusting the recipe silently.
+            prompt_ids_sha256 = hashlib.sha256(
+                json.dumps(template["seq0"][: template["prompt_len"]].tolist()).encode()
+            ).hexdigest()
 
             for condition, text, pert in conditions:
                 result = sample_traj_tokens_given_coc(
@@ -361,6 +388,7 @@ def dpo_measure_loop(training_fn_config: dict[str, Any], experiment_tracker: Any
                     "samples": result["samples"],
                     "self_generated_coc": template["self_generated_coc"],
                     "prompt_len": template["prompt_len"],
+                    "prompt_ids_sha256": prompt_ids_sha256,
                 }
                 _emit_row(row, results_path)
                 scene_rows.append(row)
