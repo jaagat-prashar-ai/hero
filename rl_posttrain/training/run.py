@@ -1006,16 +1006,16 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     elif reward_mode == "code":
         # Same reasoning-bearing dataset as llm_judge (the reward scores
         # decoded CoC, and its perceptual verifier reads the
-        # obstacle.offline labels this download already includes) and the
-        # SAME TOML template -- the [custom.alpamayo.reward] weights, gates
-        # and group_reward_calculation are shared by design so a code run
-        # differs from a judge run in the reasoning signal only. Only the
-        # entry script changes.
+        # obstacle.offline labels this download already includes). Through
+        # n3sxdq the TOML template was also shared with llm_judge by design;
+        # since 2026-08-02 code runs carry their own (kl_beta = 1e-3, cosine
+        # LR decay, comfort_weight = 0.05 -- the n3sxdq post-mortem fixes)
+        # so judge experiments keep their exact config.
         _fetch_reasoning_dataset()
         # Code reward reads per-clip obstacle ground truth at reward time;
         # pre-extract it so those reads never touch the chunk zips.
         _extract_obstacles_by_clip(pai_reasoning_dir)
-        template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
+        template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_code_reward.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "code_reward_entry.py"
     elif reward_mode == "reasoning":
         _fetch_reasoning_dataset()
