@@ -340,6 +340,44 @@ def _graded_failure_reward(
     return -1.0 + _FAILURE_BAND_WIDTH * 0.5 * (l2_closeness + reasoning_closeness)
 
 
+# Soft-gate temperatures. The blend is ~fully resolved (g > 0.99 / < 0.01)
+# about 5*tau from each threshold, so far-from-gate rollouts score exactly as
+# before. Run n3sxdq showed why the hard gate fails at THIS model's score
+# distribution: the population median reasoning score was -0.38 against the
+# -0.4 gate, so crossing it -- a ~0.02 score wiggle, often one flipped claim
+# verdict on a clip with different ground-truth coverage -- moved reward by
+# ~0.37 (the band jump) while the same wiggle inside a band moved it ~0.015.
+# GRPO ranks rollouts within a group by reward, so the advantages mostly
+# encoded threshold luck, not quality (reward/n_fail corr -0.76, reward std
+# pinned at ~0.31 for all 264 steps). tau_reasoning spans the observed
+# +/-0.04 score jitter; tau_l2 spans the ~0.5 m ADE jitter near 3.0.
+_GATE_TAU_REASONING = 0.05
+_GATE_TAU_L2 = 0.15
+
+
+def _soft_gate_blend(
+    pass_reward: float,
+    fail_reward: float,
+    l2_dist: float,
+    reasoning_score: float,
+    *,
+    ade_threshold: float,
+    reasoning_threshold: float,
+) -> float:
+    """Continuous blend of the two branch formulas: g -> 1 well inside the
+    passing region, g -> 0 well inside the failure region, sigmoid seam in
+    between. Same endpoints and intent as the hard gate (bad rollouts still
+    land in the graded failure band); only the step at the boundary is gone,
+    so near-gate reward differences are proportional to near-gate quality
+    differences instead of ~25x amplified."""
+    g_reasoning = 1.0 / (
+        1.0 + math.exp(-(reasoning_score - reasoning_threshold) / _GATE_TAU_REASONING)
+    )
+    g_l2 = 1.0 / (1.0 + math.exp((l2_dist - ade_threshold) / _GATE_TAU_L2))
+    g = g_reasoning * g_l2
+    return g * pass_reward + (1.0 - g) * fail_reward
+
+
 # Neutral anchor of the coverage blend in _score_cot (there, 1.0 + this =
 # the neutral prior r=0.8 that decided_fraction interpolates against), and
 # exactly where a fully-undecided trace lands: -0.2 is the midpoint of the
@@ -595,7 +633,7 @@ def compute_reward_batch(
                 "code_no_cot_cnt": 1.0,
             }
 
-        if pred_cot_decoded and reasoning_score > reasoning_threshold and l2_dist < ade_threshold:
+        if pred_cot_decoded:
             # DELIBERATE deviation from the vendored formula (and from every
             # run before 2026-07-30): the vendored reasoning term was
             # `w * (reasoning_score / reasoning_threshold)`, which DECREASES
@@ -606,18 +644,38 @@ def compute_reward_batch(
             # mirrored: 0 at the gate, full weight at perfect. The l2 and
             # comfort terms already pointed the right way; reasoning was the
             # only inverted component. See BUGS.md 2026-07-30 (2nd entry).
-            final_reward = (
+            pass_reward = (
                 -w["traj_l2_weight"] * (l2_dist / ade_threshold)
                 + w["comfort_weight"] * comfort_score
                 + w["reasoning_weight"] * (1.0 - reasoning_score / reasoning_threshold)
             )
+            fail_reward = _graded_failure_reward(
+                l2_dist,
+                reasoning_score,
+                ade_threshold=ade_threshold,
+                reasoning_threshold=reasoning_threshold,
+                cot_decoded=True,
+            )
+            # Both branch formulas always computed, then blended through the
+            # soft gate (2026-08-02, post-n3sxdq): the hard if/else put a
+            # ~0.37 step exactly where the score population sits. See
+            # _soft_gate_blend for the rationale and tau calibration.
+            final_reward = _soft_gate_blend(
+                pass_reward,
+                fail_reward,
+                l2_dist,
+                reasoning_score,
+                ade_threshold=ade_threshold,
+                reasoning_threshold=reasoning_threshold,
+            )
         else:
+            # No decoded CoC stays the flat vendored -1.0 -- nothing to grade.
             final_reward = _graded_failure_reward(
                 l2_dist,
                 reasoning_score,
                 ade_threshold=ade_threshold,
                 reasoning_threshold=reasoning_threshold,
-                cot_decoded=pred_cot_decoded,
+                cot_decoded=False,
             )
 
         logger.debug(
