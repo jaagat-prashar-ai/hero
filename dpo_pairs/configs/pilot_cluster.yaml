@@ -1,0 +1,109 @@
+# dpo_pairs Phase-1 measurement pilot: every scene in the v1 perturbation
+# corpus (pref_pairs/results/perturbations/perturbations.jsonl, 717 rows /
+# 120 scenes — already generated and judged, so this run costs $0 in API),
+# ~8 conditions x n_samples=20 AR trajectory samples per scene.
+#
+# Launch:   python lilypad/launch.py dpo_pairs/configs/pilot_cluster.yaml
+# Smoke:    use dpo_pairs/configs/smoke_cluster.yaml FIRST (max_scenes=1,
+#           1 GPU) — repo rule: no mocked-model tests, the model path is
+#           verified by a real cheap run before any full sweep.
+# Results:  fetch via dpo_pairs/fetch_from_logs.py (marker DPO_MEASURE) or
+#           from s3://research-datasets-chicago/<results_s3_prefix>/.
+name: dpo-pairs-measure-pilot
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: dpo_pairs.run.dpo_measure_loop
+  training_fn_config:
+    manifest_path: "pref_pairs/configs/sample_clips_n100_unstratified.json"
+    bucket: "research-datasets-chicago"
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+    perturbations_path: "pref_pairs/results/perturbations/perturbations.jsonl"
+
+    # null = every manifest scene that has perturbation rows. Scenes without
+    # perturbations are skipped before any model cost.
+    max_scenes: null
+
+    # 20 AR samples per condition: the clean condition's 20 samples ARE the
+    # per-scene AR-pathway noise floor (the diffusion noise floor in
+    # pref_pairs/results/fixed_reasoning/action_space_variance_report.json
+    # does NOT transfer to this pathway). 5 samples per generate call bounds
+    # the expanded KV cache at N=20 on an 80GB A100.
+    n_samples: 20
+    sample_batch_size: 5
+    seed_start: 0
+    template_seed: 0
+
+    # Matches rl_posttrain's rollout sampling params (temperature=0.6,
+    # top_p=0.98 in rl_posttrain/toml/alpamayo_rvla_rl_code_reward.toml) so
+    # the noise floor reflects the sampler a DPO-era policy will actually use.
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+
+    outdir: "/mnt/work/tmp/dpo_pairs_measure"
+    results_s3_prefix: "dpo_pairs/measure/pilot1"
+
+    # Real preemption risk on this queue (counterfactual + fixed-reasoning
+    # sweeps both hit multiple preemption cycles) — resume skips scenes whose
+    # scene_done marker is already in this rank's local JSONL.
+    resume: true
+
+    # Diffusion-pathway cross-check subset — filled in after the smoke run
+    # picks ~15 scene_ids from the corpus (plan §pilot: rank-correlation
+    # between AR cross_ade and diffusion ADE is a go/no-go signal, a miss is
+    # a finding rather than a blocker).
+    diffusion_crosscheck_allowlist: null
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: dpo-pairs-measure
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    # pref_pairs/requirements.txt, not masking's — the validated superset
+    # with the transformers==4.57.1 pin (masking's lost it and killed a live
+    # launch on ImportError: Qwen3VLConfig; BUGS.md).
+    pip_requirements_path: pref_pairs/requirements.txt
+    # Patterns MUST anchor as ^/dir/ — bare ^dir/ is silently ignored by the
+    # asset packer (fixed repo-wide in commit 4b79f5c). perturbations.jsonl
+    # ships (784K, it is this run's input); only the heavy result/venv dirs
+    # are excluded.
+    regex_excludes:
+      - "^/\\.git/"
+      - "/\\.venv/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/perplexity/"
+      - "^/jspace/"
+      - "^/convos/"
+      - "^/counterfactual/results/"
+      - "^/masking/dashboard/"
+      - "^/pref_pairs/results/fixed_reasoning/"
+      - "^/pref_pairs/results/scene_reasoning/"
+      - "^/pref_pairs/results/noise_floor_report.html"

@@ -1,0 +1,87 @@
+# dpo_pairs measurement SMOKE test: 1 scene, 1 GPU, n_samples=8. Run this
+# before pilot_cluster.yaml (repo rule: no mocked-model tests — the model
+# path is verified by a real cheap run, then scaled).
+#
+# Launch:   python lilypad/launch.py dpo_pairs/configs/smoke_cluster.yaml
+#
+# What to check in the logs (marker DPO_MEASURE) before scaling:
+#   * one row per condition (control_rawids, clean, perturbed__*), each with
+#     n_samples samples
+#   * hit_traj_future_end true and n_traj_tokens == tokens_per_future_traj
+#     for (nearly) all samples — read the actual tokens_per_future_traj off
+#     this run, the config default (64) and the RL brief (128) disagree
+#   * decoded xyz length == tokens_per_future_traj / 3 waypoints
+#   * ADE(clean, control_rawids) small vs ADE among clean samples — the
+#     re-tokenization machinery error must sit well under the AR noise floor
+#   * self_generated_coc vs the archived ground_truth_trace — drift rate
+#     (risk R7); expect the texts to differ (different sampling run), the
+#     check is that forcing archived text still yields well-formed output
+name: dpo-pairs-measure-smoke
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: dpo_pairs.run.dpo_measure_loop
+  training_fn_config:
+    manifest_path: "pref_pairs/configs/sample_clips_n100_unstratified.json"
+    bucket: "research-datasets-chicago"
+    checkpoint: "nvidia/Alpamayo-1.5-10B"
+    perturbations_path: "pref_pairs/results/perturbations/perturbations.jsonl"
+    max_scenes: 1
+    n_samples: 8
+    sample_batch_size: 4
+    seed_start: 0
+    template_seed: 0
+    temperature: 0.6
+    top_p: 0.98
+    top_k: null
+    outdir: "/mnt/work/tmp/dpo_pairs_measure_smoke"
+    results_s3_prefix: "dpo_pairs/measure/smoke"
+    resume: false
+    # Exercise the cross-check path on the smoke scene too: __ALL__ is not
+    # supported — run.py matches literal scene_ids — but max_scenes=1 with a
+    # null allowlist skips it; smoke the cross-check by setting this to the
+    # smoke scene's id on a second run if the first pass looks sane.
+    diffusion_crosscheck_allowlist: null
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: dpo-pairs-measure
+
+cluster_resources:
+  gpu_machine_type: a100.1
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: .
+    pip_requirements_path: pref_pairs/requirements.txt
+    regex_excludes:
+      - "^/\\.git/"
+      - "/\\.venv/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/perplexity/"
+      - "^/jspace/"
+      - "^/convos/"
+      - "^/counterfactual/results/"
+      - "^/masking/dashboard/"
+      - "^/pref_pairs/results/fixed_reasoning/"
+      - "^/pref_pairs/results/scene_reasoning/"
+      - "^/pref_pairs/results/noise_floor_report.html"
