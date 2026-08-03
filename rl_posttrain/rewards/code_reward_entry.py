@@ -413,6 +413,23 @@ def _observe_precision(r: float) -> None:
         _prior_ema += _PRIOR_ALPHA * (r - _prior_ema)
 
 
+@functools.lru_cache(maxsize=1)
+def _obstacle_manifest() -> frozenset[str] | None:
+    """Clip ids that HAVE an obstacle.offline parquet, per the coverage
+    manifest run.py's _extract_obstacles_by_clip writes at setup, or None
+    when no manifest exists (pre-manifest local dirs: fall back as before).
+    Lets _load_scene skip the chunk-zip fallback for clips that are absent
+    upstream (~2.6% of the dataset) instead of paying a doomed zip open +
+    KeyError per process."""
+    local_dir = os.environ.get("ALPAMAYO_PAI_REASONING_LOCAL_DIR")
+    if not local_dir:
+        return None
+    manifest = Path(local_dir) / "obstacles_by_clip" / "_MANIFEST.txt"
+    if not manifest.exists():
+        return None
+    return frozenset(line.strip() for line in manifest.read_text().splitlines() if line.strip())
+
+
 @functools.lru_cache(maxsize=256)
 @_timed
 def _load_scene(clip_id: str):
@@ -445,6 +462,14 @@ def _load_scene(clip_id: str):
             per_clip = Path(local_dir) / "obstacles_by_clip" / f"{clip_id}.obstacle.offline.parquet"
             if per_clip.exists():
                 raw = pd.read_parquet(per_clip)
+        if raw is None:
+            manifest = _obstacle_manifest()
+            if manifest is not None and clip_id not in manifest:
+                logger.warning(
+                    f"[code_reward] clip {clip_id}: no obstacle.offline label upstream "
+                    "(known dataset gap, per setup manifest) -- scoring commitments only"
+                )
+                return None
         if raw is None:
             # Fallback: recipe interface over the chunk zips (slow first
             # touch per chunk -- kept so a missing extraction degrades

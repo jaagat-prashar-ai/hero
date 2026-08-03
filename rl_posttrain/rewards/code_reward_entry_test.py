@@ -122,3 +122,35 @@ class TestNeutralPrior:
         prior = cre._neutral_prior()
         r_effs = [df * prior + (1.0 - df) * prior for df in (0.0, 0.3, 0.7, 1.0)]
         assert max(r_effs) - min(r_effs) < 1e-12
+
+
+class TestObstacleManifest:
+    @pytest.fixture(autouse=True)
+    def _clear_caches(self):
+        cre._obstacle_manifest.cache_clear()
+        cre._load_scene.cache_clear()
+        yield
+        cre._obstacle_manifest.cache_clear()
+        cre._load_scene.cache_clear()
+
+    def test_no_local_dir_means_no_manifest(self, monkeypatch):
+        monkeypatch.delenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR", raising=False)
+        assert cre._obstacle_manifest() is None
+
+    def test_manifest_parsed(self, tmp_path, monkeypatch):
+        d = tmp_path / "obstacles_by_clip"
+        d.mkdir()
+        (d / "_MANIFEST.txt").write_text("clip_a\nclip_b\n")
+        monkeypatch.setenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR", str(tmp_path))
+        assert cre._obstacle_manifest() == frozenset({"clip_a", "clip_b"})
+
+    def test_load_scene_skips_known_absent_clip(self, tmp_path, monkeypatch):
+        # A clip the manifest doesn't list must return None WITHOUT reaching
+        # the avdi chunk-zip fallback (which would ImportError here -- the
+        # recipe venv isn't installed in the test env, so reaching it fails
+        # loudly rather than passing vacuously).
+        d = tmp_path / "obstacles_by_clip"
+        d.mkdir()
+        (d / "_MANIFEST.txt").write_text("clip_a\n")
+        monkeypatch.setenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR", str(tmp_path))
+        assert cre._load_scene("clip_absent_upstream") is None

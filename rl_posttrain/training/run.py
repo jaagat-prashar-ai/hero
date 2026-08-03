@@ -607,7 +607,25 @@ def _extract_obstacles_by_clip(pai_dir: Path) -> None:
                 if not out.exists():
                     out.write_bytes(zf.read(member))
                     n_new += 1
-    logger.info("obstacles_by_clip: extracted %d new per-clip files into %s", n_new, dst)
+    # Coverage manifest: ~2.6% of clips have NO obstacle.offline label
+    # upstream (9 of 194 clips touched in run n3sxdq), so their parquets
+    # can't be extracted -- they aren't in the zips. Recording what IS here
+    # lets reward-time _load_scene tell "known-absent upstream" (skip
+    # instantly, one warning) from "extraction missing" (fall back to the
+    # chunk zips), and surfaces the gap at setup instead of per-rollout.
+    clip_ids = sorted(
+        p.name.removesuffix(".obstacle.offline.parquet")
+        for p in dst.glob("*.obstacle.offline.parquet")
+    )
+    (dst / "_MANIFEST.txt").write_text("\n".join(clip_ids) + "\n")
+    logger.info(
+        "obstacles_by_clip: extracted %d new per-clip files into %s "
+        "(manifest: %d clips with obstacle labels; clips absent upstream "
+        "will score commitments only)",
+        n_new,
+        dst,
+        len(clip_ids),
+    )
 
 
 def _patch_toml(
