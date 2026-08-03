@@ -124,6 +124,91 @@ class TestNeutralPrior:
         assert max(r_effs) - min(r_effs) < 1e-12
 
 
+class TestLrSchedulerPatch:
+    @pytest.fixture()
+    def fake_cosmos(self, monkeypatch):
+        """Stub the two cosmos_rl modules the patch imports lazily."""
+        import types
+
+        built = []
+
+        class FakeScheduler:
+            def __init__(self):
+                self.steps = 0
+
+            def step(self):
+                self.steps += 1
+
+            def get_last_lr(self):
+                return [2e-6]
+
+        def fake_build(optimizers, config, training_steps):
+            sched = FakeScheduler()
+            built.append((training_steps, sched))
+            return sched
+
+        optm = types.ModuleType("cosmos_rl.policy.trainer.optm")
+        optm.build_lr_schedulers = fake_build
+        logging_mod = types.ModuleType("cosmos_rl.utils.logging")
+        logging_mod.logger = __import__("logging").getLogger("fake_cosmos")
+        for name, mod in {
+            "cosmos_rl": types.ModuleType("cosmos_rl"),
+            "cosmos_rl.policy": types.ModuleType("cosmos_rl.policy"),
+            "cosmos_rl.policy.trainer": types.ModuleType("cosmos_rl.policy.trainer"),
+            "cosmos_rl.policy.trainer.optm": optm,
+            "cosmos_rl.utils": types.ModuleType("cosmos_rl.utils"),
+            "cosmos_rl.utils.logging": logging_mod,
+        }.items():
+            monkeypatch.setitem(sys.modules, name, mod)
+        return built
+
+    def _fake_trainer_cls(self):
+        calls = []
+
+        class FakeTrainer:
+            optimizers = object()
+            config = object()
+
+            def step_training(self, *args, **kwargs):
+                calls.append((args, kwargs))
+                return {"ok": True}
+
+        return FakeTrainer, calls
+
+    def test_rebuilds_once_with_real_total(self, fake_cosmos):
+        cls, calls = self._fake_trainer_cls()
+        cre._patch_lr_scheduler_total_steps(cls)
+        t = cls()
+        # (rollouts, current_step, total_steps, ...) positional, like cosmos
+        assert t.step_training(["r"], 1, 264, 0, None, True) == {"ok": True}
+        t.step_training(["r"], 2, 264, 0, None, True)
+        assert len(fake_cosmos) == 1  # guard: built exactly once
+        assert fake_cosmos[0][0] == 264  # with the REAL total, not 1e6
+        assert len(calls) == 2  # original always called
+
+    def test_fast_forwards_on_mid_run_first_call(self, fake_cosmos):
+        cls, _ = self._fake_trainer_cls()
+        cre._patch_lr_scheduler_total_steps(cls)
+        t = cls()
+        t.step_training(["r"], 5, 264, 0, None, True)
+        assert fake_cosmos[0][1].steps == 4  # current_step-1 catch-up steps
+
+    def test_kwargs_call_style_supported(self, fake_cosmos):
+        cls, _ = self._fake_trainer_cls()
+        cre._patch_lr_scheduler_total_steps(cls)
+        t = cls()
+        t.step_training(["r"], current_step=1, total_steps=100)
+        assert fake_cosmos[0][0] == 100
+
+    def test_missing_total_steps_leaves_scheduler_alone(self, fake_cosmos):
+        cls, calls = self._fake_trainer_cls()
+        cre._patch_lr_scheduler_total_steps(cls)
+        t = cls()
+        t.step_training(["r"])  # no step info at all
+        assert fake_cosmos == []  # no rebuild attempted
+        assert len(calls) == 1  # original still ran
+
+
 class TestObstacleManifest:
     @pytest.fixture(autouse=True)
     def _clear_caches(self):

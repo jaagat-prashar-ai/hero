@@ -864,6 +864,55 @@ def _read_ckpt_path_from_toml() -> str:
     return cfg["policy"]["model_name_or_path"]
 
 
+def _patch_lr_scheduler_total_steps(trainer_cls: type) -> None:
+    """Wrap step_training so the LR schedulers get rebuilt with the run's
+    REAL total steps on the first call.
+
+    cosmos-rl at the pinned rev (747d1bd) builds LR schedulers exactly once,
+    in GRPOTrainer.__init__, with a default total_steps of int(1e6), and has
+    no update path (update_lr_schedulers only exists in later releases). So
+    any fraction-of-total key in [train] -- optm_warmup_steps as a float,
+    optm_decay_type's cosine horizon -- silently stretches over a million
+    steps. Observed live on run fbbpdd (2026-08-03): optm_warmup_steps =
+    0.03 produced LR 3.1e-9 at step 46 (a 30,000-step warmup ramp) instead
+    of ~2e-6 after the intended 8-step warmup, i.e. the policy was training
+    at effectively zero LR. step_training receives the controller's real
+    total, so the first call rebuilds and fast-forwards; later calls no-op
+    via the _lr_total_steps guard. Patched here (our entry) rather than in
+    the recipe because third_party/alpamayo-recipes is an upstream
+    submodule we can't push to.
+    """
+    original = trainer_cls.step_training
+
+    @functools.wraps(original)
+    def step_training(self, *args, **kwargs):
+        # Signature: (rollouts, current_step, total_steps, ...) -- accept
+        # either positional or keyword to survive upstream call-site drift.
+        current_step = kwargs.get("current_step", args[1] if len(args) > 1 else None)
+        total_steps = kwargs.get("total_steps", args[2] if len(args) > 2 else None)
+        if (
+            isinstance(total_steps, int)
+            and total_steps > 0
+            and getattr(self, "_lr_total_steps", None) != total_steps
+        ):
+            from cosmos_rl.policy.trainer.optm import build_lr_schedulers
+            from cosmos_rl.utils.logging import logger as cosmos_logger
+
+            self.lr_schedulers = build_lr_schedulers(self.optimizers, self.config, total_steps)
+            fast_forward = max(0, int(current_step or 1) - 1)
+            for _ in range(fast_forward):
+                self.lr_schedulers.step()
+            self._lr_total_steps = total_steps
+            cosmos_logger.info(
+                f"[code_reward] Rebuilt LR schedulers for total_steps={total_steps} "
+                f"(fast-forwarded {fast_forward} steps; "
+                f"lr={self.lr_schedulers.get_last_lr()[0]:.3e})"
+            )
+        return original(self, *args, **kwargs)
+
+    trainer_cls.step_training = step_training
+
+
 def main() -> None:
     os.environ.setdefault("COSMOS_HEARTBEAT_TIMEOUT", "600")
     os.environ.setdefault("COSMOS_LOG_LEVEL", "DEBUG")
@@ -947,6 +996,8 @@ def main() -> None:
     from alpamayo1_x_rl.models.reasoning_vla.rollout import ReasoningVLAVllmRollout  # noqa: F401 (Cosmos registry)
     from alpamayo1_x_rl.models.reasoning_vla.trainer import ReasoningVLAGRPOTrainer  # noqa: F401 (Cosmos registry)
     from alpamayo1_x_rl.models.reasoning_vla.weight_mapper import ReasoningVLAWeightMapper
+
+    _patch_lr_scheduler_total_steps(ReasoningVLAGRPOTrainer)
 
     from rl_posttrain.rewards.scene_reference_dataset import SceneReferenceDataset
 
