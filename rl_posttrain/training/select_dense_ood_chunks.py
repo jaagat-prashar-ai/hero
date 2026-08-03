@@ -90,6 +90,15 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--num-chunks", type=int, required=True)
     parser.add_argument("--repo-id", default=DEFAULT_REPO_ID)
+    parser.add_argument(
+        "--split",
+        default="train",
+        choices=["train", "val", "test", "all"],
+        help="Keep only clips in this NVIDIA official split (ood_reasoning.parquet "
+        "'split' column). Default 'train': training must not consume val/test clips. "
+        "'all' reproduces the pre-2026-08-03 behavior (used by the first dense-100 "
+        "runs, which unknowingly mixed 237 val clips into training).",
+    )
     args = parser.parse_args()
     if args.num_chunks <= 0:
         parser.error("--num-chunks must be a positive integer")
@@ -113,6 +122,13 @@ def main() -> None:
                 "usable event t0 would fail the loader's strict history assert (t0 <= "
                 f"{_HISTORY_RANGE_US} us) or has no event surviving the margin filter"
             )
+    if args.split != "all" and "split" in ood.columns:
+        n_split_before = len(ood)
+        ood = ood[ood["split"] == args.split]
+        print(
+            f"[select_dense_ood_chunks] kept {len(ood)}/{n_split_before} clips in NVIDIA "
+            f"split {args.split!r} (training on val/test clips would contaminate eval)"
+        )
 
     ood_ids = set(ood.index.astype(str))
     # Positional bool mask so .loc preserves clip_index's original index
