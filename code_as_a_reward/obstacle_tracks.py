@@ -64,6 +64,16 @@ OBSTACLE_LABEL_CLASSES = frozenset(
         "bus",
         "heavy_truck",
         "animal",
+        # Added 2026-08-02 from the n3sxdq full-run logs: 83 warnings over 35
+        # distinct clips dropped rows for exactly these two classes (up to
+        # 607 rows on one clip). Recognized vocabulary only -- DELIBERATELY
+        # not mapped in perceptual_verifier.ENTITY_TO_CLASSES: a stroller is
+        # not a 'pedestrian' (mapping it would manufacture PASSes for
+        # pedestrian claims), and no current entity names a tram. Keeping
+        # the rows means the tracks exist in the scene without changing any
+        # computable verdict.
+        "stroller",
+        "train_or_tram_car",
     }
 )
 
