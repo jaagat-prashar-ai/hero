@@ -54,3 +54,4 @@ code-reward TOML with kl_beta/LR decay/comfort weight (648411b).
 
 Logs pulled via OCI Log Analytics 2026-08-02 (73k lines, full run coverage
 21:36 UTC Jul 31 → 02:10 UTC Aug 1).
+

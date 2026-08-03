@@ -108,3 +108,23 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Saved details to run memory so any later session can pick up monitoring. 
 
 
+
+# august 2nd 
+# adjustments to the new run: 
+    # code as a reward:
+    # a follow up run fbbpdd was relaunched with the TOML and caught live with a bad LR: cosmos-rl at the pinned rev builds LR schedulers once with total_steps=1e6, so the 3% fractional warmup became a 30,000-step ramp (LR 3.1e9 at step 46, i.e. training at effectively zero LR).
+    # monkeypatch in code_reward_entry.py that rebuilds the schedulers with the real total on the first training step - was commited and pushed. 
+        # rebuilding schedulers. 
+
+
+# is 264 training steps good?
+# code-reward full run 
+# cosmos-rl builds its LR schedulers once at a trainer init with a default total_steps=1e6, so the new TOML's fractional warmup (0.03) became a 30,000-step ramp. 
+
+# LR scheduler patch issue? 
+
+# Code-reward and LLM-judge have the same training recipe with one part swapped. Same model, same GRPO recipe, same dataset, same optimizer settings - they differ only in when the reasoning score comes from (deterministic on-node verifier vs. paid LLM judge). 
+# Code-reward is a free testbed. Code reward was the first look at how the shared optimizer config behaves over a full 264 steps. It' splateau/drift diagnosis (no KL anchor, flat LR, comfort at zero) is a defect of the shared config (it would hit a judge run identically). 
+# Does the LR patch work? Does the KL anchor extend learning past step ~120? gets answered on code-reward for $0 in API spend, and only the one question code-reward can't answer - does the LLM judge itself provide learnable signal - gets spent on a judge run. 
+
+# code-reward-full-relaunch submitted now. runs on existing 352-clip warm cache, validates LR-scheduler patch, and tests whether KL+cosine cure the plateau. If its curve looks healthy, the same three settings + the scheduler patch get ported to the judge side, and then the judge canary is the only think left that costs real money.
