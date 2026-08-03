@@ -49,7 +49,9 @@ workload_variant_config:
       project: dpo-pairs-measure
 
 cluster_resources:
-  gpu_machine_type: a100.1
+  # a100.1 is not a valid machine type (SDK enum: a10.2/a100.8/h100.8/...);
+  # 1 GPU on an a100.8 machine is how single-GPU smokes run here.
+  gpu_machine_type: a100.8
   num_gpus: 1
   customer_resource: research
   preemptible: always
