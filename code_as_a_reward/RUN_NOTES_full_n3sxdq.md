@@ -27,6 +27,21 @@ regression in the back half. Best logged step: 94 (−0.037); final step 264 lan
 at −0.454 (noisy per-step, std ~0.34 throughout). Worth checking W&B for LR
 schedule / KL behavior around step ~180 before deciding whether to extend training.
 
+**CORRECTION (2026-08-02, from the full 264-step W&B history —
+appliedintuition.wandb.io/research/alpamayo-rl/runs/20260731220943):** the
+table above overstates the improvement; the OCI pull only sampled ~91 of 264
+steps and the 1–20 band caught mostly bad steps. Full-history band means:
+1–20 = −0.350, 61–120 = −0.305, 121–180 = −0.302 (best), 241–264 = −0.317.
+Net gain ≈ 0.05, all before step ~100 (reward slope +0.097/100 steps before
+step 100, 0.000 after). LR was CONSTANT 2e-6 (no schedule; warmup 1 step)
+and kl_beta = 0.0 (KL identically zero; no reference model loaded). Back
+half shows unanchored drift: entropy −0.73/100 steps after step 150, grad
+norm ~4.5 → ~10 with spikes to 25. most_likely_mode_reward was flat all run
+(−0.025) — sampled-rollout reward improved without the deterministic policy
+improving. Follow-ups shipped 2026-08-02: soft reward gate (9d0c045), EMA
+abstention prior (bd68e86), vocab + scene-load manifest (1cc1c6f, a535eda),
+code-reward TOML with kl_beta/LR decay/comfort weight (648411b).
+
 ## Issues observed (all non-fatal)
 
 - **No overlay images for this run**: `TypeError: 'LoggingConfig' object is not
