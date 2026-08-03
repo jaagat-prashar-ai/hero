@@ -88,20 +88,20 @@ runtime_environment:
     root_directory: .
     pip_requirements_path: rl_posttrain/requirements.txt
     regex_excludes:
-      - "^mnist/"
-      - "^research-core/"
-      - "^docker/"
-      - "^lockfiles/"
-      - "^build_wds/"
-      - "^masking/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
       # pref_pairs/ code must ship: the reward imports
       # pref_pairs.trajectory_features (commitment verification reads its
       # TrajectoryFeatures). code_as_a_reward/ ships too (not excluded) --
       # it IS the reward. Only the 46M generated-results tree stays out.
-      - "^pref_pairs/results/"
-      - "^autovla/"
-      - "^third_party/alpamayo1.5/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
       # perplexity/alpamayo/ar1_venv (8.1G, a checked-out venv) and
       # perplexity/clip_cache (2.1G of sample mp4s) are not needed by this
       # job and would otherwise dominate the code upload.
-      - "^perplexity/"
+      - "^/perplexity/"

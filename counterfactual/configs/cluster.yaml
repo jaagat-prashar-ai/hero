@@ -95,8 +95,8 @@ runtime_environment:
     # masking/requirements.txt assumes are already in the cluster image.
     pip_requirements_path: pref_pairs/requirements.txt
     regex_excludes:
-      - "^build_wds/"
-      - "^mnist/"
-      - "^research-core/"
-      - "^docker/"
-      - "^lockfiles/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"

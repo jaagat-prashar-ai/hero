@@ -6,7 +6,30 @@ now, not routine typos.
 
 ---
 
-## 2026-08-02 — S3 audit of mock-4dgpaq: step_255 checkpoint mostly lost to max_keep=1 pruning; 24eb078 doesn't cover multi-GB payload
+## 2026-08-03 — regex_excludes silently dead in every launch config: `^dir/` can never match the SDK's `/`-prefixed paths
+
+**Symptom:** every `lilypad/launch.py` submit uploaded a ~5 GB code zip
+at ~1 MB/s (~85 min), making fresh launches look "invisible" on lilypad
+for over an hour. The zip was dominated by `perplexity/` clip caches
+(2.53 GB), the root `.venv` (1.20 GB), and `jspace/` (1.12 GB, mostly
+its own venv) — all things the exclude list was supposed to keep out.
+Actual code needed by a job: ~32 MB.
+
+**Root cause:** the lilypad SDK matches each candidate path as
+`"/" + path.relative_to(root)` (`lilypad/public/sdk_py/packaging_utils.py:48`,
+`_get_excludes`) — so the string under test is `/perplexity/clip_cache/...`.
+Every pattern in every config was anchored as `^perplexity/`, which can
+never match a string starting with `/`. All excludes across all 18
+launch configs were silently ignored on every launch to date (including
+completed runs n3sxdq and fbbpdd — they trained fine, just uploaded
+~50× the payload).
+
+**Fix:** anchor all patterns with a leading slash (`^/perplexity/`),
+escape the dot in `alpamayo1\.5`, and add previously-missing excludes
+for `/\.venv/` (unanchored — catches root and `jspace/.venv`),
+`^/jspace/`, and `^/\.git/` to the code-reward full config. Verified by
+replaying the SDK's own match logic over the repo: included payload
+drops 5 GB → 32.4 MB.: step_255 checkpoint mostly lost to max_keep=1 pruning; 24eb078 doesn't cover multi-GB payload
 
 **Symptom:** post-run S3 audit of `alpamayo-rl-llm-judge-mock-4dgpaq`
 (otherwise fully successful: 264/264 steps in one attempt, disk-eviction
