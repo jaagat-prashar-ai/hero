@@ -1,35 +1,53 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Generator: claude-opus-5 writes a scene-specific reward function.
+"""Generator: an LLM writes a scene-specific reward function.
 
 Sequential 3-step chain (VLM-CaR found one-shot generation unreliable;
 same expectation here): (1) name the scene's decisive events from the
 dossier, (2) define what faithful reasoning and correct behavior look like
 for those events, (3) emit one function matching the sandbox contract.
 
-Anthropic-client conventions mirror rl_posttrain/rewards/llm_judge.py:
-module-level client reuse, ANTHROPIC_API_KEY from the environment, and a
-server-side fallback to claude-opus-4-8 so a spurious safety-classifier
-decline degrades to the fallback model instead of failing the clip
-(driving-scene prompts are benign; this is belt-and-suspenders).
-The shared prefix (system prompt + API reference) carries cache_control so
-the 3 calls x N attempts x 5 clips mostly hit the prompt cache.
+Two backends, selected by the client object passed in (run_prototype's
+--backend flag):
+
+- anthropic (claude-opus-5): conventions mirror
+  rl_posttrain/rewards/llm_judge.py -- module-level client reuse,
+  ANTHROPIC_API_KEY from the environment, and a server-side fallback to
+  claude-opus-4-8 so a spurious safety-classifier decline degrades to the
+  fallback model instead of failing the clip. The system prompt carries
+  cache_control so the 3 calls x N attempts x 5 clips mostly hit the
+  prompt cache.
+- openai (gpt-4o): OpenAIChat below, raw chat-completions HTTP like
+  llm_judge.py's judge path, key from OPENAI_API_KEY or ~/.creds/openai.key.
+  2026-08-04 smoke runs use this (cheaper); opus-5 kept for a later
+  code-generation-quality comparison.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import json
+import os
 import re
+import time
+import urllib.request
+from pathlib import Path
 
 from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_fn
 
 GENERATOR_MODEL = "claude-opus-5"
 FALLBACK_MODEL = "claude-opus-4-8"
+OPENAI_MODEL = "gpt-4o"
 MAX_TOKENS = 8000
 
 # Hard spend ceiling across ALL calls in a run -- checked before every
-# request; the run aborts rather than exceed it. Opus 5 pricing per Mtok.
+# request; the run aborts rather than exceed it. Prices per Mtok.
 BUDGET_USD = 5.0
-_PRICE = {"in": 5.0, "out": 25.0, "cache_read": 0.50, "cache_write": 6.25}
+_PRICE_ANTHROPIC = {"in": 5.0, "out": 25.0, "cache_read": 0.50, "cache_write": 6.25}
+# gpt-4o: cached prompt tokens bill at half the input rate; there is no
+# cache-write surcharge, so "cache_write" (used only in the worst-case
+# headroom check) is just the input rate.
+_PRICE_OPENAI = {"in": 2.50, "out": 10.0, "cache_read": 1.25, "cache_write": 2.50}
+_PRICE = _PRICE_ANTHROPIC  # backward-compatible default
 
 
 class BudgetExceeded(Exception):

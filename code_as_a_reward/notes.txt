@@ -161,3 +161,11 @@ A beat with no connective is fine (it's just a commitment with no reason).
  # commit 6340a5a ("clipgen: 5-clip OOD sample data (5 event clusters, chunks 174/1694) +. manifest") sampled 5 clips from the ~1740-OOD set - deliberately one from each of 5 different event clusters. 
  # So the prototype tests the generator on 5 different kinds of scenario (e.g., the first one is a stop-behing-oversize-load scene) rather than 5 similar ones. 
  # For each of these clips, three files are pulled from the dataset chunks and checked in under clipgen/data/: the obstacle tracks parquet, the egomotion parquet, and the GT reasoning text (.coc.txt). manifest.json justs lists those five entries so run_prototype.py knows what to load. 
+
+# API stuff
+# generate.py is currently Anthropic-specific (opus-5 client, cache_control prompt caching, opus pricing the budget guard, opus-4-8 fallback). 
+# I'd add an OpenAI backend following the same raw-HTTP convention llm_judge.py uses: swap the price table,a nd drop the Anthropic-specific fallback (?).
+
+# Visualization: The runner already persists almost everything: per-clip dossier, full per-attempt transcripts (which contain the generated function source), per-attempt gate scores (pos_score, neg_p95, per-case breakdown), the passinf function files, and report.json with cost. 
+# Three changes: gpt-4o backend, richer per-attempt logging, HTML visualizer, commit each, then launch the run. 
+
