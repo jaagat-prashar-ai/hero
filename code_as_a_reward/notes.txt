@@ -128,3 +128,15 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Does the LR patch work? Does the KL anchor extend learning past step ~120? gets answered on code-reward for $0 in API spend, and only the one question code-reward can't answer - does the LLM judge itself provide learnable signal - gets spent on a judge run. 
 
 # code-reward-full-relaunch submitted now. runs on existing 352-clip warm cache, validates LR-scheduler patch, and tests whether KL+cosine cure the plateau. If its curve looks healthy, the same three settings + the scheduler patch get ported to the judge side, and then the judge canary is the only think left that costs real money.
+
+# n3sxdq: post-plateau degradation: reward slope hit exactly 0.000 around step ~100, and then entropy collapsed and grad norms spiked. Shape is the classic unanchored-policy story: once the reward has no more gradient to give, what remains is gradient noise. 
+# lr: early in training, real advantages are large and the reward term dwarfs a 1e-3 KL - learning proceeds unimpeded. 
+# Late in training, when advantags shrink toward noise, the KL term becomes comparatively dominant and holds the policy in place. That's precisely the phase-dependent behavior we want, tuned by making beta smaller. 
+
+# vendored recipe has inverted reasoning term: 
+    # 
+
+# Inspecting the run from alpamayo-rl-code-reward-full-p5fruu (Aug 3rd, 12:30 PDT, config code_reward_full/20260803200341).
+# Logs reveal flat reward mean (~-0.55), the reasoning scores sitting at -0.48...-0.56 below the -0.4 gate, the ~0.5 neutral prior, and the noisy per-step precision. 
+# The only parts referencing the earlier run, n3sxdq were for comparison
+
