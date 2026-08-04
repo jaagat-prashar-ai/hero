@@ -166,7 +166,12 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
 
 def _sync_out_to_s3(out_dir: Path, bucket: str, prefix: str) -> int:
     """Upload every file under out_dir to s3://bucket/prefix/ (the node's
-    disk is ephemeral; S3 is how results leave a lilypad workload)."""
+    disk is ephemeral; S3 is how results leave a lilypad workload).
+    put_object, NOT upload_file: the OCI S3-compat endpoint rejects
+    boto3's chunked transfer encoding ("AWS chunked encoding not
+    supported" -- killed run y6uw60's sync); same limitation run.py's
+    _CheckpointUploader documents. All clipgen outputs are tiny (<1 MB),
+    so whole-body put_object is fine."""
     import boto3
 
     s3 = boto3.client("s3")
@@ -174,16 +179,18 @@ def _sync_out_to_s3(out_dir: Path, bucket: str, prefix: str) -> int:
     for path in sorted(out_dir.rglob("*")):
         if path.is_file():
             key = f"{prefix}/{path.relative_to(out_dir)}"
-            s3.upload_file(str(path), bucket, key)
+            s3.put_object(Bucket=bucket, Key=key, Body=path.read_bytes())
             n += 1
     return n
 
 
 def clipgen_entrypoint(config: dict) -> None:
     """Lilypad generic-workload entrypoint (see configs/clipgen_smoke.yaml).
-    Runs the prototype, prints the summary into the workload logs, then
-    syncs the whole out/ tree (report.json, dossiers, transcripts,
-    reward_fns) to S3 for local inspection/report_html.py."""
+    Runs the prototype, prints the FULL report into the workload logs
+    (so results survive even if the S3 sync fails -- learned from y6uw60,
+    which lost every per-attempt detail to a sync crash), then syncs the
+    whole out/ tree (report.json, dossiers, transcripts, reward_fns) to S3
+    for local inspection/report_html.py."""
     out_dir = config.get("out_dir", "/tmp/clipgen_out")
     result = run(
         config["manifest"],
@@ -191,7 +198,9 @@ def clipgen_entrypoint(config: dict) -> None:
         dry_run=bool(config.get("dry_run", False)),
         backend=config.get("backend", "openai"),
     )
-    print(json.dumps({k: v for k, v in result.items() if k != "clips"}, indent=2))
+    print("CLIPGEN_REPORT_JSON_BEGIN")
+    print(json.dumps(result, default=str))
+    print("CLIPGEN_REPORT_JSON_END")
     n = _sync_out_to_s3(Path(out_dir), config["s3_bucket"], config["s3_prefix"].rstrip("/"))
     print(f"synced {n} files to s3://{config['s3_bucket']}/{config['s3_prefix']}")
 
