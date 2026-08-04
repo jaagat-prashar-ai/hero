@@ -12,9 +12,15 @@ Manifest (JSON list, one entry per clip):
 Usage:
     python -m code_as_a_reward.clipgen.run_prototype manifest.json out_dir
     python -m code_as_a_reward.clipgen.run_prototype manifest.json out_dir --dry-run
+    python -m code_as_a_reward.clipgen.run_prototype manifest.json out_dir --backend openai
 
 --dry-run builds dossiers and gate cases only (no API calls) -- use it to
-sanity-check the data before spending the ~$3 generation budget.
+sanity-check the data before spending the generation budget.
+--backend openai uses gpt-4o (2026-08-04 smoke runs); default anthropic
+(claude-opus-5) is kept for the later code-generation-quality comparison.
+
+Also exposes clipgen_entrypoint(config) for a lilypad generic workload
+(see configs/clipgen_smoke.yaml): same run(), then out_dir syncs to S3.
 
 Success criterion (fixed up front): >= 4 of 5 clips produce a gate-passing
 function within MAX_ATTEMPTS, and the source survives human reading.
@@ -66,7 +72,7 @@ def _load_clip(entry: dict) -> dict:
     }
 
 
-def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
+def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = "anthropic") -> dict:
     out = Path(out_dir)
     (out / "reward_fns").mkdir(parents=True, exist_ok=True)
     (out / "transcripts").mkdir(exist_ok=True)
@@ -74,9 +80,17 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
 
     client, tracker = None, CostTracker()
     if not dry_run:
-        import anthropic
+        if backend == "openai":
+            from code_as_a_reward.clipgen.generate import _PRICE_OPENAI, OpenAIChat
 
-        client = anthropic.Anthropic()
+            client = OpenAIChat()
+            tracker = CostTracker(prices=_PRICE_OPENAI)
+        elif backend == "anthropic":
+            import anthropic
+
+            client = anthropic.Anthropic()
+        else:
+            raise ValueError(f"unknown backend {backend!r} (openai | anthropic)")
 
     report: dict = {"clips": {}, "model": None}
     for clip in clips:
@@ -87,7 +101,13 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
             (c["gt_claims"], c["waypoints"]) for c in clips if c["clip_id"] != clip_id
         ]
         cases = gate_mod.build_cases(clip_id, clip["gt_claims"], clip["waypoints"], clip["hz"], others)
-        entry: dict = {"n_gate_cases": len(cases), "attempts": [], "passed": False}
+        entry: dict = {
+            "n_gate_cases": len(cases),
+            "gate_cases": [{"name": c.name, "kind": c.kind} for c in cases],
+            "gt_coc": clip["gt_coc"],
+            "attempts": [],
+            "passed": False,
+        }
         report["clips"][clip_id] = entry
         if dry_run:
             continue
@@ -109,6 +129,9 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
             transcript = result.transcript
             report["model"] = result.model
             gate_result = gate_mod.run_gate(result.source, cases)
+            # Persist EVERYTHING the attempt saw/produced: the source and the
+            # verifier feedback used to live only inside transcripts (source)
+            # or nowhere (feedback) -- report_html.py renders these.
             entry["attempts"].append(
                 {
                     "attempt": attempt,
@@ -116,6 +139,8 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
                     "neg_p95": gate_result.neg_p95,
                     "passed": gate_result.passed,
                     "scores": gate_result.scores,
+                    "source": result.source,
+                    "gate_feedback": None if gate_result.passed else gate_result.feedback(),
                 }
             )
             (out / "transcripts" / f"{clip_id}.attempt{attempt}.json").write_text(
@@ -139,9 +164,47 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False) -> dict:
     return report
 
 
+def _sync_out_to_s3(out_dir: Path, bucket: str, prefix: str) -> int:
+    """Upload every file under out_dir to s3://bucket/prefix/ (the node's
+    disk is ephemeral; S3 is how results leave a lilypad workload)."""
+    import boto3
+
+    s3 = boto3.client("s3")
+    n = 0
+    for path in sorted(out_dir.rglob("*")):
+        if path.is_file():
+            key = f"{prefix}/{path.relative_to(out_dir)}"
+            s3.upload_file(str(path), bucket, key)
+            n += 1
+    return n
+
+
+def clipgen_entrypoint(config: dict) -> None:
+    """Lilypad generic-workload entrypoint (see configs/clipgen_smoke.yaml).
+    Runs the prototype, prints the summary into the workload logs, then
+    syncs the whole out/ tree (report.json, dossiers, transcripts,
+    reward_fns) to S3 for local inspection/report_html.py."""
+    out_dir = config.get("out_dir", "/tmp/clipgen_out")
+    result = run(
+        config["manifest"],
+        out_dir,
+        dry_run=bool(config.get("dry_run", False)),
+        backend=config.get("backend", "openai"),
+    )
+    print(json.dumps({k: v for k, v in result.items() if k != "clips"}, indent=2))
+    n = _sync_out_to_s3(Path(out_dir), config["s3_bucket"], config["s3_prefix"].rstrip("/"))
+    print(f"synced {n} files to s3://{config['s3_bucket']}/{config['s3_prefix']}")
+
+
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if a != "--dry-run"]
-    result = run(args[0], args[1], dry_run="--dry-run" in sys.argv)
+    argv = sys.argv[1:]
+    backend = "anthropic"
+    if "--backend" in argv:
+        i = argv.index("--backend")
+        backend = argv[i + 1]
+        argv = argv[:i] + argv[i + 2 :]
+    args = [a for a in argv if a != "--dry-run"]
+    result = run(args[0], args[1], dry_run="--dry-run" in argv, backend=backend)
     print(json.dumps({k: v for k, v in result.items() if k != "clips"}, indent=2))
     for cid, e in result["clips"].items():
         print(f"{cid}: passed={e['passed']} attempts={len(e['attempts'])}")

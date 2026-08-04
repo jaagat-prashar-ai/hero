@@ -29,6 +29,7 @@ import json
 import os
 import re
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -57,8 +58,9 @@ class BudgetExceeded(Exception):
 class CostTracker:
     """Accumulates real usage from API responses into dollars."""
 
-    def __init__(self, budget_usd: float = BUDGET_USD):
+    def __init__(self, budget_usd: float = BUDGET_USD, prices: dict[str, float] = _PRICE):
         self.budget_usd = budget_usd
+        self.prices = prices
         self.spent_usd = 0.0
         self.calls = 0
 
@@ -68,19 +70,34 @@ class CostTracker:
         # billed entirely at the cache-WRITE rate, plus a full MAX_TOKENS
         # completion. The API's own max_tokens cap makes the output side a
         # hard bound, so spent + worst_next <= budget is a true ceiling.
-        worst_next = (24_000 * _PRICE["cache_write"] + MAX_TOKENS * _PRICE["out"]) / 1e6
+        p = self.prices
+        worst_next = (24_000 * p["cache_write"] + MAX_TOKENS * p["out"]) / 1e6
         if self.spent_usd + worst_next > self.budget_usd:
             raise BudgetExceeded(
                 f"spent ${self.spent_usd:.2f} of ${self.budget_usd:.2f}; refusing the next call"
             )
 
     def add(self, usage) -> None:
+        """Anthropic usage object (uncached input / cache split reported)."""
+        p = self.prices
         self.calls += 1
         self.spent_usd += (
-            (usage.input_tokens or 0) * _PRICE["in"]
-            + (usage.output_tokens or 0) * _PRICE["out"]
-            + (getattr(usage, "cache_read_input_tokens", 0) or 0) * _PRICE["cache_read"]
-            + (getattr(usage, "cache_creation_input_tokens", 0) or 0) * _PRICE["cache_write"]
+            (usage.input_tokens or 0) * p["in"]
+            + (usage.output_tokens or 0) * p["out"]
+            + (getattr(usage, "cache_read_input_tokens", 0) or 0) * p["cache_read"]
+            + (getattr(usage, "cache_creation_input_tokens", 0) or 0) * p["cache_write"]
+        ) / 1e6
+
+    def add_openai(self, usage: dict) -> None:
+        """OpenAI usage dict: prompt_tokens INCLUDES cached tokens, which
+        bill at the cache_read rate; no cache-write surcharge exists."""
+        p = self.prices
+        cached = (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0) or 0
+        self.calls += 1
+        self.spent_usd += (
+            (usage.get("prompt_tokens", 0) - cached) * p["in"]
+            + cached * p["cache_read"]
+            + usage.get("completion_tokens", 0) * p["out"]
         ) / 1e6
 
 _SYSTEM = """\
@@ -195,6 +212,64 @@ class GenerationRefused(Exception):
     """Safety classifiers declined and the fallback chain also refused."""
 
 
+_OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+_DEFAULT_OPENAI_KEY_PATH = Path.home() / ".creds" / "openai.key"
+
+
+class OpenAIChat:
+    """Minimal chat-completions client, stdlib-only so the lilypad generic
+    workload needs no extra pip deps. Key resolution mirrors
+    rl_posttrain/rewards/llm_judge.py: OPENAI_API_KEY wins, else
+    ~/.creds/openai.key."""
+
+    def __init__(self, model: str = OPENAI_MODEL, key_path: Path = _DEFAULT_OPENAI_KEY_PATH):
+        self.model = model
+        key = os.environ.get("OPENAI_API_KEY", "").strip()
+        if not key and key_path.exists():
+            key = key_path.read_text().strip()
+        if not key:
+            raise RuntimeError(
+                f"No OpenAI credential: OPENAI_API_KEY unset and {key_path} missing"
+            )
+        self._key = key
+
+    def complete(self, system: str, messages: list[dict]) -> dict:
+        body = json.dumps(
+            {
+                "model": self.model,
+                "max_tokens": MAX_TOKENS,
+                "messages": [{"role": "system", "content": system}] + messages,
+            }
+        ).encode()
+        last_err: Exception | None = None
+        for attempt in range(4):
+            req = urllib.request.Request(
+                _OPENAI_CHAT_URL,
+                data=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self._key}",
+                },
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=300) as resp:
+                    return json.loads(resp.read())
+            except urllib.error.HTTPError as e:
+                detail = e.read().decode(errors="replace")[:500]
+                if e.code in (429, 500, 502, 503, 529) and attempt < 3:
+                    time.sleep(2 ** (attempt + 1))
+                    last_err = RuntimeError(f"HTTP {e.code}: {detail}")
+                    continue
+                raise RuntimeError(f"OpenAI HTTP {e.code}: {detail}") from e
+            except (urllib.error.URLError, TimeoutError) as e:
+                if attempt < 3:
+                    time.sleep(2 ** (attempt + 1))
+                    last_err = e
+                    continue
+                raise
+        raise RuntimeError(f"OpenAI request failed after retries: {last_err}")
+
+
 def extract_code(text: str) -> str:
     """Last ```python fenced block in the reply (the chain may show drafts)."""
     blocks = re.findall(r"```(?:python)?\n(.*?)```", text, flags=re.DOTALL)
@@ -206,6 +281,14 @@ def extract_code(text: str) -> str:
 def _call(client, messages: list[dict], tracker: CostTracker | None = None) -> "object":
     if tracker is not None:
         tracker.check()
+    if isinstance(client, OpenAIChat):
+        response = client.complete(_SYSTEM, messages)
+        if tracker is not None:
+            tracker.add_openai(response.get("usage", {}))
+        choice = response["choices"][0]
+        if choice["message"].get("refusal") or choice.get("finish_reason") == "content_filter":
+            raise GenerationRefused("generator request refused by safety classifiers")
+        return response
     response = client.beta.messages.create(
         model=GENERATOR_MODEL,
         max_tokens=MAX_TOKENS,
@@ -224,7 +307,13 @@ def _call(client, messages: list[dict], tracker: CostTracker | None = None) -> "
 
 
 def _text(response) -> str:
+    if isinstance(response, dict):  # OpenAI chat-completions shape
+        return response["choices"][0]["message"].get("content") or ""
     return "".join(b.text for b in response.content if b.type == "text")
+
+
+def _model(response) -> str:
+    return response["model"] if isinstance(response, dict) else response.model
 
 
 def generate_reward_fn(
@@ -260,4 +349,4 @@ def generate_reward_fn(
 
     source = extract_code(_text(response))
     compile_reward_fn(source)  # raises RewardFnError on contract violations
-    return GenerationResult(source=source, transcript=messages, model=response.model)
+    return GenerationResult(source=source, transcript=messages, model=_model(response))

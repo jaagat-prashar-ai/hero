@@ -1,0 +1,12 @@
+# Deps for the clipgen generic workload (run_prototype.clipgen_entrypoint):
+# numpy/pandas/pyarrow for dossier + gate feature extraction, boto3 for the
+# out/ -> S3 results sync. The OpenAI backend is stdlib urllib -- no SDK.
+#
+# torch==2.7.1 is dead weight (never imported by clipgen) but REQUIRED by
+# lilypad/launch.py's preflight validator for any pip_requirements_path
+# workload -- same situation as ood_eval/requirements.txt documents.
+torch==2.7.1
+numpy
+pandas
+pyarrow
+boto3

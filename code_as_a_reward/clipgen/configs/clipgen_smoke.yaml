@@ -1,0 +1,72 @@
+# clipgen gpt-4o smoke run: LLM writes a per-scene reward function for each
+# of the 5 committed OOD sample clips; the empirical gate accepts/rejects
+# with up to 3 feedback-driven attempts. Success bar: >= 4/5 clips pass.
+#
+# CPU-only generic workload -- the job is 25-45 OpenAI chat calls plus
+# numpy/pandas gate scoring; no GPU, no HF downloads (all inputs are the
+# small parquet/txt files committed under clipgen/data/). API budget has a
+# hard $5 abort ceiling inside generate.py (expected spend ~$0.75-1.50 on
+# gpt-4o).
+#
+# Results (report.json, dossiers, transcripts, reward_fns) sync to
+#   s3://research-datasets-chicago/code_as_a_reward/clipgen/runs/gpt4o-smoke/
+# because the node's disk is ephemeral. Inspect locally with:
+#   aws s3 sync s3://research-datasets-chicago/code_as_a_reward/clipgen/runs/gpt4o-smoke/ out/
+#   python -m code_as_a_reward.clipgen.report_html out/
+#
+# Submit (from repo root; OPENAI_API_KEY must be in the submitting shell --
+# `export OPENAI_API_KEY=$(cat ~/.creds/openai.key)`):
+#   python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_smoke.yaml
+name: clipgen-gpt4o-smoke
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: code_as_a_reward.clipgen.run_prototype.clipgen_entrypoint
+  entrypoint_fn_config:
+    manifest: "code_as_a_reward/clipgen/data/manifest.json"
+    out_dir: "/tmp/clipgen_out"
+    backend: "openai"
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "code_as_a_reward/clipgen/runs/gpt4o-smoke"
+
+cluster_resources:
+  num_cpu_nodes: 1
+  customer_resource: research
+  # Non-preemptible: preemption mid-run would re-pay real API dollars on
+  # relaunch for a job that only takes minutes.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: -1
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  required_environment_variables:
+    - OPENAI_API_KEY
+  code_assets:
+    # This config lives at code_as_a_reward/clipgen/configs/ -- 3 levels
+    # below repo root. clipgen imports code_as_a_reward + pref_pairs
+    # (trajectory_features); everything else is excluded (anchored ^/dir/
+    # per the 4b79f5c regex fix).
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/third_party/"
+      - "^/convos/"
+      - "^/perplexity/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"
