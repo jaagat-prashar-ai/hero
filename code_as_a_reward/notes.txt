@@ -169,3 +169,24 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Visualization: The runner already persists almost everything: per-clip dossier, full per-attempt transcripts (which contain the generated function source), per-attempt gate scores (pos_score, neg_p95, per-case breakdown), the passinf function files, and report.json with cost. 
 # Three changes: gpt-4o backend, richer per-attempt logging, HTML visualizer, commit each, then launch the run. 
 
+# _PRICE dicts are pure bookeeping. They're dollar rates per million tokens used by CostTracker to conver the API's reported usage into spend. They never touch the request; the model doesn't know how they exist and generates exactly the same output either way. 
+# "cache_read/cache_write" are just the billing rates for cached prompt tokens (cheaper than fresh input), not any kind of cache behavior control.
+
+# Two things in this file do constrain generation:
+    # MAX_TOKENS = 8000 - the real output cap per call. This could hurt. If a reply got truncated mid-block, extract_code would fail and burn one of the 3 attempts. 
+    # 8K tokens is roughly 300+ lines of Python plus prose, the expected replies (an event list, a rubric definition, one ~50-100 line function) sit far below it, so it's a safety bound, not a squeeze. 
+    # BUDGET_USD = 5.0, the abort ceiling. Note how it restricts: check() runs before each call and refuses to send if the worst-case cost of one more full call could cross $5. So it never truncates or degrades a reponse: the run either makes a complete call or stops cleanly. 
+
+ # entrypoint: CLI arg handling. 
+ # now visualizer, writing report_html.py, it renders everything in out/ into one self-contained HTML page. 
+
+# Run launched: clipgen-gpt4o-smoke-y6yuw60 - the 5-clip gpt-4o smoke test, submitted a minute ago. 
+# Polling its status in the background and will report when it finishes (expect 10-20 minutes: CPU node scheduling + pip setup dominates). The actual smoke run in minutes. 
+
+# A few fixes: 
+    # gpt-4o backend in generate.py: stdlib-only HTTP client, key from ~/.creds/openai.key, retry on 429/5xx, gpt-4o pricing in the budget tracker, same $5 hard abort ceiling. Verified end-to-end with a $0.001 live preflight call before launching. 
+    # Full-data capture: report.json now stores, per attempt: the generated reward function source, every gate cases's score, and the exact verifier feedback sent to the model. Previously source lived only in transcripts and feedback wasn't persisted at all. 
+    # Visualizer: report_html.py renders a run's output into one self-contained report.html: cost/calls/pass-rate KPIs up top, then per clip: the dossier the generator read, GT rasoning, each attempt's function with its gate scorecard (Every case vs its threshold, color-coded), the feedback between attempts, and the full collapsible transcripts. 
+    # Lilypad config: clipgen/configs/clipgen_smoke.yaml, CPU-only generic workload (no GPU wasted), results sync to 
+    # s3:://research-datasets-chicago/code_as_a_reward/clipgen/runs/gpt4o-smoke/ since the node disk is ephermeral. 
+
