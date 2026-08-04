@@ -140,3 +140,24 @@ A beat with no connective is fine (it's just a commitment with no reason).
 # Logs reveal flat reward mean (~-0.55), the reasoning scores sitting at -0.48...-0.56 below the -0.4 gate, the ~0.5 neutral prior, and the noisy per-step precision. 
 # The only parts referencing the earlier run, n3sxdq were for comparison
 
+    # 
+
+# Clipgen framework
+# LLM-generated local reward function: clipgen/generate.py/. claude-opus-5 writes a scene-specific reward function via a sequential 3-step chain (name the scene's decisive events from the dossier, define faithful reasoning/correct behavior from them, emit one function matching the sandbox contract), with a $% hard budget ceiling and prompt caching. 
+# clipgen/dossier.py builds the scene dossier (review), clipgen/sandbox.py compiles/contract-checks the emitted function. 
+# External verifier vs perturbations: clipgen/gate.py. A candidate function is accepted only if it separates what it should reward from what it shouldn't: the clip's GT claims + GT trajectory must score >= POS_MIN, while perturbed negatives (GT trajectory time-reversed, flattened to cosntant-speed no-reaction, cross-lip trajectory swaps, features so derived fields stay consistent). 
+# Revision with verifier feedback: generate.py's retry path plus the loop at run_prototype.py:96. When the gate rejects a candidate, the gate's failure results are formatted into a _RETRY prompt appended to the same transcript, and the model revises up to MAX_ATTEMPTS = 3.
+# So the "revise the rubric with verifier feedback" mechanism is exactly there. 
+# Harness: clipgen/run_prototype.py: dossier -> generate -> gate -> report over a 5-clip manifest (data already staged in clipgen/data/). Success bar fixed up front: >= 4/5 clips produce a gate-passing function. 
+
+# Status: it has only ever been dry-run. out/report.json shows 0 API calls, $0 spent, empty attempt lists - the gate cases were built (9-11 per clip) but no functions were ever generated. That matches the standing note that the prototype is running go-ahed and the ~3-5 opus-5 spend. 
+
+# The dossier is the scene's ground-truth compressed into ~15 lines of structured text that the generator model reads before writing the reward function. dossier.py takes the same inputs the global reward uses - obstacle tracks + expert ego trajectory - and reduces them to: the 12 nearest tracks (class, visibility window, closest approach distance/time/bearing), a trajectory summary (speed profile, stop/yield events, lateral offset, heading change), and the GT reasoning annotation. The point is that it contains the scene's actual numbers (e.g., "closest 3.5m at t=5.4s", "speed drop 4.3 m/s at t=17.2s"), so the generated function can hard-code scene-specific thresholds instad of inherenting hand-tuned globals - that's what makes the reward "local."
+
+# The 4/5 bar is just the prototype's pre-registered scucess criterion. The harness (run_prototype.py) runs 5 clips through dossier -> generate -> gate, giving each clip up to 3 generate-revise attempts. Thee experiment counts as a success -- i.e., worth scaling beyond a prototype - only if at least 4 of the 5 clips end up with a function that passes the empeirical gate 
+
+# 5 clips: 
+# There's five specific, distinct real clips from the Alpamayo OOD reasoning set, downloaded once and commited to the repo as a protoype's test fixture. 
+ # commit 6340a5a ("clipgen: 5-clip OOD sample data (5 event clusters, chunks 174/1694) +. manifest") sampled 5 clips from the ~1740-OOD set - deliberately one from each of 5 different event clusters. 
+ # So the prototype tests the generator on 5 different kinds of scenario (e.g., the first one is a stop-behing-oversize-load scene) rather than 5 similar ones. 
+ # For each of these clips, three files are pulled from the dataset chunks and checked in under clipgen/data/: the obstacle tracks parquet, the egomotion parquet, and the GT reasoning text (.coc.txt). manifest.json justs lists those five entries so run_prototype.py knows what to load. 
