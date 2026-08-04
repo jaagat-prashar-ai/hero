@@ -18,6 +18,9 @@
 # `export OPENAI_API_KEY=$(cat ~/.creds/openai.key)`):
 #   python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_smoke.yaml
 name: clipgen-gpt4o-smoke
+# Not a training job and no model is loaded -- the "other.other" category
+# (same convention as build_wds's wds_shard_build and inspect_logs).
+model_identifier: other.other.clipgen_reward_smoke.default.v1
 
 workload_variant_config:
   workload_type: "generic"
