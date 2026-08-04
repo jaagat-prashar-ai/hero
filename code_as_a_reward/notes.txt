@@ -190,3 +190,10 @@ A beat with no connective is fine (it's just a commitment with no reason).
     # Lilypad config: clipgen/configs/clipgen_smoke.yaml, CPU-only generic workload (no GPU wasted), results sync to 
     # s3:://research-datasets-chicago/code_as_a_reward/clipgen/runs/gpt4o-smoke/ since the node disk is ephermeral. 
 
+    # Two compute places: 
+        # Generation: happens on OpenAI's servers; our side just makes ~25-45 HTTP calls and waits. 
+        # Verification: the gate executs the generated Python function on a handful of 200-waypoint numpy trajectories per clip. That's microseconds of arithmetic; a laptop core is overkill already. 
+
+        # No model to load, no inference, no training - so a GPU would sit at 0% utilization for the whole run while blocking a slice of an A100 node someon eelse could use (and your OOD-eval config's own notes document that generic workloads don't even get GPU access unless you go through the Ray Train path; that job needed it because it ran Alpamayo 1.5 inference locally; this one doesn't)
+        # Hence num_cpu_nodes: 1 and the generic workload type: cheapest possible slot, same result. The contrast with the p5fruu training run (8xA100 for 5.5 hours) is exactly the point of this prototype. 
+        # It's a quick feasibility check, not a training job.  
