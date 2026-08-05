@@ -1,20 +1,23 @@
 """Lilypad entrypoint for SimLingo training runs.
 
-Downloads the SimLingo dataset tarballs from the S3 mirror
-(s3://research-datasets-chicago/hf-datasets/RenzKa/simlingo/), extracts them
-into the node-local working dir in the layout dataset_base.py expects
-(database/simlingo/{data,dreamer,commentary,drivelm}/simlingo/...), symlinks
-that into the shipped repo, and execs simlingo_training/train.py with the
-hydra overrides from the workload config.
+Execution model: with cluster_resources.num_gpus=N, Lilypad's TorchTrainer
+invokes smoke_train in N worker processes on the node, each pinned to one GPU
+via CUDA_VISIBLE_DEVICES. Rank 0 mirrors the dataset from S3 onto the shared
+node-local workdir; the other ranks wait on a marker file. Every rank then
+execs simlingo_training/train.py as one member of a Lightning DDP/DeepSpeed
+group (devices=1, num_nodes=N) rendezvousing on localhost.
 """
 import os
 import subprocess
 import sys
 import tarfile
+import time
 from pathlib import Path
 from typing import Any
 
 import boto3
+
+MASTER_PORT = "29617"  # distinct from Ray's own process-group port
 
 
 def _s3_client():
@@ -32,17 +35,18 @@ def _download_and_extract(bucket: str, prefix: str, workdir: Path) -> None:
 
     s3 = _s3_client()
     expected = int(os.environ.get("SIMLINGO_EXPECTED_OBJECTS", "0")) or None
-    deadline = __import__("time").time() + 45 * 60
+    deadline = time.time() + 45 * 60
     while True:
         keys = []
         for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
             keys.extend(o["Key"] for o in page.get("Contents", []))
         if expected is None or len(keys) >= expected:
             break
-        if __import__("time").time() > deadline:
+        if time.time() > deadline:
             raise RuntimeError(f"mirror incomplete: {len(keys)}/{expected} objects under s3://{bucket}/{prefix}")
         print(f"[simlingo] mirror still filling ({len(keys)}/{expected}), waiting 60s", flush=True)
-        __import__("time").sleep(60)
+        time.sleep(60)
+
     tars = [k for k in keys if k.endswith(".tar.gz")]
     others = [k for k in keys if not k.endswith(".tar.gz")]
     print(f"[simlingo] mirroring {len(tars)} tarballs + {len(others)} other objects "
@@ -64,27 +68,57 @@ def _download_and_extract(bucket: str, prefix: str, workdir: Path) -> None:
     marker.touch()
 
 
+def _wait_for_marker(workdir: Path, timeout_s: int = 3600) -> None:
+    marker = workdir / ".extract_done"
+    deadline = time.time() + timeout_s
+    while not marker.exists():
+        if time.time() > deadline:
+            raise RuntimeError(f"timed out waiting for rank 0 to finish extracting ({marker})")
+        time.sleep(20)
+
+
 def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
     cfg = training_fn_config
+    rank = int(os.environ.get("RANK", "0"))
+    world_size = int(os.environ.get("WORLD_SIZE", "1"))
     workdir = Path(cfg.get("workdir", "/mnt/work/simlingo_smoke"))
     workdir.mkdir(parents=True, exist_ok=True)
     # keep the InternVL2 download off the small root disk
     os.environ.setdefault("HF_HOME", str(workdir / "hf_cache"))
 
-    _download_and_extract(cfg["s3_bucket"], cfg["s3_prefix"].rstrip("/") + "/", workdir)
+    if rank == 0:
+        _download_and_extract(cfg["s3_bucket"], cfg["s3_prefix"].rstrip("/") + "/", workdir)
+    else:
+        _wait_for_marker(workdir)
 
     repo_root = Path(__file__).resolve().parents[1]
     sim_root = repo_root / "simlingo" / "simlingo"
     # train.py resolves data_path relative to its cwd: database/simlingo -> node-local dir
     db_link = sim_root / "database"
-    if not db_link.is_symlink() and not db_link.exists():
+    try:
         db_link.symlink_to(workdir / "database")
+    except FileExistsError:
+        pass
 
+    # Each rank runs train.py as one "node" of a Lightning num_nodes=WORLD_SIZE
+    # group (each Ray worker only sees its own GPU). Rendezvous on localhost at
+    # a port distinct from Ray's; NODE_RANK gives Lightning the global rank and
+    # RANK keeps rank_zero_only (e.g. the wandb logger) correct pre-init.
     env = dict(os.environ)
     env["PYTHONPATH"] = f"{sim_root}:{env.get('PYTHONPATH', '')}"
-    cmd = [sys.executable, "simlingo_training/train.py", *cfg.get("hydra_overrides", [])]
-    print(f"[simlingo] launching: {' '.join(cmd)}", flush=True)
+    env.pop("WORLD_SIZE", None)
+    env.pop("GROUP_RANK", None)
+    env["MASTER_ADDR"] = "127.0.0.1"
+    env["MASTER_PORT"] = MASTER_PORT
+    env["NODE_RANK"] = str(rank)
+    env["RANK"] = str(rank)
+    env["LOCAL_RANK"] = "0"
+
+    overrides = list(cfg.get("hydra_overrides", []))
+    overrides += [f"gpus=1", f"num_nodes={world_size}"]
+    cmd = [sys.executable, "simlingo_training/train.py", *overrides]
+    print(f"[simlingo] rank {rank}/{world_size} launching: {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=sim_root, env=env)
     if result.returncode != 0:
-        raise RuntimeError(f"train.py exited with code {result.returncode}")
-    print("[simlingo] training finished", flush=True)
+        raise RuntimeError(f"train.py exited with code {result.returncode} on rank {rank}")
+    print(f"[simlingo] rank {rank} training finished", flush=True)

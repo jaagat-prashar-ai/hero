@@ -135,6 +135,7 @@ def main(cfg: TrainConfig):
             benchmark=True,
             callbacks=callbacks,
             devices=cfg.gpus,
+            num_nodes=cfg.num_nodes,
             # enable_checkpointing=False,
             gradient_clip_val=0.3,
             # gradient_clip_algorithm="value",

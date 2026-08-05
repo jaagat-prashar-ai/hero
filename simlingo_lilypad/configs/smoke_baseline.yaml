@@ -4,6 +4,7 @@
 # the only difference between the two runs is the alignment loss itself.
 name: simlingo-baseline-smoke
 model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
 workload_variant_config:
   workload_type: "training"
   training_fn: simlingo_lilypad.run.smoke_train
@@ -14,7 +15,6 @@ workload_variant_config:
     hydra_overrides:
       - experiment=simlingo_seed1
       - data_module=carla_no_buckets
-      - gpus=8
       - max_epochs=2
       - val_every_n_epochs=1
       - data_module.batch_size=4
@@ -50,6 +50,7 @@ runtime_environment:
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
     AWS_DEFAULT_REGION: us-chicago-1
+    SIMLINGO_EXPECTED_OBJECTS: "121"
 
   code_assets:
     root_directory: .

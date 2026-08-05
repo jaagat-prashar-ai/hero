@@ -3,6 +3,7 @@
 # Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/smoke_contrastive.yaml
 name: simlingo-contrastive-smoke
 model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
 workload_variant_config:
   workload_type: "training"
   training_fn: simlingo_lilypad.run.smoke_train
@@ -14,7 +15,6 @@ workload_variant_config:
       - experiment=simlingo_seed1
       # subset has no bucket index files; sample uniformly instead
       - data_module=carla_no_buckets
-      - gpus=8
       - max_epochs=2
       - val_every_n_epochs=1
       # batch_size counts dataset items; dreamer items expand to K=4 samples,
@@ -54,6 +54,7 @@ runtime_environment:
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
     AWS_DEFAULT_REGION: us-chicago-1
+    SIMLINGO_EXPECTED_OBJECTS: "121"
 
   code_assets:
     root_directory: .

@@ -130,6 +130,9 @@ class TrainConfig:
 
     seed: int = 42
     gpus: int = 8
+    # >1 when each DDP member is launched externally as its own "node"
+    # (e.g. one process per Ray train worker on Lilypad)
+    num_nodes: int = 1
 
     resume: bool = False
     resume_path: Optional[str] = None
