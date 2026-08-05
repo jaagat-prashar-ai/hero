@@ -235,3 +235,99 @@ E.g. "Decelerate to maintain a safe distnace from the lead vehicle" parses to ro
 
     # Prompt/harness is the primary culprit: The step-3 rubric instructs an additive 0.3 perception + 0.3 commitment + 0.4 exexcution split, while the gate demands trajectory negatieves - which carry the full GT claims - score <= 0.3 
 
+# Rendered dossiers themselves aren't echoed into the run logs (only the final report is), but dossier.py fully determines their shape. Each clip's generation is a 3-turn conversation where the LLM receives. 
+    # The scene dossier (build_dossier, dossier.py:121-139), ~20-30 lines of this scene's actual numbers: 
+
+    CLIP 01340cf8-...
+    OBSTACLE TRACKS (ego-relative, nearest first):
+        - track 32 [trailer] visible 0.0-19.8s; closest 8.2m (ahead) at t=17.5s
+        - track 210 [heavy_truck] visible 2.1-19.8s; closest 11.4m (ahead) at t=16.0s
+        - ... (up to 12 tracks: id, class, visiblity window, closest approach, bearing)
+
+
+    EXPERT EGO TRAJECTORY (ground truth):
+        - duration: 19.8s at dt=0.10s, distance 41.3m
+        - speed: 4.4 m/s initial -> min 0.1 m/s at t=17.2s -> 0.1 m/s final (drop 4.3 m/s)
+        - lateral offset: final -0.05m, max |offset| 0.31m
+        - events: stop=True yield=false
+
+    GT Reasoning Annotation: 
+        - Decelerate to maintain a safe distance form the lead vehicle with oversize load ahead. 
+        (numbers illustrative esxcept the ones the generated docstring echoes back - "Trakc 32", "drop 4.3 m/s," "stop by t=17.2s" came straight from the clip's dossier)
+
+    Turn 1-2: the model does its own scene anaysis: step 1 asks it to name the decisive events ("which obstacles actually sontrain the ego, when, waht did th expert do"); step 2 asks it to deifne faithful vs unfaithful behavior for thos eevents with thresholds deerived from the scene's numbers. 
+    Turn 3: write the function, given teh claims/traj API reference plus tthe exact parsed GT claim objects (the render_g_Tclaims block - added after the pduuqq smoke, where the model predicated credit on track IDs that never appear in claims).
+
+    # Dossier.py:  
+        # Inputs, all from the clip's ground truth:
+        - the clip's obstacle tracks (every object's position over time),
+        - the expert driver's trajectory (what the human actually drove),
+        - the GT reasoning sentence ("Decelerate to maintain a safe distance...").
+
+    # Processing:
+    1. Summarize each obstacle track to one line — for each track, compute when it's visible, its closest approach to the ego (distance + time), and its direction at that moment (ahead/left/right/behind, simple angle buckets). Keep the 12 nearest tracks, sorted closest-first.
+    2. Summarize what the expert did in ~4 lines — initial/min/final speed and when the minimum happened, total speed drop, distance covered, final lateral offset, and whether a stop/yield occurred.
+    3. Append the GT reasoning sentence verbatim.
+
+
+dossier.py contains six pieces:
+
+1. _bearing(x, y) — angle of a point in the ego frame → bucket: within ±20° = "ahead", beyond ±120° = "behind", else "left"/"right".
+2. summarize_tracks(scene) — for each annotated obstacle track: compute distance √(x²+y²) at every sample, take min → closest approach (m) and its time; first/last timestamp → visibility window; _bearing at the closest moment. Sort all tracks by closest approach, keep nearest 12.
+3. waypoints_from_egomotion(df, hz=10) — raw egomotion log → (N, 2) waypoint array: finds the timestamp/x/y columns across naming variants, converts µs→s, interpolates x and y onto a uniform 10 Hz grid.
+4. ego_lines(traj) — 4–5 summary lines from the expert's TrajectoryFeatures: duration + distance; initial/min/final speed with the time of the min and total drop; final and max lateral offset; stop/yield event flags; heading change only if distance ≥ 5 m, otherwise a "nearly stationary" note.
+5. build_dossier(scene, gt_traj, gt_coc) — renders the final text: clip ID, one line per track from (2) (- track 32 [trailer] visible 0.0–19.8 s; closest 8.2 m (ahead) at t=17.5 s), a note if tracks were omitted, the ego lines from (4), then the GT reasoning sentence verbatim. Returns one ~25-line string — this is what the generator LLM reads as Step 1.
+6. features_from_waypoints(...) — thin wrapper around extract_features for callers outside pref_pairs.
+    
+Before: 
+- we told gpt 0.3 points for peception claims, 0.3 for commitment claims, and 0.4 for execution. 
+# The gate tested the function against the negatives built by mixing clips together: GT reasoning paired with other clips' trajectories, other clips'reasoning paried with teh GT rajecotyr, plus revsersd/falttened trajectories. 
+# Every negative had to score <= 0.3 absolute. 
+
+Now: 
+- The prompt gives no formula. It says: reason about waht faithfulness means in this scene, and invent whether scoring logic and heuristics capture it - perception/commitment/execution are suggested to include, but not as weights. 
+# Model is now explicitly told that the scores are used to rank rollouts (ordering matters, calibration doesn't), and the function will be tested against corruptions of the rollout itself - so checks built ons tatistics that corruption preserves (min/max speed, "some deviation happened" are not good).
+# The gate now perturbs the same rollout (trajectory reversed, trajectory flattened to no-reaction, reasoning gutted, commitments deleted) and requires each corruption to score at least 0.4 below the intact pair - a separation test, not an absolute ceiling. 
+
+The same perturbation battery is exposed as a standalone verifier: 
+# The perturbation logic isnt' buried inside the generation loop - it's two standalone functions in gate.py that work on any (claims, trajectory) pair, not just the ground truth: 
+    - build_perturbations(scene_id, claims, waypoints, hz) - takes whatever rollout you hand it and returns the battery (the intact pair as positive, pluts its corruptions: trajectory reversed, trajectory flattened, claims gutted, commitments deleted).
+# run_gate(source, cases) - scores every case through the generated reward function and checks the separation criterion (each corruoption >= 0.4 below the intact score)
+
+# Intact case: GT claims + GT trajectory -> must score >= 0.7
+# GT claims + GT trajectory reversed -> must drop >= 0.4 
+# GT claims + GT trajectory flattened -> must drop >= 0.4 
+# GT claims gutted + GT trajectory -> must drop >= 0.4 
+# GT commitments deleted + GT trajectory -> must drop >= 0.4 
+
+# Disgram this entire workflow and understand it to the core. 
+# We have a GRPO gate-verifier. 
+
+# Fix improved: don't pre-determien weights for commitment, perception, verifier: 
+
+# What got fixed by the redesign: 
+    # The claims side now works perfectly. gutted_claims drops to 0.00 and no_commitments drops substantially in nearly every attempt - reward functions are correctly binding credit to the rigth canonical claims. 
+    # No crashes. Zero numpy-truthiness errors (last run lost 3 of 15 attempts to them)
+    # No more unwinnable cases or 0.6 claims-floor - the old failure modes are gone. 
+
+# The one remaining failure mode: execution checks are too strict, failing on GT itself. 
+# eece4a2f; perception 0.25 + commitments 0.25 + causal 0.25, execution 0.0): its execution check requires np.all(np.diff(speed) <= 0) - perfectly monotonic deceleration. 
+# Real trajectories are noisy; the GT has small speed-ups, so the check fails on the ground truth. 
+# Execution contributes zero to every case, so reversing the trajectory changes nothing -> reversed_traj ties the positive at 0.75 -> gate correctly rejects the function as trajectory-bloind. 
+
+# real trajectories are nosiy; never require exact monotonicity or equality; use windowed thresholds with tolerance. 
+# 
+
+#we generate an internal reward function for each scene
+# the model outputs reasoning and actions
+# we feed this into the reward, do GRPO get the scores, but then do a gate check on the pair that is most probable and compare it to other counterfactuals  
+    # we want good good not just good among suboptimal 
+
+# for pre-training,e xplore multiple different counterfactuals in one loop 
+    # explore the idea of Tree of Thought
+    # we form multiple reasoning branches, many of which contain counterfactuals, and pair them with action chunks. 
+    # this is the dataset, but during training, the model ...
+
+# i think the idea of a really good dataset for going from actions to semantics is strong. 
+# if we can do this and minimize the loss. 
+ # think about this more! 
