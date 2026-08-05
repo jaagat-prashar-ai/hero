@@ -1,0 +1,42 @@
+
+# CLIP-style scoring: two small learned encoders map each modality into a shared embedding SPACE
+# "Score" is just the dot product there
+
+# Text side: for each of the K instructions, pool the LLM's hidden states over the instruction tokens (mean-pool), pass through a small projection MLP -> vector z_text (e.g., 256-d, L2-normalized)
+# Trajectory side: take the K predicted waypoint sequences [F, 2], flatten, pass through a small MLP -> z_traj (same dim, normalzied). 
+# Score matrix: within one frame's group, S[i][j] = z_text[i] times z_traj[j] / t - a KxK matrix of scores
+# Loss: cross entropy pushing the diagonal up, row-wise (instruction i -> which trajectory?) and coliumn wise (trajectoru j -> which instruction?). The column-wise direction is the inverse head, symmetric InfoNCE gives you trajectory-instruction retrieval for free, no separate decoder. 
+
+All K samples share thes ame image, the image features are identical across the group, the only way to make S diagonal is for the instruction to causally shape the predicted trajectory and for the text representation to encode its action consequence. Gradient flows through both encoders through the watpoiny predictions themselves. 
+
+
+# dreamer_contrastive enabled, __getitem__ samples K distinct counterfactual options (without replacement) of the same frame and returns one DatasetOutput per option, sharing the identical camera image. 
+# Safety mode is disabled in this mode since it can overwrite target waypoints with the original ones, which would break intruction<-> trajectory pairing. 
+
+# contrastive alignment loss. 
+# unit tests: covers: aligned embeddings -> near-zero loss / 100% retrieval, shuffled paring -> high loss, singleton groups skipped with zero contribution, mixed batches, and gradient flow to both embedding sides. 
+# Runs standalone with only torch. 
+
+# Layer 1 - the frame mismatch (clipgen-specific). That trust holds for the RL pipeline's rollouts (Alpamayo emits ego-frame waypoints), but clipgen feeds this function waypoints from the raw egomotion log. 
+
+# For each sample the model produces two vectors: z_text = LLM hidden states mean-pooled over the instruction tokens only (valid tokens minus answer tokens) -> 2-layer MLP -> L2 -normalized; z_traj = the model's own predicted waypoints + route, flattened -> 2-layer MLP -> L2-normalized. 
+# Within a group of K, logits = z_text @ z_traj.T / 0.07 gives the KxK score matrix; cross-entropy on the diagonal runs row-sie (instruction -> which trajectory obeys it) and column-wise (that column direction is the inverse head) so you get with zero extra parameters 
+# Since the image is pixel-identical within a group, matching is unsolvable unless the instruction causally shapes the predicted trajectory. 
+
+# To run: data_module.base_dataset.dreamer_contrastive=true \ data_module.base_dataset.dreamer_contrastive_k=4 \ model.contrastive_loss_weight=0.5 
+
+# Each dreamer draw now contributes up to K samples, so the effective forward batch grows (may want to drop batch_size accordingly)
+# safety-flag mode is auto-disabled inside contrastive groups (it can overwrite target waypoints with the oriignals, which would corrupt the pairing)
+# First real run should watch train_losses/contrastive_retrieval_acc (should climb well above 1/K) as the sanity signal.
+
+# For first run: 
+    # Safety flag: leave it off (use_safety_flag = False, the default). It's orthogonal to the hypothesis we are testing, and mixing a refusal-training objective into the first contrstive run just muddies attribution. 
+    # Batch size from 16 to 8 (worst case 8 groups x 4 = 32 samples, expectd ~20). That keeps memory safe and makes the baseline-vs-contrastive comparison roughly step-for-step comparable in samples seen. 
+    # Don't compensate with LR changes - the effective batch change is modest. 
+
+# Loss weight: start at contrastive_loss_weight=0.5, K=4. The InfoNCE loss starts near ln(4) = 1.39 per sample, comparable in magnitude to the other loss terms, so 0.5 is a gentle-but-visible starting point. 
+# contrastive_retrieval_Acc: if it's stuck near 1/K = 0.25 after a few thousand steps, raise the weight. 
+# If it saturates to ~1.0 almost immediately, the heads may be solving it superfiically (lower the teamperature or raise K)
+# Comparison: run baseline (weight = 0) and contrastive from the same seed/config otherwise, then compare on your existing yardsticks - the dreamer instruction-following success rates in on_predict_epoch_end, plus the masking reversal-effect metric for the faithfulness scale.
+# Caveat: batches with zero dreamer draws contribute no contrastive signal (the loss's count mechanism handles this correctly - it averages only over participating samples, so no bias, just variance)
+

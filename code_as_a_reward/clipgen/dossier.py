@@ -221,3 +221,70 @@ def features_from_waypoints(waypoints: np.ndarray, hz: float, scene_id: str) -> 
     # Delegate to extract_features, filling in rollout_id=0 since this is always
     # treated as "the one and only" rollout in this context (not one of several sampled ones).
     return extract_features(waypoints, hz=hz, scene_id=scene_id, rollout_id=0)
+
+# Clipgen process: 
+# Here's the whole clipgen pipeline:
+    # Inputs (per clip, from the dataset - 5 clips in the smoke run)
+        # The obstacle tracks (where every labeled object was, over time)
+        # The expert driver's actual trajectory (from the egomotion log)
+        # The GT reasoning sentence ("Decelerate to maintain a safe distance")
+
+    # Step 1: Build th edossier (dossier.py): reduces the scene to ~25 lines of text with real numbers: each obstacle's closest approach, when, and from which direction; what the expert did (speed profile, stop, lateral movement); the GT reasoning sentence. 
+
+    # Step 2: Parse the GT reasoning into claims (coc_claim_parser.py, pure code).
+    # The sentence becomes structured objects: PerceptualClaim(entity="lead_vehicle", ...), CommitmentClaim(maneuever="decelerate"), ...). 
+    # These are what the reward functions willr eceive as claims. 
+
+    # Step 3: Generate the reawrd function (gpt-4o)
+    # One 3-turn conversation per clip
+        # 1. "Here's the dossier, name this scene's decisive events"
+        # 2. "Define what faithful vs unfaitfjhful behavhior looks like for those events, quantitatively"
+        # 3. "Here's the claims/traj API and the exact GT claim objects, write def reward (claims, traj)" No prescribed formula: the model designs the scoring logic itself, knowing the gate's two numeric requirements (GT pair >= 0.7; every corruption >= 0.4 below).
+        # 4. Sandbox check 
+        # 5. The gate (gate.py, pure code, free - no API calls)
+            # Build 5 test cases and run the function on each:
+                # Positive: GT claims + GT trajectory -> must core >= 0.7 
+                # 4 corruptions of that same pair: trajectory reversed, trajectory flattened (no reaction), claims gutted, commitments deleted (each must score >= 0.4 below the positive). 
+                # Pass = the function rewards the right thing and stops rewarding it when either half is corrupted.
+
+        # Step 6: Retry loop (up to 3 attempts per clip):
+            # On failure, the exact violation plus the measured trajectory numbers for each case go back to gpt-4o in the same conversation: "revesred_traj scored 0.75, needs <= 0.35; measured facts ..."
+
+        # Step 7: 
+            # Report and peresist. Passing functions are saved to reward_fns/<clip>.py; everything (scores, sources, transcriptes, feedback API costs) goes into report.json, printed into the workload logs. Success bar >= 4/5 clips pass. 
+
+        # Policy produces 12 rolouts for a scene, the validated reward function ranks them, the argmax rollout goes through the same step-5 perturbation battery, built from the rollout itself this time, only if its corruptions drop does the rollout get trustred. 
+
+        # positives should clear 0.7 (exeuction credit firint on the real GT trajectory) and do reversed/flattened trajectories finally drop >= 0.4 instead of tying the positive. 
+
+# tracks
+# revsersed trajectory
+# weighting, let the llm decide (sometimes there may not be much to perceive)? or sometimes the commitment may be brittle?
+# obstacle.parquet
+
+# track: obstacle.offline.parquet - the dataset's ground-truth object annotations. Every labeled object carries a numeric track_id, and the dossier surfaces them in its track lines: - track 32 [trailer] visible 0.0-19.8s; closest 8.2m (ahead) at t=17.5s 
+# How many tracks: far more than the dossier shows:
+
+┌───────────────────────────────────┬──────────────┬────────────────────────────────────────────────────────────────┐
+│               Clip                │ Total tracks │                          Composition                           │
+├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+│ 01340cf8 (oversize load)          │ 183          │ 141 automobiles, 28 heavy trucks, 11 trailers, 2 riders, 1 bus │
+├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+│ 40597645 (pedestrian)             │ 45           │ 42 automobiles, 3 persons                                      │
+├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+│ b7f37a71 (construction cone)      │ 141          │ 115 automobiles, 13 persons, 5 protruding objects, 4 animals…  │
+├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+│ eece4a2f (cyclist + stop sign)    │ 301          │ 229 automobiles, 50 persons, …                                 │
+├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+│ fe20b8b9 (cyclist + lead vehicle) │ 15           │ 9 automobiles, 4 persons, 2 riders                             │
+└───────────────────────────────────┴──────────────┴────────────────────────────────────────────────────────────────┘
+
+# global code as a reward parser
+    # inspect the logs very clearly for this one. 
+
+# slow down speed up
+    # where does the minimum occur?
+# revseed and global metrics not local ones?
+# track from dossier. 
+# lateral featurization bug?
+
