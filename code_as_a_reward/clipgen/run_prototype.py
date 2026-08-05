@@ -129,7 +129,14 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
                 break
             except (RewardFnError, GenerationRefused) as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})
-                feedback, transcript = f"the reply was invalid: {e}", transcript or []
+                print(f"[clipgen] {clip_id} attempt {attempt} invalid reply: {e}", flush=True)
+                # No usable transcript to critique when the failure predates a
+                # successful exchange -- regenerate from scratch instead of
+                # crashing generate_reward_fn's retry precondition.
+                if not transcript:
+                    feedback, transcript = None, None
+                else:
+                    feedback = f"the reply was invalid: {e}"
                 continue
             transcript = result.transcript
             report["model"] = result.model
