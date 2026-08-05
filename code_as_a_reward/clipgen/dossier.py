@@ -13,17 +13,11 @@ RewardConfig): tracks ranked by closest approach, capped at MAX_TRACKS;
 bearing buckets at +/-20 deg (ahead) and +/-120 deg (behind).
 """
 
-# Lets code written now use newer type-hint syntax (like `list[str]` and `str | None`)
-# even on Python versions that would normally require the older `List[str]`/`Optional[str]` style.
 from __future__ import annotations
 
-# Provides `@dataclasses.dataclass`, a decorator that auto-generates
-# boilerplate (like __init__) for simple "data holder" classes.
 import dataclasses
-# Standard math functions; used here for angle math (atan2, degrees).
 import math
 
-# NumPy: used for fast array math (distances, interpolation, etc).
 import numpy as np
 
 # SceneObstacles: the input type describing all obstacle tracks in a clip.
@@ -33,6 +27,7 @@ from code_as_a_reward.obstacle_tracks import SceneObstacles
 from pref_pairs.trajectory_features import TrajectoryFeatures, extract_features
 
 # Maximum number of obstacle tracks to include in the dossier text (keeps it short).
+# how may are there?
 MAX_TRACKS = 12
 
 # Different datasets/exports name the ego-motion X/Y position columns differently.
@@ -40,8 +35,6 @@ MAX_TRACKS = 12
 _EGOMOTION_XY_CANDIDATES = (("x", "y"), ("pos_x", "pos_y"), ("position_x", "position_y"), ("tx", "ty"))
 
 
-# Marks the class below as a dataclass: fields declared below become
-# constructor arguments and attributes automatically.
 @dataclasses.dataclass
 class TrackSummary:
     """One obstacle track reduced to the facts a reward function needs."""
