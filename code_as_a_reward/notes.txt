@@ -331,3 +331,121 @@ The same perturbation battery is exposed as a standalone verifier:
 # i think the idea of a really good dataset for going from actions to semantics is strong. 
 # if we can do this and minimize the loss. 
  # think about this more! 
+
+ # 0.7 requirement is a constraint on the reawrd function, not on any given rollout. 
+ Whatever scoring logit gpt-4o invents, it must award the known-correct pair - real expert behavior with its matching reasoning - at least 0.7. 
+ # If a canddiate function scores the expert's own driving at 0.4 (like b7f37a71's attempts did), the function is miscalibrated or its checks are broken (too strict, wrong thresholds, noise-intolerant).
+ # rejected and regenerated with feedback. 
+ # When policy-generated rollouts enter the picture, nothing forces them above 0.7 or any other number. They simply get scored by the (already validated) function, and the scores are used to rank the 12 rollouts. The only place a threshold-like condition reappears is the selection-time verifier: the winning rollout's perturbations must drop >= 0.4 below the winner's own score (sensitivity rest of the function around the rollout, not a bar the rollout must clear). 
+
+# more bug fixes (for clipgen):
+    # Layer 1: the frame mismatch. That trust holds for the RL pipeline's rollouts (Alpamayo emits ego-frame waypoints). 
+    # Clipgen feeds this function waypoints from the raw egomotion log - world coordinate.s 
+    # dossier.py:80 eve
+    # review 2 more reent bugs. 
+
+    # why lateral offset: "did the car shift sideways within its lane?" - e.g., nudging 0.3m left to avoid a cone. 
+    # How it's actually measured: draw a
+    # b7f37a71: the road turns 91 degrees (a corner) -> "lateral offset", reads 22m 
+    # fe20b8b9: a gentle 22 degree sweep -> reads 95 m 
+    
+    # The actual manauever we care about (e.g., a cne niudge) is ~0.3m. 
+    # So the number is ~99% road shape, ~1% driving behavior (signal is buried)?
+
+    # goal is to get clipgen's LLM-generated per-scene reward functions to pass the perturbation gate (4/5 clips). 
+    # The fourth gpt-4o smoke run, with curvature-warning and timing-hint fixes, is launching now; next I'll pull its results and report. 
+
+
+# How doe sht emodel just pick the claims ot check for? Is this for a rule-based parser or the LLM that now knows what the reasoning is?
+# The parser (rule-based) owns the vocabulary: 
+    # coc_claim_parser.py has fixed lexicons: the only entity keys that can ever exist are things like pedestrian, cyclist, lead_vehicle, construction_cones; the only maneuevers are stop, decelerate, nudge, keep_distance, etc. Any reasoning text - GT annotation or future rollout - gets reduced to combinations of exactly rhese keys. 
+    # LLM can't invet a checkable claim outside this category (but how do weknow these are the only maneuevers)?
+
+# LLM picks which keys matter for this scene. 
+# It decides "for this clip, a faithful rollout must perceive cyclist and commit to stop" from two things in its prompt:
+
+# 1. The dosier tells it what's decisive in the scene - a pedestrian at 2.8m closest approach, a stop by t=19.9s. That's the semantic judgement: of everything in the scene, what must the reasoning register?
+# 2. The exact parsed GT claims: since commit 44fd58a, the prompt shows the model the literal claim objects the parser produced from this scene's ground-truth sentence: PerceptualClaim(entity="lead vehicle"), state="ahead"), and so on. 
+# That's teh vocabulary grounding (i.e., it tells the model which canonical keys the parser actually emits)
+
+# LLM decides which keys constitute faithfulness in the scene. 
+# The prompt explicitly forbids the reasdoning trap (matching on raw .text strings because that would break on rollouts that phrase things differently)
+
+# rqandom idea: really big reasoning, trajectory dataset and trajectory, reasoning dataset
+
+# move grizzly stuff to this when disk is full:
+/media/training_score 
+
+Repo disk space currently:
+
+
+┌─────────────────┬───────────┬─────────────────────────────────────────────────────────┐
+│      Path       │   Size    │                    What it likely is                    │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ perplexity/     │ 11G       │ OOD study data (per memory: downloaded S3 shards/clips) │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ jspace/         │ 7.4G      │ Alpamayo J-lens artifacts (lens.pt, fit outputs)        │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ .venv/          │ 991M      │ Python virtualenv                                       │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ simlingo/       │ 535M      │ contrastive alignment work                              │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ .git/           │ 135M      │ repo history                                            │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ autovla/        │ 63M       │ ablation study                                          │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ pref_pairs/     │ 50M       │                                                         │
+├─────────────────┼───────────┼─────────────────────────────────────────────────────────┤
+│ everything else │ <20M each │                                                         │
+└─────────────────┴───────────┴─────────────────────────────────────────────────────────┘
+
+# "No-react" is the no_reaction_traj corruption (the do nothing counterfactual).
+# Construction (flattened_waypoints in gate.py): take the GT trajectory's first step only - its initial velocity - and extraploate it for the whole clip. 
+# The result is a car that keeps driving at its starting speed and heading, in a straight line, forever. 
+# It never breaks, never swerves, never stops. That trajectory gets paired with the unchagned GT claims. 
+
+# Perturbation recap (this can be helpful for perturbation generator/discriminator thing): 
+    # gate.build_perturbations for each clip - one positive plus four corruptions, all derived from the same ground-truth pair (GT claims + GT trajectory), each deleting or distorting exactly one thing: 
+        Case: positive
+        Claims: GT
+        Trajectory: GT
+        How it's built: untouched pair
+        The exploit it catches: (baseline - must score >= 0.7)
+
+
+        Case: reversed
+        Claims: GT 
+        Trajectory: GT played backwards
+        How it's built: waypoints[::-1], featuers re-extracted
+        The exploit it catches: Checking aggregate stats (min/max speed, total drop) instead of temporal order - a stop-then-park looks like launch-from-park
+
+        Case: no-react
+        Claims: GT 
+        Trajectory: constant-velocity extraploation
+        How it's built: first-step velocity continued straight for the whole clip 
+        The exploit it catches: Requiring no reaction at all
+
+        - reward for narrating the maneuever while never braking
+
+        Case: gutted
+        Claims: all claims deleted
+        Trajectory: GT 
+        How it's built: perceptual = [], commitments = [], causal = [] 
+        The exploit it catches: Pure trajectory-matching - reward for driving correctly with no reasoning
+
+        Case: no-commit
+        Claims: comitments + causal deleted, perception kept 
+        Trajectory: GT 
+        How it's built: commitments=[], causal=[]
+        The exploit it catches: Mention-only credit: "I see the pedestrian" with no commitment to act still scores 
+        # Pass criterion: positive >= 0.7, and every corruption >= 0.4 below the positive. 
+
+        # Three design properties worth remembering: 
+            # 1. Two-sided by construction. Rows 2-3 corrupt the action while keeping the words (right claims, wrong trajectory); rows 4-5 corrupt the words while keeping the action (right trajectory, missing claims). 
+            # Together they enforce the full faithfulness chain: register -> commit -> execute - because each corruption servers one link. 
+
+            # 2. Trajectory corruptions transform waypoints, not features. The reversed/flatteneed waypoints are re-run through the same feature extractor, so speeds, headings, and derived fields stay internally consistent instead of being hand-edited into something no real trajectory could produce. 
+            # 3. Degenerate cases are screened out. If a transformed trajectory deviates < 2 m from the original (__too_similar), it's skipped - on the near-stationary pedestrian clip both reversed and no-react reproduce the parked ground truth, so that clip is gated on the two claims corruptions only. 
+            # 4. Similarly, no-commit is only built if the claims actually contain commitments to delete. 
+
+        # And the forward-looking property: nothing in this construction is specific to ground truth. Point the same function at a policy's rollout claims and waypoints, and the battery becomes your selection-time verifier - corrupt the argmax rollout, demand the drops, trust it only if the reward functions can tell it from its own corruptions. 

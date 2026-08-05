@@ -117,3 +117,6 @@ contrastive_loss_weight=0.5.
     # Then a single L_total.backward() computes gradients, and AdamW updates every trainable parameter with them: the LoRA adapters on the LLM, the vision encoder, the waypoints/route prediction heads, and our two new projection MLPs (text_proj, traj_proj). 
     # There's no separate optimizer for the contrastive part. All four terms pull on the same shared parameters at once: the waypoint loss says "predict the correct trajectory," the contrastive loss simultaneously says "and make it distngishably reflect the instruction."
     # The scalar 0.5 sets the bargaining power between those pulls. At weight 0, the contrastive term is absent, graidnets come only from the original three losses, and text_proj/traj_proj never rtain (that's what ablation requires). 
+
+    # contrastive retrieval accuracy:
+        # score on the matching game, measured as a percentage. 
