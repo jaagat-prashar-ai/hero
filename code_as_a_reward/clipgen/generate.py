@@ -232,9 +232,17 @@ The function you wrote failed the empirical verification gate:
 
 {feedback}
 
-Diagnose why (too lenient toward mismatched trajectories/claims, or too
-strict toward the ground truth), then emit a corrected function in one
-python code block. Same contract and hard rules.
+Before writing any code, answer these in one or two sentences each:
+1. For each failing case: WHICH check in your function let it through
+   (or blocked the positive)?
+2. WHAT measured fact from the facts block above separates that case from
+   the positive (e.g. the TIME at which minimum speed occurs, not its
+   magnitude)?
+Then rewrite the offending check AROUND that separating fact. Do NOT just
+nudge thresholds -- if a case scored identically to the positive, your
+current checks cannot see the difference and one of them must be replaced.
+Emit the corrected function in one python code block. Same contract and
+hard rules.
 """
 
 
@@ -275,6 +283,10 @@ class OpenAIChat:
             {
                 "model": self.model,
                 "max_tokens": MAX_TOKENS,
+                # Constraint-following codegen, not creative writing: at the
+                # default temperature 1.0, yw4umq-era runs repeatedly "knew"
+                # a numeric gate constraint yet sampled code that ignored it.
+                "temperature": 0.2,
                 "messages": [{"role": "system", "content": system}] + messages,
             }
         ).encode()
