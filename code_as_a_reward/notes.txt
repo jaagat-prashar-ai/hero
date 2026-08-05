@@ -218,3 +218,20 @@ E.g. "Decelerate to maintain a safe distnace from the lead vehicle" parses to ro
 # perceptual, regex matching; how do we know this is strong enough?
 # commitment, how do we know this is strong enough?
 # these clips failed on predicts that can't fire 
+
+
+# logs from: clipgen-gpt4o-smoke-62eytm
+# negative::reversed_traj is one of the synthetic counterfactuals thegate builds in gate.py:107-116: it takes the clip's ground-truth waypoints, plays them backwards in time (gt_waypoints[::-1]), re-extracts trajectory features, and pairs that with the unchanged GT claims. 
+# For this clip the GT is "decelerate to a stop behind the oversize load" so the revesrsed version is a car that starts stopped and accelerate s away, while the reasoning still says "I'm slowing down."
+# That pairing is wrong by construction, so the gate demands the reward functions core it <= 0.3. 
+
+# code as a reward internal debugging: 
+    # after gpt-4o writes a candidate reward(claims, traj) function (using API calls), the gate compiles it and runs it locally, in the sandbox, once per gate case: 11 cases for this clip. 
+    # For the reversed_traj case specifically, the two arguments are 
+
+    # claims: the rel, unmodified ground-truth claims for this clip 
+
+    # reversed trajectory is the cheapest and sharpest of these: it preserves nearly every summary statistic (same set of speeds, same path geometry, same total distance) while being umnambiguously the wrong maneuever. 
+
+    # Prompt/harness is the primary culprit: The step-3 rubric instructs an additive 0.3 perception + 0.3 commitment + 0.4 exexcution split, while the gate demands trajectory negatieves - which carry the full GT claims - score <= 0.3 
+
