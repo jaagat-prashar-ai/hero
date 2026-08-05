@@ -141,6 +141,25 @@ def build_perturbations(
     return cases
 
 
+def _traj_facts(traj) -> str:
+    """Measured facts a generated function's checks run against -- shown in
+    feedback so the generator can see WHY a check fails (e.g. an exact
+    monotonicity test failing on the noisy GT itself)."""
+    speed = np.asarray(traj.speed_mps, dtype=np.float64)
+    lat = np.asarray(traj.lateral_offset_m, dtype=np.float64)
+    t_min = float(np.argmin(speed)) * traj.dt_s if len(speed) else 0.0
+    rising = int(np.sum(np.diff(speed) > 0)) if len(speed) > 1 else 0
+    return (
+        f"speed {traj.initial_speed_mps:.1f}->{traj.final_speed_mps:.1f} m/s"
+        f" (min {traj.min_speed_mps:.1f} at t={t_min:.1f}s,"
+        f" drop {traj.initial_speed_mps - traj.min_speed_mps:.1f});"
+        f" {rising}/{max(len(speed) - 1, 1)} speed steps INCREASE (noise);"
+        f" lateral final {traj.final_lateral_offset_m:+.2f} m,"
+        f" max |{float(np.max(np.abs(lat))) if len(lat) else 0.0:.2f}| m;"
+        f" stop_event={traj.stop_event}"
+    )
+
+
 def run_gate(
     source: str,
     cases: list[GateCase],
@@ -185,4 +204,14 @@ def run_gate(
                     " the rollout must not be rewarded"
                 )
     passed = not failures
+    if failures:
+        # Show the measured numbers behind the positive and every case named
+        # in a failure line -- without them the generator cannot see why a
+        # check misfires (g9349h: monotonicity tests failing on the noisy GT
+        # left retries blind and near-identical).
+        cited = {c.name for c in cases if c.kind == "positive"} | {
+            f.split(" ", 1)[0].rstrip(":") for f in failures
+        }
+        facts = [f"  {c.name}: {_traj_facts(c.traj)}" for c in cases if c.name in cited]
+        failures.append("measured trajectory facts per case:\n" + "\n".join(facts))
     return GateResult(passed=passed, pos_score=pos_score, max_pert=max_pert, scores=scores, failures=failures)

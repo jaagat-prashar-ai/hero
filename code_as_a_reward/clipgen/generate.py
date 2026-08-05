@@ -120,12 +120,20 @@ calibrated values.
 
 Your function must discriminate. It is verified against corrupted variants
 of a rollout: the same reasoning with a time-reversed or no-reaction
-trajectory, and the same trajectory with the reasoning gutted. Every
-corruption must score well below the intact rollout. Checks a corruption
-preserves -- aggregate statistics like min/max speed, order-insensitive
-quantities, "some deviation happened somewhere" -- hand the corruption the
-same credit as the real thing; anchor checks in the maneuver's temporal
-shape instead (what happens, WHEN, in what order, in which direction).
+trajectory, and the same trajectory with the reasoning gutted. The
+verification gate requires, numerically:
+- the intact ground-truth pair scores >= 0.7;
+- EVERY corruption scores at least 0.4 below the intact pair.
+A trajectory corruption keeps the reasoning intact, so it retains all
+reasoning-based credit -- the drop can only come from trajectory-dependent
+credit. Same for reasoning corruptions and the trajectory. Structurally,
+trajectory-dependent credit and reasoning-dependent credit must therefore
+EACH be able to move the score by at least 0.4 (equal 0.25-weight buckets
+cannot pass). Checks a corruption preserves -- aggregate statistics like
+min/max speed, order-insensitive quantities, "some deviation happened
+somewhere" -- hand the corruption the same credit as the real thing;
+anchor checks in the maneuver's temporal shape instead (what happens,
+WHEN, in what order, in which direction).
 
 Hard rules for the final function:
 - Signature exactly `def reward(claims, traj) -> float`, returning a value
@@ -138,6 +146,11 @@ Hard rules for the final function:
 - Be robust: guard divisions, tolerate empty claim lists and short
   trajectories. An exception scores the rollout zero, which is worse than
   returning a low score.
+- Real trajectories are NOISY: speed and lateral-offset series jitter from
+  waypoint to waypoint, including the ground truth's. Never require
+  monotonicity, exact equality, or all()-over-raw-series conditions --
+  they fail on the ground truth itself. Compare windowed aggregates
+  (means, extrema over a time window) against thresholds with tolerance.
 """
 
 _API_REFERENCE = """\
