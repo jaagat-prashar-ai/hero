@@ -57,6 +57,11 @@ class Data_Dreamer(BaseDataset):  # pylint: disable=locally-disabled, invalid-na
                 activate_safety = False
         else:
             activate_safety = None
+        if self.dreamer_contrastive:
+            # safety mode can overwrite the target waypoints with the original ones,
+            # which would break the instruction <-> trajectory correspondence the
+            # contrastive groups rely on, so it is disabled in this mode
+            activate_safety = None
         # if we want to use the alternative trajectories, we cant take the augmented images, since alternatives are calculated for the original view only
         # if activate_safety is not None and activate_safety == False or activate_safety is None:
         augment_sample = False
@@ -93,119 +98,131 @@ class Data_Dreamer(BaseDataset):  # pylint: disable=locally-disabled, invalid-na
             
             options.extend(option)
 
-        chosen_option = random.choice(options)
-
-        # replace 'org' with the original route
-        if chosen_option['route'] == 'org':
-            chosen_option['route'] = data['route_adjusted_org']
+        if self.dreamer_contrastive:
+            # contrastive group: K distinct counterfactuals of the same frame.
+            # the image is identical within the group, so the instruction is the
+            # only signal that distinguishes the target trajectories.
+            k = min(self.dreamer_contrastive_k, len(options))
+            chosen_options = random.sample(options, k)
         else:
-            chosen_option['route'] = np.array(chosen_option['route'])
-        
-        if chosen_option['waypoints'] == 'org':
-            chosen_option['waypoints'] = data['waypoints_org']
-        else:
-            chosen_option['waypoints'] = np.array(chosen_option['waypoints'])
-        
-        chosen_option['dreamer_instruction'] = random.choice(chosen_option['dreamer_instruction'])
-
-        dreamer_answer = f"Following the given instruction. Waypoints:"
-        if activate_safety is not None:
-            if activate_safety:
-                if chosen_option['safe_to_execute']:
-                    augment_sample = False
-                else:
-                    dreamer_answer = chosen_option['dreamer_answer_safety']
-            else:
-                augment_sample = False
-        
+            chosen_options = [random.choice(options)]
 
         ######################################################
         ######## load navigational_conditioning ########
         ######################################################
         target_options, placeholder_values = self.get_navigational_conditioning( data, current_measurement, target_point, next_target_point)
-            
-        answer = ''
 
-        if random.random() < 0.8:
-            prompt = f"Current speed: {speed_rounded} m/s. {random.choice(target_options)} {chosen_option['dreamer_instruction']}"
-        else:
-            prompt = f"Current speed: {speed_rounded} m/s. {chosen_option['dreamer_instruction']}"
-            
-        waypoints = chosen_option['waypoints']
-        waypoints = np.array(waypoints)
-        
-        waypoints_zero = np.concatenate((np.zeros((1, 2)), waypoints), axis=0)
-        waypoints_1d = [np.linalg.norm(waypoints_zero[i+1] - waypoints_zero[i]) for i in range(len(waypoints_zero)-1)]
-        waypoints_1d = np.cumsum(waypoints_1d)
-        waypoints_1d = [[x, 0] for x in waypoints_1d]
-        waypoints_1d = np.array(waypoints_1d).reshape(-1, 2)
-        
-        path = chosen_option['route']
-        answer = dreamer_answer
-
-        prompt = prompt.replace('..', '.').replace('  ', ' ').replace('!.', '!').replace('?.', '?')
-                
         ######################################################
         ######## load current and past images ########
         ######################################################
         data = self.load_images(data, images, augment_sample=augment_sample)
-        
-        # overwrite action when safety flag is active and action is not allowed
-        if activate_safety is not None:
-            if activate_safety:
-                prompt = f"<SAFETY> {prompt}"
-                if chosen_option['safe_to_execute'] == False:
-                    waypoints = data['waypoints_org']
-                    waypoints_1d = data["waypoints_1d"]
-                    path = data['route_adjusted_org']
+
+        samples = []
+        for chosen_option in chosen_options:
+            # replace 'org' with the original route
+            if chosen_option['route'] == 'org':
+                chosen_option['route'] = data['route_adjusted_org']
             else:
-                prompt = f"<INSTRUCTION_FOLLOWING> {prompt}"
+                chosen_option['route'] = np.array(chosen_option['route'])
 
-        conversation_answer = [
-            {
-            "role": "assistant",
-            "content": [
-                {"type": "text", "text": f"{answer}"},
-                ],
-            },
-        ]
-        conversation_all = [
-            {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": f"{prompt}"},
-                {"type": "image"},
-                ],
-            },
-            {
-            "role": "assistant",
-            "content": [
-                {"type": "text", "text": f"{answer}"},
-                ],
-            }
-        ]
-        
-        images = [data['rgb']]
+            if chosen_option['waypoints'] == 'org':
+                chosen_option['waypoints'] = data['waypoints_org']
+            else:
+                chosen_option['waypoints'] = np.array(chosen_option['waypoints'])
 
-        data_new = DatasetOutput(
-            conversation = conversation_all,
-            answer = conversation_answer,
-            image_ff = data['rgb'],
-            image_ff_org_size=data['rgb_org_size'],
-            waypoints = waypoints,
-            waypoints_1d = waypoints_1d,
-            path = path,
-            target_points = data['target_points'],
-            speed = data['speed'],
-            placeholder_values = placeholder_values,
-            measurement_path = data['measurement_path'],
-            dataset = 'driving',
-        )
-        
-        if VIZ_DATA:
-            # front image with path and waypoints and commentary
-            self.visualise_cameras(data_new, None, path, waypoints, options, name="dreamer_", prompt=prompt, answer=answer)
-        return data_new
+            chosen_option['dreamer_instruction'] = random.choice(chosen_option['dreamer_instruction'])
+
+            dreamer_answer = f"Following the given instruction. Waypoints:"
+            if activate_safety is not None:
+                if activate_safety:
+                    if chosen_option['safe_to_execute']:
+                        augment_sample = False
+                    else:
+                        dreamer_answer = chosen_option['dreamer_answer_safety']
+                else:
+                    augment_sample = False
+
+            answer = ''
+
+            if random.random() < 0.8:
+                prompt = f"Current speed: {speed_rounded} m/s. {random.choice(target_options)} {chosen_option['dreamer_instruction']}"
+            else:
+                prompt = f"Current speed: {speed_rounded} m/s. {chosen_option['dreamer_instruction']}"
+
+            waypoints = chosen_option['waypoints']
+            waypoints = np.array(waypoints)
+
+            waypoints_zero = np.concatenate((np.zeros((1, 2)), waypoints), axis=0)
+            waypoints_1d = [np.linalg.norm(waypoints_zero[i+1] - waypoints_zero[i]) for i in range(len(waypoints_zero)-1)]
+            waypoints_1d = np.cumsum(waypoints_1d)
+            waypoints_1d = [[x, 0] for x in waypoints_1d]
+            waypoints_1d = np.array(waypoints_1d).reshape(-1, 2)
+
+            path = chosen_option['route']
+            answer = dreamer_answer
+
+            prompt = prompt.replace('..', '.').replace('  ', ' ').replace('!.', '!').replace('?.', '?')
+
+            # overwrite action when safety flag is active and action is not allowed
+            if activate_safety is not None:
+                if activate_safety:
+                    prompt = f"<SAFETY> {prompt}"
+                    if chosen_option['safe_to_execute'] == False:
+                        waypoints = data['waypoints_org']
+                        waypoints_1d = data["waypoints_1d"]
+                        path = data['route_adjusted_org']
+                else:
+                    prompt = f"<INSTRUCTION_FOLLOWING> {prompt}"
+
+            conversation_answer = [
+                {
+                "role": "assistant",
+                "content": [
+                    {"type": "text", "text": f"{answer}"},
+                    ],
+                },
+            ]
+            conversation_all = [
+                {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": f"{prompt}"},
+                    {"type": "image"},
+                    ],
+                },
+                {
+                "role": "assistant",
+                "content": [
+                    {"type": "text", "text": f"{answer}"},
+                    ],
+                }
+            ]
+
+            data_new = DatasetOutput(
+                conversation = conversation_all,
+                answer = conversation_answer,
+                image_ff = data['rgb'],
+                image_ff_org_size=data['rgb_org_size'],
+                waypoints = waypoints,
+                waypoints_1d = waypoints_1d,
+                path = path,
+                target_points = data['target_points'],
+                speed = data['speed'],
+                placeholder_values = placeholder_values,
+                measurement_path = data['measurement_path'],
+                dataset = 'driving',
+            )
+            samples.append(data_new)
+
+            if VIZ_DATA:
+                # front image with path and waypoints and commentary
+                self.visualise_cameras(data_new, None, path, waypoints, options, name="dreamer_", prompt=prompt, answer=answer)
+
+        if self.dreamer_contrastive:
+            # a group of K counterfactual variants of the same frame,
+            # flattened (with group ids) in the datamodule collate_fn
+            return samples
+        return samples[0]
 
 
 if __name__ == "__main__":
