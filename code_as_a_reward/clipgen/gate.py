@@ -206,6 +206,17 @@ def run_gate(
                     " the rollout must not be rewarded"
                 )
     passed = not failures
+    # Saturation signature (xc7vt9): component weights summing past 1.0 make
+    # the [0,1] clamp award claims-carrying corruptions the same 1.0 as the
+    # positive -- the trajectory checks are dead code behind the clamp. Name
+    # the arithmetic in feedback; score deltas alone read as a logic bug.
+    if pos_score == 1.0 and max_pert == 1.0:
+        failures.append(
+            "positive and a corruption BOTH scored exactly 1.0: your component"
+            " maxima likely sum past 1.0, so the [0,1] clamp saturates and your"
+            " trajectory checks cannot lower any claims-carrying case."
+            " Rebudget so all components sum to exactly 1.0."
+        )
     if failures:
         # Show the measured numbers behind the positive and every case named
         # in a failure line -- without them the generator cannot see why a

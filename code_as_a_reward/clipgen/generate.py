@@ -150,6 +150,11 @@ Hard rules for the final function:
 - Be robust: guard divisions, tolerate empty claim lists and short
   trajectories. An exception scores the rollout zero, which is worse than
   returning a low score.
+- Your component maxima must sum to EXACTLY 1.0. Never rely on a final
+  [0,1] clamp to absorb over-allocation: if claims-only credit can reach
+  1.0 on its own, every trajectory corruption saturates to the same score
+  as the positive and the gate rejects the function. Budget explicitly
+  (e.g. claims <= 0.5 total, trajectory >= 0.4 of the total).
 - Real trajectories are NOISY: speed and lateral-offset series jitter from
   waypoint to waypoint, including the ground truth's. Never require
   monotonicity, exact equality, or all()-over-raw-series conditions --
