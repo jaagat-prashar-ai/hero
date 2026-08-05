@@ -14,7 +14,7 @@ workload_variant_config:
     hydra_overrides:
       - experiment=simlingo_seed1
       - data_module=carla_no_buckets
-      - gpus=1
+      - gpus=8
       - max_epochs=2
       - val_every_n_epochs=1
       - data_module.batch_size=4
@@ -32,7 +32,7 @@ workload_variant_config:
 
 cluster_resources:
   gpu_machine_type: a100.8
-  num_gpus: 1
+  num_gpus: 8
   customer_resource: research
   preemptible: always
   allowed_regions:

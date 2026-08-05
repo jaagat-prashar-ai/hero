@@ -14,7 +14,7 @@ workload_variant_config:
       - experiment=simlingo_seed1
       # subset has no bucket index files; sample uniformly instead
       - data_module=carla_no_buckets
-      - gpus=1
+      - gpus=8
       - max_epochs=2
       - val_every_n_epochs=1
       # batch_size counts dataset items; dreamer items expand to K=4 samples,
@@ -35,7 +35,7 @@ workload_variant_config:
 
 cluster_resources:
   gpu_machine_type: a100.8
-  num_gpus: 1
+  num_gpus: 8
   customer_resource: research
   preemptible: always
   allowed_regions:
