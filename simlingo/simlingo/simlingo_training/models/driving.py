@@ -10,13 +10,14 @@ import hydra
 import numpy as np
 import pytorch_lightning as pl
 import torch
+import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.optim import AdamW
 from hydra.utils import get_original_cwd
 
 
 from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, AdaptorList
-from simlingo_training.models.utils import summarise_losses
+from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
                                                 TrainingOutput)
@@ -94,6 +95,21 @@ class DrivingModel(pl.LightningModule):
             hidden_size2=512,
             # norm_layer=NormZeroOne(min_max=(-32.0, 32.0)),
         )
+
+        # intra-scene counterfactual contrastive alignment: projection heads that
+        # map instructions and predicted trajectories into a shared embedding space
+        # (getattr so checkpoints from before this feature still load)
+        self.contrastive_loss_weight = getattr(self, 'contrastive_loss_weight', 0.0)
+        if self.contrastive_loss_weight > 0:
+            traj_dim = self.adaptors.driving.future_speed_waypoints * (2 if self.speed_wps_mode == '2d' else 1)
+            if self.predict_route_as_wps:
+                traj_dim += self.adaptors.driving.future_waypoints * 2
+            self.traj_proj = nn.Sequential(
+                nn.Linear(traj_dim, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
+            )
+            self.text_proj = nn.Sequential(
+                nn.Linear(self.language_model.hidden_size, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
+            )
 
         if 'tokenizer' in self.processor.__dict__:
             self.tokenizer = self.processor.tokenizer
@@ -251,6 +267,9 @@ class DrivingModel(pl.LightningModule):
         adaptor_features, adaptor_logits = self.forward_model(example.driving_input, adaptor_dict, driving_labels=example.driving_label)
         loss_dict = self.adaptors.compute_loss(adaptor_features, adaptor_logits, adaptor_dict, example)
 
+        if self.contrastive_loss_weight > 0 and example.group_ids is not None:
+            loss_dict.update(self.contrastive_alignment_loss(adaptor_dict, adaptor_features, loss_dict, example.group_ids))
+
         loss_dict_only_losses = {k:v for k, v in loss_dict.items() if k.endswith("loss")}
         loss_logs = {k:v for k, v in loss_dict.items() if k.endswith("log")}
         
@@ -259,6 +278,38 @@ class DrivingModel(pl.LightningModule):
             return loss_dict_only_losses, pred_labels
 
         return summarise_losses(loss_dict_only_losses), loss_logs
+
+    def contrastive_alignment_loss(self, adaptor_dict, adaptor_features, loss_dict, group_ids):
+        """
+        Intra-scene counterfactual contrastive alignment
+        (objective: models/utils.py:intra_scene_contrastive_loss).
+
+        Text side: LLM hidden states mean-pooled over the prompt (instruction)
+        tokens. Trajectory side: the model's own predicted waypoints/route, so
+        the gradient couples the instruction representation to the produced action.
+        """
+        features_by_adaptor = self.adaptors.split_outputs_by_adaptor(adaptor_dict, adaptor_features)
+        text_features = features_by_adaptor['language'].float()  # [B, T, H]
+        # instruction tokens: fed into the model (valid) but not part of the answer (loss mask)
+        prompt_mask = adaptor_dict['language_inputs_mask'].bool() & ~adaptor_dict['language__ids_mask'].bool()
+        prompt_mask = prompt_mask.unsqueeze(-1).float()
+        pooled_text = (text_features * prompt_mask).sum(1) / prompt_mask.sum(1).clamp_min(1.0)
+
+        traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
+        if 'route_prediction' in loss_dict:
+            traj_parts.append(loss_dict['route_prediction'].flatten(1))
+        traj_pred = torch.cat(traj_parts, dim=1).float()
+
+        z_text = F.normalize(self.text_proj(pooled_text), dim=-1)
+        z_traj = F.normalize(self.traj_proj(traj_pred), dim=-1)
+
+        loss, count, accuracy = intra_scene_contrastive_loss(
+            z_text, z_traj, group_ids, temperature=self.contrastive_temperature
+        )
+        if accuracy is not None and getattr(self, '_trainer', None) is not None:
+            phase = 'train' if self.training else 'val'
+            self.log(f"{phase}_losses/contrastive_retrieval_acc", accuracy, sync_dist=True)
+        return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
 
     def training_step(self, batch: DrivingExample, _batch_idx: int = 0):
         output, loss_logs = self.forward_loss(batch)

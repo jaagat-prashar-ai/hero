@@ -1,8 +1,54 @@
 
 import torch
+import torch.nn.functional as F
 from typing import Dict, Tuple, Optional
 from torch import Tensor
 from simlingo_training.utils.custom_types import TrainingOutput
+
+
+def intra_scene_contrastive_loss(
+    z_text: Tensor, z_traj: Tensor, group_ids: Tensor, temperature: float = 0.07
+) -> Tuple[Tensor, Tensor, Optional[Tensor]]:
+    """
+    Symmetric InfoNCE over groups of counterfactuals of the same scene.
+
+    Samples sharing a group id are K counterfactual variants of the same camera
+    frame that differ only in their instruction (and therefore their target
+    trajectory). All K instruction embeddings are scored against all K trajectory
+    embeddings with a dot product, giving a K x K score matrix per group.
+    Cross-entropy pushes the diagonal (the true pairings) up in both directions:
+      rows:    instruction -> which trajectory follows it (forward alignment)
+      columns: trajectory  -> which instruction explains it (inverse head)
+    Since the image is identical within a group, the instruction is the only
+    signal that can solve the matching, forcing reasoning-action binding.
+
+    Args:
+        z_text: [B, D] L2-normalised instruction embeddings.
+        z_traj: [B, D] L2-normalised trajectory embeddings.
+        group_ids: [B] int64; samples sharing an id form one group.
+        temperature: softmax temperature of the InfoNCE loss.
+
+    Returns:
+        loss: [B] per-sample loss, 0 for singleton groups.
+        count: [B] int64, 1 where the sample took part in the loss.
+        accuracy: mean text->trajectory retrieval accuracy (None if all groups are singletons).
+    """
+    loss = z_text.new_zeros(z_text.size(0))
+    count = torch.zeros_like(group_ids)
+    accuracies = []
+    for group_id in group_ids.unique():
+        idx = (group_ids == group_id).nonzero(as_tuple=True)[0]
+        if idx.numel() < 2:
+            continue  # no counterfactual siblings to contrast against
+        logits = z_text[idx] @ z_traj[idx].T / temperature  # [K, K]
+        labels = torch.arange(idx.numel(), device=logits.device)
+        loss_fwd = F.cross_entropy(logits, labels, reduction="none")    # instruction -> trajectory
+        loss_inv = F.cross_entropy(logits.T, labels, reduction="none")  # trajectory -> instruction
+        loss[idx] = 0.5 * (loss_fwd + loss_inv)
+        count[idx] = 1
+        accuracies.append((logits.argmax(-1) == labels).float().mean())
+    accuracy = torch.stack(accuracies).mean() if accuracies else None
+    return loss, count, accuracy
 
 def summarise_losses(
     loss_dict: Dict[str, Tuple[Tensor, Tensor]], weights: Optional[Dict[str, float]] = None
