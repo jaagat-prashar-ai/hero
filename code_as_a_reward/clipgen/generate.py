@@ -335,10 +335,13 @@ def render_gt_claims(trace) -> str:
         lines.append("    (none)")
     lines.append("- causal:")
     for cl in trace.causal:
+        # Label fields with their REAL attribute names -- 8sys0r lost an
+        # attempt to `cc.cause_entities`, copied verbatim from the old
+        # invented label here (.cause is the actual attribute).
         lines.append(
             f"    CausalClaim(connective={cl.connective!r},"
-            f" effects={[e.maneuver for e in cl.effects]!r},"
-            f" cause_entities={[p.entity for p in cl.cause]!r})"
+            f" effects={[e.maneuver for e in cl.effects]!r} (.maneuver of each),"
+            f" cause={[p.entity for p in cl.cause]!r} (.entity of each))"
         )
     if not trace.causal:
         lines.append("    (none)")
