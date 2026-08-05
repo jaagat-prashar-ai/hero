@@ -113,6 +113,13 @@ def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = No
     env["NODE_RANK"] = str(rank)
     env["RANK"] = str(rank)
     env["LOCAL_RANK"] = "0"
+    # Ray exposes ALL colocated GPUs to every worker; with LOCAL_RANK=0 each
+    # subprocess would bind GPU 0 (8 ranks on one device -> NCCL 'invalid
+    # usage'). Pin each subprocess to its own worker's GPU explicitly.
+    parent_local_rank = int(os.environ.get("LOCAL_RANK", rank))
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES", "")
+    gpu_ids = [g for g in visible.split(",") if g] or [str(i) for i in range(world_size)]
+    env["CUDA_VISIBLE_DEVICES"] = gpu_ids[parent_local_rank % len(gpu_ids)]
 
     overrides = list(cfg.get("hydra_overrides", []))
     overrides += [f"gpus=1", f"num_nodes={world_size}"]
