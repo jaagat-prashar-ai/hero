@@ -6,6 +6,48 @@ now, not routine typos.
 
 ---
 
+## 2026-08-05 — clipgen lateral_offset_m is road geometry on curving clips, not in-lane position
+
+**Symptom:** clipgen smoke runs (62eytm/g9349h/ejodln): every generated
+reward function with a lateral check failed on the ground truth itself;
+b7f37a71's positive stuck at 0.5 for six attempts across two runs. Gate
+feedback facts showed `lateral final -99.53 m` on fe20b8b9's GT.
+
+**Root cause:** `lateral_offset_m` is raw y in the FROZEN t=0-heading frame
+(`pref_pairs/trajectory_features.py:269`). On curving roads it accumulates
+the road's geometry: measured 91 deg turn -> 22 m "offset" (b7f37a71),
+22 deg sweep -> 95 m (fe20b8b9), vs ~0.3 m for a real in-lane nudge. Also
+verified NOT a frame bug: egomotion initial headings are within 1.4 deg of
+zero on all 5 smoke clips (dossier.py's old "extract_features handles the
+rotation" comment was wrong — it never rotates; the data just complies).
+In-lane position is unrecoverable from egomotion alone (no lane reference),
+so the fix is disclosure, not reconstruction: dossier/API/feedback now warn
+the generator off lateral checks on curvy clips (e137df1).
+
+## 2026-08-05 — clipgen gate was unpassable by construction: prescribed additive rubric + GT-claims-carrying negatives
+
+**Symptom:** gpt-4o smoke 62eytm scored 0/5 with every trajectory negative
+floored at exactly 0.6 (perception 0.3 + commitment 0.3 from the prompt's
+prescribed "~0.3/~0.3/~0.4" split — negatives carry GT claims, so 2x the
+0.3 ceiling before the trajectory is inspected). Separately, cross-clip
+negatives from the 5-clip decel-heavy pool were sometimes unwinnable:
+01340cf8's `other_claims_3` donor parses to the SAME canonical claim keys
+as its GT (no function on (claims, traj) can separate them), scored 1.0
+all 3 attempts. Plus 3/15 attempts lost to `if <numpy array>` ValueError.
+
+**Fix (960fd11, e946615):** free-form generation (no rubric; gate stated
+numerically: pos >= 0.7, each corruption >= 0.4 below), battery rebuilt as
+corruptions of the SAME rollout (reversed/flattened traj, gutted/
+no-commitment claims) replacing cross-clip negatives, numpy-truthiness
+warning in the API reference, and measured per-case trajectory facts
+appended to gate feedback (g9349h showed retries were blind without them:
+monotonicity checks failing on the noisy GT itself, three identical
+attempts). Timing named as the reversal discriminator — speed-magnitude
+checks provably cannot separate time-symmetric profiles (fe20b8b9: same
+speeds, min at t=5.6 s vs t=14.3 s).
+
+---
+
 ## 2026-08-03 — regex_excludes silently dead in every launch config: `^dir/` can never match the SDK's `/`-prefixed paths
 
 **Symptom:** every `lilypad/launch.py` submit uploaded a ~5 GB code zip
