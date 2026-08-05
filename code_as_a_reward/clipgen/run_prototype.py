@@ -116,7 +116,12 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
         for attempt in range(1, MAX_ATTEMPTS + 1):
             try:
                 result = generate_reward_fn(
-                    client, text, feedback=feedback, prior_transcript=transcript, tracker=tracker
+                    client,
+                    text,
+                    gt_claims=clip["gt_claims"],
+                    feedback=feedback,
+                    prior_transcript=transcript,
+                    tracker=tracker,
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})

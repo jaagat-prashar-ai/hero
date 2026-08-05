@@ -14,7 +14,7 @@ import pytest
 from code_as_a_reward.clipgen import dossier as dossier_mod
 from code_as_a_reward.clipgen import gate as gate_mod
 from code_as_a_reward.clipgen import sandbox
-from code_as_a_reward.clipgen.generate import extract_code
+from code_as_a_reward.clipgen.generate import extract_code, render_gt_claims
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
@@ -128,6 +128,18 @@ def test_window_helper():
 def test_extract_code_takes_last_block():
     text = "draft:\n```python\nx = 1\n```\nfinal:\n```python\ndef reward(claims, traj):\n    return 0.0\n```\n"
     assert extract_code(text).startswith("def reward")
+
+
+def test_render_gt_claims_shows_canonical_keys():
+    trace = parse_coc_trace(GT_COC, scene_id=CLIP_ID)
+    block = render_gt_claims(trace)
+    assert GT_COC in block
+    assert trace.commitments and trace.perceptual  # meaningful fixture parse
+    for claim in trace.commitments:
+        assert repr(claim.maneuver) in block
+    for claim in trace.perceptual:
+        assert repr(claim.entity) in block
+    assert "Track 32" in block  # the do-not-match-dossier-vocab warning
 
 
 def _gate_cases():

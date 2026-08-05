@@ -183,6 +183,8 @@ Step 3: emit the reward function.
 
 {api_reference}
 
+{gt_claims}
+
 Write ONE python code block containing only `def reward(claims, traj):`
 (plus optional module-level helper constants). Score composition guidance:
 ~0.3 perception, ~0.3 commitment, ~0.4 execution, adjusted to what this
@@ -270,6 +272,52 @@ class OpenAIChat:
         raise RuntimeError(f"OpenAI request failed after retries: {last_err}")
 
 
+def render_gt_claims(trace) -> str:
+    """Render the parsed ground-truth CoC as the exact claim objects the
+    positive gate case passes to the function. Without this the generator
+    predicates claim credit on dossier vocabulary (track IDs, free-form
+    labels like "trailer") the parser never emits, so ground truth earns
+    zero perception/commitment credit (pduuqq smoke, 4/5 clips)."""
+    lines = [
+        f'The ground-truth CoC text:\n  "{trace.raw_text}"',
+        "parses to EXACTLY these claim objects -- this is the `claims` value",
+        "your function receives for the ground-truth (positive) gate case:",
+        "- perceptual:",
+    ]
+    for p in trace.perceptual:
+        lines.append(
+            f"    PerceptualClaim(entity={p.entity!r}, state={p.state!r}, text={p.text!r})"
+        )
+    if not trace.perceptual:
+        lines.append("    (none)")
+    lines.append("- commitments:")
+    for c in trace.commitments:
+        lines.append(
+            f"    CommitmentClaim(maneuver={c.maneuver!r}, speed_profile={c.speed_profile!r},"
+            f" direction={c.direction!r}, text={c.text!r})"
+        )
+    if not trace.commitments:
+        lines.append("    (none)")
+    lines.append("- causal:")
+    for cl in trace.causal:
+        lines.append(
+            f"    CausalClaim(connective={cl.connective!r},"
+            f" effects={[e.maneuver for e in cl.effects]!r},"
+            f" cause_entities={[p.entity for p in cl.cause]!r})"
+        )
+    if not trace.causal:
+        lines.append("    (none)")
+    lines.append(
+        "\nYour claim predicates must fire on these exact objects. Match only the\n"
+        'canonical .entity/.maneuver/.state/.direction keys. Dossier labels and\n'
+        'track IDs (e.g. "Track 32") NEVER appear in claims or their .text -- a\n'
+        "predicate testing for them scores zero even on the ground truth. Other\n"
+        "faithful rollouts may phrase things differently, so key off canonical\n"
+        "fields, never exact .text strings."
+    )
+    return "\n".join(lines)
+
+
 def extract_code(text: str) -> str:
     """Last ```python fenced block in the reply (the chain may show drafts)."""
     blocks = re.findall(r"```(?:python)?\n(.*?)```", text, flags=re.DOTALL)
@@ -319,6 +367,7 @@ def _model(response) -> str:
 def generate_reward_fn(
     client,
     dossier: str,
+    gt_claims=None,  # ParsedCoCTrace of the GT CoC; rendered into step 3
     feedback: str | None = None,
     prior_transcript: list[dict] | None = None,
     tracker: CostTracker | None = None,
@@ -343,7 +392,15 @@ def generate_reward_fn(
         messages.append({"role": "user", "content": _STEP2})
         response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
-        messages.append({"role": "user", "content": _STEP3.format(api_reference=_API_REFERENCE)})
+        messages.append(
+            {
+                "role": "user",
+                "content": _STEP3.format(
+                    api_reference=_API_REFERENCE,
+                    gt_claims="" if gt_claims is None else render_gt_claims(gt_claims),
+                ),
+            }
+        )
         response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
 
