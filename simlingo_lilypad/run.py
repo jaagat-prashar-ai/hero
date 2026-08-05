@@ -31,9 +31,18 @@ def _download_and_extract(bucket: str, prefix: str, workdir: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
 
     s3 = _s3_client()
-    keys = []
-    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
-        keys.extend(o["Key"] for o in page.get("Contents", []))
+    expected = int(os.environ.get("SIMLINGO_EXPECTED_OBJECTS", "0")) or None
+    deadline = __import__("time").time() + 45 * 60
+    while True:
+        keys = []
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+            keys.extend(o["Key"] for o in page.get("Contents", []))
+        if expected is None or len(keys) >= expected:
+            break
+        if __import__("time").time() > deadline:
+            raise RuntimeError(f"mirror incomplete: {len(keys)}/{expected} objects under s3://{bucket}/{prefix}")
+        print(f"[simlingo] mirror still filling ({len(keys)}/{expected}), waiting 60s", flush=True)
+        __import__("time").sleep(60)
     tars = [k for k in keys if k.endswith(".tar.gz")]
     others = [k for k in keys if not k.endswith(".tar.gz")]
     print(f"[simlingo] mirroring {len(tars)} tarballs + {len(others)} other objects "
