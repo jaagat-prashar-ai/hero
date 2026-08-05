@@ -1,0 +1,64 @@
+# clipgen 15-clip diversity run: same pipeline as clipgen_smoke.yaml but over
+# 15 fresh OOD clips spanning ALL 9 event clusters (2 per big cluster, 1-2 per
+# small; sampled 2026-08-05 from ood_reasoning.parquet, data fetched from the
+# pai_warm_cache/ood_dense_100chunks S3 mirror -- no HF). Purpose: measure how
+# the 3/5-passing harness (commit 2a4c152 lineage) generalizes beyond the 5
+# development clips it was iterated against.
+#
+# Expected spend ~$0.50-0.90 on gpt-4o (15 clips x 3-5 calls); same hard $5
+# abort ceiling inside generate.py.
+#
+# Results sync to
+#   s3://research-datasets-chicago/code_as_a_reward/clipgen/runs/gpt4o-smoke15/
+# (separate prefix -- does NOT overwrite the 5-clip run history).
+#
+# Submit (from repo root):
+#   OPENAI_API_KEY=$(cat ~/.creds/openai.key) python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_smoke15.yaml
+name: clipgen-gpt4o-15
+model_identifier: other.other.clipgen_reward_smoke.default.v1
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: code_as_a_reward.clipgen.run_prototype.clipgen_entrypoint
+  entrypoint_fn_config:
+    manifest: "code_as_a_reward/clipgen/data15/manifest.json"
+    out_dir: "/tmp/clipgen_out"
+    backend: "openai"
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "code_as_a_reward/clipgen/runs/gpt4o-smoke15"
+
+cluster_resources:
+  num_cpu_nodes: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: -1
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  required_environment_variables:
+    - OPENAI_API_KEY
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/third_party/"
+      - "^/convos/"
+      - "^/perplexity/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"
