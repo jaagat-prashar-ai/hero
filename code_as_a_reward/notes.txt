@@ -196,4 +196,25 @@ A beat with no connective is fine (it's just a commitment with no reason).
 
         # No model to load, no inference, no training - so a GPU would sit at 0% utilization for the whole run while blocking a slice of an A100 node someon eelse could use (and your OOD-eval config's own notes document that generic workloads don't even get GPU access unless you go through the Ray Train path; that job needed it because it ran Alpamayo 1.5 inference locally; this one doesn't)
         # Hence num_cpu_nodes: 1 and the generic workload type: cheapest possible slot, same result. The contrast with the p5fruu training run (8xA100 for 5.5 hours) is exactly the point of this prototype. 
-        # It's a quick feasibility check, not a training job.  
+        # It's a quick feasibility check, not a training job. 
+
+# venvs are not in S3; they were installed with pip from PyPI (public python package index). 
+
+# Disk: freed ~11.5GB (venvs, your own run logs, scratch clone). Shard tar and labels zips were kept. 
+# Run: clipgen-gpt4o-smoke-pduuqq is submitted and being polled in the background. This build has the S3 sync fix (put_object) and dumps
+# the full report into the workload logs as a backup, so this time the pre-attempt data survies no matter what. 
+# Session saved: converation auto-persists for claude --resume, and I've written the durable context to memory - the p5fruu flat-run diagnosis (EMA-prior/gate mismatch + proposed fixes, not yet applied), the clipgen gpt-4o switch, the y6uw60 postmortem (0/5 passed, $0.24, details lost to the sync bug), and the exact pick-up point for pduuqq. 
+# first attempt's headline was 0/5 clips passing: so the interesting question for the report is whether the gate is too strict. gpt-4o's functions are too weak, or the feedback loop isn't converging in 3 attempts. 
+# the full per-attempt data from pduuqq will let us see exactly which. 
+
+# Fixes proposed live in the global dterministic pipeline
+
+# Dossier vocab: the dossier is the ground-truth document we hand the LLM for each clip: obstacle tracks, labeled like" Trailer [Track 32]", distances, GT egomotion. "Track 32" and "Trailer" only exist in that document. 
+gpt4o wrote code checking for thos estrings insde the claims (but they don't appear there). 
+
+# ParsedCoCTrace: the output of the existing coc_claim_parser.py run on a CoC sentence. It's the claims argument that generated reward function receives. 
+E.g. "Decelerate to maintain a safe distnace from the lead vehicle" parses to roughly perceptual=[entity="automobile"], commitments=[meaneuever="decelerate"] - a few canonical keys, no track IDs. 
+
+# perceptual, regex matching; how do we know this is strong enough?
+# commitment, how do we know this is strong enough?
+# these clips failed on predicts that can't fire 
