@@ -30,35 +30,40 @@ def setup_logging(cfg, save_folder=None):
     with open(os.path.join(save_folder, "args.txt"), "w") as f:
         json.dump(args.__dict__, f, indent=2)
 
-    # Log git
-    sha = (
-        subprocess.check_output(
-            ["git", "-C", f"{working_dir}", "rev-parse", "HEAD"]
+    # Log git (best effort: on cluster workers the shipped code is a plain
+    # file copy, not a git checkout — never fail the run over diagnostics)
+    try:
+        sha = (
+            subprocess.check_output(
+                ["git", "-C", f"{working_dir}", "rev-parse", "HEAD"]
+            )
+            .decode("utf-8", errors="replace")
+            .strip()
         )
-        .decode("utf-8", errors="replace")
-        .strip()
-    )
-    commit = (
-        subprocess.check_output(["git", "-C", f"{working_dir}", "log", "-1"])
-        .decode("utf-8", errors="replace")
-        .strip()
-    )
-    branch = (
-        subprocess.check_output(["git", "-C", f"{working_dir}", "branch"])
-        .decode("utf-8", errors="replace")
-        .strip()
-    )
-    repo = Repo(working_dir)
+        commit = (
+            subprocess.check_output(["git", "-C", f"{working_dir}", "log", "-1"])
+            .decode("utf-8", errors="replace")
+            .strip()
+        )
+        branch = (
+            subprocess.check_output(["git", "-C", f"{working_dir}", "branch"])
+            .decode("utf-8", errors="replace")
+            .strip()
+        )
+        repo = Repo(working_dir)
 
-    with open(os.path.join(save_folder, "git_info.txt"), "w") as f:
-        # write current date and time
-        f.write(
-            f"Run started at: {str(datetime.now().strftime('%d/%m/%Y %H:%M:%S'))}\n"
-        )
-        f.write(f"Git state: {sha}\n")
-        f.write(f"Git commit: {commit}\n")
-        f.write(f"Git branch: {branch}\n\n")
-        f.write(f"{repo.git.diff('HEAD')}")
+        with open(os.path.join(save_folder, "git_info.txt"), "w") as f:
+            # write current date and time
+            f.write(
+                f"Run started at: {str(datetime.now().strftime('%d/%m/%Y %H:%M:%S'))}\n"
+            )
+            f.write(f"Git state: {sha}\n")
+            f.write(f"Git commit: {commit}\n")
+            f.write(f"Git branch: {branch}\n\n")
+            f.write(f"{repo.git.diff('HEAD')}")
+    except Exception as e:
+        with open(os.path.join(save_folder, "git_info.txt"), "w") as f:
+            f.write(f"git info unavailable: {e}\n")
 
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
