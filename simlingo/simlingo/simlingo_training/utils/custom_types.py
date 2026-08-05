@@ -62,3 +62,6 @@ class DrivingExample(NamedTuple):
     driving_label: DrivingLabel
     run_id: List[str]
     qa_templates: Optional[Tuple[str, str]] = None
+    # [B] int64; samples sharing an id are counterfactual variants of the same
+    # frame and form one group for the contrastive alignment loss
+    group_ids: Optional[Tensor] = None

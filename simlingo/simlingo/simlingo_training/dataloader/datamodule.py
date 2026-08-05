@@ -229,6 +229,23 @@ class DataModule(LightningDataModule):
 
     @line_profiler.profile
     def dl_collate_fn(self, data):
+        # the dreamer dataset in contrastive mode returns a list of K counterfactual
+        # variants of the same frame per item: flatten them and remember group
+        # membership. Regular items become groups of size 1 (no contrastive signal).
+        # Note: with contrastive mode on, the effective batch size grows by up to K
+        # per dreamer item drawn.
+        flat_data = []
+        group_ids = []
+        for group_id, item in enumerate(data):
+            if isinstance(item, list):
+                flat_data.extend(item)
+                group_ids.extend([group_id] * len(item))
+            else:
+                flat_data.append(item)
+                group_ids.append(group_id)
+        data = flat_data
+        group_ids = torch.tensor(group_ids, dtype=torch.long)
+
         BS = len(data)
         grid_nums = [self.NUM_IMAGE_PATCHES] # we split the front forward into two patches (1x2)
 
@@ -340,6 +357,7 @@ class DataModule(LightningDataModule):
             driving_label=driving_label,
             run_id=encode_uint8([data[i].measurement_path for i in range(BS)], 1000),  # [B] str
             qa_templates=qa_templates,
+            group_ids=group_ids,
         )
 
     def dl_collate_fn_val(self, data):
