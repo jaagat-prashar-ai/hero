@@ -115,8 +115,10 @@ def waypoints_from_egomotion(df, hz: float = 10.0) -> np.ndarray:
     """(N, 2) planar waypoints resampled at `hz` from a raw egomotion frame.
 
     Tolerant of the column-name variants seen across the PAI egomotion
-    exports; extract_features handles the t=0-heading frame itself, so raw
-    world XY is fine here.
+    exports. extract_features does NOT rotate into the t=0-heading frame --
+    it trusts the input convention; the PAI egomotion logs are already
+    ego-aligned at t=0 (verified across the smoke clips 2026-08-05: initial
+    headings all within 1.4 deg of zero), so raw XY is fine here.
     """
     # Figure out which column holds timestamps: prefer "timestamp", else fall back to "timestamp_us".
     ts_col = "timestamp" if "timestamp" in df.columns else "timestamp_us"
@@ -174,6 +176,17 @@ def ego_lines(traj: TrajectoryFeatures) -> list[str]:
     if dist >= 5.0:
         # Insert the heading-change line as the 4th line (index 3), between lateral offset and events.
         lines.insert(3, f"total heading change: {traj.total_heading_change_deg:+.1f} deg")
+        # lateral_offset_m is y in the frozen t=0 heading frame, so on a
+        # curving road it accumulates the road's geometry (tens of meters),
+        # swamping in-lane maneuvers (~0.3 m). Verified 2026-08-05: 91 deg
+        # turn -> 22 m "offset" on b7f37a71. Warn the generator off it.
+        if abs(traj.total_heading_change_deg) > 15.0:
+            lines.append(
+                "warning: the road curves along this clip, so lateral offset"
+                " accumulates road geometry -- it does NOT measure in-lane"
+                " position; do not build lateral checks from it. Use speed"
+                " magnitudes and event TIMING instead."
+            )
     else:
         # Otherwise, add a note explaining that heading is meaningless here because the car barely moved.
         lines.append("note: ego is nearly stationary this clip; correct behavior is staying stopped/creeping")
@@ -265,19 +278,19 @@ def features_from_waypoints(waypoints: np.ndarray, hz: float, scene_id: str) -> 
 # track: obstacle.offline.parquet - the dataset's ground-truth object annotations. Every labeled object carries a numeric track_id, and the dossier surfaces them in its track lines: - track 32 [trailer] visible 0.0-19.8s; closest 8.2m (ahead) at t=17.5s 
 # How many tracks: far more than the dossier shows:
 
-┌───────────────────────────────────┬──────────────┬────────────────────────────────────────────────────────────────┐
-│               Clip                │ Total tracks │                          Composition                           │
-├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
-│ 01340cf8 (oversize load)          │ 183          │ 141 automobiles, 28 heavy trucks, 11 trailers, 2 riders, 1 bus │
-├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
-│ 40597645 (pedestrian)             │ 45           │ 42 automobiles, 3 persons                                      │
-├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
-│ b7f37a71 (construction cone)      │ 141          │ 115 automobiles, 13 persons, 5 protruding objects, 4 animals…  │
-├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
-│ eece4a2f (cyclist + stop sign)    │ 301          │ 229 automobiles, 50 persons, …                                 │
-├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
-│ fe20b8b9 (cyclist + lead vehicle) │ 15           │ 9 automobiles, 4 persons, 2 riders                             │
-└───────────────────────────────────┴──────────────┴────────────────────────────────────────────────────────────────┘
+# ┌───────────────────────────────────┬──────────────┬────────────────────────────────────────────────────────────────┐
+# │               Clip                │ Total tracks │                          Composition                           │
+# ├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+# │ 01340cf8 (oversize load)          │ 183          │ 141 automobiles, 28 heavy trucks, 11 trailers, 2 riders, 1 bus │
+# ├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+# │ 40597645 (pedestrian)             │ 45           │ 42 automobiles, 3 persons                                      │
+# ├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+# │ b7f37a71 (construction cone)      │ 141          │ 115 automobiles, 13 persons, 5 protruding objects, 4 animals…  │
+# ├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+# │ eece4a2f (cyclist + stop sign)    │ 301          │ 229 automobiles, 50 persons, …                                 │
+# ├───────────────────────────────────┼──────────────┼────────────────────────────────────────────────────────────────┤
+# │ fe20b8b9 (cyclist + lead vehicle) │ 15           │ 9 automobiles, 4 persons, 2 riders                             │
+# └───────────────────────────────────┴──────────────┴────────────────────────────────────────────────────────────────┘
 
 # global code as a reward parser
     # inspect the logs very clearly for this one. 

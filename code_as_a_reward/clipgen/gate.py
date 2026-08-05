@@ -154,8 +154,10 @@ def _traj_facts(traj) -> str:
         f" (min {traj.min_speed_mps:.1f} at t={t_min:.1f}s,"
         f" drop {traj.initial_speed_mps - traj.min_speed_mps:.1f});"
         f" {rising}/{max(len(speed) - 1, 1)} speed steps INCREASE (noise);"
+        f" total turn {traj.total_heading_change_deg:+.0f} deg;"
         f" lateral final {traj.final_lateral_offset_m:+.2f} m,"
-        f" max |{float(np.max(np.abs(lat))) if len(lat) else 0.0:.2f}| m;"
+        f" max |{float(np.max(np.abs(lat))) if len(lat) else 0.0:.2f}| m"
+        " (curvature-contaminated when turn is large);"
         f" stop_event={traj.stop_event}"
     )
 

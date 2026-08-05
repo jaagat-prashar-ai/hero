@@ -133,7 +133,11 @@ cannot pass). Checks a corruption preserves -- aggregate statistics like
 min/max speed, order-insensitive quantities, "some deviation happened
 somewhere" -- hand the corruption the same credit as the real thing;
 anchor checks in the maneuver's temporal shape instead (what happens,
-WHEN, in what order, in which direction).
+WHEN, in what order, in which direction). The sharpest reversal
+discriminator is TIMING: a time-reversed trajectory keeps the same speeds
+but events happen at mirrored times -- e.g. require the minimum speed to
+occur inside the event's time window (argmin(speed) * dt_s), not just that
+a drop of some size exists.
 
 Hard rules for the final function:
 - Signature exactly `def reward(claims, traj) -> float`, returning a value
@@ -171,7 +175,10 @@ _API_REFERENCE = """\
 `traj` is a TrajectoryFeatures:
 - traj.dt_s (float, seconds per waypoint), traj.n_waypoints (int)
 - traj.speed_mps, traj.heading_deg, traj.lateral_offset_m: per-waypoint
-  list[float] (lateral offset is signed, + = left, in the t=0 heading frame)
+  list[float] (lateral offset is signed, + = left, in the t=0 heading frame.
+  CAUTION: the frame is frozen at t=0, so on a curving road lateral offset
+  accumulates the road's geometry and does NOT measure in-lane position --
+  heed the dossier's total-heading-change/curvature warning before using it)
 - traj.initial_speed_mps, traj.final_speed_mps, traj.min_speed_mps,
   traj.final_lateral_offset_m, traj.total_heading_change_deg (floats)
 - traj.stop_event, traj.yield_event (bool, threshold-derived -- prefer the
