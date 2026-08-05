@@ -37,6 +37,11 @@ class DrivingModelConfig:
     speed_wps_mode: str = '2d'
     predict_route_as_wps: bool = True
 
+    # intra-scene counterfactual contrastive alignment (0.0 = disabled)
+    contrastive_loss_weight: float = 0.0
+    contrastive_embed_dim: int = 256
+    contrastive_temperature: float = 0.07
+
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 
 
@@ -67,7 +72,12 @@ class DatasetBaseConfig:
     img_shift_augmentation_prob: float = 0.5
     
     use_safety_flag: bool = False
-    
+
+    # intra-scene counterfactual contrastive alignment:
+    # each dreamer sample becomes a group of K counterfactuals of the same frame
+    dreamer_contrastive: bool = False
+    dreamer_contrastive_k: int = 4
+
     num_route_points: int = 20
 
     route_as: str = 'target_point_command' # target_point_command, target_point, command
