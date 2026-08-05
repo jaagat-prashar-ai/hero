@@ -9,7 +9,6 @@
 
 All K samples share thes ame image, the image features are identical across the group, the only way to make S diagonal is for the instruction to causally shape the predicted trajectory and for the text representation to encode its action consequence. Gradient flows through both encoders through the watpoiny predictions themselves. 
 
-
 # dreamer_contrastive enabled, __getitem__ samples K distinct counterfactual options (without replacement) of the same frame and returns one DatasetOutput per option, sharing the identical camera image. 
 # Safety mode is disabled in this mode since it can overwrite target waypoints with the original ones, which would break intruction<-> trajectory pairing. 
 
@@ -40,3 +39,81 @@ All K samples share thes ame image, the image features are identical across the 
 # Comparison: run baseline (weight = 0) and contrastive from the same seed/config otherwise, then compare on your existing yardsticks - the dreamer instruction-following success rates in on_predict_epoch_end, plus the masking reversal-effect metric for the faithfulness scale.
 # Caveat: batches with zero dreamer draws contribute no contrastive signal (the loss's count mechanism handles this correctly - it averages only over participating samples, so no bias, just variance)
 
+# SimLingo overview:
+    # Complete change set, walked through in data-flow order. 
+
+# One frame -> a group of K counterfactuals
+Original:
+# dataloader/dataset_dreamer.py - Originally, __getitem__ loaded a frame, flattened all counterfactual options from its 
+dreamer/*.json.gz file, and picked one via random.choice, returning a single DatasetOutput. Now, when the dreamer_contrastive flag is on: 
+    # It draws K distinct options (random.sample, K=4 capped at available count) instead of one. 
+    # The shared work (measurements, waypoints, route, navigational conditioning, the camera image) is done once, then a loop builds one DatasetOutput per option - each with its own instruction prompt and its own target waypoints/route, but the identical image. 
+    # __getitem__ returns the list of K samples instead of a single one. 
+    # Safety-flag handling is forced off in this mode, because safety mode can overwrite an unsafe option's target waypoints with the original driven trajectory - two options would then share one trajectory and the matching game would have no unique answer. // how?
+    
+# Batch plumbing: remembering who belongs together
+    # dataloader/datamodule.py - dl_collate_fn now starts by flattening: a list-valued item (a dreamer group) contributes K consecutive samples, everything else contributes one. 
+        # While flattening, it records a group_ids tensor: sampels sharing an id are counterfactual siblingsl driving/QA samples become singleton groups. 
+        # batch_size of 4 can physically contain up to 16 samples. 
+
+# utils/custom_types.py - DrivingExample gained an optional group_ids: Tensor field to carry that through to the model. 
+
+# The loss itself?
+    # models/utils.py: intra_scene_contrastive_loss(z_text, z_traj, group_ids, temperature), and standalone function:  
+        # for each group with >= 2 members it computes logits = z_text @ z_traj.T / t (KxK) and applies cross-entropy on the diagonal twice - row-wise (instruction -> which trajectory obeys it) and column-wise (trajectory->which instruction explains it); that column direction is the inverse head. 
+
+# Returns per-sample losses, a participation count (singletones contribute 0 and are excluded from averaging via the existing summarise_losses count mechanism), and retrieval accuracy. Covered by 5 unit tests in tests/test_contrastive_alignment.py.
+
+# models/driving.py - two additions:    
+    # In __init__: when contrastive_loss_weight > 0, two small 2-layer MLPs - text_proj (LLM hidden size -> 256-d) and traj_proj (flattened predicted waypoints+route -> 256-d). 
+    # contrastive_alignment_loss(), called from forward_loss after the normal losses: it pools the LLM's last-layer hidden states over the instruction tokens only (valid-but-not-answer mask, which already existed), projects and L2-normalizes both sides - the trajectory side uses the model's own predictions (speed_wps_prediction, route_prediction from the existing loss dict), so gradient flows through action generation - and adds weight x loss to the loss dict as contrastive_loss. Retrival accuracy is logged per phase. 
+    Say batch_size=2 and the loader draws one dreamer frame and one ordinary driving frame. The dreamer frame expands into its K=4 counterfactuals, so the batch physically holds 5 samples:
+
+┌─────────────┬──────────────────────────────────┬──────────┐
+│   batch     │            what it is            │ group_id │
+│  position   │                                  │          │
+├─────────────┼──────────────────────────────────┼──────────┤
+│ 0           │ frame A + "speed up" → its       │ 0        │
+│             │ target trajectory                │          │
+├─────────────┼──────────────────────────────────┼──────────┤
+│ 1           │ frame A + "stop" → its target    │ 0        │
+│             │ trajectory                       │          │
+├─────────────┼──────────────────────────────────┼──────────┤
+│ 2           │ frame A + "change lane left" →   │ 0        │
+│             │ its trajectory                   │          │
+├─────────────┼──────────────────────────────────┼──────────┤
+│ 3           │ frame A + "keep driving" → its   │ 0        │
+│             │ trajectory                       │          │
+├─────────────┼──────────────────────────────────┼──────────┤
+│ 4           │ frame B, ordinary driving sample │ 1        │
+└─────────────┴──────────────────────────────────┴──────────┘
+
+group_ids is just that last column — [0,0,0,0,1]. It's how the loss knows positions 0–3 are four variants of the same camera image ("counterfactual siblings") while position 4 is alone ("singleton"). Without it, the model couldn't tell which samples to compare against each other.
+
+For each sample, we make two vectors: z_text (summary of the instruction) and z_traj (summary of the trajectory the model predicted). 
+#Within group 0, we score every instruction against every trajectory with a dot product. Large when two vectors point the same way and we divide by a temperature 0.07 to sharpen softmax. 
+
+                traj_speedup  traj_stop  traj_lane  traj_keep
+text_speedup        8.1          1.2        0.3        2.0     ← row
+text_stop           0.9          7.6        1.1        1.4
+...
+
+Loss function is cross-entropy, treated as a classification problem. Take the first row: "here are 4 trajecotires, which one belongs to speed up?"
+# The correct answer is column 1. Cross-entropy rewards put the highest score on the daigonal. That's InfoNCE - softmax-classification where "classes" are siblign trajectories. 
+
+# Twice because table can read in two directions and teaches something different: 
+    # Rows: instruction -> pick its trajectory ("Does the instruction predict the action?")
+    # Coluns: trajectory -> pick its instruction ("can the action be explained by the rigth instruction") 
+
+contrastive_loss_weight=0.5.
+    # fixed scalar multiplier that decides how loudly the contrastive term speaks in the total loss. It's never updated - it's a config constant. 
+    # The loss that actually updates the network's weights is total loss: L_total = L_language + L_waypoints + L_route + 0.5 x L_contrastive
+
+    L_langauge: cross-entropy, next-token prediction on the answer text (standard LLM loss)
+    L_waypoints: smooth-L1 (Huber) between the 10 predicted future waypoints and the target waypoints. 
+    # L_route: smooth-L1 on the 20 predicted route points
+    # L_contrastive: our symmetric InfoNCE (the cosine-similarity matching game from before)
+
+    # Then a single L_total.backward() computes gradients, and AdamW updates every trainable parameter with them: the LoRA adapters on the LLM, the vision encoder, the waypoints/route prediction heads, and our two new projection MLPs (text_proj, traj_proj). 
+    # There's no separate optimizer for the contrastive part. All four terms pull on the same shared parameters at once: the waypoint loss says "predict the correct trajectory," the contrastive loss simultaneously says "and make it distngishably reflect the instruction."
+    # The scalar 0.5 sets the bargaining power between those pulls. At weight 0, the contrastive term is absent, graidnets come only from the original three losses, and text_proj/traj_proj never rtain (that's what ablation requires). 
