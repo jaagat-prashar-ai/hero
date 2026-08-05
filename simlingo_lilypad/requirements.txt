@@ -1,0 +1,28 @@
+# Pip overlay for SimLingo training on Lilypad workers.
+# numpy/ray/wandb are preinstalled on workers and must NOT be pinned here
+# (numpy 2.x compat for the py3.8-era SimLingo code lives in
+# simlingo/simlingo/simlingo_training/__init__.py).
+# torch pin required: base image torch is too old.
+torch==2.7.1
+torchvision==0.22.1
+transformers==4.46.3
+pytorch-lightning==2.5.2
+torchmetrics==1.7.1
+deepspeed==0.16.2
+peft==0.13.2
+timm==0.9.16
+accelerate==1.0.1
+hydra-core==1.3.2
+hydra-zen==0.12.1
+einops==0.7.0
+imgaug==0.4.0
+opencv-python-headless==4.10.0.84
+ujson==5.9.0
+scipy>=1.10
+shapely>=2.0
+carla==0.9.15
+matplotlib>=3.7
+line_profiler>=4.0
+sentencepiece>=0.1.99
+boto3>=1.34
+s3transfer>=0.10.0
