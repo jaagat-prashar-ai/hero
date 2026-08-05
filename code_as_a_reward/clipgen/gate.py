@@ -1,21 +1,26 @@
 # SPDX-License-Identifier: Apache-2.0
 """The verification gate: empirical accept/reject for generated functions.
 
-A candidate is accepted only if it separates trajectories it should reward
-from trajectories it shouldn't (VLM-CaR's expert-vs-random check, adapted):
+A candidate must separate a rollout from corrupted variants of that SAME
+rollout (VLM-CaR's expert-vs-random check, moved onto the rollout itself):
 
-- POSITIVE: the clip's GT reasoning (parsed to claims) + GT trajectory
-  must score >= POS_MIN.
-- NEGATIVES (each must score low; the p95 across all negatives <= NEG_P95_MAX):
-  * GT claims paired with other clips' trajectories
-  * GT claims paired with the GT trajectory time-reversed
-  * GT claims paired with a flattened (no-reaction, constant-speed) trajectory
-  * other clips' claims paired with the GT trajectory
+- POSITIVE: the rollout's claims + trajectory must score >= POS_MIN.
+- PERTURBATIONS (each must score at least MIN_DROP below the positive):
+  * same claims, trajectory time-reversed
+  * same claims, flattened (no-reaction, constant-velocity) trajectory
+  * claims gutted (no perceptual/commitment/causal content), same trajectory
+  * commitments removed (perception-only reasoning), same trajectory
 
-  # How do we develop a good arena/benchmark for what trajectories should be accepted? i.e., what constitutes good and bad ones to be tested? 
+At generation time the GT pair stands in for the rollout. At selection time
+(score a rollout group, take the argmax), the same battery verifies the
+winner: a function insensitive to corruption of the very rollout it ranked
+highest is rejected. The old cross-clip negatives (other clips' claims or
+trajectories) are gone -- with semantically similar clips in the pool they
+produced unwinnable cases (identical canonical claims), and rollout-derived
+perturbations are guaranteed contrastive by construction.
 
-Negatives transform WAYPOINTS and re-extract features, so derived fields
-(events, min speed) stay consistent rather than being hand-edited.
+Perturbations transform WAYPOINTS and re-extract features, so derived
+fields (events, min speed) stay consistent rather than being hand-edited.
 """
 
 # implement the counterfactuals here. 
@@ -44,7 +49,10 @@ from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_fn, r
 from pref_pairs.trajectory_features import TrajectoryFeatures, extract_features
 
 POS_MIN = 0.7
-NEG_P95_MAX = 0.3
+# A corrupted rollout must score at least this far below the intact one.
+# At the minimum passing positive (0.7) this reproduces the old absolute
+# ceiling (perturbations <= 0.3); for stronger positives it scales.
+MIN_DROP = 0.4
 
 
 @dataclasses.dataclass
@@ -59,7 +67,7 @@ class GateCase:
 class GateResult:
     passed: bool
     pos_score: float
-    neg_p95: float
+    max_pert: float  # highest score any perturbation achieved
     scores: dict[str, float]
     failures: list[str]  # feedback lines for the regeneration prompt
 
@@ -90,50 +98,46 @@ def _too_similar(a: np.ndarray, b: np.ndarray, min_dev_m: float = 2.0) -> bool:
     return float(np.max(np.linalg.norm(a[:n] - b[:n], axis=1))) < min_dev_m
 
 
-def build_cases(
-    clip_id: str,
-    gt_claims,
-    gt_waypoints: np.ndarray,
+def build_perturbations(
+    scene_id: str,
+    claims,
+    waypoints: np.ndarray,
     hz: float,
-    others: list[tuple[object, np.ndarray]],
+    tag: str = "gt",
 ) -> list[GateCase]:
-    """Assemble the positive and the negative battery for one clip.
+    """The positive plus corrupted variants of the SAME rollout.
 
-    `others` carries (claims, waypoints) from the OTHER prototype clips --
-    both directions of mismatch are exercised.
+    At generation time the GT (claims, waypoints) pair stands in for the
+    rollout (tag="gt"); at selection time call this on the argmax rollout
+    of a group to verify the function is sensitive around its own winner.
     """
-    gt_traj = _refeature(gt_waypoints, hz, clip_id, "gt")
-    cases = [GateCase("positive:gt", gt_claims, gt_traj, "positive")]
-    reversed_wp = np.asarray(gt_waypoints)[::-1].copy()
-    if not _too_similar(gt_waypoints, reversed_wp):
+    traj = _refeature(waypoints, hz, scene_id, tag)
+    cases = [GateCase(f"positive:{tag}", claims, traj, "positive")]
+    reversed_wp = np.asarray(waypoints)[::-1].copy()
+    if not _too_similar(waypoints, reversed_wp):
         cases.append(
             GateCase(
-                "negative:reversed_traj",
-                gt_claims,
-                _refeature(reversed_wp, hz, clip_id, "rev"),
+                "perturb:reversed_traj",
+                claims,
+                _refeature(reversed_wp, hz, scene_id, "rev"),
                 "negative",
             )
         )
-    flat_wp = flattened_waypoints(gt_waypoints)
-    if not _too_similar(gt_waypoints, flat_wp):
+    flat_wp = flattened_waypoints(waypoints)
+    if not _too_similar(waypoints, flat_wp):
         cases.append(
             GateCase(
-                "negative:no_reaction_traj",
-                gt_claims,
-                _refeature(flat_wp, hz, clip_id, "flat"),
+                "perturb:no_reaction_traj",
+                claims,
+                _refeature(flat_wp, hz, scene_id, "flat"),
                 "negative",
             )
         )
-    for i, (other_claims, other_wp) in enumerate(others):
-        cases.append(
-            GateCase(
-                f"negative:other_traj_{i}",
-                gt_claims,
-                _refeature(other_wp, hz, clip_id, f"other{i}"),
-                "negative",
-            )
-        )
-        cases.append(GateCase(f"negative:other_claims_{i}", other_claims, gt_traj, "negative"))
+    gutted = dataclasses.replace(claims, perceptual=[], commitments=[], causal=[])
+    cases.append(GateCase("perturb:gutted_claims", gutted, traj, "negative"))
+    if claims.commitments:
+        no_commit = dataclasses.replace(claims, commitments=[], causal=[])
+        cases.append(GateCase("perturb:no_commitments", no_commit, traj, "negative"))
     return cases
 
 
@@ -141,9 +145,11 @@ def run_gate(
     source: str,
     cases: list[GateCase],
     pos_min: float = POS_MIN,
-    neg_p95_max: float = NEG_P95_MAX,
+    min_drop: float = MIN_DROP,
 ) -> GateResult:
-    """Score every case; an exception on any case is an automatic failure."""
+    """Score every case; the positive must clear pos_min and every
+    perturbation must score at least min_drop below it. An exception on
+    any case is an automatic failure."""
     fn = compile_reward_fn(source)
     scores: dict[str, float] = {}
     failures: list[str] = []
@@ -157,29 +163,26 @@ def run_gate(
     pos_scores = [
         s for c, s in zip(cases, scores.values()) if c.kind == "positive" and np.isfinite(s)
     ]
-    neg_scores = [
+    pert_scores = [
         s for c, s in zip(cases, scores.values()) if c.kind == "negative" and np.isfinite(s)
     ]
     pos_score = float(min(pos_scores)) if pos_scores else float("nan")
-    neg_p95 = float(np.percentile(neg_scores, 95)) if neg_scores else float("nan")
+    max_pert = float(max(pert_scores)) if pert_scores else float("nan")
 
     if not np.isfinite(pos_score) or pos_score < pos_min:
         failures.append(
-            f"positive case scored {pos_score:.2f}, needs >= {pos_min} -- the ground-truth"
+            f"positive case scored {pos_score:.2f}, needs >= {pos_min} -- the intact"
             " reasoning+trajectory pair must be rewarded"
         )
-    for case in cases:
-        s = scores[case.name]
-        if case.kind == "negative" and np.isfinite(s) and s > neg_p95_max:
-            failures.append(
-                f"{case.name} scored {s:.2f}, wanted <= {neg_p95_max} -- this pairing is"
-                " wrong-by-construction and must not be rewarded"
-            )
-    passed = bool(
-        np.isfinite(pos_score)
-        and pos_score >= pos_min
-        and np.isfinite(neg_p95)
-        and neg_p95 <= neg_p95_max
-        and not any("raised instead" in f for f in failures)
-    )
-    return GateResult(passed=passed, pos_score=pos_score, neg_p95=neg_p95, scores=scores, failures=failures)
+    ceiling = pos_score - min_drop
+    if np.isfinite(ceiling):
+        for case in cases:
+            s = scores[case.name]
+            if case.kind == "negative" and np.isfinite(s) and s > ceiling:
+                failures.append(
+                    f"{case.name} scored {s:.2f}, needs <= {ceiling:.2f} (positive"
+                    f" {pos_score:.2f} minus drop {min_drop}) -- a corrupted variant of"
+                    " the rollout must not be rewarded"
+                )
+    passed = not failures
+    return GateResult(passed=passed, pos_score=pos_score, max_pert=max_pert, scores=scores, failures=failures)

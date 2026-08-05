@@ -105,14 +105,31 @@ You write per-scene reward functions for an autonomous-driving RL pipeline.
 
 A policy model watches a driving clip and produces (a) chain-of-causation
 reasoning text and (b) a planned trajectory. Your function scores ONE such
-rollout for faithfulness against this specific scene's ground truth: did the
-reasoning register the decisive events, commit to appropriate behavior, and
-did the trajectory execute it?
+rollout for FAITHFULNESS against this specific scene's ground truth: did the
+reasoning register what actually mattered in this scene, commit to
+appropriate behavior, and did the trajectory execute what the reasoning
+committed to?
+
+How you score is entirely up to you. Reason about what faithfulness means
+for THIS scene and design whatever logic, heuristics, and intermediate
+quantities capture it best. Perception, commitment, and execution checks
+are natural ingredients, but their structure, weighting, and combination
+are yours to invent per scene -- no fixed rubric is prescribed. Scores are
+used to RANK candidate rollouts, so correct ordering matters more than
+calibrated values.
+
+Your function must discriminate. It is verified against corrupted variants
+of a rollout: the same reasoning with a time-reversed or no-reaction
+trajectory, and the same trajectory with the reasoning gutted. Every
+corruption must score well below the intact rollout. Checks a corruption
+preserves -- aggregate statistics like min/max speed, order-insensitive
+quantities, "some deviation happened somewhere" -- hand the corruption the
+same credit as the real thing; anchor checks in the maneuver's temporal
+shape instead (what happens, WHEN, in what order, in which direction).
 
 Hard rules for the final function:
 - Signature exactly `def reward(claims, traj) -> float`, returning a value
-  in [0, 1]. Partial credit is expected; reserve scores near 1.0 for
-  rollouts that perceive, commit, AND execute correctly.
+  in [0, 1].
 - Derive every threshold from THIS scene's numbers in the dossier (times,
   distances, speed drops). Never invent generic constants like 0.3 m.
 - No imports, no dunder access, no I/O. Available names: `np` (numpy),
@@ -121,11 +138,6 @@ Hard rules for the final function:
 - Be robust: guard divisions, tolerate empty claim lists and short
   trajectories. An exception scores the rollout zero, which is worse than
   returning a low score.
-- No free credit: the verification gate pairs your function with
-  wrong-by-construction inputs (mismatched reasoning/trajectories, reversed
-  and no-reaction trajectories) and requires them to score <= 0.3. Keep
-  mention-only credit below that ceiling, and gate execution credit on the
-  matching perception/commitment actually being present.
 """
 
 _API_REFERENCE = """\
@@ -155,6 +167,9 @@ _API_REFERENCE = """\
 Entity keys the parser can emit for matching against dossier classes:
 pedestrian<->pedestrian, automobile/stopped_vehicle<->automobile,
 heavy_truck<->heavy truck, bicycle/cyclist<->bicycle, motorcycle<->motorcycle.
+
+`window()` returns a numpy ARRAY -- never use it in a boolean context
+(`if arr:` raises ValueError); use len(arr) > 0, arr.any(), or arr.all().
 """
 
 _STEP1 = """\
@@ -186,10 +201,10 @@ Step 3: emit the reward function.
 {gt_claims}
 
 Write ONE python code block containing only `def reward(claims, traj):`
-(plus optional module-level helper constants). Score composition guidance:
-~0.3 perception, ~0.3 commitment, ~0.4 execution, adjusted to what this
-scene demands. Include a short docstring naming the decisive events and the
-scene-derived thresholds. Remember the hard rules from the system prompt.
+(plus optional module-level helper constants). Compose the score however
+best fits this scene -- you decide the structure and weighting. Include a
+short docstring naming the decisive events and the scene-derived
+thresholds. Remember the hard rules from the system prompt.
 """
 
 _RETRY = """\

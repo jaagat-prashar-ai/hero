@@ -1,6 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """Five-clip prototype harness: dossier -> generate -> gate -> report.
 
+Gate semantics (2026-08-05 redesign): the generator is free-form (no
+prescribed score rubric); the gate checks the GT pair scores >= POS_MIN and
+that corrupted variants of that same pair (reversed/flattened trajectory,
+gutted claims) each score at least MIN_DROP below it. Cross-clip negatives
+are gone -- semantically similar clips made them unwinnable. In the full
+pipeline the same perturbation battery verifies the argmax rollout of a
+group at selection time.
+
 Manifest (JSON list, one entry per clip):
     [{"clip_id": "...",
       "obstacle_parquet": "path/to/<clip>.obstacle.offline.parquet",
@@ -97,10 +105,12 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
         clip_id = clip["clip_id"]
         text = dossier_mod.build_dossier(clip["scene"], clip["gt_traj"], clip["gt_coc"])
         (out / f"{clip_id}.dossier.txt").write_text(text + "\n")
-        others = [
-            (c["gt_claims"], c["waypoints"]) for c in clips if c["clip_id"] != clip_id
-        ]
-        cases = gate_mod.build_cases(clip_id, clip["gt_claims"], clip["waypoints"], clip["hz"], others)
+        # GT stands in for the rollout: the battery is the GT pair plus
+        # corrupted variants of it (see gate.build_perturbations). The
+        # selection-time flow reuses the same battery on the argmax rollout.
+        cases = gate_mod.build_perturbations(
+            clip_id, clip["gt_claims"], clip["waypoints"], clip["hz"]
+        )
         entry: dict = {
             "n_gate_cases": len(cases),
             "gate_cases": [{"name": c.name, "kind": c.kind} for c in cases],
@@ -148,7 +158,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
                 {
                     "attempt": attempt,
                     "pos_score": gate_result.pos_score,
-                    "neg_p95": gate_result.neg_p95,
+                    "max_pert": gate_result.max_pert,
                     "passed": gate_result.passed,
                     "scores": gate_result.scores,
                     "source": result.source,
@@ -161,7 +171,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
             if gate_result.passed:
                 header = (
                     f'"""clip {clip_id} - attempt {attempt}/{MAX_ATTEMPTS} - gate PASS '
-                    f'(pos {gate_result.pos_score:.2f}, neg p95 {gate_result.neg_p95:.2f})"""\n'
+                    f'(pos {gate_result.pos_score:.2f}, max pert {gate_result.max_pert:.2f})"""\n'
                 )
                 (out / "reward_fns" / f"{clip_id}.py").write_text(header + result.source)
                 entry["passed"] = True

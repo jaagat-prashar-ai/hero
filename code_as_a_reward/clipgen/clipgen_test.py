@@ -26,9 +26,6 @@ GT_COC = (
     "There is a stopped vehicle ahead in my lane. I will decelerate and "
     "yield because of the stopped vehicle ahead."
 )
-OTHER_COC = "The light is green and the road is clear, so I will accelerate and keep straight."
-
-
 def _scene() -> SceneObstacles:
     return SceneObstacles.from_dataframe(pd.read_parquet(TESTDATA), CLIP_ID)
 
@@ -51,9 +48,10 @@ GOOD_FN = """\
 def reward(claims, traj):
     \"\"\"Decisive event: stopped vehicle ahead; expert sheds ~5 m/s by t=4s.
 
-    Mention-only credit is capped below the gate's negative ceiling and
-    execution credit is gated on the reasoning being present -- unearned
-    credit in either direction fails the mismatched-pairing negatives.
+    Mention-only credit stays small and execution credit is gated on the
+    reasoning being present, so every corrupted-rollout perturbation
+    (reversed/flat trajectory, gutted claims) drops well below the intact
+    pair.
     \"\"\"
     saw = any(c.entity in ("stopped_vehicle", "automobile") for c in claims.perceptual)
     committed = any(c.maneuver in ("yield", "decelerate", "stop") for c in claims.commitments)
@@ -144,16 +142,19 @@ def test_render_gt_claims_shows_canonical_keys():
 
 def _gate_cases():
     gt_claims = parse_coc_trace(GT_COC, scene_id=CLIP_ID)
-    other_claims = parse_coc_trace(OTHER_COC, scene_id="other")
-    other_wp = gate_mod.flattened_waypoints(_reactive_waypoints())  # never reacts
-    return gate_mod.build_cases(
-        CLIP_ID, gt_claims, _reactive_waypoints(), HZ, [(other_claims, other_wp)]
-    )
+    return gate_mod.build_perturbations(CLIP_ID, gt_claims, _reactive_waypoints(), HZ)
+
+
+def test_battery_contains_rollout_perturbations():
+    names = {c.name for c in _gate_cases()}
+    assert "positive:gt" in names
+    assert {"perturb:reversed_traj", "perturb:no_reaction_traj", "perturb:gutted_claims"} <= names
 
 
 def test_gate_passes_scene_aware_function():
     result = gate_mod.run_gate(GOOD_FN, _gate_cases())
     assert result.pos_score >= gate_mod.POS_MIN, result.scores
+    assert result.max_pert <= result.pos_score - gate_mod.MIN_DROP, result.scores
     assert result.passed, result.failures
 
 

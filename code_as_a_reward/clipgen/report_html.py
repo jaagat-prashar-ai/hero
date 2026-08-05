@@ -25,7 +25,7 @@ import math
 import sys
 from pathlib import Path
 
-from code_as_a_reward.clipgen.gate import NEG_P95_MAX, POS_MIN
+from code_as_a_reward.clipgen.gate import MIN_DROP, POS_MIN
 
 _CSS = """
 :root { --bg:#ffffff; --fg:#1a1a1a; --muted:#6b7280; --card:#f6f7f9;
@@ -84,6 +84,12 @@ def _badge(ok: bool, label_ok: str = "PASS", label_bad: str = "FAIL") -> str:
 
 def _score_table(scores: dict[str, float], gate_cases: list[dict]) -> str:
     kinds = {c["name"]: c["kind"] for c in gate_cases}
+    pos = max(
+        (s for n, s in scores.items()
+         if kinds.get(n) == "positive" and isinstance(s, float) and math.isfinite(s)),
+        default=float("nan"),
+    )
+    ceiling = pos - MIN_DROP
     rows = []
     for name, score in scores.items():
         kind = kinds.get(name, "?")
@@ -91,8 +97,11 @@ def _score_table(scores: dict[str, float], gate_cases: list[dict]) -> str:
             ok = isinstance(score, float) and math.isfinite(score) and score >= POS_MIN
             want = f"&ge; {POS_MIN}"
         else:
-            ok = isinstance(score, float) and math.isfinite(score) and score <= NEG_P95_MAX
-            want = f"&le; {NEG_P95_MAX}"
+            ok = (
+                isinstance(score, float) and math.isfinite(score)
+                and math.isfinite(ceiling) and score <= ceiling
+            )
+            want = f"&le; pos &minus; {MIN_DROP}"
         rows.append(
             f"<tr><td>{_e(name)}</td><td>{_e(kind)}</td>"
             f"<td>{_fmt(score)}</td><td>{want}</td><td>{_badge(ok, 'ok', 'violates')}</td></tr>"
@@ -166,8 +175,8 @@ def render(out_dir: str | Path) -> str:
             body.append(
                 f"<h3>attempt {n} {_badge(att.get('passed', False))} "
                 f"<span class='muted'>pos {_fmt(att.get('pos_score'))} "
-                f"(need &ge; {POS_MIN}) · neg p95 {_fmt(att.get('neg_p95'))} "
-                f"(need &le; {NEG_P95_MAX})</span></h3>"
+                f"(need &ge; {POS_MIN}) · max pert {_fmt(att.get('max_pert', att.get('neg_p95')))} "
+                f"(need &le; pos &minus; {MIN_DROP})</span></h3>"
             )
             if att.get("source"):
                 body.append(
