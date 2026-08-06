@@ -191,6 +191,15 @@ def extract_t0_frame(mp4_path: Path, frame_index: int) -> Image.Image:
     return Image.open(out).convert("RGB")
 
 
+def _read_parquet_s3(client, key: str) -> pd.DataFrame:
+    """Whole-object fetch for the small parquets (index/calibration are
+    tens of KB); pyarrow wants a real file, not S3RangedFile."""
+    import io
+
+    body = client.get_object(Bucket=BUCKET, Key=key)["Body"].read()
+    return pd.read_parquet(io.BytesIO(body))
+
+
 def build_all(manifest_path: str) -> None:
     import boto3
 
@@ -199,23 +208,21 @@ def build_all(manifest_path: str) -> None:
     data_dir = manifest_file.parent
     entries = json.loads(manifest_file.read_text())
 
-    chunk_index = pd.read_parquet(
-        S3RangedFile(client, BUCKET, f"{WARM_CACHE}/clip_index.parquet")
-    )
+    chunk_index = _read_parquet_s3(client, f"{WARM_CACHE}/clip_index.parquet")
     calib_cache: dict[int, tuple[pd.DataFrame, pd.DataFrame]] = {}
 
     for entry in entries:
         clip_id = entry["clip_id"]
         chunk = int(chunk_index.loc[clip_id, "chunk"])
         if chunk not in calib_cache:
-            intr = pd.read_parquet(S3RangedFile(
-                client, BUCKET,
+            intr = _read_parquet_s3(
+                client,
                 f"{WARM_CACHE}/calibration/camera_intrinsics/camera_intrinsics.chunk_{chunk:04d}.parquet",
-            ))
-            extr = pd.read_parquet(S3RangedFile(
-                client, BUCKET,
+            )
+            extr = _read_parquet_s3(
+                client,
                 f"{WARM_CACHE}/calibration/sensor_extrinsics/sensor_extrinsics.chunk_{chunk:04d}.parquet",
-            ))
+            )
             calib_cache[chunk] = (intr, extr)
         intr, extr = calib_cache[chunk]
         cam_intr = {k: float(intr.loc[(clip_id, CAMERA)][k]) for k in _INTR_COLUMNS}
@@ -226,8 +233,10 @@ def build_all(manifest_path: str) -> None:
         ))
         with tempfile.TemporaryDirectory() as tmp:
             mp4 = Path(zf.extract(f"{clip_id}.{CAMERA}.mp4", tmp))
+            import io as _io
+
             frame_ts = pd.read_parquet(
-                zf.open(f"{clip_id}.{CAMERA}.timestamps.parquet")
+                _io.BytesIO(zf.read(f"{clip_id}.{CAMERA}.timestamps.parquet"))
             ).to_numpy(np.float64).reshape(-1)
             ego = pd.read_parquet(data_dir / f"{clip_id}.egomotion.offline.parquet")
             # The waypoints start at the egomotion's FIRST sample (see
