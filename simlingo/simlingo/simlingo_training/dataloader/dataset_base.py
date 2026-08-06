@@ -265,12 +265,12 @@ class BaseDataset(Dataset):  # pylint: disable=locally-disabled, invalid-name
 
             perfect_routes += 1
 
-            # if not os.path.exists(route_dir + f'/{self.rgb_folder}'):
-            #     if "no_rgb_folder" not in fail_reasons:
-            #         fail_reasons["no_rgb_folder"] = 1
-            #     else:
-            #         fail_reasons["no_rgb_folder"] += 1
-            #     continue
+            if not os.path.exists(route_dir + f'/{self.rgb_folder}'):
+                if "no_rgb_folder" not in fail_reasons:
+                    fail_reasons["no_rgb_folder"] = 1
+                else:
+                    fail_reasons["no_rgb_folder"] += 1
+                continue
 
             num_seq = len(os.listdir(route_dir + f'/{self.rgb_folder}'))
 
