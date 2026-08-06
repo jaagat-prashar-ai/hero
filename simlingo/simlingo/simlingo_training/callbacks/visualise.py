@@ -1,5 +1,6 @@
 import textwrap
 from functools import wraps
+from pathlib import Path
 from typing import Any, Callable, Dict
 
 import matplotlib
@@ -12,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 from pytorch_lightning import Callback, LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities import rank_zero_only
-from hydra.utils import get_original_cwd
 
 from simlingo_training.utils.custom_types import DrivingExample
 
@@ -133,11 +133,14 @@ class VisualiseCallback(Callback):
             # Forward with sampling
             speed_wps, route, language = pl_module.forward(batch, return_language=True)
 
-        self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'waypoints', language_pred=language)
-        self._visualise_training_examples(batch, route, trainer, pl_module, 'route', language_pred=language)
-        # visualise_cameras(batch, pl_module, trainer, language, route, speed_wps, name='imgs')
-    
-        print("visualised_training_example")
+        try:
+            self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'waypoints', language_pred=language)
+            self._visualise_training_examples(batch, route, trainer, pl_module, 'route', language_pred=language)
+            # visualise_cameras(batch, pl_module, trainer, language, route, speed_wps, name='imgs')
+
+            print("visualised_training_example")
+        except Exception as e:  # pylint: disable=broad-except
+            print("visualise_training_examples", e)
         if hasattr(pl_module, "clear_cache"):
             print("clearing_cache")
             pl_module.clear_cache()
@@ -176,7 +179,12 @@ def fig_to_np(fig):
 @torch.no_grad()
 def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_pred=None):
     assert batch.driving_label is not None
-    repo_root = get_original_cwd()
+    # arial.ttf lives at the package root (simlingo/simlingo/), so resolve it
+    # relative to this file — the hydra cwd differs on the cluster.
+    try:
+        font = ImageFont.truetype(str(Path(__file__).resolve().parents[2] / "arial.ttf"), 20)
+    except OSError:
+        font = ImageFont.load_default()
     n = 11
     if route:
         n = 20
@@ -217,9 +225,9 @@ def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_
             lines_wrap = len(textwrap.wrap(wrapped_text, width=80))
             lines_wrap_pred = len(textwrap.wrap(wrapped_pred_text, width=80))
         
-            white_draw.text((10, y_curr), f'{i} GT: {wrapped_text}', fill="black", font=ImageFont.truetype(f"{repo_root}/simlingo_training/arial.ttf", 20))
+            white_draw.text((10, y_curr), f'{i} GT: {wrapped_text}', fill="black", font=font)
             y_curr += 20*lines_wrap
-            white_draw.text((10, y_curr), f'{i} Pred: {wrapped_pred_text}', fill="black", font=ImageFont.truetype(f"{repo_root}/simlingo_training/arial.ttf", 20))
+            white_draw.text((10, y_curr), f'{i} Pred: {wrapped_pred_text}', fill="black", font=font)
             y_curr += 20*lines_wrap_pred + 20
         ax = fig.add_subplot(rows, cols, i + 1)
         # Predicted waypoints
