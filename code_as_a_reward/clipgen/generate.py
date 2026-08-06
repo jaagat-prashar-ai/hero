@@ -124,12 +124,25 @@ trajectory, and the same trajectory with the reasoning gutted. The
 verification gate requires, numerically:
 - the intact ground-truth pair scores >= 0.7;
 - EVERY corruption scores at least 0.4 below the intact pair.
-A trajectory corruption keeps the reasoning intact, so it retains all
-reasoning-based credit -- the drop can only come from trajectory-dependent
-credit. Same for reasoning corruptions and the trajectory. Structurally,
-trajectory-dependent credit and reasoning-dependent credit must therefore
-EACH be able to move the score by at least 0.4 (equal 0.25-weight buckets
-cannot pass). Checks a corruption preserves -- aggregate statistics like
+Work out the budget arithmetic BEFORE writing code. Each corruption
+RETAINS whole categories of credit untouched:
+- reversed / no-reaction trajectory: retains ALL claims-only credit;
+- gutted claims: retains ALL trajectory-only credit;
+- commitments removed: retains perception-mention credit AND ALL
+  trajectory-only credit (the trajectory itself is intact).
+Any retained total above (positive_score - 0.4) fails that case
+automatically, no matter how clever the individual checks are. The ONLY
+components that lose credit under EVERY corruption are CONJUNCTIONS:
+credit awarded solely when a commitment claim is present AND the
+trajectory executes that commitment inside the event's time window.
+Therefore budget your component maxima as:
+- conjunction (claim-AND-execution) components: >= 0.5 of the total;
+- mention-only components (claims present, trajectory ignored): <= 0.2;
+- trajectory-only components (no claim condition): <= 0.2;
+- everything must still sum to exactly 1.0.
+With that budget every corruption drops by >= 0.4 by construction; with
+equal-weight independent buckets it is arithmetically unreachable.
+Checks a corruption preserves -- aggregate statistics like
 min/max speed, order-insensitive quantities, "some deviation happened
 somewhere" -- hand the corruption the same credit as the real thing;
 anchor checks in the maneuver's temporal shape instead (what happens,
@@ -153,8 +166,10 @@ Hard rules for the final function:
 - Your component maxima must sum to EXACTLY 1.0. Never rely on a final
   [0,1] clamp to absorb over-allocation: if claims-only credit can reach
   1.0 on its own, every trajectory corruption saturates to the same score
-  as the positive and the gate rejects the function. Budget explicitly
-  (e.g. claims <= 0.5 total, trajectory >= 0.4 of the total).
+  as the positive and the gate rejects the function. The gate inspects the
+  PRE-clamp value and rejects any case returning above 1.0. Budget per the
+  system-prompt table: conjunctions >= 0.5, mention-only <= 0.2,
+  trajectory-only <= 0.2.
 - Real trajectories are NOISY: speed and lateral-offset series jitter from
   waypoint to waypoint, including the ground truth's. Never require
   monotonicity, exact equality, or all()-over-raw-series conditions --
@@ -243,6 +258,10 @@ Before writing any code, answer these in one or two sentences each:
 2. WHAT measured fact from the facts block above separates that case from
    the positive (e.g. the TIME at which minimum speed occurs, not its
    magnitude)?
+3. Write out your component budget as a table (component: max, which
+   corruptions it survives). Does it satisfy conjunctions >= 0.5,
+   mention-only <= 0.2, trajectory-only <= 0.2, total exactly 1.0? If not,
+   the failing case is arithmetic, not logic -- fix the budget first.
 Then rewrite the offending check AROUND that separating fact. Do NOT just
 nudge thresholds -- if a case scored identically to the positive, your
 current checks cannot see the difference and one of them must be replaced.
