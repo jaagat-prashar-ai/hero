@@ -69,6 +69,7 @@ def _load_clip(entry: dict) -> dict:
             pd.read_parquet(entry["egomotion_parquet"]), hz=hz
         )
     gt_coc = Path(entry["gt_coc"]).read_text().strip()
+    overlay = entry.get("overlay_jpeg")
     return {
         "clip_id": clip_id,
         "scene": scene,
@@ -77,6 +78,10 @@ def _load_clip(entry: dict) -> dict:
         "gt_coc": gt_coc,
         "gt_claims": parse_coc_trace(gt_coc, scene_id=clip_id),
         "gt_traj": dossier_mod.features_from_waypoints(waypoints, hz, clip_id),
+        # Scene grounding for the generator (camera frame + projected GT
+        # waypoints, see build_overlays.py); optional so older manifests
+        # still run text-only.
+        "overlay_jpeg": Path(overlay).read_bytes() if overlay else None,
     }
 
 
@@ -115,6 +120,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
             "n_gate_cases": len(cases),
             "gate_cases": [{"name": c.name, "kind": c.kind} for c in cases],
             "gt_coc": clip["gt_coc"],
+            "has_overlay": clip["overlay_jpeg"] is not None,
             "attempts": [],
             "passed": False,
         }
@@ -132,6 +138,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
                     feedback=feedback,
                     prior_transcript=transcript,
                     tracker=tracker,
+                    overlay_jpeg=clip["overlay_jpeg"],
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})

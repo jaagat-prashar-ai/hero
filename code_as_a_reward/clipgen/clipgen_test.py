@@ -14,7 +14,7 @@ import pytest
 from code_as_a_reward.clipgen import dossier as dossier_mod
 from code_as_a_reward.clipgen import gate as gate_mod
 from code_as_a_reward.clipgen import sandbox
-from code_as_a_reward.clipgen.generate import extract_code, render_gt_claims
+from code_as_a_reward.clipgen.generate import build_step1_message, extract_code, render_gt_claims
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
@@ -154,6 +154,27 @@ def test_window_helper():
 def test_extract_code_takes_last_block():
     text = "draft:\n```python\nx = 1\n```\nfinal:\n```python\ndef reward(claims, traj):\n    return 0.0\n```\n"
     assert extract_code(text).startswith("def reward")
+
+
+def test_build_step1_message_shapes():
+    import base64
+
+    jpeg = b"\xff\xd8\xff\xe0fakejpegbytes"
+    plain = build_step1_message("DOSSIER", None, "openai")
+    assert isinstance(plain["content"], str) and "DOSSIER" in plain["content"]
+    assert "orange polyline" not in plain["content"]  # no image note without an image
+
+    oa = build_step1_message("DOSSIER", jpeg, "openai")
+    image, text = oa["content"]
+    assert image["type"] == "image_url"
+    assert image["image_url"]["url"].startswith("data:image/jpeg;base64,")
+    assert base64.b64decode(image["image_url"]["url"].split(",", 1)[1]) == jpeg
+    assert "orange polyline" in text["text"] and "DOSSIER" in text["text"]
+
+    an = build_step1_message("DOSSIER", jpeg, "anthropic")
+    image = an["content"][0]
+    assert image["type"] == "image" and image["source"]["media_type"] == "image/jpeg"
+    assert base64.b64decode(image["source"]["data"]) == jpeg
 
 
 def test_render_gt_claims_shows_canonical_keys():

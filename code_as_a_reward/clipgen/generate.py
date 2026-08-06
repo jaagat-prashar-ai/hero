@@ -24,6 +24,7 @@ Two backends, selected by the client object passed in (run_prototype's
 
 from __future__ import annotations
 
+import base64
 import dataclasses
 import json
 import os
@@ -229,6 +230,18 @@ about them. List 1-3 decisive events with their timing and geometry, and
 state which tracks are ignorable background. Be quantitative.
 """
 
+_STEP1_IMAGE_NOTE = """\
+Attached is the ego's front-wide camera frame at t0 with the expert's
+future trajectory projected onto it as an orange polyline (dots every
+0.4 s; the overlay is short or absent when the ego barely moves, e.g. a
+creep toward a flagger). Use the image to ground your scene
+understanding -- what the decisive obstacles actually ARE, where they sit
+in the ego's view, and how the expert's drawn path responds to them --
+and let that shape the reward logic you design. The dossier's numbers
+remain authoritative for exact geometry and timing.
+
+"""
+
 _STEP2 = """\
 Step 2: for each decisive event, define what a FAITHFUL rollout looks like:
 (a) which perceptual claims should be present (entity/state keys),
@@ -401,6 +414,29 @@ def render_gt_claims(trace) -> str:
     return "\n".join(lines)
 
 
+def build_step1_message(dossier: str, overlay_jpeg: bytes | None, api: str) -> dict:
+    """The opening user turn; multimodal when a scene overlay is supplied.
+
+    api selects the content-part schema: "openai" (chat-completions
+    image_url data URI) or "anthropic" (base64 image source block). The
+    image rides in the SAME turn as the step-1 text so scene understanding
+    is a factor from the first reasoning step onward, and the transcript
+    carries it through every later call in the chain."""
+    text = _STEP1.format(dossier=dossier)
+    if overlay_jpeg is None:
+        return {"role": "user", "content": text}
+    b64 = base64.b64encode(overlay_jpeg).decode()
+    text = _STEP1_IMAGE_NOTE + text
+    if api == "openai":
+        image = {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+    else:
+        image = {
+            "type": "image",
+            "source": {"type": "base64", "media_type": "image/jpeg", "data": b64},
+        }
+    return {"role": "user", "content": [image, {"type": "text", "text": text}]}
+
+
 def extract_code(text: str) -> str:
     """Last ```python fenced block in the reply (the chain may show drafts)."""
     blocks = re.findall(r"```(?:python)?\n(.*?)```", text, flags=re.DOTALL)
@@ -454,6 +490,7 @@ def generate_reward_fn(
     feedback: str | None = None,
     prior_transcript: list[dict] | None = None,
     tracker: CostTracker | None = None,
+    overlay_jpeg: bytes | None = None,  # scene frame + projected waypoints
 ) -> GenerationResult:
     """One generation attempt. First attempt runs the 3-step chain; retry
     attempts (feedback set) continue the prior transcript with gate results.
@@ -469,7 +506,8 @@ def generate_reward_fn(
         response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
     else:
-        messages = [{"role": "user", "content": _STEP1.format(dossier=dossier)}]
+        api = "openai" if isinstance(client, OpenAIChat) else "anthropic"
+        messages = [build_step1_message(dossier, overlay_jpeg, api)]
         response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
         messages.append({"role": "user", "content": _STEP2})
