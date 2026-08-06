@@ -117,6 +117,9 @@ _DEFAULTS: dict[str, Any] = {
     # (download_pai.py --only-reasoning-chunks) instead of the pai_chunk_ids
     # motion subset; this sets --num-reasoning-clips.
     "num_reasoning_clips": 16,
+    # "reasoning" mode only: overrides [custom.alpamayo.reward].reasoning_weight
+    # in the recipe's Lingo-Judge TOML template (None keeps the template's 0.3).
+    "reasoning_weight": None,
     # When set (int N), llm_judge/reasoning modes IGNORE num_reasoning_clips
     # and instead train on ALL OOD clips within the N chunks densest in OOD
     # clips (select_dense_ood_chunks.py) -- ~2x more clips per downloaded GB
@@ -535,6 +538,22 @@ class _CheckpointUploader(threading.Thread):
             logger.exception("ckpt-uploader: final sync failed")
 
 
+def _download_lingo_judge(python_bin: str, model_dir: Path) -> None:
+    """Cache wayveai/Lingo-Judge locally: the recipe's reasoning reward loads
+    it with local_files_only=True, so the full snapshot must be on disk before
+    launch. Idempotent -- snapshot_download skips files already present, so a
+    warm node costs ~nothing."""
+    _run_streamed(
+        [
+            python_bin,
+            "-c",
+            "from huggingface_hub import snapshot_download; "
+            f"snapshot_download('wayveai/Lingo-Judge', local_dir='{model_dir}')",
+        ],
+        cwd=RECIPE_ROOT,
+    )
+
+
 def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
     """Download ALL OOD-reasoning clips within the num_chunks OOD-densest PAI
     chunks (see select_dense_ood_chunks.py for why density beats the vendored
@@ -638,6 +657,8 @@ def _patch_toml(
     epoch: int,
     wandb_project: str,
     wandb_experiment: str,
+    reasoning_grading_model_path: Path | None = None,
+    reasoning_weight: float | None = None,
 ) -> None:
     import tomlkit
 
@@ -648,6 +669,10 @@ def _patch_toml(
     doc["policy"]["parallelism"]["dp_shard_size"] = dp_shard_size
     doc["logging"]["project_name"] = wandb_project
     doc["logging"]["experiment_name"] = wandb_experiment
+    if reasoning_grading_model_path is not None:
+        doc["custom"]["alpamayo"]["reasoning_grading_model_path"] = str(reasoning_grading_model_path)
+    if reasoning_weight is not None:
+        doc["custom"]["alpamayo"]["reward"]["reasoning_weight"] = float(reasoning_weight)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(tomlkit.dumps(doc))
@@ -999,6 +1024,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         if cache_prefix and not restored and not had_marker:
             _pai_cache_upload_async(str(cache_prefix), pai_reasoning_dir)
 
+    lingo_judge_dir: Path | None = None
     if reward_mode == "llm_judge":
         _fetch_reasoning_dataset()
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
@@ -1019,6 +1045,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "code_reward_entry.py"
     elif reward_mode == "reasoning":
         _fetch_reasoning_dataset()
+        lingo_judge_dir = workspace_dir / "lingo_judge_model"
+        _download_lingo_judge(python_bin, lingo_judge_dir)
         template_path = RECIPE_DIR / "toml" / "alpamayo_rvla_rl_local_test_with_reasoning.toml"
         entry_script = (
             RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_reasoning_entry.py"
@@ -1039,6 +1067,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         epoch=int(cfg["train_epoch"]),
         wandb_project=cfg["wandb_project"],
         wandb_experiment=cfg["wandb_experiment"],
+        reasoning_grading_model_path=lingo_judge_dir,
+        reasoning_weight=cfg.get("reasoning_weight"),
     )
 
     _ensure_redis_server()
