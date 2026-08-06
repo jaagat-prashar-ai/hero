@@ -294,14 +294,18 @@ class DrivingModel(pl.LightningModule):
         prompt_mask = adaptor_dict['language_inputs_mask'].bool() & ~adaptor_dict['language__ids_mask'].bool()
         prompt_mask = prompt_mask.unsqueeze(-1).float()
         pooled_text = (text_features * prompt_mask).sum(1) / prompt_mask.sum(1).clamp_min(1.0)
+        # DeepSpeed casts text_proj/traj_proj to the model's compute dtype (e.g. fp16);
+        # match that here, then upcast the projected embeddings back to fp32 for the
+        # InfoNCE normalize/softmax numerics below.
+        pooled_text = pooled_text.to(self.text_proj[0].weight.dtype)
 
         traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
         if 'route_prediction' in loss_dict:
             traj_parts.append(loss_dict['route_prediction'].flatten(1))
-        traj_pred = torch.cat(traj_parts, dim=1).float()
+        traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].weight.dtype)
 
-        z_text = F.normalize(self.text_proj(pooled_text), dim=-1)
-        z_traj = F.normalize(self.traj_proj(traj_pred), dim=-1)
+        z_text = F.normalize(self.text_proj(pooled_text).float(), dim=-1)
+        z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
 
         loss, count, accuracy = intra_scene_contrastive_loss(
             z_text, z_traj, group_ids, temperature=self.contrastive_temperature
