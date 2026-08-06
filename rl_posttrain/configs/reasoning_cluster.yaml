@@ -1,0 +1,91 @@
+name: alpamayo-rl-reasoning
+model_identifier: other.training.alpamayo15.default.v1
+# Lingo-Judge grades locally on-GPU (no API round-trip), so the reward is far
+# less latency-bound than llm_judge -- but keep the reaper override anyway:
+# venv build / model conversion / dataset download still leave the GPUs idle
+# for long stretches on a cold node.
+ignore_idle_reaper: true
+workload_variant_config:
+  # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
+  # cosmos-rl fans out to the node's GPUs itself, so this must be one
+  # process that sees all of them, not Lilypad's per-rank replicas.
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    # ── Workspace ─────────────────────────────────────────────────────────────
+    # SAME persistent root as the other RL configs on purpose: the expensive
+    # venv, converted model checkpoint and 16-clip reasoning dataset are all
+    # reward-mode-independent warm caches on /mnt/work; the Lingo-Judge model
+    # and scratch TOML land in their own subpaths (lingo_judge_model/,
+    # toml/alpamayo_rvla_rl_reasoning.local.toml).
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Reward ────────────────────────────────────────────────────────────────
+    # Stock upstream "optional variant": the recipe's OWN reasoning entry
+    # script + TOML (Lingo-Judge local grader, reasoning_weight 0.3). This is
+    # the baseline arm of the weight-bump comparison -- see
+    # reasoning_w06_cluster.yaml for the 0.6 arm.
+    reward_mode: "reasoning"
+
+    # ── Dataset ───────────────────────────────────────────────────────────────
+    # Same reasoning-bearing PAI clips as llm_judge: the Lingo-Judge reward
+    # compares predicted CoC to the reference CoC, so rollout prompts must
+    # come from clips whose pipeline emits CoC sections.
+    num_reasoning_clips: 16
+
+    # ── Cosmos-RL TOML overrides ────────────────────────────────────────────────
+    dp_shard_size: 4
+    train_epoch: 15
+
+    # ── W&B ───────────────────────────────────────────────────────────────────
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_lingo_judge_w03"
+    wandb_entity: "research"
+
+cluster_resources:
+  # Full 8-GPU node even for canaries: the recipe needs >=5 GPUs (4-shard
+  # policy + 1 vLLM rollout replica) and a100.8 only splits at 1/4/8.
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # Heavy bootstrapped-venv install (torch/vllm/flash-attn from source) --
+  # same allowance as cluster.yaml.
+  setup_timeout_seconds: 7200
+
+  # NO API key required: Lingo-Judge is a local ~340M HF classifier the run
+  # downloads once into the workspace (wayveai/Lingo-Judge, ungated).
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      # UNLIKE llm_judge_cluster.yaml, the vendored reasoning entry imports
+      # nothing from pref_pairs -- exclude the whole tree, not just results/.
+      - "^/pref_pairs/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
