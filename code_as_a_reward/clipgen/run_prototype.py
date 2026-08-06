@@ -161,6 +161,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
                     "max_pert": gate_result.max_pert,
                     "passed": gate_result.passed,
                     "scores": gate_result.scores,
+                    "components": gate_result.components,
                     "source": result.source,
                     "gate_feedback": None if gate_result.passed else gate_result.feedback(),
                 }

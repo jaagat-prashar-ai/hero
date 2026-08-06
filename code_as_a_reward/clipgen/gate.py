@@ -45,7 +45,12 @@ import dataclasses
 
 import numpy as np
 
-from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_fn, run_reward_fn
+from code_as_a_reward.clipgen.sandbox import (
+    RewardFnError,
+    compile_reward_module,
+    run_components_fn,
+    run_reward_fn,
+)
 from pref_pairs.trajectory_features import TrajectoryFeatures, extract_features
 
 POS_MIN = 0.7
@@ -70,6 +75,9 @@ class GateResult:
     max_pert: float  # highest score any perturbation achieved
     scores: dict[str, float]
     failures: list[str]  # feedback lines for the regeneration prompt
+    # Per-case component breakdown from the function's own components()
+    # decomposition, when it defines one: {case_name: {component: value}}.
+    components: dict[str, dict[str, float]] = dataclasses.field(default_factory=dict)
 
     def feedback(self) -> str:
         return "\n".join(self.failures) if self.failures else "all checks passed"
@@ -171,9 +179,10 @@ def run_gate(
     """Score every case; the positive must clear pos_min and every
     perturbation must score at least min_drop below it. An exception on
     any case is an automatic failure."""
-    fn = compile_reward_fn(source)
+    fn, components_fn = compile_reward_module(source)
     scores: dict[str, float] = {}
     raws: dict[str, float] = {}
+    components: dict[str, dict[str, float]] = {}
     failures: list[str] = []
     for case in cases:
         try:
@@ -183,6 +192,13 @@ def run_gate(
         except RewardFnError as e:
             scores[case.name] = float("nan")
             failures.append(f"{case.name}: raised instead of scoring ({e})")
+        if components_fn is not None:
+            try:
+                components[case.name] = run_components_fn(
+                    components_fn, case.claims, case.traj
+                )
+            except RewardFnError as e:
+                failures.append(f"{case.name}: components() failed ({e})")
 
     pos_scores = [
         s for c, s in zip(cases, scores.values()) if c.kind == "positive" and np.isfinite(s)
@@ -216,6 +232,22 @@ def run_gate(
     # Unconditional reject, with the exact overshoot named so the retry can
     # rebudget instead of guessing.
     over = {n: r for n, r in raws.items() if r > 1.0 + 1e-9}
+    # The components() decomposition closes the self-clamping hole: a
+    # function ending in min(score, 1.0) hides an over-budget sum from the
+    # raw probe, but its own component values cannot (8xvbos saturated 8/15
+    # clips this way). Also verify the decomposition is truthful -- feedback
+    # built on components that do not reconstruct the score misleads retries.
+    for name, comp in components.items():
+        total = float(sum(comp.values()))
+        if total > 1.0 + 1e-9:
+            over.setdefault(name, total)
+        raw = raws.get(name)
+        if raw is not None and abs(min(1.0, max(0.0, total)) - min(1.0, max(0.0, raw))) > 0.02:
+            failures.append(
+                f"{name}: components() sums to {total:.2f} but reward() returned"
+                f" {raw:.2f} -- reward must return exactly the clamped sum of"
+                " components so the breakdown is trustworthy"
+            )
     if over:
         worst = max(over.items(), key=lambda kv: kv[1])
         failures.append(
@@ -247,4 +279,27 @@ def run_gate(
         }
         facts = [f"  {c.name}: {_traj_facts(c.traj)}" for c in cases if c.name in cited]
         failures.append("measured trajectory facts per case:\n" + "\n".join(facts))
-    return GateResult(passed=passed, pos_score=pos_score, max_pert=max_pert, scores=scores, failures=failures)
+        if components:
+            # The observability fix retries were missing (pduuqq/8xvbos:
+            # scores identical across attempts because feedback never said
+            # WHICH component carried a corrupted case).
+            rows = [
+                f"  {c.name}: "
+                + ", ".join(f"{k}={v:.2f}" for k, v in components[c.name].items())
+                + f" (sum {sum(components[c.name].values()):.2f})"
+                for c in cases
+                if c.name in cited and c.name in components
+            ]
+            failures.append(
+                "per-component breakdown -- a corrupted case scoring near the"
+                " positive keeps its credit in the components whose values did"
+                " not drop below the positive's:\n" + "\n".join(rows)
+            )
+    return GateResult(
+        passed=passed,
+        pos_score=pos_score,
+        max_pert=max_pert,
+        scores=scores,
+        failures=failures,
+        components=components,
+    )

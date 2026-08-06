@@ -45,7 +45,7 @@ def _reactive_waypoints(n: int = 60, hz: float = HZ) -> np.ndarray:
 
 
 GOOD_FN = """\
-def reward(claims, traj):
+def components(claims, traj):
     \"\"\"Decisive event: stopped vehicle ahead; expert sheds ~5 m/s by t=4s.
 
     Mention-only credit stays small and execution credit is gated on the
@@ -60,10 +60,15 @@ def reward(claims, traj):
     if len(win) > 1 and win[0] > 0:
         drop = float(win[0] - win.min())
         executed = min(drop / (0.6 * 5.0), 1.0)
-    score = 0.14 * saw + 0.14 * committed
-    if saw and committed:
-        score += 0.72 * executed
-    return min(score, 1.0)
+    return {
+        "saw_vehicle": 0.14 * saw,
+        "committed_slowdown": 0.14 * committed,
+        "commit_executed": 0.72 * executed if (saw and committed) else 0.0,
+    }
+
+
+def reward(claims, traj):
+    return min(1.0, max(0.0, sum(components(claims, traj).values())))
 """
 
 LENIENT_FN = "def reward(claims, traj):\n    return 0.9\n"
@@ -166,16 +171,47 @@ def test_gate_rejects_lenient_function_with_feedback():
 
 
 def test_gate_rejects_over_budget_function():
-    # Components sum past 1.0: the clamp would hide corruption drops, so the
-    # gate must reject on the raw pre-clamp value even though every clamped
-    # score looks plausible.
-    over_budget = GOOD_FN.replace(
-        "score = 0.14 * saw + 0.14 * committed", "score = 0.6 * saw + 0.6 * committed"
-    ).replace("return min(score, 1.0)", "return score")
+    # Components sum past 1.0 while reward() self-clamps: the raw probe sees
+    # only 1.0, but the components() decomposition exposes the overshoot.
+    over_budget = GOOD_FN.replace('"saw_vehicle": 0.14 * saw', '"saw_vehicle": 0.6 * saw').replace(
+        '"committed_slowdown": 0.14 * committed', '"committed_slowdown": 0.6 * committed'
+    )
     result = gate_mod.run_gate(over_budget, _gate_cases())
     assert not result.passed
     assert any("before the [0,1] clamp" in f for f in result.failures)
     assert any("over budget by" in f for f in result.failures)
+
+
+def test_gate_rejects_inconsistent_components():
+    # components() must reconstruct reward(); a decomposition that lies makes
+    # the per-component feedback worthless, so the gate rejects it.
+    inconsistent = GOOD_FN.replace(
+        "return min(1.0, max(0.0, sum(components(claims, traj).values())))",
+        "return 0.9",
+    )
+    result = gate_mod.run_gate(inconsistent, _gate_cases())
+    assert not result.passed
+    assert any("components() sums to" in f for f in result.failures)
+
+
+def test_gate_feedback_includes_component_breakdown():
+    result = gate_mod.run_gate(
+        GOOD_FN.replace('0.72 * executed if (saw and committed) else 0.0', "0.0"),
+        _gate_cases(),
+    )
+    assert not result.passed  # positive can no longer reach 0.7
+    assert result.components  # breakdown captured per case
+    assert any("per-component breakdown" in f for f in result.failures)
+    assert any("saw_vehicle=" in f for f in result.failures)
+
+
+def test_compile_reward_module_component_contract():
+    fn, comp = sandbox.compile_reward_module(GOOD_FN, require_components=True)
+    assert callable(fn) and callable(comp)
+    no_components = "def reward(claims, traj):\n    return 0.5\n"
+    assert sandbox.compile_reward_module(no_components)[1] is None
+    with pytest.raises(sandbox.RewardFnError, match="components"):
+        sandbox.compile_reward_module(no_components, require_components=True)
 
 
 def test_gate_rejects_raising_function():

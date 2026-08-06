@@ -56,8 +56,15 @@ def _check_ast(source: str) -> None:
             raise RewardFnError(f"dunder name forbidden: {node.id}")
 
 
-def compile_reward_fn(source: str):
-    """Compile generated source into a callable `reward(claims, traj)`.
+def compile_reward_module(source: str, require_components: bool = False):
+    """Compile generated source; return (reward_fn, components_fn_or_None).
+
+    `components(claims, traj) -> dict[str, float]` is the function's own
+    score decomposition (reward == clamp(sum(components.values()))). The
+    gate uses it for over-budget detection that survives internal clamping
+    and for per-component retry feedback. require_components=True enforces
+    its presence (generation-time contract); the gate itself stays lenient
+    so it can still verify legacy/selection-time functions.
 
     Raises RewardFnError on syntax errors, banned constructs, or a missing
     `reward` definition.
@@ -74,7 +81,21 @@ def compile_reward_fn(source: str):
     fn = namespace.get("reward")
     if not callable(fn):
         raise RewardFnError("source must define a callable named `reward`")
-    return fn
+    components = namespace.get("components")
+    if not callable(components):
+        if require_components:
+            raise RewardFnError(
+                "source must ALSO define `def components(claims, traj) -> dict`"
+                " returning the named component contributions whose clamped sum"
+                " is exactly what `reward` returns"
+            )
+        components = None
+    return fn, components
+
+
+def compile_reward_fn(source: str):
+    """Compile generated source into a callable `reward(claims, traj)`."""
+    return compile_reward_module(source)[0]
 
 
 class _Timeout:
@@ -124,3 +145,30 @@ def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0, raw: bool = False) -
     if not np.isfinite(value):
         raise RewardFnError(f"reward returned non-finite {value!r}")
     return value if raw else min(1.0, max(0.0, value))
+
+
+def run_components_fn(fn, claims, traj, timeout_s: float = 2.0) -> dict[str, float]:
+    """Execute a compiled components function; return {name: float}.
+
+    Same guard rails as run_reward_fn; raises RewardFnError on exception,
+    timeout, non-dict return, or any non-finite/non-numeric value.
+    """
+    try:
+        with _Timeout(timeout_s):
+            value = fn(claims, traj)
+    except RewardFnError:
+        raise
+    except Exception as e:
+        raise RewardFnError(f"components function raised: {type(e).__name__}: {e}") from e
+    if not isinstance(value, dict):
+        raise RewardFnError(f"components returned non-dict {type(value).__name__}")
+    out: dict[str, float] = {}
+    for k, v in value.items():
+        try:
+            v = float(v)
+        except (TypeError, ValueError) as e:
+            raise RewardFnError(f"components[{k!r}] is non-numeric {v!r}") from e
+        if not np.isfinite(v):
+            raise RewardFnError(f"components[{k!r}] is non-finite {v!r}")
+        out[str(k)] = v
+    return out

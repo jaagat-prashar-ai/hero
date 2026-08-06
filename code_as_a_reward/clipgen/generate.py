@@ -33,7 +33,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_fn
+from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_module
 
 GENERATOR_MODEL = "claude-opus-5"
 FALLBACK_MODEL = "claude-opus-4-8"
@@ -155,6 +155,12 @@ a drop of some size exists.
 Hard rules for the final function:
 - Signature exactly `def reward(claims, traj) -> float`, returning a value
   in [0, 1].
+- ALSO define `def components(claims, traj) -> dict` returning the named
+  component contributions (e.g. {"saw_pedestrian": 0.1, "stop_executed":
+  0.5, ...}); `reward` must return exactly min(1.0, max(0.0,
+  sum(components(claims, traj).values()))). The gate calls components() on
+  every case, rejects the function if the sum exceeds 1.0 or disagrees
+  with reward(), and shows you the per-case breakdown when a case fails.
 - Derive every threshold from THIS scene's numbers in the dossier (times,
   distances, speed drops). Never invent generic constants like 0.3 m.
 - No imports, no dunder access, no I/O. Available names: `np` (numpy),
@@ -240,11 +246,14 @@ Step 3: emit the reward function.
 
 {gt_claims}
 
-Write ONE python code block containing only `def reward(claims, traj):`
-(plus optional module-level helper constants). Compose the score however
-best fits this scene -- you decide the structure and weighting. Include a
-short docstring naming the decisive events and the scene-derived
-thresholds. Remember the hard rules from the system prompt.
+Write ONE python code block containing `def components(claims, traj):`
+(the named component contributions) and `def reward(claims, traj):`
+(exactly the clamped sum of components -- typically
+`return min(1.0, max(0.0, sum(components(claims, traj).values())))`).
+Compose the score however best fits this scene -- you decide the component
+structure and weighting within the budget table. Include a short docstring
+naming the decisive events and the scene-derived thresholds. Remember the
+hard rules from the system prompt.
 """
 
 _RETRY = """\
@@ -479,5 +488,8 @@ def generate_reward_fn(
         messages.append({"role": "assistant", "content": _text(response)})
 
     source = extract_code(_text(response))
-    compile_reward_fn(source)  # raises RewardFnError on contract violations
+    # Raises RewardFnError on contract violations, including a missing
+    # components() -- run_prototype's invalid-reply path feeds that message
+    # back as a retry, so the model self-corrects instead of the clip dying.
+    compile_reward_module(source, require_components=True)
     return GenerationResult(source=source, transcript=messages, model=_model(response))
