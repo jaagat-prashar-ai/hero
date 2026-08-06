@@ -14,7 +14,13 @@ import pytest
 from code_as_a_reward.clipgen import dossier as dossier_mod
 from code_as_a_reward.clipgen import gate as gate_mod
 from code_as_a_reward.clipgen import sandbox
-from code_as_a_reward.clipgen.generate import build_step1_message, extract_code, render_gt_claims
+from code_as_a_reward.clipgen.generate import (
+    _STEP3,
+    build_step1_message,
+    extract_code,
+    render_gt_claims,
+    render_gt_traj_facts,
+)
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
@@ -175,6 +181,15 @@ def test_build_step1_message_shapes():
     image = an["content"][0]
     assert image["type"] == "image" and image["source"]["media_type"] == "image/jpeg"
     assert base64.b64decode(image["source"]["data"]) == jpeg
+
+
+def test_step3_carries_gt_traj_facts():
+    facts = "speed 8.0->3.0 m/s (min 3.0 at t=4.0s, drop 5.0)"
+    block = render_gt_traj_facts(facts)
+    assert facts in block
+    assert "dry-run every execution predicate" in block
+    filled = _STEP3.format(api_reference="API", gt_claims="CLAIMS", gt_traj_facts=block)
+    assert facts in filled and "CLAIMS" in filled
 
 
 def test_render_gt_claims_shows_canonical_keys():

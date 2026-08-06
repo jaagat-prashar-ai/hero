@@ -139,6 +139,7 @@ def run(manifest_path: str, out_dir: str, dry_run: bool = False, backend: str = 
                     prior_transcript=transcript,
                     tracker=tracker,
                     overlay_jpeg=clip["overlay_jpeg"],
+                    gt_traj_facts=gate_mod._traj_facts(clip["gt_traj"]),
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})

@@ -259,6 +259,8 @@ Step 3: emit the reward function.
 
 {gt_claims}
 
+{gt_traj_facts}
+
 Write ONE python code block containing `def components(claims, traj):`
 (the named component contributions) and `def reward(claims, traj):`
 (exactly the clamped sum of components -- typically
@@ -284,6 +286,11 @@ Before writing any code, answer these in one or two sentences each:
    corruptions it survives). Does it satisfy conjunctions >= 0.5,
    mention-only <= 0.2, trajectory-only <= 0.2, total exactly 1.0? If not,
    the failing case is arithmetic, not logic -- fix the budget first.
+4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
+   is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
+   threshold the GT trajectory never satisfies -- recheck against the
+   measured facts). Fix or REMOVE it and re-normalize the budget; dead
+   components cap the positive below the bar no matter what else you do.
 Then rewrite the offending check AROUND that separating fact. Do NOT just
 nudge thresholds -- if a case scored identically to the positive, your
 current checks cannot see the difference and one of them must be replaced.
@@ -414,6 +421,25 @@ def render_gt_claims(trace) -> str:
     return "\n".join(lines)
 
 
+def render_gt_traj_facts(facts: str) -> str:
+    """Frame the measured GT trajectory numbers as a pre-flight check.
+    8750ne collapsed 11/15 positives because execution predicates were
+    anchored at invented time windows (a yield window at t=9-20s when the
+    GT's stop is at t=0.9s) -- the model only saw the measured facts in
+    retry feedback, after the budget was already spent on dead checks."""
+    return (
+        "Your positive gate case is EXACTLY this ground-truth trajectory,"
+        " measured:\n  " + facts + "\n"
+        "Before finalizing, dry-run every execution predicate against these"
+        " numbers: a component whose check cannot fire on THIS data (wrong"
+        " time window, wrong maneuver direction, a threshold the GT never"
+        " crosses) contributes 0.0 to the positive and caps it below the"
+        " 0.7 bar. Likewise, a component keyed to a claim that is NOT in the"
+        " GT parse above is dead weight on the positive. Every component"
+        " must be able to earn its credit on the GT pair."
+    )
+
+
 def build_step1_message(dossier: str, overlay_jpeg: bytes | None, api: str) -> dict:
     """The opening user turn; multimodal when a scene overlay is supplied.
 
@@ -491,6 +517,7 @@ def generate_reward_fn(
     prior_transcript: list[dict] | None = None,
     tracker: CostTracker | None = None,
     overlay_jpeg: bytes | None = None,  # scene frame + projected waypoints
+    gt_traj_facts: str | None = None,  # gate._traj_facts of the GT trajectory
 ) -> GenerationResult:
     """One generation attempt. First attempt runs the 3-step chain; retry
     attempts (feedback set) continue the prior transcript with gate results.
@@ -519,6 +546,9 @@ def generate_reward_fn(
                 "content": _STEP3.format(
                     api_reference=_API_REFERENCE,
                     gt_claims="" if gt_claims is None else render_gt_claims(gt_claims),
+                    gt_traj_facts=""
+                    if gt_traj_facts is None
+                    else render_gt_traj_facts(gt_traj_facts),
                 ),
             }
         )
