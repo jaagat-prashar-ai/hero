@@ -18,8 +18,9 @@ workload_variant_config:
       - max_epochs=2
       - val_every_n_epochs=1
       # batch_size counts dataset items; dreamer items expand to K=4 samples,
-      # so the forward batch is up to 4x this on dreamer-heavy batches
-      - data_module.batch_size=4
+      # so the forward batch is up to 4x this on dreamer-heavy batches.
+      # 4 OOMed on 80GB A100s (run va9ixh, ~72GB allocated at failure)
+      - data_module.batch_size=2
       - data_module.num_workers=8
       # keep the safety objective out of the first contrastive experiment
       - data_module.base_dataset.use_safety_flag=false
