@@ -74,6 +74,29 @@ def reward(claims, traj):
 LENIENT_FN = "def reward(claims, traj):\n    return 0.9\n"
 
 
+def test_overlay_quat_and_projection_math():
+    from code_as_a_reward.clipgen import build_overlays as bo
+
+    # xyzw quaternion for 90 deg about z (scipy convention).
+    s = np.sqrt(0.5)
+    expected = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(bo.quat_to_matrix(0.0, 0.0, s, s), expected, atol=1e-12)
+    assert np.allclose(bo.quat_to_matrix(0.0, 0.0, 0.0, 1.0), np.eye(3), atol=1e-12)
+
+    # Identity extrinsics: a point on the optical axis projects to (cx, cy);
+    # a point off to the right lands at u > cx, below at v > cy.
+    intr = {"width": 1920.0, "height": 1080.0, "cx": 960.0, "cy": 540.0,
+            "fw_poly_0": 0.0, "fw_poly_1": 600.0, "fw_poly_2": 0.0,
+            "fw_poly_3": 0.0, "fw_poly_4": 0.0}
+    extr = {"qx": 0.0, "qy": 0.0, "qz": 0.0, "qw": 1.0, "x": 0.0, "y": 0.0, "z": 0.0}
+    wp = np.array([[0.0, 0.0, 10.0], [2.0, 0.0, 10.0], [0.0, 2.0, 10.0], [0.0, 0.0, -5.0]])
+    pixels, valid = bo.project_waypoints_ftheta(wp, intr, extr)
+    assert np.allclose(pixels[0], [960.0, 540.0], atol=1e-6)
+    assert pixels[1][0] > 960.0 and abs(pixels[1][1] - 540.0) < 1e-6
+    assert pixels[2][1] > 540.0
+    assert valid[0] and valid[1] and valid[2] and not valid[3]  # behind camera
+
+
 def test_dossier_renders_real_scene():
     traj = dossier_mod.features_from_waypoints(_reactive_waypoints(), HZ, CLIP_ID)
     text = dossier_mod.build_dossier(_scene(), traj, GT_COC)
