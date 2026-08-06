@@ -411,8 +411,7 @@ Repo disk space currently:
         Trajectory: GT
         How it's built: untouched pair
         The exploit it catches: (baseline - must score >= 0.7)
-
-
+        
         Case: reversed
         Claims: GT 
         Trajectory: GT played backwards
@@ -449,3 +448,27 @@ Repo disk space currently:
             # 4. Similarly, no-commit is only built if the claims actually contain commitments to delete. 
 
         # And the forward-looking property: nothing in this construction is specific to ground truth. Point the same function at a policy's rollout claims and waypoints, and the battery becomes your selection-time verifier - corrupt the argmax rollout, demand the drops, trust it only if the reward functions can tell it from its own corruptions. 
+
+# Initial code as a reward run:
+    # The first full code-reward run (n3sxdq, 264 steps)    
+        # Trained with kl_beta = 0.0 and a constant LR of 2e-6 with essentially no warmup (inhereting judge run's TOML)
+        # LR: flat 2e-6 -> warmup-stable-decay - same peak 2e-6, but 3% warmup (optm_warmup_steps = 0.03) and cosine decay down to 10% of peak (optim_min_lr_factor = 0.1), so the back half of the run trains at a shrinking LR instead of full throttle. 
+        # comfort_weight 0.0 -> 0.05 
+
+        # Changes: 
+            # kl_beta: 0.0 -> 1e-3 - with 0.0 the recipe never even loads the reference model (base_trainer skips the reference state-dict swap entirely), so nothing anchored the policy. 
+            # LR: flat 2e-6 -> warmup-stable-decay - same peak 2e-6, but 3% warmup (optm_warmup_steps = 0.03) and cosine decay down to 10% of peak (optim_min_lr_factor = 0.1), so the back half of the run trains at a shrinking LR instead of full throttle 
+            # comfort_weight 0.0 -> 0.05 
+
+        # follow-up fixes: pinned cosmos-rl builds LR schedulers once at trainer init with a default total_steps of 1e6, so the fractional 3% warmup silently became a 30,000-step ramp - caught live on relaunch fbbpdd where LR was 3.1e9 at step 46 (effectively zero). 
+        # The fix monkeypatches ReasoningVLAGRPOTrainer.step_training in rl_posttrain/rewards/code_reward_entry.py to rebuild the schedulers on first call with the controller's real step count (patched in our entry because alpamayo-recipes is an upstream submodule we can't push to)
+
+        # How is KL beta supposed to help?
+            # GRPO loss gets an added term kl_beta * KL(policy || reference)
+            # Where the refernce is a frozen snapshot of the pre-RL policy. 
+            # Penalizes the policy for drifting away from that anchor in distribution space, which addresses exactly the failure modes n3sxdq showed: 
+                # Entropy collapse: the reward only sees sampled rollouts, so the policy can inflate reward by concentrating probability mass on a few lucky modes. The KL term makes sharpening away from the reference distribution expensive, slowing entropy decay. 
+                # Reward hacking / unanchored drift: with a sparse-ish, noisy verifier reward (std ~0.34), a pleateaued policy keeps taking gradient steps on noise. KL gives those steps a restoring force back toward the SFT behavior, so late-run updates can't wander arbitrarily far for zero real gain. 
+
+            # Preserving base capabilities: the refernce model embodies everything the SFT stage learned (langauge quality, driving pairs) that ht everifier reward doesn't measure. 
+            # The KL anchor keeps the policy from trading those away for rward. 
