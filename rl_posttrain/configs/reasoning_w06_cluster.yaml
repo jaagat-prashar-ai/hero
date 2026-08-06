@@ -1,0 +1,65 @@
+name: alpamayo-rl-reasoning-w06
+model_identifier: other.training.alpamayo15.default.v1
+# See reasoning_cluster.yaml (the reasoning_weight=0.3 baseline arm) for all
+# rationale comments; this file differs ONLY in name, wandb_experiment and
+# the reasoning_weight override below.
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Reward ────────────────────────────────────────────────────────────────
+    # Weight-bump arm: identical stock Lingo-Judge variant, but with the
+    # reasoning reward's mixing weight doubled (0.3 -> 0.6). Question under
+    # test: does pushing the reasoning reward harder buy more reasoning-score
+    # gain without degrading trajectory L2?
+    reward_mode: "reasoning"
+    reasoning_weight: 0.6
+
+    num_reasoning_clips: 16
+    dp_shard_size: 4
+    train_epoch: 15
+
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_lingo_judge_w06"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
