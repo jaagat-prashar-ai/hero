@@ -55,6 +55,10 @@ runtime_environment:
   code_assets:
     root_directory: .
     pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
     regex_excludes:
       - "^/.venv/"
       - "^/third_party/"
