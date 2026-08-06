@@ -310,9 +310,15 @@ class DrivingModel(pl.LightningModule):
         loss, count, accuracy = intra_scene_contrastive_loss(
             z_text, z_traj, group_ids, temperature=self.contrastive_temperature
         )
-        if accuracy is not None and getattr(self, '_trainer', None) is not None:
+        if getattr(self, '_trainer', None) is not None:
             phase = 'train' if self.training else 'val'
-            self.log(f"{phase}_losses/contrastive_retrieval_acc", accuracy, sync_dist=True)
+            # accuracy is None when every group in this rank's local batch is a
+            # singleton (no counterfactual sibling to contrast). The sync_dist
+            # all-reduce below must still run on every rank every step - skipping
+            # it only on this rank desyncs the DDP collective sequence and hangs
+            # all ranks until the NCCL watchdog kills the job.
+            acc_value = accuracy if accuracy is not None else z_text.new_zeros(())
+            self.log(f"{phase}_losses/contrastive_retrieval_acc", acc_value, sync_dist=True)
         return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
 
     def training_step(self, batch: DrivingExample, _batch_idx: int = 0):
