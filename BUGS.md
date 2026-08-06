@@ -6,6 +6,32 @@ now, not routine typos.
 
 ---
 
+## 2026-08-06 — simlingo train-viz callback killed contrastive smoke run: wrong arial.ttf path, no try/except
+
+**Symptom:** `simlingo-contrastive-smoke-6njfmd` (the batch_size=2 relaunch
+after va9ixh's OOM) died 44 min in with `OSError: cannot open resource` from
+`PIL ImageFont.truetype` inside `VisualiseCallback.on_train_batch_end`
+(rank 0), status EXPERIMENT_FAILED. Earlier `visualise_training_examples
+cannot open resource` lines at 19:49/19:50 UTC were the same failure caught
+on the validation path.
+
+**Root cause:** `visualise_waypoints` built the font path as
+`get_original_cwd() + "/simlingo_training/arial.ttf"`, but the font lives at
+the package root `simlingo/simlingo/arial.ttf` — the path doesn't exist even
+in a local checkout, so any run reaching the train-viz interval crashes.
+Validation viz is wrapped in try/except (only logs), but
+`on_train_batch_end` called `_visualise_training_examples` bare, so the
+OSError propagated and killed training. Masked until now because earlier
+smoke runs OOMed before reaching the viz step.
+
+**Fix:** [e7885cb](../../commit/e7885cb) — resolve the font relative to `__file__`
+(`Path(__file__).resolve().parents[2] / "arial.ttf"`) with a
+`ImageFont.load_default()` fallback, and wrap train-time viz in the same
+try/except as the validation path so visualization can never kill a run.
+
+**How this was found:** `lilypad workload logs 6njfmd` traceback:
+`visualise.py:220` → `ImageFont.truetype` → `OSError: cannot open resource`.
+
 ## 2026-08-05 — clipgen lateral_offset_m is road geometry on curving clips, not in-lane position
 
 **Symptom:** clipgen smoke runs (62eytm/g9349h/ejodln): every generated
