@@ -173,10 +173,13 @@ def run_gate(
     any case is an automatic failure."""
     fn = compile_reward_fn(source)
     scores: dict[str, float] = {}
+    raws: dict[str, float] = {}
     failures: list[str] = []
     for case in cases:
         try:
-            scores[case.name] = run_reward_fn(fn, case.claims, case.traj)
+            raw = run_reward_fn(fn, case.claims, case.traj, raw=True)
+            raws[case.name] = raw
+            scores[case.name] = min(1.0, max(0.0, raw))
         except RewardFnError as e:
             scores[case.name] = float("nan")
             failures.append(f"{case.name}: raised instead of scoring ({e})")
@@ -205,6 +208,23 @@ def run_gate(
                     f" {pos_score:.2f} minus drop {min_drop}) -- a corrupted variant of"
                     " the rollout must not be rewarded"
                 )
+    # Over-budget detection is MECHANICAL, not heuristic (8xvbos: 8/15 clips
+    # saturated despite the prompt's sum-to-1.0 rule): any case returning
+    # >1.0 before the clamp proves component maxima exceed the budget, which
+    # both hides corruption drops behind the clamp and destroys ranking
+    # resolution at selection time (multiple rollouts clamp to the same 1.0).
+    # Unconditional reject, with the exact overshoot named so the retry can
+    # rebudget instead of guessing.
+    over = {n: r for n, r in raws.items() if r > 1.0 + 1e-9}
+    if over:
+        worst = max(over.items(), key=lambda kv: kv[1])
+        failures.append(
+            f"{len(over)} case(s) returned MORE than 1.0 before the [0,1] clamp"
+            f" (worst: {worst[0]} returned {worst[1]:.2f}, over budget by"
+            f" {worst[1] - 1.0:.2f}). Your component maxima sum past 1.0, so the"
+            " clamp absorbs exactly the credit a corruption is supposed to lose."
+            " Rebudget so all component maxima sum to EXACTLY 1.0."
+        )
     passed = not failures
     # Saturation signature (xc7vt9): component weights summing past 1.0 make
     # the [0,1] clamp award claims-carrying corruptions the same 1.0 as the

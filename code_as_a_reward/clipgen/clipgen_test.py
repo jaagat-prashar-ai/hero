@@ -165,6 +165,19 @@ def test_gate_rejects_lenient_function_with_feedback():
     assert "scored" in result.feedback()
 
 
+def test_gate_rejects_over_budget_function():
+    # Components sum past 1.0: the clamp would hide corruption drops, so the
+    # gate must reject on the raw pre-clamp value even though every clamped
+    # score looks plausible.
+    over_budget = GOOD_FN.replace(
+        "score = 0.14 * saw + 0.14 * committed", "score = 0.6 * saw + 0.6 * committed"
+    ).replace("return min(score, 1.0)", "return score")
+    result = gate_mod.run_gate(over_budget, _gate_cases())
+    assert not result.passed
+    assert any("before the [0,1] clamp" in f for f in result.failures)
+    assert any("over budget by" in f for f in result.failures)
+
+
 def test_gate_rejects_raising_function():
     result = gate_mod.run_gate(
         "def reward(claims, traj):\n    return 1.0 / 0.0\n", _gate_cases()

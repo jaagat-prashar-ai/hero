@@ -97,12 +97,18 @@ class _Timeout:
         raise RewardFnError("reward function timed out")
 
 
-def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0) -> float:
+def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0, raw: bool = False) -> float:
     """Execute a compiled reward function; return its score clamped to [0, 1].
 
     Raises RewardFnError on exception, timeout, or a non-finite/non-numeric
     return -- the caller decides whether that means gate failure (prototype)
     or neutral abstain (training path).
+
+    raw=True returns the pre-clamp value instead: the gate uses it to detect
+    over-budget component sums (a positive returning >1.0 means the [0,1]
+    clamp is absorbing weight, so corruptions that keep the over-allocated
+    components saturate to the same score as the positive -- 8xvbos, 8/15
+    clips).
     """
     try:
         with _Timeout(timeout_s):
@@ -117,4 +123,4 @@ def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0) -> float:
         raise RewardFnError(f"reward returned non-numeric {value!r}") from e
     if not np.isfinite(value):
         raise RewardFnError(f"reward returned non-finite {value!r}")
-    return min(1.0, max(0.0, value))
+    return value if raw else min(1.0, max(0.0, value))
