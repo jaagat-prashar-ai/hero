@@ -778,6 +778,6 @@ class DrivingModel(pl.LightningModule):
         else:
             max_steps = self.trainer.max_steps
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            optimizer, max_lr=self.lr, total_steps=max_steps, pct_start=self.pct_start, verbose=False
+            optimizer, max_lr=self.lr, total_steps=max_steps, pct_start=self.pct_start
         )
         return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "frequency": 1, "interval": "step"}}
