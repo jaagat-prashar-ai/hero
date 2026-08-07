@@ -17,7 +17,12 @@ workload_variant_config:
       - data_module=carla_no_buckets
       - max_epochs=2
       - val_every_n_epochs=1
-      - data_module.batch_size=4
+      # batch_size counts dataset items; dreamer items expand to K=4 samples,
+      # so the forward batch is up to 4x this on dreamer-heavy batches.
+      # 4 OOMed on 80GB A100s (run va9ixh, ~72GB allocated at failure) --
+      # matches smoke_contrastive.yaml's batch_size so the two arms stay a
+      # clean ablation (identical batches, only contrastive_loss_weight differs)
+      - data_module.batch_size=2
       - data_module.num_workers=8
       - data_module.base_dataset.use_safety_flag=false
       - data_module.base_dataset.dreamer_contrastive=true
