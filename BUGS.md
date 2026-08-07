@@ -6,6 +6,35 @@ now, not routine typos.
 
 ---
 
+## 2026-08-07 (4th) — simlingo smoke_baseline.yaml still had the batch_size that OOMed on the contrastive arm
+
+**Symptom:** none observed in a live run — found while preparing to launch
+the baseline (w=0) arm for comparison against the now-healthy contrastive
+(w=0.5) smoke run. `smoke_baseline.yaml`'s header comment claims it's
+"identical to smoke_contrastive.yaml except the contrastive loss weight is
+0," but its `data_module.batch_size` was still `4`.
+
+**Root cause:** `54c63e0` (2026-08-06) halved `smoke_contrastive.yaml`'s
+`batch_size` to 2 after `va9ixh`'s CUDA OOM (batch_size=4 x contrastive
+K=4 fan-out ~= 16-sample effective forward batch, ~72GB allocated on an
+80GB A100) but only edited that one file — `smoke_baseline.yaml` was never
+touched, so it silently drifted from its own stated invariant. Launching
+it as-is would almost certainly OOM on the first forward pass (identical
+fan-out math), and even if it happened to survive, a different batch size
+than the contrastive arm breaks the clean ablation the two runs are
+supposed to provide (same batches, only the loss differs).
+
+**Fix:** [649694d](../../commit/649694d) — `smoke_baseline.yaml`'s
+`data_module.batch_size` set to 2, matching `smoke_contrastive.yaml`.
+
+**How this was found:** re-reading the baseline config immediately before
+launching it, prompted by the user asking for a baseline run to compare
+against the contrastive arm — the header comment's claim of "identical
+except loss weight" made the batch_size mismatch a one-line diff-catch
+rather than something requiring reproduction.
+
+---
+
 ## 2026-08-07 (3rd) — build_webdataset.py never stored per-frame timestamps, silently corrupting camera-frame timing downstream
 
 **Symptom:** while building WDS shards for the 214 Track 1 OOD test-split
