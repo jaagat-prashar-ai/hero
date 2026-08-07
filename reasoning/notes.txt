@@ -1,0 +1,18 @@
+# reasoning/ood_reasoning_test.parquet 
+    # 214 rows, indexed by clip_id with columns
+    # event_cluster (OOD scenario type; PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY, COMPLEX_INTERSECTION_INTERACTION_WORK_ZONES_TEMP_TRAFFIC_CONTROL)
+    # events (lists of dicts with event_start_frame / event_start_timestamp)
+    # split - all test in the preview 
+
+# Ealier work found HF's Xet CDN reliably 403s/hangs on camera video downloads > 16GB, even with HF_HUB_DISABLE_XET=1. 
+
+# Build prompt:
+    # perplexity/dump_input_template.py:94 - it takes the model and a data dict (image_frames, ego_history_xyz, ego_history_rot) and builds the literal token sequence fed into the model. 
+    # 1. helper_create_message(frames) builds a 3-turn chat: system prompt ("You are a driving assistant...") -> user turn with the camera images + a <|traj_history_start|> + 48 placeholder tokens + <|traj_history_end|> + the instruction text -> assistant turn containing just <|cot_start|> (opening the response for continuation, not closing it)
+    # 2. The Qwen3-VL processor tokenizes that via apply_chat_template(..., continue_final_message=True) - continue_final_message=True is what makes the sequence stop right at <|cot_start|> instead of adding an end-of-turn token, so generation continues the assistant's turn rather than starting a new one. 
+    # 3. model.fuse_traj_tokens(...) swaps the 48 placeholder <|traj_history|> ids for real quzntized ego-history tokens computed from ego_history_xyz/ego_history_rot
+
+    # The result (fused_input_ids) is the exact prefix sample_trajectories_from_data_with_vlm_rollout hands to model.vlm.generate() - everything up to and including <|cot_start|>, ready for the model to generate reasoning + trajectory. 
+
+    # The loader: one new self-contained file, reasoning/wds_test_loader.py, no edits to other files. It downloads the 5 shards from wds/test/ locally (matching the exact convention masking/data/s3_download.py already uses for train/val), then iterates samples with webdatast, and per event does: (!) build an egomotion interpoloator from the clip's egomotion.parquet bytes, (2) compute the ego-local history/future windows at the event's t0, (3) decode 4 camera frames using the real frame_timestamps sidecare we just started storing (np.searchsorted to find the frame at/before to, then SeekVideoReader.decode_images_from_frame_indices) - this is the actual fix, real timestamp-based f"{clip_id}_{event_idx}" for the JSON output format. 
+
