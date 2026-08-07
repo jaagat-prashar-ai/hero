@@ -6,6 +6,40 @@ now, not routine typos.
 
 ---
 
+## 2026-08-07 (3rd) — build_webdataset.py never stored per-frame timestamps, silently corrupting camera-frame timing downstream
+
+**Symptom:** while building WDS shards for the 214 Track 1 OOD test-split
+clips (`build_test_split.py`), `perplexity/s3_clip_loader.py`'s existing
+documented caveat — that S3-sourced camera frames land ~15-20s off the
+requested moment — turned out to be caused by data missing from the WDS
+shards themselves, not a loader bug. `decode_last_n_frames()` has to fall
+back to "last N frames by index" specifically because no per-frame
+timestamp data was ever stored for it to align against.
+
+**Root cause:** `avdi.features.get_clip_files_in_zip(clip_id, feature)`
+returns three entries per camera — `video`, `frame_timestamps`, and
+`blurred_boxes` — but `_read_camera_mp4_bytes()` (the only reader
+`build_clip_sample` called) only ever extracted `video`. The
+`frame_timestamps` parquet sitting right next to it in the same chunk zip
+was never read or written into any WDS shard, for train, val, or test.
+
+**Fix:** [aaf23d9](../../commit/aaf23d9) — renamed the reader to
+`_read_camera_zip_entries`, returning `(video_bytes, timestamps_bytes)`
+from a single zip open, and `build_clip_sample` now writes
+`{clip_id}.{cam_key}.timestamps.parquet` alongside each camera's `.mp4`.
+Applied before the test-split build ran, so those new `wds/test/` shards
+have it from the start. The existing `train/`/`val/` shards on S3 were
+built before this fix and still lack it — not backfilled here, scope was
+the test-split build only.
+
+**How this was found:** investigating why `s3_clip_loader.py`'s frame-timing
+caveat existed at all, while scoping a chain-of-causation generation task
+that needs visually-grounded inference over these same clips — traced it
+to `get_clip_files_in_zip`'s actual return value rather than assuming it
+was a downstream decoding limitation.
+
+---
+
 ## 2026-08-07 — simlingo contrastive smoke crashed on dynamically-imported conversation.py missing `get_conv_template`
 
 **Symptom:** `simlingo-contrastive-smoke-ujuu6j` (the arial.ttf relaunch)
