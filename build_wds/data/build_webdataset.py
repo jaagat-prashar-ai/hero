@@ -41,6 +41,7 @@ WDS sample keys per clip (one sample == one 20-second clip):
     {clip_id}.camera_rear_left_70fov.mp4
     {clip_id}.camera_rear_right_70fov.mp4
     {clip_id}.camera_rear_tele_30fov.mp4
+    {clip_id}.camera_*.timestamps.parquet  per-frame timestamps for that camera
     {clip_id}.lidar_top_360fov.parquet   (if LiDAR present for this clip)
     {clip_id}.radar_{name}.parquet       (one per radar unit, if present)
 
@@ -291,22 +292,28 @@ def _serialize_calibration_value(obj: Any) -> Any:
     return obj
 
 
-def _read_camera_mp4_bytes(
+def _read_camera_zip_entries(
     avdi: PhysicalAIAVDatasetInterface,
     clip_id: str,
     feature: str,
-) -> bytes:
-    """Read raw MP4 bytes from the HF chunk zip (same bytes SeekVideoReader decodes).
+) -> tuple[bytes, bytes | None]:
+    """Read raw MP4 bytes and the per-frame timestamps parquet from the HF chunk
+    zip (same bytes SeekVideoReader decodes for video).
 
     physical_ai_av.get_clip_feature() returns a SeekVideoReader that wraps an
     io.BytesIO internally but does not expose the MP4 payload. Read the zip
-    entry directly instead of probing the reader object.
+    entries directly instead of probing the reader object.
+
+    The timestamps parquet is what a frame-accurate reader needs to map a
+    requested wall-clock moment to the right decoded frame index — without it,
+    only "last N frames by index" placeholder logic is possible downstream.
     """
     chunk_filename = avdi.features.get_chunk_feature_filename(
         avdi.get_clip_chunk(clip_id), feature
     )
     clip_files = avdi.features.get_clip_files_in_zip(clip_id, feature)
     video_key = clip_files.get("video")
+    timestamps_key = clip_files.get("frame_timestamps")
     if not video_key:
         raise RuntimeError(
             f"clip {clip_id} feature {feature}: zip layout missing 'video' — {clip_files}"
@@ -320,12 +327,17 @@ def _read_camera_mp4_bytes(
                     f"{chunk_filename} (have {len(zf.namelist())} entries)"
                 )
             data = zf.read(video_key)
+            timestamps_data = (
+                zf.read(timestamps_key)
+                if timestamps_key and timestamps_key in zf.namelist()
+                else None
+            )
 
     if not data:
         raise RuntimeError(
             f"clip {clip_id} feature {feature}: empty MP4 at {video_key} in {chunk_filename}"
         )
-    return data
+    return data, timestamps_data
 
 
 def _serialize_ood_event_field(key: str, v: Any) -> Any:
@@ -418,7 +430,7 @@ def build_clip_sample(
         if feat_attr is None:
             raise RuntimeError(f"physical_ai_av missing camera feature constant {feat_name}")
 
-        raw = _hf_retry(lambda: _read_camera_mp4_bytes(avdi, clip_id, feat_attr))
+        raw, timestamps_raw = _hf_retry(lambda: _read_camera_zip_entries(avdi, clip_id, feat_attr))
         if video_codec == "copy":
             sample[f"{cam_key}.mp4"] = raw
         else:
@@ -429,6 +441,8 @@ def build_clip_sample(
                 preset=video_preset,
                 camera_label=f"{clip_id}/{cam_key}",
             )
+        if timestamps_raw:
+            sample[f"{cam_key}.timestamps.parquet"] = timestamps_raw
 
     # ── LiDAR ────────────────────────────────────────────────────────────────
     # Skippable: the per-clip LiDAR reader isn't implemented in physical_ai_av
