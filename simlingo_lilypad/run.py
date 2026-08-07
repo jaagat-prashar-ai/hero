@@ -77,6 +77,25 @@ def _wait_for_marker(workdir: Path, timeout_s: int = 3600) -> None:
         time.sleep(20)
 
 
+def _get_shared_run_name(workdir: Path, rank: int, timeout_s: int = 60) -> str:
+    # config.py's wandb_name default is time.strftime(...) evaluated independently
+    # per rank's own train.py process, and hydra.run.dir (-> the DeepSpeed
+    # checkpoint dir) is derived from it -> without pinning this, ranks whose
+    # launch is skewed by >=1s (near-guaranteed: ranks 1+ poll _wait_for_marker
+    # every 20s) resolve DIFFERENT checkpoint directories and scatter shards.
+    marker = workdir / ".run_name"
+    if rank == 0:
+        if not marker.exists():
+            marker.write_text(time.strftime("%Y%m%d_%H%M%S"))
+    else:
+        deadline = time.time() + timeout_s
+        while not marker.exists():
+            if time.time() > deadline:
+                raise RuntimeError(f"timed out waiting for rank 0 to write {marker}")
+            time.sleep(1)
+    return marker.read_text().strip()
+
+
 def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
     cfg = training_fn_config
     rank = int(os.environ.get("RANK", "0"))
@@ -121,8 +140,10 @@ def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = No
     gpu_ids = [g for g in visible.split(",") if g] or [str(i) for i in range(world_size)]
     env["CUDA_VISIBLE_DEVICES"] = gpu_ids[parent_local_rank % len(gpu_ids)]
 
+    run_name = _get_shared_run_name(workdir, rank)
+
     overrides = list(cfg.get("hydra_overrides", []))
-    overrides += [f"gpus=1", f"num_nodes={world_size}"]
+    overrides += [f"gpus=1", f"num_nodes={world_size}", f"wandb_name={run_name}"]
     cmd = [sys.executable, "simlingo_training/train.py", *overrides]
     print(f"[simlingo] rank {rank}/{world_size} launching: {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=sim_root, env=env)
