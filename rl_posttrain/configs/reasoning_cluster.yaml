@@ -30,15 +30,18 @@ workload_variant_config:
     # reasoning_w06_cluster.yaml for the 0.6 arm.
     reward_mode: "reasoning"
 
-    # ── Dataset ───────────────────────────────────────────────────────────────
-    # Same reasoning-bearing PAI clips as llm_judge: the Lingo-Judge reward
-    # compares predicted CoC to the reference CoC, so rollout prompts must
-    # come from clips whose pipeline emits CoC sections.
-    num_reasoning_clips: 16
+    # ── Dataset: the "extensive OOD" configuration ────────────────────────────
+    # All OOD clips inside the 100 chunks densest in OOD clips = 352 valid
+    # clips (measured 2026-08-07 from the cached index), already warm-cached
+    # in-region on S3 (~607 GB) -- see llm_judge_full_cluster.yaml, whose
+    # code_reward_full/llm_judge_full runs populated this cache.
+    # reasoning_dense_chunks supersedes num_reasoning_clips.
+    reasoning_dense_chunks: 100
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
 
     # ── Cosmos-RL TOML overrides ────────────────────────────────────────────────
     dp_shard_size: 4
-    train_epoch: 150
+    train_epoch: 15
 
     # ── W&B ───────────────────────────────────────────────────────────────────
     wandb_project: "alpamayo-rl"

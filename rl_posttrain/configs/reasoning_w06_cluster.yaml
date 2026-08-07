@@ -19,9 +19,12 @@ workload_variant_config:
     reward_mode: "reasoning"
     reasoning_weight: 0.6
 
-    num_reasoning_clips: 16
+    # Same "extensive OOD" dense-chunks dataset as reasoning_cluster.yaml
+    # (352 valid clips, ~607 GB, already warm-cached in-region on S3).
+    reasoning_dense_chunks: 100
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
     dp_shard_size: 4
-    train_epoch: 150
+    train_epoch: 15
 
     wandb_project: "alpamayo-rl"
     wandb_experiment: "reasoning_vla_lingo_judge_w06"
