@@ -12,27 +12,24 @@ First-cut heuristics (documented for later calibration, same convention as
 RewardConfig): tracks ranked by closest approach, capped at MAX_TRACKS;
 bearing buckets at +/-20 deg (ahead) and +/-120 deg (behind).
 """
-
 from __future__ import annotations
-
 import dataclasses
 import math
-
 import numpy as np
 
-# SceneObstacles: the input type describing all obstacle tracks in a clip.
-from code_as_a_reward.obstacle_tracks import SceneObstacles
-# TrajectoryFeatures: the input type describing the ego vehicle's trajectory.
-# extract_features: a helper function that builds a TrajectoryFeatures object from raw waypoints.
+# SceneObstacles: the input type describing all of the obstacles in the clip
+from code_as_a_reward.obstacle_tracks import SceneObstacles # this is the obstacle.offline stuff
+# TrajectoryFeatures: the input type describing the ego vehicle's trajectory 
+# extract_features: a helper function that builds a TrajectoryFeatures object from raw waypoints 
 from pref_pairs.trajectory_features import TrajectoryFeatures, extract_features
+    # this is the trajectory featuarization thing we made in pref pairs from before? Double check this. 
 
-# Maximum number of obstacle tracks to include in the dossier text (keeps it short).
-# how may are there?
+# maximum number of obstacle tracks to include in the dossier text
 MAX_TRACKS = 12
 
-# Different datasets/exports name the ego-motion X/Y position columns differently.
-# This tuple lists all the column-name pairs we know how to recognize, in order of preference.
-_EGOMOTION_XY_CANDIDATES = (("x", "y"), ("pos_x", "pos_y"), ("position_x", "position_y"), ("tx", "ty"))
+# Different datasets/exports name the ego-motion 
+# Tuple for all column-name pairs we know how to recognize, in order of prefernce 
+_EGOMOTION_XY_CANDIDATES = (("x", "y"), ("pox_x", "pos_y"), ("position_x", "position_y"), ("tx", "ty"))
 
 
 @dataclasses.dataclass
@@ -41,19 +38,19 @@ class TrackSummary:
 
     # Unique identifier string for this obstacle track.
     track_id: str
-    # The type/class of the obstacle (e.g. "vehicle", "pedestrian").
+    # The type/class of the obstacle (e.g. "vehicle", "pedestrian"). automobile, etc.
     label_class: str
     # Time (in seconds) when this obstacle first becomes visible in the clip.
     t_enter_s: float
     # Time (in seconds) when this obstacle stops being visible in the clip.
     t_exit_s: float
     # The smallest distance (in meters) between the ego vehicle and this obstacle, over the whole track.
+        # how do we think about this with the world rails assumption from SimLingo (e.g., other ego agents)? Do we worry about this?
     closest_approach_m: float
-    # The timestamp (in seconds) at which that closest approach happened.
+    # The timestamp (in seconds) at which that closest approach happened. What are a good array of examples for closest approaches?
     t_closest_s: float
     # Rough direction bucket ("ahead"/"left"/"right"/"behind") of the obstacle relative to the ego, at closest approach.
     bearing_at_closest: str  # "ahead" | "left" | "right" | "behind"
-
 
 # Given an obstacle's x (forward) and y (left) position relative to the ego,
 # return a coarse compass-style bucket describing where it is.
@@ -61,48 +58,53 @@ def _bearing(x: float, y: float) -> str:
     """Bearing bucket in the ego frame (x fwd, y left)."""
     # atan2(y, x) gives the angle of the obstacle around the ego, in radians;
     # convert to degrees since the thresholds below are in degrees.
+    # first we can begin by getting the angle between the agent and the obstacle
     angle = math.degrees(math.atan2(y, x))
+    # if this angle is within 20 degrees relative to the agent, this should be ahead (i.e,. in our V span)
     # Within 20 degrees of straight ahead (either side) counts as "ahead".
     if abs(angle) <= 20.0:
         return "ahead"
-    # Beyond 120 degrees from straight ahead (either side) counts as "behind".
+    # beyond 120 degrees, we can say this is behind
     if abs(angle) >= 120.0:
         return "behind"
-    # Everything else is to one side: positive angle means left, negative means right.
+    # otherwise, it's left or right (positive angle means left and negative means right)
     return "left" if angle > 0 else "right"
 
+# Take a full scene's worth of obstacle tracks and reduce it to a short ranked list of the most relevant ones (closest approach first).
 
-# Take a full scene's worth of obstacle tracks and reduce it to a short,
-# ranked list of the most relevant ones (closest approach first).
 def summarize_tracks(scene: SceneObstacles) -> list[TrackSummary]:
-    """Rank tracks by closest approach and keep the MAX_TRACKS nearest."""
-    # This list will collect one TrackSummary per obstacle track.
+    """Rank tracks by the closest approach and keep the MAX_TRACKS nearest"""
+    # This list will collect one TrackSummary per obstacle track. 
     out: list[TrackSummary] = []
-    # Loop over every obstacle track present in the scene.
-    for tr in scene.tracks:
-        # Compute the ego-relative distance (in the ground plane, x/y only) at every timestep of this track.
+
+    # Loop over every obstacle track that is present in the scene (e.g., from obstacle.offline from HF)
+    for tr in scene.tracks: 
+        # Compute the ego-relative distance (in the ground plane, x/y only) at every timestep of this track. 
         dists = np.linalg.norm(tr.centers_m[:, :2], axis=1)
-        # Find the index of the timestep where that distance is smallest (closest approach).
+        # Find the index of the timestep where the distance is smallest (closest approach). 
         i = int(np.argmin(dists))
-        # Convert this track's timestamps from microseconds to seconds.
+        # Convert this track's timestamps from microseconds to seconds
         ts = tr.timestamps_us.astype(np.float64) / 1e6
-        # Build a TrackSummary for this track using the values computed above.
+        # Build a TrackSummary for this track using the values computed above 
         out.append(
             TrackSummary(
                 track_id=str(tr.track_id),
                 label_class=tr.label_class,
-                # First timestamp in the track = when it enters view.
-                t_enter_s=float(ts[0]),
-                # Last timestamp in the track = when it exits view.
-                t_exit_s=float(ts[-1]),
-                # Distance at the closest-approach index.
+                # First timestamp in the track = where it enters view
+                t_enter_s = float(ts[0]),
+                # Last timestamp in the track = when it enters view
+                t_exit_s = float(ts[-1]),
+                # Distance at the closest-approach index. 
                 closest_approach_m=float(dists[i]),
-                # Time at the closest-approach index.
-                t_closest_s=float(ts[i]),
-                # Direction bucket at the closest-approach index (x, y position at that moment).
-                bearing_at_closest=_bearing(float(tr.centers_m[i, 0]), float(tr.centers_m[i, 1])),
+                # Time at the closest-approach index. 
+                t_closest_s = float(ts[i]),
+                # Direction bucket at the closets-approach index (x, y position at the moment)
+                bearing_at_closest = _bearing(float(tr.centers_m[i, 0]), float(tr.ceners_m[i, 1])),
             )
         )
+
+
+
     # Sort all tracks so the one with the smallest closest-approach distance comes first.
     out.sort(key=lambda t: t.closest_approach_m)
     # Only keep the nearest MAX_TRACKS tracks; drop the rest.
@@ -301,3 +303,5 @@ def features_from_waypoints(waypoints: np.ndarray, hz: float, scene_id: str) -> 
 # track from dossier. 
 # lateral featurization bug?
 
+
+# make updates to internvla

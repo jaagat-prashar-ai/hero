@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import torch
 import torchvision.transforms as T
+from filelock import FileLock
 from hydra.utils import to_absolute_path
 from PIL import Image
 from torchvision.transforms.functional import InterpolationMode
@@ -16,6 +17,10 @@ from transformers import AutoConfig
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
+
+# process-local cache so each worker imports conversation.py at most once,
+# instead of re-downloading/re-exec'ing it from disk on every collate call
+_CONV_MODULE_CACHE = {}
 
 
 def get_num_image_tokens_per_patch(encoder_variant: str) -> int:
@@ -109,15 +114,33 @@ def get_custom_chat_template(conversations: List[Dict], tokenizer, encoder_varia
     # get absolute path from workspace dir not wokring dir
     cache_dir = to_absolute_path(cache_dir)
     model_path = f"{cache_dir}/conversation.py"
-    if not os.path.exists(model_path):
-        from huggingface_hub import snapshot_download
-        snapshot_download(repo_id=encoder_variant, local_dir=cache_dir)
-        
-    #import from file from model_path
-    spec = importlib.util.spec_from_file_location('get_conv_template', model_path)
-    conv_module = importlib.util.module_from_spec(spec)
-    sys.modules['get_conv_template'] = conv_module
-    spec.loader.exec_module(conv_module)
+
+    conv_module = _CONV_MODULE_CACHE.get(model_path)
+    if conv_module is None:
+        # multiple ranks/workers can hit this on first call (or at an epoch
+        # boundary when workers respawn) -> serialize download+import so no
+        # one ever reads a file mid-download/mid-write
+        lock_path = f"{cache_dir}.lock"
+        os.makedirs(cache_root_dir, exist_ok=True)
+        with FileLock(lock_path):
+            if not os.path.exists(model_path):
+                from huggingface_hub import snapshot_download
+                snapshot_download(repo_id=encoder_variant, local_dir=cache_dir)
+
+            #import from file from model_path
+            spec = importlib.util.spec_from_file_location('get_conv_template', model_path)
+            conv_module = importlib.util.module_from_spec(spec)
+            sys.modules['get_conv_template'] = conv_module
+            spec.loader.exec_module(conv_module)
+
+            if not hasattr(conv_module, 'get_conv_template'):
+                raise AttributeError(
+                    f"{model_path} loaded but does not define get_conv_template() - "
+                    "the cached file is likely stale or was read while being (re)written. "
+                    f"Delete {cache_dir} and retry."
+                )
+
+        _CONV_MODULE_CACHE[model_path] = conv_module
 
     image_tokens_templates = IMG_START_TOKEN + IMG_CONTEXT_TOKEN * num_image_tokens_total + IMG_END_TOKEN
 
