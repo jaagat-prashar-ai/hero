@@ -6,6 +6,54 @@ now, not routine typos.
 
 ---
 
+## 2026-08-07 — simlingo contrastive smoke crashed on dynamically-imported conversation.py missing `get_conv_template`
+
+**Symptom:** `simlingo-contrastive-smoke-ujuu6j` (the arial.ttf relaunch)
+trained ~28 min then a rank-0 DataLoader worker (worker 7) raised
+`AttributeError: module 'get_conv_template' has no attribute
+'get_conv_template'. Did you mean: '_return_value'?` from
+`internvl2_utils.py:129`, killing the whole job (`RuntimeError: train.py
+exited with code 1 on rank 0`). The crash landed in the same few seconds as
+a burst of `Crashed routes`/dataset-init scan prints across many workers —
+consistent with an epoch-boundary DataLoader worker respawn hammering the
+same cache path at once.
+
+**Root cause:** `get_custom_chat_template` dynamically re-downloads
+(`snapshot_download`, only if missing) and re-imports
+(`importlib.util.spec_from_file_location` + `exec_module`) the encoder's
+`conversation.py` from scratch on **every single collate call**, across all
+8 ranks x 8 dataloader workers, for the whole run — thousands of redundant
+disk reads/execs with no caching. Confirmed the upstream file itself is
+fine (fetched `OpenGVLab/InternVL2-1B`'s current `conversation.py` — it
+still defines `get_conv_template` and registers `'internlm2-chat'`), so
+this wasn't an upstream API change. The exact trigger (a transient
+partial/inconsistent read during a 64-worker respawn burst) couldn't be
+pinned down further without the on-disk state at the crash instant —
+this run's own earlier, unlogged crash #1 was 8 TorchTrainer workers
+racing on shared `/mnt/work` tarballs, the same shared-filesystem-race
+class — but the massive unnecessary read/exec surface is what made any
+such transient race possible in the first place.
+
+**Fix:** [0862928](../../commit/0862928) — cache the imported module in a
+process-local dict keyed by `model_path` so each worker loads/execs the
+file at most once instead of every batch; serialize the first
+download+import behind a `filelock.FileLock` (already a transitive dep via
+`huggingface_hub`) so concurrent workers can't race on the same path at
+startup/epoch boundaries; assert `hasattr(conv_module, 'get_conv_template')`
+right after exec with a clear message instead of letting a bad load surface
+as a cryptic `AttributeError` deep in the dataloader. Note:
+`team_code/agent_simlingo.py` (CARLA closed-loop eval agent, not on the
+training path) has the identical unguarded pattern at lines 595-615 — not
+fixed here since it doesn't block training, but the same fix should be
+applied before it's used for eval.
+
+**How this was found:** `lilypad workload logs ujuu6j --role all
+--start-time/--end-time`, grepped for `File "` to find the real traceback
+under the Ray/Lightning wrapper noise; the `internvl2_utils.py:129` frame
+led to the actual `AttributeError`.
+
+---
+
 ## 2026-08-06 — simlingo train-viz callback killed contrastive smoke run: wrong arial.ttf path, no try/except
 
 **Symptom:** `simlingo-contrastive-smoke-6njfmd` (the batch_size=2 relaunch
