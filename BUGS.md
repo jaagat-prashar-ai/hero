@@ -52,18 +52,45 @@ applied before it's used for eval.
 under the Ray/Lightning wrapper noise; the `internvl2_utils.py:129` frame
 led to the actual `AttributeError`.
 
-**Known-but-unfixed side finding (not blocking):** `simlingo_training/train.py`'s
-`ModelCheckpoint` dirpath is relative (`./checkpoints`) and no `hydra.run.dir`
-is pinned anywhere in the smoke configs/overrides. Each of the 8 ranks is an
-independently-launched `train.py` subprocess, so each gets Hydra's own default
-`outputs/<date>/<time>/` chdir keyed off that process's own wall-clock launch
-instant — if the 8 launches don't land in the same second, checkpoint shards
-could silently scatter across different directories instead of the shared one
-DeepSpeed's collective save expects, with no crash or error, just a
-non-resumable checkpoint. Not fixed because no smoke run needs to resume from
-checkpoint (the gate is `contrastive_retrieval_acc` in W&B); pin
-`hydra.run.dir` to a path shared across ranks before anyone relies on
-resuming from a smoke or full run's checkpoints.
+---
+
+## 2026-08-07 (2nd) — simlingo checkpoint shards could silently scatter across ranks: `wandb_name` (-> `hydra.run.dir` -> checkpoint dir) is a per-process timestamp, never pinned
+
+**Symptom:** none observed yet in a live run — found during the deep
+investigation after the bug above, before relaunching. `train.py`'s
+`ModelCheckpoint` dirpath is the relative `./checkpoints`, and
+`simlingo_seed1.yaml`/`simlingo_seed2.yaml` set `hydra.run.dir:
+outputs/${wandb_name}_${name}`. Each of the 8 ranks is an
+independently-launched `train.py` subprocess (`simlingo_lilypad/run.py`), so
+each resolves `${wandb_name}` from its own process's config load.
+
+**Root cause:** `simlingo_training/config.py:152`'s `wandb_name` field
+defaults to `f"{time.strftime('%Y_%m_%d_%H_%M_%S')}"`, evaluated
+independently per rank at that rank's own `train.py` startup, and no
+`hydra_overrides` entry pins it. Not just low-probability skew: `run.py`
+has ranks 1-7 block in `_wait_for_marker`, polling every 20s for rank 0 to
+finish the S3 dataset extraction before they launch `train.py` — so a
+multi-second gap between rank 0's and every other rank's `train.py` launch
+is close to guaranteed on every run, at 1-second timestamp resolution. Each
+rank's DeepSpeed checkpoint save (`./checkpoints` relative to its own
+`hydra.run.dir`) would then land in a different directory — no crash or
+error, just an unreconstructable checkpoint the first time anyone tries to
+resume from one (a full checkpoint needs every rank's model+optimizer shard
+in the same directory).
+
+**Fix:** [49c8869](../../commit/49c8869) — `simlingo_lilypad/run.py`'s `_get_shared_run_name()`:
+rank 0 writes a timestamp to `<workdir>/.run_name` (once; reused across
+requeues on the same node like the existing `.extract_done` marker), every
+other rank polls for and reads that same file, and the resulting value is
+passed as an explicit `wandb_name=<value>` hydra override to every rank's
+`train.py` invocation — so `hydra.run.dir` (and the checkpoint dir under
+it) is byte-identical across all 8 ranks regardless of launch skew.
+
+**How this was found:** deep-read of `train.py`/`config.py`/the experiment
+yamls specifically looking for anything untested by the 9 crashed smoke
+attempts (all died before reaching a checkpoint save); traced
+`hydra.run.dir`'s `${wandb_name}` interpolation back to its dataclass
+default to confirm it really is per-process wall-clock, not a shared value.
 
 ---
 
