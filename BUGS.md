@@ -52,6 +52,19 @@ applied before it's used for eval.
 under the Ray/Lightning wrapper noise; the `internvl2_utils.py:129` frame
 led to the actual `AttributeError`.
 
+**Known-but-unfixed side finding (not blocking):** `simlingo_training/train.py`'s
+`ModelCheckpoint` dirpath is relative (`./checkpoints`) and no `hydra.run.dir`
+is pinned anywhere in the smoke configs/overrides. Each of the 8 ranks is an
+independently-launched `train.py` subprocess, so each gets Hydra's own default
+`outputs/<date>/<time>/` chdir keyed off that process's own wall-clock launch
+instant — if the 8 launches don't land in the same second, checkpoint shards
+could silently scatter across different directories instead of the shared one
+DeepSpeed's collective save expects, with no crash or error, just a
+non-resumable checkpoint. Not fixed because no smoke run needs to resume from
+checkpoint (the gate is `contrastive_retrieval_acc` in W&B); pin
+`hydra.run.dir` to a path shared across ranks before anyone relies on
+resuming from a smoke or full run's checkpoints.
+
 ---
 
 ## 2026-08-06 — simlingo train-viz callback killed contrastive smoke run: wrong arial.ttf path, no try/except
