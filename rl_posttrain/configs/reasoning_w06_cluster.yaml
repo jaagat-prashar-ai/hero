@@ -1,8 +1,8 @@
 name: alpamayo-rl-reasoning-w06
 model_identifier: other.training.alpamayo15.default.v1
 # See reasoning_cluster.yaml (the reasoning_weight=0.3 baseline arm) for all
-# rationale comments; this file differs ONLY in name, wandb_experiment and
-# the reasoning_weight override below.
+# rationale comments; this file differs ONLY in name, wandb_experiment,
+# ckpt_s3_prefix and the reasoning_weight override below.
 ignore_idle_reaper: true
 workload_variant_config:
   workload_type: "generic"
@@ -23,6 +23,7 @@ workload_variant_config:
     # (352 valid clips, ~607 GB, already warm-cached in-region on S3).
     reasoning_dense_chunks: 100
     pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/reasoning_w06"
     dp_shard_size: 4
     train_epoch: 15
 
@@ -34,7 +35,9 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # NOT preemptible -- see reasoning_cluster.yaml for the 2026-08-07 node-loss
+  # rationale.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true

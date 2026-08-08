@@ -39,6 +39,12 @@ workload_variant_config:
     reasoning_dense_chunks: 100
     pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
 
+    # ── Checkpoint persistence ────────────────────────────────────────────────
+    # Same _CheckpointUploader path as code_reward_full/llm_judge_full: ship
+    # each checkpoint to S3 and drop the local copy. Added after the
+    # 2026-08-07 node loss (lys7vs, step ~96) left no artifacts behind.
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/reasoning_w03"
+
     # ── Cosmos-RL TOML overrides ────────────────────────────────────────────────
     dp_shard_size: 4
     train_epoch: 15
@@ -54,7 +60,11 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # NOT preemptible: both 2026-08-07 352-clip arms (lys7vs/p5hcbw) lost their
+  # node ~7h in (NodeDiedError, no app-level error) at step ~96-98 of a
+  # ~1000-1300-step target. cosmos-rl has no resume, so a ~15-19h run on a
+  # preemptible node can never outrun the reclaim cadence.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true
