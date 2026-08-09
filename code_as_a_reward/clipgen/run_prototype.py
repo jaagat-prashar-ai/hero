@@ -101,11 +101,20 @@ def _load_clip(entry: dict) -> dict:
     }
 
 
-_NO_FINITE_ROLLOUT_FEEDBACK = (
-    "every real rollout in this clip's group raised an exception or scored"
-    " non-finite with this function -- it must handle real, non-GT"
-    " trajectories and CoC phrasing, not just the ground-truth pair"
-)
+def _no_finite_rollout_feedback(scored: list[dict[str, Any]]) -> str:
+    """Every rollout scored non-finite -- surface the ACTUAL captured
+    exceptions (select_and_verify's clipgen_error) instead of a generic
+    message, so a retry (or a human) can see WHY, not just THAT."""
+    errors = sorted({r["clipgen_error"] for r in scored if r.get("clipgen_error")})
+    header = (
+        "every real rollout in this clip's group raised an exception or scored"
+        " non-finite with this function -- it must handle real, non-GT"
+        " trajectories and CoC phrasing, not just the ground-truth pair."
+    )
+    if not errors:
+        return header + " (no exception captured -- every score was a non-finite value the function itself returned)"
+    lines = "\n".join(f"  - {e}" for e in errors[:5])
+    return f"{header} Captured exception(s):\n{lines}"
 
 
 def run(
@@ -206,8 +215,8 @@ def run(
             if gate_result is None:
                 gate_passed = False
                 pos_score = max_pert = float("nan")
-                scores, components, failures = {}, {}, [_NO_FINITE_ROLLOUT_FEEDBACK]
-                feedback_text = _NO_FINITE_ROLLOUT_FEEDBACK
+                feedback_text = _no_finite_rollout_feedback(select.scored)
+                scores, components, failures = {}, {}, [feedback_text]
             else:
                 gate_passed = gate_result.passed
                 pos_score, max_pert = gate_result.pos_score, gate_result.max_pert

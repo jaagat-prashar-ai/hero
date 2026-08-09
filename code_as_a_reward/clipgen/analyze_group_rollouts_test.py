@@ -107,6 +107,9 @@ def test_score_scene_no_finite_rollout_leaves_gate_none():
     assert record["argmax_rollout_id"] is None
     assert record["argmax_gate"] is None
     assert not np.isfinite(record["rollouts"][0]["clipgen_score"])
+    # The actual exception must be captured, not silently discarded -- a
+    # "why did every rollout fail" question needs an answer, not just a fact.
+    assert "boom" in record["rollouts"][0]["clipgen_error"]
 
 
 def test_load_reward_source_local_missing_returns_none(tmp_path):

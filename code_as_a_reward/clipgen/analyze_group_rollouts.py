@@ -144,17 +144,30 @@ def select_and_verify(
         claims = parse_coc_trace(ro["coc_text"], scene_id=clip_id, rollout_id=rollout_id)
         traj = extract_features(ro["waypoints"], hz=hz, scene_id=scene_id, rollout_id=rollout_id)
         claims_by_rollout[rollout_id] = claims
+        clipgen_error = None
         try:
             clipgen_score = run_reward_fn(fn, claims, traj)
-        except RewardFnError:
+        except RewardFnError as e:
+            # Surfaced so a "every rollout scored non-finite" failure is
+            # diagnosable -- silently converting to nan hid the actual
+            # reason (e.g. an AttributeError on real, non-GT trajectory
+            # data) from both retry feedback and offline inspection.
             clipgen_score = float("nan")
+            clipgen_error = str(e)
         clipgen_components = None
         if components_fn is not None:
             try:
                 clipgen_components = run_components_fn(components_fn, claims, traj)
             except RewardFnError:
                 clipgen_components = None
-        scored.append({**ro, "clipgen_score": clipgen_score, "clipgen_components": clipgen_components})
+        scored.append(
+            {
+                **ro,
+                "clipgen_score": clipgen_score,
+                "clipgen_components": clipgen_components,
+                "clipgen_error": clipgen_error,
+            }
+        )
 
     finite = [r for r in scored if np.isfinite(r["clipgen_score"])]
     if not finite:
