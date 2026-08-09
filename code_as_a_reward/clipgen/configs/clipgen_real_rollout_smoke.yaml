@@ -1,0 +1,103 @@
+# Real-Alpamayo-rollout gate smoke test: 3 of the 15 clips from d50ad0's
+# select-then-verify diagnostic (2026-08-08), which found 5/6 cached
+# reward_fns/<clip>.py DON'T discriminate real GRPO rollouts -- pos score
+# exactly equals the worst-perturbation score, because the gate previously
+# only ever tested corrupted variants of GT (see run_prototype.py/gate.py
+# module docstrings for the root cause and fix). This config re-generates
+# reward functions for 2 of the 5 failing clips (333b20c5, 3419aa15) plus
+# the one that already passed (02fd6a8f, as a control) using a REAL sampled
+# rollout group's argmax as the gate's reference case instead of GT.
+#
+# Purpose: (a) confirm the new gate loop actually runs end to end on a real
+# GPU (venv bootstrap -> Alpamayo 1.5 inference -> LLM gate loop -> W&B), and
+# (b) measure real wall-clock/cost -- no established throughput number exists
+# yet for sampling a 12-rollout group per clip (ood_eval/configs/smoke.yaml's
+# own comment notes the same gap for single-sample inference). Do NOT scale
+# to all 15 clips before this passes and its timing/cost is reviewed.
+#
+# workload_type "training" (not "generic"): required for a real GPU
+# reservation -- ood_eval/configs/smoke.yaml's comment documents that
+# GenericWorkloadRunner never reserves a GPU ("Found no NVIDIA driver").
+#
+# Submit (from repo root):
+#   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
+#     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_real_rollout_smoke.yaml
+name: clipgen-real-rollout-smoke
+model_identifier: other.training.alpamayo15.default.v1
+# Long CPU-only phase (venv bootstrap + 22GB model download) before the GPU
+# does anything -- same idle-GPU-reaper risk ood_eval/configs/smoke.yaml
+# documents.
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
+  training_fn_config:
+    targets:
+      - {clip_id: "333b20c5-3598-465c-a175-76221e8100a6", t0_us: 10801763}
+      - {clip_id: "3419aa15-0975-4634-ba46-f3867802512f", t0_us: 10482767}
+      - {clip_id: "02fd6a8f-db9c-423e-beb6-37729e7e6af2", t0_us: 2600000}
+    group_size: 12
+    manifest: "code_as_a_reward/clipgen/data15/manifest_smoke3.json"
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts"
+    out_dir: "/mnt/work/tmp/clipgen_out"
+    s3_bucket: "research-datasets-chicago"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/clipgen-real-rollout-smoke"
+    s3_prefix: "code_as_a_reward/clipgen/runs/real-rollout-smoke"
+    backend: "openai"
+    wandb_project: "code-as-reward-clipgen"
+
+  experiment_tracker:
+    # A real cluster submission is rejected server-side ("missing experiment
+    # tracker") without this, for workload_type "training" -- separate from
+    # (but same project as) wandb_log.py's own ClipgenWandbLogger run.
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  # 1 GPU carved off an a100.8 node (Alpamayo 1.5 inference needs ~24GB VRAM
+  # per third_party/alpamayo1.5/README.md) -- no distributed/cosmos-rl setup
+  # needed, same as ood_eval/configs/smoke.yaml.
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  # venv bootstrap (uv python install + torch/transformers download) plus
+  # the 22GB model download takes several minutes cold.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+    - OPENAI_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/convos/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"

@@ -2,6 +2,12 @@
 # numpy/pandas/pyarrow for dossier + gate feature extraction, boto3 for the
 # out/ -> S3 results sync. The OpenAI backend is stdlib urllib -- no SDK.
 #
+# Pillow/matplotlib: the real-rollout gate loop's W&B logging
+# (wandb_log.py) renders the multi-rollout overlay via
+# analyze_group_rollouts.render_multi_overlay/build_overlays.fetch_t0_frame
+# in THIS (base) env now, not just in analyze_group_rollouts.py's standalone
+# offline CLI tool. wandb for ClipgenWandbLogger.
+#
 # torch==2.7.1 is dead weight (never imported by clipgen) but REQUIRED by
 # lilypad/launch.py's preflight validator for any pip_requirements_path
 # workload -- same situation as ood_eval/requirements.txt documents.
@@ -10,3 +16,6 @@ numpy
 pandas
 pyarrow
 boto3
+Pillow
+matplotlib
+wandb
