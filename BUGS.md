@@ -6,6 +6,67 @@ now, not routine typos.
 
 ---
 
+## 2026-08-09 (2nd) — run_real_rollout_gen.py's S3 sync used upload_file, hitting the same known chunked-encoding rejection
+
+**Symptom:** `clipgen-real-rollout-smoke-05vvru` failed after successfully
+sampling all 3 clips' real rollout groups: `botocore.exceptions.ClientError:
+An error occurred (NotImplemented) when calling the PutObject operation: AWS
+chunked encoding not supported`, raised from `boto3.exceptions.S3UploadFailedError`
+inside the periodic sync thread, which killed the whole Ray Train trial.
+
+**Root cause:** `run_real_rollout_gen.py`'s `_sync_dir` used boto3's managed
+`s3.upload_file(...)`, which always uses chunked transfer encoding regardless
+of file size — the OCI S3-compat endpoint used by this cluster rejects that
+encoding. This exact constraint was already documented and worked around
+elsewhere in this repo (`code_as_a_reward/clipgen/run_prototype.py`'s
+`_sync_out_to_s3`, `rl_posttrain/rewards/code_reward_entry.py`'s
+`_CheckpointUploader` — both use `put_object` with the whole body read into
+memory instead), but `run_real_rollout_gen.py` was modeled after
+`code_as_a_reward/ood_eval/run.py`'s `_upload`, which has the SAME
+`upload_file` call and is therefore latently exposed to the same failure
+(not yet fixed there — out of scope for this session, flagging for later).
+
+**Fix:** committed alongside this entry — `_sync_dir` now reads each file's
+bytes and calls `s3.put_object(Bucket=..., Key=..., Body=...)`. Rollout JSON
+files are tiny (well under 1 MB), so whole-body put_object is fine.
+
+**How this was found:** direct log inspection after relaunching the smoke
+with the `extra["cot"]` indexing fix below — the new failure surfaced
+immediately on the very next attempt.
+
+---
+
+## 2026-08-09 (1st) — rollout_sampler.py indexed Alpamayo's extra["cot"] as a flat list; broke for num_traj_samples > 1
+
+**Symptom:** `clipgen-real-rollout-smoke-f2e7vq` completed (EXPERIMENT_COMPLETED)
+but every one of its 3 clips failed rollout sampling with `IndexError: index 1
+is out of bounds for axis 0 with size 1`, logged from `rollout_worker.py`.
+
+**Root cause:** `code_as_a_reward/clipgen/rollout_sampler.py`'s
+`sample_rollout_group` was adapted from `code_as_a_reward/ood_eval/worker.py`'s
+`run_model_rollout`, which calls Alpamayo's
+`sample_trajectories_from_data_with_vlm_rollout` with `num_traj_samples=1` and
+indexes `extra["cot"][0]` directly. That only worked by coincidence: per
+`third_party/alpamayo1.5/src/alpamayo1_5/models/alpamayo1_5.py`'s actual
+implementation, `extra["cot"]` is reshaped to a `(B, num_traj_sets,
+num_traj_samples)` **numpy array**, not a flat list — with `num_traj_samples=1`
+every axis is size 1, so `[0]`/`[i]`-style indexing silently "worked" for the
+wrong reason. Bumping `num_traj_samples` to 12 (to sample a whole rollout
+group in one forward pass) immediately exposed the real shape.
+
+**Fix:** [ba406d9](../../commit/ba406d9) — reshape both `pred_xyz` and
+`extra["cot"]` to a flat `n`-length leading axis (`.reshape(n, *pred_xyz.shape[-2:])`
+/ `.reshape(-1)`) instead of hand-indexing specific axis positions; robust
+regardless of the exact `(B, num_traj_sets, num_traj_samples)` axis
+convention since `B = num_traj_sets = 1` always holds for a single-clip call.
+
+**How this was found:** first real-GPU smoke test of the new real-rollout
+gate loop (`code_as_a_reward/clipgen/run_prototype.py`'s 2026-08-09 redesign,
+see its module docstring) — direct traceback inspection via `lilypad workload
+logs ... --role all`.
+
+---
+
 ## 2026-08-07 (4th) — simlingo smoke_baseline.yaml still had the batch_size that OOMed on the contrastive arm
 
 **Symptom:** none observed in a live run — found while preparing to launch

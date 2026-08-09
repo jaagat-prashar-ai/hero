@@ -34,12 +34,19 @@ S3_SYNC_INTERVAL_S = 60.0
 
 
 def _sync_dir(s3, bucket: str, prefix: str, local_dir: str) -> None:
+    """put_object, NOT upload_file: the OCI S3-compat endpoint rejects
+    boto3's managed-transfer chunked encoding ("AWS chunked encoding not
+    supported" -- confirmed against a real 05vvru run, same limitation
+    run_prototype.py's _sync_out_to_s3 and code_reward_entry.py's
+    _CheckpointUploader already document/work around). Rollout JSON files
+    are tiny (well under 1 MB), so whole-body put_object is fine."""
     if not os.path.isdir(local_dir):
         return
     for name in os.listdir(local_dir):
         path = os.path.join(local_dir, name)
         if os.path.isfile(path):
-            s3.upload_file(path, bucket, f"{prefix.rstrip('/')}/{name}")
+            with open(path, "rb") as f:
+                s3.put_object(Bucket=bucket, Key=f"{prefix.rstrip('/')}/{name}", Body=f.read())
 
 
 def _sync_dir_loop(stop_event: threading.Event, s3, bucket: str, prefix: str, local_dir: str) -> None:
