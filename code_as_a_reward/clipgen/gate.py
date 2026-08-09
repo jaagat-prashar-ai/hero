@@ -10,6 +10,12 @@ rollout (VLM-CaR's expert-vs-random check, moved onto the rollout itself):
   * same claims, flattened (no-reaction, constant-velocity) trajectory
   * claims gutted (no perceptual/commitment/causal content), same trajectory
   * commitments removed (perception-only reasoning), same trajectory
+  * commitments' direction/maneuver flipped to a different-but-valid
+    canonical value (e.g. "nudge left" -> "nudge right"), same trajectory --
+    covers claim<->trajectory CORRECTNESS, which gutted_claims (presence
+    only) does not: a function that only checks a claim is there, never
+    that it matches what the trajectory actually did, passes gutted_claims
+    but should fail this
 
 At generation time the GT pair stands in for the rollout. At selection time
 (score a rollout group, take the argmax), the same battery verifies the
@@ -95,6 +101,59 @@ def flattened_waypoints(waypoints: np.ndarray) -> np.ndarray:
     return w[0] + steps * v
 
 
+_DIRECTION_FLIP = {"left": "right", "right": "left"}
+# Longitudinal claims are flipped by speed_profile (accelerate<->decelerate
+# -- a real contradiction), not by maneuver key: stop/yield/wait/decelerate
+# all share speed_profile="decelerate" and are legitimate synonyms for "the
+# ego is slowing down," so swapping among THEM is not a corruption a good
+# function should be expected to catch (confirmed against this module's own
+# GOOD_FN test fixture, whose `committed` check treats them as
+# interchangeable on purpose).
+_SPEED_PROFILE_FLIP = {"accelerate": "decelerate", "decelerate": "accelerate"}
+# Lateral claims without a direction are flipped between "committed lateral
+# movement" and "committed to staying in lane" -- the other real
+# contradiction available when there's no left/right to flip.
+_LATERAL_MOVE_MANEUVERS = {"lane_change", "nudge", "merge", "turn", "enter", "exit"}
+
+
+def _corrupt_identity(claims):
+    """Flip each commitment's direction (or, lacking one, its speed-profile
+    or lateral-movement identity) to a different-but-valid canonical value --
+    same claim SHAPE, wrong identity. `gutted_claims` already tests claim
+    PRESENCE; this tests claim<->trajectory CORRECTNESS, which the
+    generation prompt calls "the sharpest reversal discriminator" but no
+    prior case actually exercised. Returns None if there is nothing to flip
+    (no commitments, or every commitment is a maneuver with no clear
+    opposite, e.g. create_gap/proceed)."""
+    if not claims.commitments:
+        return None
+    new_commitments = []
+    changed = False
+    for c in claims.commitments:
+        direction = _DIRECTION_FLIP.get(c.direction) if c.direction else None
+        if direction is not None:
+            new_commitments.append(dataclasses.replace(c, direction=direction))
+            changed = True
+            continue
+        flipped_profile = _SPEED_PROFILE_FLIP.get(c.speed_profile)
+        if flipped_profile is not None:
+            new_commitments.append(
+                dataclasses.replace(c, maneuver=flipped_profile, speed_profile=flipped_profile)
+            )
+            changed = True
+            continue
+        if c.maneuver in _LATERAL_MOVE_MANEUVERS:
+            new_commitments.append(dataclasses.replace(c, maneuver="keep_lane"))
+            changed = True
+            continue
+        if c.maneuver == "keep_lane":
+            new_commitments.append(dataclasses.replace(c, maneuver="lane_change"))
+            changed = True
+            continue
+        new_commitments.append(c)
+    return dataclasses.replace(claims, commitments=new_commitments) if changed else None
+
+
 def _too_similar(a: np.ndarray, b: np.ndarray, min_dev_m: float = 2.0) -> bool:
     """A transformed trajectory that barely deviates from the GT is not a
     valid counterfactual (stationary clips: reversing or flattening a
@@ -146,6 +205,9 @@ def build_perturbations(
     if claims.commitments:
         no_commit = dataclasses.replace(claims, commitments=[], causal=[])
         cases.append(GateCase("perturb:no_commitments", no_commit, traj, "negative"))
+    corrupted = _corrupt_identity(claims)
+    if corrupted is not None:
+        cases.append(GateCase("perturb:corrupted_identity", corrupted, traj, "negative"))
     return cases
 
 

@@ -3,20 +3,81 @@
 
 Generated code runs inside the reward path eventually, so the contract is
 enforced here, once, for both the gate and any future training-time use:
-no imports, no dunder access, a whitelisted builtin set, a wall-clock
-timeout, and a return value clamped to [0, 1]. A bad function can waste a
-clip; it must never take down a run.
+no imports, no dunder access, no non-canonical claim-attribute predicates
+or dossier-only literals, a whitelisted builtin set, a wall-clock timeout,
+and a return value clamped to [0, 1]. A bad function can waste a clip; it
+must never take down a run.
 """
 
 from __future__ import annotations
 
 import ast
+import re
 import signal
 
 import numpy as np
 
+from code_as_a_reward.coc_claim_parser import ENTITY_PATTERNS, MANEUVER_PATTERNS, STATE_PATTERNS
+
 class RewardFnError(Exception):
     """Any way a generated function can be invalid or misbehave."""
+
+
+# Canonical keys the parser can actually emit onto claim attributes -- a
+# generated predicate comparing against anything else (e.g. `claim.entity ==
+# "trailer"`, a dossier noun the parser never produces) silently scores 0 on
+# every real claim, GT included (BUGS.md 2026-08-04, pduuqq analysis).
+_CANONICAL_KEYS: dict[str, frozenset[str]] = {
+    "entity": frozenset(key for key, _ in ENTITY_PATTERNS),
+    "maneuver": frozenset(key for key, *_ in MANEUVER_PATTERNS),
+    "state": frozenset(key for key, _ in STATE_PATTERNS),
+    "direction": frozenset({"left", "right"}),
+}
+
+# "Track 32"-style dossier track ids are obstacle_tracks.py bookkeeping, never
+# present in a rollout's own CoC text -- a predicate hardcoding one (e.g.
+# `"Track 32" in claim.text`) can only ever fire on the clip it was written
+# against, defeating the point of a reward function meant to score any
+# rollout for that scene (same pduuqq failure mode).
+_TRACK_LITERAL_RE = re.compile(r"\btrack\s+\d+\b", re.I)
+
+
+def _string_const(node: ast.AST) -> str | None:
+    return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+
+
+def _check_canonical_vocab(tree: ast.AST) -> None:
+    """Reject predicates that can't generalize beyond the clip they were written for.
+
+    Scoped to actual COMPARISONS only (a claim attribute vs. a string
+    literal) -- never to every string in the source. A docstring or comment
+    that merely *mentions* a track id (narration, harmless) must not be
+    confused with code that *compares against* one (the real bug: a
+    predicate like `"Track 32" in claim.text` that can only ever match the
+    one clip it was written against, since no rollout's own CoC text will
+    ever contain a dossier track id)."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Compare):
+            continue
+        operands = [node.left, *node.comparators]
+        for left, right in zip(operands, operands[1:]):
+            for attr_node, str_node in ((left, right), (right, left)):
+                if not isinstance(attr_node, ast.Attribute):
+                    continue
+                literal = _string_const(str_node)
+                if literal is None:
+                    continue
+                if _TRACK_LITERAL_RE.search(literal):
+                    raise RewardFnError(
+                        f"comparing .{attr_node.attr} against dossier-only literal {literal!r}; "
+                        "no rollout's own CoC text will ever contain a track id"
+                    )
+                canonical = _CANONICAL_KEYS.get(attr_node.attr)
+                if canonical is not None and literal not in canonical:
+                    raise RewardFnError(
+                        f"non-canonical .{attr_node.attr} value {literal!r}; "
+                        f"the parser only ever emits: {sorted(canonical)}"
+                    )
 
 
 _SAFE_BUILTINS = {
@@ -45,7 +106,7 @@ def window(values, dt_s: float, t0: float, t1: float) -> np.ndarray:
 
 
 def _check_ast(source: str) -> None:
-    """Reject imports and dunder access before anything executes."""
+    """Reject imports, dunder access, and non-canonical claim predicates before anything executes."""
     tree = ast.parse(source)
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
@@ -54,6 +115,7 @@ def _check_ast(source: str) -> None:
             raise RewardFnError(f"dunder attribute access forbidden: {node.attr}")
         if isinstance(node, ast.Name) and node.id.startswith("__"):
             raise RewardFnError(f"dunder name forbidden: {node.id}")
+    _check_canonical_vocab(tree)
 
 
 def compile_reward_module(source: str, require_components: bool = False):

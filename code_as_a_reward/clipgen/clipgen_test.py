@@ -141,6 +141,46 @@ def test_sandbox_rejects_imports_and_dunders():
         sandbox.compile_reward_fn("def score(claims, traj):\n    return 1.0\n")
 
 
+def test_sandbox_allows_track_id_in_a_docstring():
+    # A harmless narration comment mentioning a track id (e.g. gpt-4o
+    # summarizing the scene it was given) must NOT be confused with code
+    # that actually compares against one -- see the rejected-vs-allowed
+    # pair below for the real distinction.
+    sandbox.compile_reward_fn(
+        '''\
+def reward(claims, traj):
+    """Scene: stopping behind the lead vehicle (Track 63)."""
+    return 0.0
+'''
+    )
+
+
+def test_sandbox_rejects_track_id_comparison():
+    with pytest.raises(sandbox.RewardFnError, match="dossier-only literal"):
+        sandbox.compile_reward_fn(
+            "def reward(claims, traj):\n"
+            "    return 1.0 if 'Track 32' in claims.perceptual[0].text else 0.0\n"
+        )
+
+
+def test_sandbox_rejects_noncanonical_claim_attribute():
+    # 'motorcycle' is never a canonical entity key the parser emits (it only
+    # ever appears qualified, e.g. "lead motorcycle" -> entity="lead_vehicle")
+    # -- a predicate checking for it verbatim can never fire on real output.
+    with pytest.raises(sandbox.RewardFnError, match="non-canonical"):
+        sandbox.compile_reward_fn(
+            "def reward(claims, traj):\n"
+            "    return 1.0 if any(c.entity == 'motorcycle' for c in claims.perceptual) else 0.0\n"
+        )
+
+
+def test_sandbox_allows_canonical_claim_attribute():
+    sandbox.compile_reward_fn(
+        "def reward(claims, traj):\n"
+        "    return 1.0 if any(c.entity == 'lead_vehicle' for c in claims.perceptual) else 0.0\n"
+    )
+
+
 def test_sandbox_timeout_and_clamping():
     fn = sandbox.compile_reward_fn(
         "def reward(claims, traj):\n    x = 0\n    while True:\n        x += 1\n"

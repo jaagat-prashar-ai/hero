@@ -200,6 +200,50 @@ def _read_parquet_s3(client, key: str) -> pd.DataFrame:
     return pd.read_parquet(io.BytesIO(body))
 
 
+def fetch_t0_frame(
+    client,
+    clip_id: str,
+    chunk_index: pd.DataFrame,
+    calib_cache: dict[int, tuple[pd.DataFrame, pd.DataFrame]],
+) -> tuple[Image.Image, dict[str, float], dict[str, float]]:
+    """One clip's undrawn t0 front-wide frame + calibration, via S3 ranged
+    reads into the chunk zip (per-clip logic factored out of `build_all` so
+    other tools -- e.g. analyze_group_rollouts.py's multi-trajectory overlay
+    -- can fetch the same clean frame without drawing GT on it first).
+    `calib_cache` is caller-owned so a batch of clips sharing a chunk only
+    pays the calibration-parquet fetch once."""
+    chunk = int(chunk_index.loc[clip_id, "chunk"])
+    if chunk not in calib_cache:
+        intr = _read_parquet_s3(
+            client,
+            f"{WARM_CACHE}/calibration/camera_intrinsics/camera_intrinsics.chunk_{chunk:04d}.parquet",
+        )
+        extr = _read_parquet_s3(
+            client,
+            f"{WARM_CACHE}/calibration/sensor_extrinsics/sensor_extrinsics.chunk_{chunk:04d}.parquet",
+        )
+        calib_cache[chunk] = (intr, extr)
+    intr, extr = calib_cache[chunk]
+    cam_intr = {k: float(intr.loc[(clip_id, CAMERA)][k]) for k in _INTR_COLUMNS}
+    cam_extr = {k: float(extr.loc[(clip_id, CAMERA)][k]) for k in _EXTR_COLUMNS}
+
+    zf = zipfile.ZipFile(S3RangedFile(
+        client, BUCKET, f"{WARM_CACHE}/camera/{CAMERA}/{CAMERA}.chunk_{chunk:04d}.zip"
+    ))
+    with tempfile.TemporaryDirectory() as tmp:
+        mp4 = Path(zf.extract(f"{clip_id}.{CAMERA}.mp4", tmp))
+        import io as _io
+
+        frame_ts = pd.read_parquet(
+            _io.BytesIO(zf.read(f"{clip_id}.{CAMERA}.timestamps.parquet"))
+        ).to_numpy(np.float64).reshape(-1)
+        # t0 = the frame nearest the stream's own first timestamp (see
+        # waypoints_xyz_from_egomotion: waypoints are re-zeroed the same way).
+        frame_index = int(np.argmin(np.abs(frame_ts - frame_ts[0])))
+        frame = extract_t0_frame(mp4, frame_index)
+    return frame, cam_intr, cam_extr
+
+
 def build_all(manifest_path: str) -> None:
     import boto3
 
@@ -213,38 +257,8 @@ def build_all(manifest_path: str) -> None:
 
     for entry in entries:
         clip_id = entry["clip_id"]
-        chunk = int(chunk_index.loc[clip_id, "chunk"])
-        if chunk not in calib_cache:
-            intr = _read_parquet_s3(
-                client,
-                f"{WARM_CACHE}/calibration/camera_intrinsics/camera_intrinsics.chunk_{chunk:04d}.parquet",
-            )
-            extr = _read_parquet_s3(
-                client,
-                f"{WARM_CACHE}/calibration/sensor_extrinsics/sensor_extrinsics.chunk_{chunk:04d}.parquet",
-            )
-            calib_cache[chunk] = (intr, extr)
-        intr, extr = calib_cache[chunk]
-        cam_intr = {k: float(intr.loc[(clip_id, CAMERA)][k]) for k in _INTR_COLUMNS}
-        cam_extr = {k: float(extr.loc[(clip_id, CAMERA)][k]) for k in _EXTR_COLUMNS}
-
-        zf = zipfile.ZipFile(S3RangedFile(
-            client, BUCKET, f"{WARM_CACHE}/camera/{CAMERA}/{CAMERA}.chunk_{chunk:04d}.zip"
-        ))
-        with tempfile.TemporaryDirectory() as tmp:
-            mp4 = Path(zf.extract(f"{clip_id}.{CAMERA}.mp4", tmp))
-            import io as _io
-
-            frame_ts = pd.read_parquet(
-                _io.BytesIO(zf.read(f"{clip_id}.{CAMERA}.timestamps.parquet"))
-            ).to_numpy(np.float64).reshape(-1)
-            ego = pd.read_parquet(data_dir / f"{clip_id}.egomotion.offline.parquet")
-            # The waypoints start at the egomotion's FIRST sample (see
-            # waypoints_from_egomotion: timestamps re-zeroed to ts[0]), so
-            # t0 = clip start; align on offsets from each stream's own start
-            # rather than trusting the two files to share an epoch.
-            frame_index = int(np.argmin(np.abs(frame_ts - frame_ts[0])))
-            frame = extract_t0_frame(mp4, frame_index)
+        frame, cam_intr, cam_extr = fetch_t0_frame(client, clip_id, chunk_index, calib_cache)
+        ego = pd.read_parquet(data_dir / f"{clip_id}.egomotion.offline.parquet")
 
         hz = float(entry.get("hz", 10.0))
         wp3 = waypoints_xyz_from_egomotion(ego, hz)
@@ -253,7 +267,7 @@ def build_all(manifest_path: str) -> None:
         overlay.save(out_path, format="JPEG", quality=88)
         entry["overlay_jpeg"] = str(out_path)
         n_vis = int(np.sum(project_waypoints_ftheta(wp3, cam_intr, cam_extr)[1]))
-        print(f"{clip_id}: chunk {chunk:4d} frame {frame_index:3d} "
+        print(f"{clip_id}: chunk {int(chunk_index.loc[clip_id, 'chunk']):4d} "
               f"{n_vis}/{len(wp3)} waypoints visible -> {out_path.name}", flush=True)
 
     manifest_file.write_text(json.dumps(entries, indent=1) + "\n")

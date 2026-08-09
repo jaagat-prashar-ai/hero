@@ -99,7 +99,7 @@ def summarize_tracks(scene: SceneObstacles) -> list[TrackSummary]:
                 # Time at the closest-approach index. 
                 t_closest_s = float(ts[i]),
                 # Direction bucket at the closets-approach index (x, y position at the moment)
-                bearing_at_closest = _bearing(float(tr.centers_m[i, 0]), float(tr.ceners_m[i, 1])),
+                bearing_at_closest = _bearing(float(tr.centers_m[i, 0]), float(tr.centers_m[i, 1])),
             )
         )
 
