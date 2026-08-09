@@ -38,6 +38,12 @@ Commands:
   code-reward-full     Extensive OOD run: same 352-clip dense dataset as
                        llm-judge-full, 3 epochs, S3 warm cache + S3
                        checkpoint persistence (code_reward_full_cluster.yaml)
+  code-reward-rollout-dump
+                       Diagnostic: code-reward-full's dataset/reward as-is,
+                       1 epoch, with CODE_REWARD_DEBUG_DUMP_ROLLOUTS=1
+                       scoped to a clip_id list, for offline clipgen
+                       cross-scoring via analyze_group_rollouts.py
+                       (code_reward_rollout_dump_smoke.yaml)
   llm-judge-mock       Zero-API judge infra smoke test: full-run workload
                        shape with a mock judge (sleep + fake scores, no key)
                        to reproduce the step-137-149 crash loop for $0
@@ -132,6 +138,10 @@ case "${cmd}" in
 
     code-reward-full)
         launch_py "${SCRIPT_DIR}/code_reward_full_cluster.yaml" "$@"
+        ;;
+
+    code-reward-rollout-dump)
+        launch_py "${SCRIPT_DIR}/code_reward_rollout_dump_smoke.yaml" "$@"
         ;;
 
     llm-judge-mock)

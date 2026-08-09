@@ -1,0 +1,75 @@
+name: alpamayo-rl-code-reward-rollout-dump
+model_identifier: other.training.alpamayo15.default.v1
+# Diagnostic-only variant of code_reward_full_cluster.yaml: same dataset,
+# same reward_mode (trace_reward.py verifiers run exactly as in every other
+# code-reward run -- nothing here changes training). The only addition is
+# CODE_REWARD_DEBUG_DUMP_ROLLOUTS=1 below, which makes code_reward_entry.py
+# additionally persist every real rollout's CoC text + trajectory + full
+# reward_dicts entry to S3 for the 15 clipgen-gpt4o-15-qf1yzo clip_ids, so
+# code_as_a_reward/clipgen/analyze_group_rollouts.py can offline-score them
+# with the clipgen-generated reward_fns and check the argmax verifies via
+# its own gate perturbations (select-then-verify). train_epoch cut to 1
+# (~88 steps over the 352-clip corpus) since this run only needs each
+# target clip to appear at least once, not full convergence. No
+# ckpt_s3_prefix -- no checkpoint is needed for this diagnostic, and
+# skipping it avoids the 2026-07-31 disk-pressure failure mode entirely.
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+    reward_mode: "code"
+    reasoning_dense_chunks: 100
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+    dp_shard_size: 4
+    train_epoch: 1
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_code_reward_rollout_dump_smoke"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    # Debug-only rollout dump (rl_posttrain/rewards/code_reward_entry.py) --
+    # off by default everywhere else; scoped here to the 15 clip_ids from
+    # clipgen-gpt4o-15-qf1yzo (2026-08-07, 5/15 passed the gate).
+    CODE_REWARD_DEBUG_DUMP_ROLLOUTS: "1"
+    CODE_REWARD_DEBUG_DUMP_CLIPS: "005d1c16-bfc1-4b46-940d-0717e38e3ebf,02fd6a8f-db9c-423e-beb6-37729e7e6af2,0bb8b5ba-be70-4ac8-8e51-fe1cc8b5c3b6,1189c7fb-84bc-4f40-b872-ceeec3ddfd2f,2d441790-540d-4f0c-8181-87dfd8c45001,333b20c5-3598-465c-a175-76221e8100a6,3419aa15-0975-4634-ba46-f3867802512f,368c088a-1d94-4cea-8069-e0639bcfbb3c,36cb5485-5c56-48c5-8219-90095851d627,3c0baf7d-e8a5-4e0b-bb11-59a0ab98a2ab,54dfda10-f48b-47ba-9ba0-eb456bc0ea1e,551a5486-12ad-41a7-8136-cc2e5181afaf,58f41cc9-9803-4aa1-948c-8e84c708f909,6ae387bd-fecb-4763-a02f-c9fed0a42e62,b90d0a76-a10e-4d9e-8274-3d5e3a2cdcc9"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
