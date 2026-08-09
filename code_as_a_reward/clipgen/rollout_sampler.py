@@ -105,12 +105,18 @@ def sample_rollout_group(
             max_generation_length=256,
             return_extra=True,
         )
-    # (B=1, n_traj_group=1, n, T, 3) -> (n, T, 3); ood_eval/worker.py's
-    # single-sample call indexes [0, 0, 0] for the same reason.
-    pred_xyz_np = pred_xyz.detach().float().cpu().numpy()[0, 0]
-    cot_list = extra["cot"]
+    # alpamayo1_5.py's sample_trajectories_from_data_with_vlm_rollout
+    # rearranges pred_xyz to (B, num_traj_sets, num_traj_samples, T, 3) and
+    # reshapes extra["cot"] to (B, num_traj_sets, num_traj_samples) (a numpy
+    # array of strings, NOT a flat list -- indexing it as one raises
+    # IndexError once num_traj_samples > 1, confirmed against a real f2e7vq
+    # smoke run traceback). B=num_traj_sets=1 here (single clip, one call),
+    # so a plain reshape/ravel collapses both leading singleton dims into
+    # one flat `n`-length axis regardless of the exact axis convention.
+    pred_xyz_np = pred_xyz.detach().float().cpu().numpy().reshape(n, *pred_xyz.shape[-2:])
+    cot_flat = extra["cot"].reshape(-1)
     return [
-        {"rollout_id": i, "coc_text": cot_list[i], "waypoints": pred_xyz_np[i].tolist()}
+        {"rollout_id": i, "coc_text": str(cot_flat[i]), "waypoints": pred_xyz_np[i].tolist()}
         for i in range(n)
     ]
 
