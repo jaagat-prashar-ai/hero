@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import ast
 import re
-import signal
+import threading
 
 import numpy as np
 
@@ -161,23 +161,41 @@ def compile_reward_fn(source: str):
 
 
 class _Timeout:
-    """SIGALRM-based wall-clock guard (POSIX main thread; fine for the
-    prototype harness -- the training integration would run out-of-process)."""
+    """Thread-based wall-clock guard -- works from any thread, unlike the
+    prior signal.SIGALRM approach, which only works on the interpreter's
+    MAIN thread and raised "ValueError: signal only works in main thread of
+    the main interpreter" on every single call once this ran under Ray
+    Train's TorchTrainer (which executes training_fn on a worker thread,
+    not main) -- confirmed against a real cluster run, every rollout in
+    every group failing identically (see BUGS.md).
+
+    A raw daemon thread, NOT concurrent.futures.ThreadPoolExecutor: an
+    executor's workers are non-daemon, so a genuinely hung function (e.g.
+    the deliberate infinite loop in clipgen_test.py's timeout test) leaks a
+    thread that blocks the WHOLE PROCESS from exiting -- confirmed directly
+    (the test suite hung indefinitely with the executor version). A daemon
+    thread leaks the same way but never blocks interpreter shutdown."""
 
     def __init__(self, seconds: float):
         self.seconds = seconds
 
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self._raise)
-        signal.setitimer(signal.ITIMER_REAL, self.seconds)
+    def run(self, fn, *args):
+        box: dict = {}
 
-    def __exit__(self, *exc):
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        return False
+        def target():
+            try:
+                box["value"] = fn(*args)
+            except BaseException as e:  # noqa: BLE001 -- re-raised on the caller's thread below
+                box["error"] = e
 
-    @staticmethod
-    def _raise(signum, frame):
-        raise RewardFnError("reward function timed out")
+        thread = threading.Thread(target=target, daemon=True)
+        thread.start()
+        thread.join(self.seconds)
+        if thread.is_alive():
+            raise RewardFnError("reward function timed out")
+        if "error" in box:
+            raise box["error"]
+        return box["value"]
 
 
 def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0, raw: bool = False) -> float:
@@ -194,8 +212,7 @@ def run_reward_fn(fn, claims, traj, timeout_s: float = 2.0, raw: bool = False) -
     clips).
     """
     try:
-        with _Timeout(timeout_s):
-            value = fn(claims, traj)
+        value = _Timeout(timeout_s).run(fn, claims, traj)
     except RewardFnError:
         raise
     except Exception as e:
@@ -216,8 +233,7 @@ def run_components_fn(fn, claims, traj, timeout_s: float = 2.0) -> dict[str, flo
     timeout, non-dict return, or any non-finite/non-numeric value.
     """
     try:
-        with _Timeout(timeout_s):
-            value = fn(claims, traj)
+        value = _Timeout(timeout_s).run(fn, claims, traj)
     except RewardFnError:
         raise
     except Exception as e:
