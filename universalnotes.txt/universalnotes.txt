@@ -647,5 +647,60 @@ Phase A: offline test suite green, then inspect the relaunched smoke's
     Autograd graph, per parameter, per step: 
 
     speed_wps_head, route_head, query_embeds_speeds/wps, shared transformer layers -> produce speed_wps_prediction/route_prediction -> this single tensor has two downstream consumers: 
-        1. 
+    
+    # Before (original code):
+        traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].ewight.dtype)
+        z_trah = F.nromalize(Self.traj_prod(traj_pred).float(), dim=-1)
 
+    # Autograd graph, per parameter, per step: 
+        speed_wps_head, route_head, query_embeds_speed/wps, shared transformer layers -> produce speed_wps_prediction/route_prediction -> this single tensor has two downstream consumers: 
+            # 1. F.smooth_l1_loss(prediction, label) -> route_loss/speed_wps_loss
+            # 2. traj_proj(prediction) -> z_traj -> InfoNCE contrastive_loss
+
+        total_loss.backward() accumulates gradient into speed_wps_head/route_head/etc. from both paths:
+
+        ∂total_loss/∂speed_wps_head = ∂route_loss/∂speed_wps_head  +  weight * ∂contrastive_loss/∂speed_wps_head
+
+        Two independent gradient terms, summed, applied in one optimizer.step(). 
+        # If they point in different directions, the net update is whatever their sum happens to be - neither objective gets satisfied cleany. 
+
+        After (with .detach()):
+            traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
+            z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
+
+        .detach() returns a new tensor node where .grad_fn is None - it's a graph leaf with requires_grad=False by default, holding the same underlying values as prediction but with no edge connecting it back to speed_wps_head/route_head/the transformer in the autograd graph. 
+
+        # Before: the contrastive loss's gradient reached: text/language side + the trajectory decoder (the actual waypoint-predicting weights)
+        # Now: the contrastive loss's gradient reahces: text/language side only 
+        # The simple change: one .detach() call cut off the second path. the trajectory decoder no longer receives any correction from the contrastive losos - only from the regular driivng loss, like normal. 
+        # gradient trick: 
+            # contrastive loss had two ways to make itself smaller, and only one of them was actually useful. 
+            # Useful way: improve the language side so it better reflects which action it's tied to. 
+            # Cheap way: just nudge the trajectory output itself to look more "distinguishable" - easier for gradient descent to exploit, but it fights the driving-accuracy loss on that exact same output, and doesn't teach the model anything abouot language/reasoning. 
+
+            # Gradient descent doesn't know which way you meant - it just takes whichever path reduces the loss fastest. Our smoke-test evidence (retrieval accuracy went up, but driving loss got steadily worse as we raised the weight) looked exactly like the cheap way winning. 
+            .detach() removes the cheap way entirely. Now the only way left for the contrastive loss to improve is the useful way - forcing the intended effect instead of hoping for it. 
+
+            # we don't let contrastive loss reach the trajectory decoder   
+                # letting it reach the decoder is exactly what caused the problem we measured: as we reaised the contrastive weight, retrieval accuracy went up but the actual driving loss (route/speed/language) got steadily worse (the decoder was being pulled by two loss terms with no reasonin to agree, and it lost ground on the one that actually matters, driving accuracy)
+                # If we let it keep reaching the decoder's, we're accepting that improving the auxiliary matching task can come at the cost of driving quality (which defeats the point, since the actual goal is a model that drives well and reasons faithfully, not one that trades way driiving accuracy for a better internal bookeeping score).
+                # Blocking that path forces the loss to only improve the thing we actually want improved (language reprsentation) and leaves the decoder to be judged purely on whether it drives correctly (which is the only think it should be judged on). 
+┌────────────────────────────────────────────────┬──────────────────────────────────────────┬─────────────────────────────────────────────────────────────────────────┐
+│                    Decoder                     │             What it produces             │                          Loss(es) training it                           │
+├────────────────────────────────────────────────┼──────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+│ Language decoder (lm_head)                     │ next-token text (autoregressive)         │ language_loss + contrastive_loss (still, via text_proj)                 │
+├────────────────────────────────────────────────┼──────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+│ Trajectory decoder (speed_wps_head,            │ predicted waypoints (one-shot            │ route_loss + speed_wps_loss only (contrastive_loss no longer reaches    │
+│ route_head)                                    │ regression)                              │ it)                                                                     │
+└────────────────────────────────────────────────┴──────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+So it's assymetric: the language decoder is trained by two losses (langauge + contrastive), the trajectory decoder is trained by one (just its own regression losses) - that assymmetry is the entire point of the .detach() fix. 
+
+# Two other things worth naming so the picture is complete: 
+    # shared transformer backboen underneath both decoder gets gradient from all four loss terms combined (language_loss, route_loss, speed_wps_loss, contrastive_loss), since everything sits on top of it. 
+    # text_proj/traj_proj are small extra heads that only exist for the contrastive loss - they're not "decoders" in the architecture, just projection layers we bolted on for this experiment, trained only by contrastive_loss. 
+    
+
+
+
+
+    # how do we get more strong pertubations as well?

@@ -155,32 +155,58 @@ def waypoints_from_egomotion(df, hz: float = 10.0) -> np.ndarray:
     return np.stack([x, y], axis=1)
 
 
-def find_rollout_anchor_s(waypoints: np.ndarray, hz: float, horizon_wp: int) -> tuple[float, float, float]:
+def find_rollout_anchor_s(
+    waypoints: np.ndarray, hz: float, horizon_wp: int, min_offset_s: float = 1.7
+) -> tuple[float, float, float]:
     """Find the best `horizon_wp`-waypoint window (as a start offset in
     seconds from waypoints[0]) to anchor real rollout sampling at, instead
     of always sampling from t=0.
 
+    IMPORTANT clock note (found the hard way, 2026-08-10, on a real GPU
+    validation run): `waypoints[0]` here is `t=0` of THIS ARRAY -- i.e. the
+    clip's own absolute-clock origin (waypoints_from_egomotion zeroes
+    against the local egomotion file's own first timestamp, which is the
+    clip's start, empirically confirmed to sit within ~0.1s of the raw
+    dataset's own absolute-clock zero). It is NOT the OOD event's annotated
+    `t0_us` (ood_eval/manifest.py's event_start_timestamp) -- `t0_us` is
+    just some later instant *inside* this same array (e.g. ~10.5s in for
+    3419aa15), not its start. A caller converting `best_offset_s` into a
+    real `t0_us` for rollout_sampler.sample_rollout_group_for_clip must use
+    `best_offset_s` directly (both are on the clip's own absolute clock) --
+    NOT `original_t0_us + best_offset_s`, which double-counts and can push
+    past the clip's actual valid range (confirmed: caused a real
+    `ValueError: Requested timestamps must be within the range` on
+    3419aa15, whose valid range only extends to ~20.03s while the
+    double-counted anchor requested ~24.08s).
+
     Real Alpamayo rollouts are a FIXED length (64 waypoints / 6.4s on every
     real rollout sampled so far, from the trajectory head's own output
     shape -- not a tunable parameter) regardless of where the OOD event
-    technically "starts." t=0 is the OOD event's own annotated start
-    (ood_eval/manifest.py's event_start_timestamp), but the ego doesn't
-    always begin reacting right away -- e.g. a stop sign becoming relevant
-    while still far away is a real event start, yet the ego may not brake
-    for 10+ seconds. A rollout anchored at t=0 can miss the reaction
-    entirely: confirmed on 333b20c5, whose t=0-anchored 6.4s window
-    captured only 3% of the clip's full speed drop (the real event is at
-    t=17.6s). Sliding a horizon_wp window across the whole clip and
-    re-anchoring to wherever it captures the most speed drop was validated
-    directly against the real 352-clip training corpus: 89% of clips whose
-    real event fell outside a t=0-anchored rollout are FULLY fixed
-    (>=70% of the event captured) by this, 0% are unfixable by any anchor
-    choice.
+    technically "starts." The ego doesn't always begin reacting right away
+    after an event starts -- e.g. a stop sign becoming relevant while still
+    far away is a real event start, yet the ego may not brake for 10+
+    seconds. A rollout anchored at the OOD event's own t0_us can miss the
+    reaction entirely: confirmed on 333b20c5, whose t0_us-anchored 6.4s
+    window captured only 3% of the clip's full speed drop (the real event
+    is elsewhere in the clip). Sliding a horizon_wp window across the whole
+    clip and re-anchoring to wherever it captures the most speed drop was
+    validated directly against the real 352-clip training corpus: 89% of
+    clips whose real event fell outside a t0_us-anchored rollout are FULLY
+    fixed (>=70% of the event captured) by this, 0% are unfixable by any
+    anchor choice.
+
+    min_offset_s: never propose an anchor earlier than this. Real rollout
+    sampling needs enough HISTORY before t0 to build its input context
+    (perplexity/sample_ood_clips.py's MIN_T0_US = 1_700_000us, "needs >
+    1.6e6 (history window) with a small buffer") -- an anchor below this
+    would fail rollout sampling for the OPPOSITE reason (too little
+    history), even though it's a perfectly valid GT-side offset. Default
+    matches that same constant.
 
     Returns (best_offset_s, best_window_drop_mps, full_clip_drop_mps).
-    best_offset_s == 0.0 either means t=0 was already the best anchor, or
-    the clip is too short for horizon_wp waypoints (no re-anchoring
-    possible either way).
+    best_offset_s == min_offset_s either means that was already the best
+    anchor, or the clip is too short for horizon_wp waypoints past
+    min_offset_s (no better re-anchoring possible either way).
     """
     dt_s = 1.0 / hz
     if len(waypoints) < 2:
@@ -192,8 +218,9 @@ def find_rollout_anchor_s(waypoints: np.ndarray, hz: float, horizon_wp: int) -> 
     n = len(speed)
     if n <= horizon_wp:
         return 0.0, full_drop, full_drop
-    best_drop, best_offset_s = -1.0, 0.0
-    for i in range(0, n - horizon_wp + 1):
+    min_i = min(max(0, int(round(min_offset_s * hz))), n - horizon_wp)
+    best_drop, best_offset_s = -1.0, min_i * dt_s
+    for i in range(min_i, n - horizon_wp + 1):
         seg = speed[i : i + horizon_wp]
         drop = float(seg[0] - seg.min())
         if drop > best_drop:
@@ -274,16 +301,21 @@ def build_dossier(
     (confirmed directly on 333b20c5's udqm59 smoke: the intended execution
     window returned an empty slice on all 12 sampled rollouts).
 
-    rollout_anchor_s: seconds into the clip's ORIGINAL t=0 (the OOD event's
-    own start timestamp) that this dossier's t=0 has been shifted to. 0.0
+    rollout_anchor_s: seconds into the clip's OWN absolute-clock origin
+    (NOT the OOD event's t0_us -- see find_rollout_anchor_s's docstring for
+    why those differ) that this dossier's t=0 has been shifted to. 0.0
     means no re-anchoring. The caller is responsible for slicing gt_traj /
     rollout_horizon_traj from that same offset (see
     find_rollout_anchor_s) -- this parameter only re-times the obstacle
-    tracks so the whole dossier stays on ONE consistent clock. Re-anchoring
-    exists because the OOD event's own start is not always when the
-    trajectory shows a measurable reaction: some scenes react immediately,
-    but e.g. a stop sign becoming relevant while still far away can mean
-    the ego doesn't actually brake until 10+ seconds later -- confirmed on
+    tracks so the whole dossier stays on ONE consistent clock. A caller
+    that also needs a real `t0_us` to sample a rollout at this same anchor
+    (rollout_sampler.sample_rollout_group_for_clip) must pass
+    `rollout_anchor_s * 1e6` as t0_us directly -- NOT
+    `original_t0_us + rollout_anchor_s * 1e6`. Re-anchoring exists because
+    the OOD event's own start is not always when the trajectory shows a
+    measurable reaction: some scenes react immediately, but e.g. a stop
+    sign becoming relevant while still far away can mean the ego doesn't
+    actually brake until 10+ seconds later -- confirmed on
     the real 352-clip training corpus, re-anchoring to the best 6.4s window
     fixes 89% of clips whose real event fell outside a t=0-anchored
     rollout, with 0% unfixable by any anchor choice.
