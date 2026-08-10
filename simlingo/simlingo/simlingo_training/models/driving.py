@@ -297,15 +297,16 @@ class DrivingModel(pl.LightningModule):
         # DeepSpeed casts text_proj/traj_proj to the model's compute dtype (e.g. fp16);
         # match that here, then upcast the projected embeddings back to fp32 for the
         # InfoNCE normalize/softmax numerics below.
-        pooled_text = pooled_text.to(self.text_proj[0].weight.dtype)
+        # ABLATION (reverse of the trajectory-side detach): detach here instead of on
+        # traj_pred below, to isolate whether the language side or the trajectory side
+        # was actually responsible for the val/loss degradation. Only the trajectory
+        # side moves to align now.
+        pooled_text = pooled_text.detach().to(self.text_proj[0].weight.dtype)
 
         traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
         if 'route_prediction' in loss_dict:
             traj_parts.append(loss_dict['route_prediction'].flatten(1))
-        # detached: these predictions already carry the route/speed regression
-        # gradient; letting the contrastive loss also push on them fights that
-        # objective directly. Only the text side should move to align.
-        traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
+        traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].weight.dtype)
 
         z_text = F.normalize(self.text_proj(pooled_text).float(), dim=-1)
         z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
