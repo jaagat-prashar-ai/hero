@@ -302,7 +302,10 @@ class DrivingModel(pl.LightningModule):
         traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
         if 'route_prediction' in loss_dict:
             traj_parts.append(loss_dict['route_prediction'].flatten(1))
-        traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].weight.dtype)
+        # detached: these predictions already carry the route/speed regression
+        # gradient; letting the contrastive loss also push on them fights that
+        # objective directly. Only the text side should move to align.
+        traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
 
         z_text = F.normalize(self.text_proj(pooled_text).float(), dim=-1)
         z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
