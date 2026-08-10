@@ -1,0 +1,651 @@
+alpamayo-rl-llm-judge-full-7bgtj3
+ 
+Run shape: 253 steps logged, 3 epochs over 352 OOD clips, gpt-4o scene-grounded judge 
+    # Trend over the run (first-10-step avg -> last-10-step avg, 253 steps total):  
+        # Reward_mean
+            # First 10: -0.150
+            # Last 10: -0.202
+            # slopex253: +0.026
+
+        # reasoning_score:
+            # First 10: -0.182
+            # Last 10: -0.267
+            # slopex253: +0.014
+
+        # traj_L2:
+            # first 10: 2.50
+            # last 10: 2.19 
+            # slopex253: -0.26 
+
+        # comfort_reward:
+            # first 10: -0.085
+            # last 10: -0.083
+            # slopex253: ~0
+
+        # grad_norm
+            # first 10: -0.085
+            # last 10: -0.083
+            # slopex253: rising
+
+    # grad_norm:
+        # first 10: 3.7 
+        # last 10: 10.7
+        # slopex253: rising
+        # worth watching - gradients get noisier/larger late in the run (spikes to 20-33 in the last third), though nothing crashed 
+
+    # Bottom line on learning: no clear reward/reasoning-score improvement in this single run - both are noise-dominated. traj_L2 (pure trajectory accuracy, unrelated to the judge) did improve modestly. 
+    # This is expected for a first baseline with no comparison arm - it tells you the pipeline produces real signal, not that gpt-4o-judge training "works" yet. 
+
+    # Judge score distribution (sampled ~1,196 judge_raw values across early/mid/late windows via direct log pull, not from W&B - no histogram was logged):
+┌───────────┬───────┬───────┐
+│ judge_raw │ count │   %   │
+├───────────┼───────┼───────┤
+│ 0         │ 30    │ 2.5%  │
+├───────────┼───────┼───────┤
+│ 2         │ 149   │ 12.5% │
+├───────────┼───────┼───────┤
+│ 3         │ 128   │ 10.7% │
+├───────────┼───────┼───────┤
+│ 8         │ 101   │ 8.4%  │
+├───────────┼───────┼───────┤
+│ 9         │ 332   │ 27.8% │
+├───────────┼───────┼───────┤
+│ 10        │ 456   │ 38.1% │
+└───────────┴───────┴───────┘
+
+# Notably zero samples landed at 1, 4, 5, 6 or 7 - the gpt-4o scene-grounded is behaving almost like a binary classifier (clearly bad vs clearly good), not smoothly using the 0-10 range it's asked for. 
+    # That's a real finding worth flagging: 
+    # It means the reasoning_threshold=-0.4 (judge score > 6) gate is currently splitting a genuinely bimodal distribution rather than a continuouos one - 74.3% of judged rollouts pass, 25.7% fail, with almost nothing near the boundary. 
+    # The memory caveat that this threshold's calibration (median 7 for chosen / median 1 for corrupted) was measured text-only, not scene-grounded, still applies - the binmodality itself doesn't tell us if 6 is the right cut point, just that the judge isn't helping. 
+
+# -0.4 value has two sep
+
+# 
+Reward: 
+- The -0.4 value has two separate origins layered on top of each other — worth separating clearly:
+
+1. The number itself is inherited, not derived. reasoning_threshold = -0.4 is copied verbatim from the vendored upstream NVlabs recipe (third_party/alpamayo-recipes/.../aggregated_reward_with_reasoning.py:109), which was built for a completely different grader — LingoJudge, a local text-similarity classifier outputting a raw quality score in [0,1], where reward = raw - 1.0 and -0.4 meant "pass if raw ≥ 0.6." Commit 77802f3 (2026-07-21, "add aggregated reward with LLM-judge reasoning component") explicitly ported this into the new gpt-4o-judge reward file with the note: "Mixing formula, thresholds, and return contract are preserved verbatim so the validated GRPO behavior carries over." So -0.4 wasn't chosen for the LLM judge — it was carried over unchanged when the judge was swapped in.
+
+2. Mapping the new judge onto that inherited scale. The gpt-4o judge outputs an integer 0-10, not a [0,1] float, so normalize_score() (llm_judge.py:243) maps it: score/10 - 1.0. Under that mapping, -0.4 corresponds exactly to judge score > 6.
+
+3. The only actual validation of "6" as a cut point: an offline calibration study — reasoning_matched_pairs.jsonl, 717 judged pairs across 120 scenes (commits fe87c81/63fa137, from the dpo_pairs/preference-pairs work) — where the judge scored "chosen" (real, good) vs. "corrupted" (perturbed, bad) reasoning traces. Result: chosen-trace median score 7, corrupted-trace median score 1. Since 6 sits just below the chosen median and well above the corrupted median, it was judged "a sensible acceptance bar" (comment in llm_judge.py:250).
+
+The catch, already flagged in the code and still unresolved: that 717-pair calibration was run with the text-only judge prompt. The production path you're actually running (7bgtj3, scene-grounded — image + trajectory overlay) uses a different prompt variant, and the code comment itself (llm_judge.py:121-125) says the scene-grounded score distribution "may sit elsewhere" and to "watch the first canary run's histogram before trusting the threshold unchanged." Nobody has re-run the chosen-vs-corrupted calibration with the scene-grounded prompt — we only have the histogram I pulled from 7bgtj3 itself, which happens to be bimodal with nothing near the score-6 boundary, so at least the gate isn't splitting hairs on this particular run. But that's a property of this run's outputs, not a re-validation of 6 as the correct cut for the scene-grounded judge.
+
+So: -0.4 is an inherited default, remapped by arithmetic, and loosely sanity-checked against a text-only calibration that predates the scene-grounded prompt actually in use. If you want a real answer on whether 6 is right for scene-grounded gpt-4o, the 717-pair chosen-vs-corrupted study would need to be redone with the scene-overlay prompt.
+
+# 
+
+Value: 
+
+The -0.4 value has two separate origins layered on top of each other — worth separating clearly:
+
+1. The number itself is inherited, not derived. reasoning_threshold = -0.4 is copied verbatim from the vendored upstream NVlabs recipe (third_party/alpamayo-recipes/.../aggregated_reward_with_reasoning.py:109), which was built for a completely different grader — LingoJudge, a local text-similarity classifier outputting a raw quality score in [0,1], where reward = raw - 1.0 and -0.4 meant "pass if raw ≥ 0.6." Commit 77802f3 (2026-07-21, "add aggregated reward with LLM-judge reasoning component") explicitly ported this into the new gpt-4o-judge reward file with the note: "Mixing formula, thresholds, and return contract are preserved verbatim so the validated GRPO behavior carries over." So -0.4 wasn't chosen for the LLM judge — it was carried over unchanged when the judge was swapped in.
+
+2. Mapping the new judge onto that inherited scale. The gpt-4o judge outputs an integer 0-10, not a [0,1] float, so normalize_score() (llm_judge.py:243) maps it: score/10 - 1.0. Under that mapping, -0.4 corresponds exactly to judge score > 6.
+
+3. The only actual validation of "6" as a cut point: an offline calibration study — reasoning_matched_pairs.jsonl, 717 judged pairs across 120 scenes (commits fe87c81/63fa137, from the dpo_pairs/preference-pairs work) — where the judge scored "chosen" (real, good) vs. "corrupted" (perturbed, bad) reasoning traces. Result: chosen-trace median score 7, corrupted-trace median score 1. Since 6 sits just below the chosen median and well above the corrupted median, it was judged "a sensible acceptance bar" (comment in llm_judge.py:250).
+
+The catch, already flagged in the code and still unresolved: that 717-pair calibration was run with the text-only judge prompt. The production path you're actually running (7bgtj3, scene-grounded — image + trajectory overlay) uses a different prompt variant, and the code comment itself (llm_judge.py:121-125) says the scene-grounded score distribution "may sit elsewhere" and to "watch the first canary run's histogram before trusting the threshold unchanged." Nobody has re-run the chosen-vs-corrupted calibration with the scene-grounded prompt — we only have the histogram I pulled from 7bgtj3 itself, which happens to be bimodal with nothing near the score-6 boundary, so at least the gate isn't splitting hairs on this particular run. But that's a property of this run's outputs, not a re-validation of 6 as the correct cut for the scene-grounded judge.
+
+So: -0.4 is an inherited default, remapped by arithmetic, and loosely sanity-checked against a text-only calibration that predates the scene-grounded prompt actually in use. If you want a real answer on whether 6 is right for scene-grounded gpt-4o, the 717-pair chosen-vs-corrupted study would need to be redone with the scene-overlay prompt.
+
+
+
+It doesn't get thrown away, and it doesn't just get one flat "you failed" value either. Two things can happen:
+
+1. If the model didn't produce any usable reasoning text at all (empty output), it gets the worst possible score: flat -1.0.
+
+2. If it did produce reasoning text but missed the bar — either the trajectory was too far off (ADE ≥ 3.0) or the reasoning score was ≤ -0.4 — it gets a graded failure score, somewhere between -1.0 and -0.5. Where exactly it lands depends on how close it came to passing on each of the two checks:
+
+- How close was the trajectory error to the 3.0 cutoff? (barely over → more credit; way over → no credit)
+- How close was the reasoning score to the -0.4 cutoff? (barely under → more credit; deeply negative → no credit)
+
+Average those two "closeness" measures and that sets where in the -1.0-to-0.5 band it lands. Always strictly worse than any passing rollout (which starts around -0.2 and can go positive) — but not maximally punished if it was a near-miss.
+
+Why bother grading a failure instead of just giving everyone -1? Because of how this training method (GRPO) uses reward: it doesn't train on the raw number, it compares each rollout to the average of the small group of attempts sampled for that same scene. If every single attempt in a group gets the exact same flat -1, there's zero difference between them — nothing to learn from, wasted judge calls. By grading "how close," even a group where everything technically failed still has some attempts that failed less badly than others, so there's still a gradient nudging the model toward the ones that came closer.
+
+The five charts, in plain terms
+
+Reward, mean — the single combined score (trajectory accuracy + comfort + reasoning bonus/penalty, all mixed together) averaged across each training step. Grey wiggly line = the real noisy value every step; blue line = a 15-step rolling average so you can see the trend through the noise. Here it just bounces around -0.2 with no upward or downward drift — the model isn't visibly "getting better" by this score yet.
+
+Reasoning score — same idea, but isolating just the judge's reasoning component (scale -1 to 0). The dashed red line at -0.4 is the pass/fail cutoff. It sits around -0.25 on average, below the cutoff — which sounds bad, but isn't a contradiction with the 74% pass rate below: the passing rollouts score close to 0 (barely above the line), while the failing ones score very negative (-0.7 to -1.0), so the minority of failures drag the average down harder than the majority of near-perfect passes pull it up.
+
+Trajectory L2 — how far the predicted path is from the real (ground-truth) path; smaller is better. Dashed red line at 3.0 is the cutoff. This is the one chart that shows a real, if modest, improvement — the smoothed trend drifts down from about 2.5 to about 2.2 over the run.
+
+Gradient norm — how big each training update to the model's weights is, plotted on a log scale (because a few values spike into the 20s-30s). It starts small and calm, then gets bigger and spikier in the back half of the run. Nothing broke here, but it's a flag: if this run were extended or repeated, that rising instability is worth watching.
+
+Judge score histogram — how many sampled rollouts got each possible score, 0 through 10. The real finding: bars only exist at 0, 2, 3, 8, 9, 10 — scores 1, 4, 5, 6, and 7 never showed up at all across ~1,200 samples. The judge is making confident "clearly bad" (red, left of the dashed line) or "clearly good" (green, right of it) calls, almost never landing in the middle of its own 0-10 scale. About 74% of sampled rollouts land in the green "pass" zone.
+
+# The -0.4 threshold?
+    # It is inhereited, not derived: 
+    # This reasoning threshold is copied verbatim from the vendored upstream NVlabs recipe (third_party/alpamayo=recipes/.../aggregated_reward_with_reasoning.py:109), which was built for a completely different grader: LingoJudge, a local text-similarity classifier outputting araw quality score in [0, 1], where reward = raw - 1.0, and -0.4 meant "pass if raw >= 0.6." 
+    # Commit 77802f3 (2026-07-21, "add aggregated rewqard with LLM-judge reasoning component") explicitly ported this into the new gpt-4o-judge reward file with the note: 
+        # "Mixing formula, thresholds, and return contract are preserved verbatim so the validated GRPO behavior carries over." So -0.4 wasn't chosen for the LLM judge - it was carried over unchanged when the judge was swapped in. 
+
+    # 2. Mapping the new judge onto that inherited scale. The gpt=4o judge outputs an integer 0-10, not a [0,1] float, so normalize_Score() (llm_judge.py:243) maps it: score/10-1.0. 
+        # Under that mapping, -0.4 corresponds exactly to judge score > 6. 
+
+    # 3. The only actual validataion of "6" as a cut point: 
+        # an offline calibration study: reasoning_matched 
+
+# 717 judged pairs across 120 scenes (commits from the dpo_pairs/preference-pairs work) - where the judge scored "chosen" (real, good) vs "corrupted" (perturbed, bad) reasoning traces. 
+# Result: chosen-trace median score 7, corrupted-rtace median score 1. Since 6 sits just below the chosen median and well above the corrupted median, it was judged "a sensible acceptance bar" (comment in llm_judge.py:250). 
+
+# Rollout / Training plots
+    # For each prompt in a batch, the rollout worker (vLLM) samples n_generation=12 completions of that same prompt - that's the GRPO "group." 
+    # Then those 12 completons get scored by the reward function (the LLM-judge, in this run) to get 12 reward values. 
+    # "Train" = a separate step that happens after a group of rollouts exist. It takes the completed (prompt, completion, reward) tuples, computes each completion's advantage as reward minus the group's mean reward, and does the actual backward pass / optimizer step on the policy weights using that advantage. 
+    # Rollout produces data: sample 12 completions per prompt, score them, push into a buffer. Runs on the vLLM rollout replica. 
+    # Train consumes data: pull a batch of already-scored groups out of the buffer, compute GRPO loss, update weights. Runs on the policy replica. 
+
+
+# code as a reward heatmap debugging: 
+
+
+ Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ Debug clipgen's generated reward functions against real GRPO rollouts
+
+ Context
+
+ code_as_a_reward/clipgen/ has an LLM (gpt-4o) write a scene-specific reward
+ function per clip, gated by synthetic perturbations (reversed/no-reaction
+ trajectory, gutted/no claims). The largest smoke run to date (8750ne,
+ 15 clips) only passed 3/15. Before investing more in clipgen, the user
+ wants to see what the reward functions actually do to real model rollouts —
+ during live GRPO training, the policy samples n_generation=12 rollouts per
+ scene and scores them (rl_posttrain/rewards/code_reward_entry.py), but
+ none of that per-rollout data (CoC text, trajectory, score) is currently
+ persisted — it's scored and discarded except for a W&B scalar/occasional
+ sampled overlay image. The goal: capture those 12 real rollouts for a
+ handful of scenes, overlay them (color-coded by score) on the camera frame,
+ build a heatmap comparing clipgen's generated reward vs. the existing
+ trace_reward score, and use that to (a) judge whether clipgen is producing
+ sane reward functions and (b) decide if/how to scale up. Confirmed via
+ research: no 16-GPU config exists (a100.8/dp_shard_size=4 is the only
+ validated topology), so GPU count is not actually an open question for now.
+
+ User confirmed: static single-frame multi-trajectory overlay (not true
+ video), and rollouts must be the real ones generated during actual GRPO
+ training (not offline-sampled from a checkpoint, not synthetic perturbations).
+
+ Phase A — Close the two known clipgen gate gaps (code only, ~$1-2 to verify)
+
+ 1. code_as_a_reward/clipgen/sandbox.py (_check_ast, lines 47-56):
+ add an AST check rejecting string-literal comparisons against
+ non-canonical entity/maneuver/state keys, and literal "Track N"-style
+ matches. Canonical vocabulary comes from
+ code_as_a_reward/coc_claim_parser.py's MANEUVER_PATTERNS (171-226),
+ ENTITY_PATTERNS (243-347), STATE_PATTERNS (353-388) — extract the
+ first tuple element from each as the allowed key set. Wire in via
+ compile_reward_module(require_components=True, ...) in generate.py:562,
+ same enforcement point already used for the components() contract.
+ 2. code_as_a_reward/clipgen/gate.py (build_perturbations, lines
+ 109-149): add a 5th perturbation case that corrupts a claim's
+ maneuver/direction identity to a different-but-valid canonical key
+ (e.g. flip direction left↔right, or swap maneuver stop↔yield).
+ The generation prompt (generate.py:149-154) already tells the model
+ timing/direction is "the sharpest reversal discriminator" but no gate
+ case actually tests identity corruption — this closes that gap.
+ 3. Run the existing offline test suite (code_as_a_reward/clipgen/*_test.py,
+ sandbox.py/coc_claim_parser.py tests) to confirm nothing regresses.
+ 4. Relaunch clipgen-gpt4o-15 smoke (state cost — same shape as 8750ne,
+ ~$1-1.5, ≤75 API calls — before launching, wait for go-ahead). Compare
+ pass rate against 8750ne's 3/15 baseline.
+
+ Phase B — Capture real rollouts during training (code only until Phase D)
+
+ Extend the existing hook rather than building new plumbing —
+ rl_posttrain/rewards/code_reward_entry.py::_maybe_log_overlays
+ (lines 243-284) already receives overlay_rollouts: list[(rollout_id, pred_xyz_np, final_reward, l2_dist)] for the whole group (populated at
+ line 649/744 inside compute_reward_batch, one call per scene since
+ group_reward_calculation means the full 12-rollout group arrives together
+ with a shared reference["scene_id"], confirmed at lines 607-753). Today
+ it only logs up to _OVERLAY_MAX_ROLLOUTS=4 sampled 1-in-8 groups to W&B as
+ images; the CoC text (pred_cot, line 668) and full trajectory are never
+ persisted to durable storage.
+
+ Changes, all gated behind a new opt-in config flag (e.g.
+ debug_dump_rollouts: bool, default False, read from config/env so
+ production runs are unaffected):
+ 1. Bump the effective rollout count logged when the flag is on — capture
+ all 12, not the sampled 4.
+ 2. Add a sibling _maybe_dump_rollouts(...) that writes, per scene per step,
+ one small JSON/parquet artifact to S3
+ (s3://research-datasets-chicago/code_as_a_reward/clipgen/rollout_dumps/<run_id>/<step>_<clip_id>.json)
+ containing per-rollout: clip_id, t0_us, rollout_id, coc_text,
+ waypoints ((T,3) ego-frame xyz), hz, trace_reward_score,
+ traj_L2. Use the existing put_object-based S3 upload pattern (already
+ used by _CheckpointUploader and clipgen's own S3 fix, not
+ upload_file, to avoid the known OCI chunked-encoding failure).
+ 3. Verify at implementation time whether the training dataset loader
+ supports restricting to an explicit clip_id allowlist (needed for
+ Phase D) — add a minimal filter if it doesn't already exist.
+
+ Phase C — Overlay + heatmap analysis tool (new script)
+
+ New script, e.g. code_as_a_reward/clipgen/analyze_group_rollouts.py,
+ consuming Phase B's dumps:
+ 1. Multi-trajectory overlay: reuse project_waypoints_ftheta and the
+ drawing pattern from code_as_a_reward/clipgen/build_overlays.py
+ (render_overlay, lines 142-165) and S3RangedFile for the t0 frame
+ fetch — but draw all 12 trajectories on one frame, color per rollout by
+ its normalized reward (diverging colormap, red→green) instead of the
+ current fixed single _OVERLAY_COLOR.
+ 2. Cross-scoring: for each dumped rollout, parse coc_text with
+ coc_claim_parser.parse_coc_trace, then — if that clip has a
+ gate-passed cached reward_fns/<clip_id>.py — call its reward() and
+ components() on the parsed claims + dumped waypoints, alongside the
+ already-captured trace_reward_score. This is the actual "is clipgen
+ generating good reward functions" signal: does clipgen's score track
+ trace_reward's score and real driving quality across genuinely diverse
+ model rollouts, not just synthetic perturbations.
+ 3. Heatmap: matplotlib + Agg (repo convention, e.g.
+ masking/dashboard/generate_plots.py, pref_pairs/maneuver_report.py)
+ — rows = clips, columns = rollout index (sorted by trace_reward score),
+ cell = clipgen score (and a second heatmap for the components()
+ breakdown) side-by-side with trace_reward score, saved as PNG.
+
+ Phase D — Short diagnostic run (not the full production relaunch)
+
+ Rather than a full 264-step/352-clip relaunch, launch a short run scoped to                                                                                             just the 15 clipgen smoke clips with Phase B's dump flag on — enough steps                                                                                             to see each clip's rollout group at least once, at a fraction of the cost.
+ Reuse the existing validated GPU topology (a100.8, 8 GPUs,
+ dp_shard_size=4 — rl_posttrain/configs/code_reward_full_cluster.yaml);
+ no 16-GPU option exists, and this diagnostic run doesn't need more
+ throughput than that. Decide on GPU count for a full production relaunch
+ only after these results are in.
+                                                                                                                                                                   Before launching: state the estimated GPU-hours/$ cost and wait for                                                                                                    explicit go-ahead (per standing cost-announcement preference).
+
+ Verification
+
+ - Phase A: offline test suite green, then inspect the relaunched smoke's
+ report.json pass rate vs. 3/15.
+ - Phase B/C: before touching the training path, dry-run
+alyze_group_rollouts.py against a small hand-built fixture (fake                                                                                                   mp JSON) to catch overlay/heatmap bugs without spending training time.
+Phase D: confirm the run reaches EXPERIMENT_COMPLETED (or enough steps),                                                                                              nfirm dump artifacts land in S3 for all 15 clip_ids, then run Phase C's
+ script and visually inspect a few clips' overlay + heatmap output.
+
+# Debug clipgen's generated reward functions against real GRPO rollouts: 
+
+bug clipgen's generated reward functions against real GRPO rollouts
+
+ Context
+
+ code_as_a_reward/clipgen/ has an LLM (gpt-4o) write a scene-specific reward
+ function per clip, gated by synthetic perturbations (reversed/no-reaction
+ trajectory, gutted/no claims). The largest smoke run to date (8750ne,
+ 15 clips) only passed 3/15. Before investing more in clipgen, the user
+ wants to see what the reward functions actually do to real model rollouts —
+ during live GRPO training, the policy samples n_generation=12 rollouts per
+ scene and scores them (rl_posttrain/rewards/code_reward_entry.py), but
+ none of that per-rollout data (CoC text, trajectory, score) is currently
+ persisted — it's scored and discarded except for a W&B scalar/occasional
+ sampled overlay image. The goal: capture those 12 real rollouts for a
+ handful of scenes, overlay them (color-coded by score) on the camera frame,
+ build a heatmap comparing clipgen's generated reward vs. the existing
+ trace_reward score, and use that to (a) judge whether clipgen is producing
+ sane reward functions and (b) decide if/how to scale up. Confirmed via
+ research: no 16-GPU config exists (a100.8/dp_shard_size=4 is the only
+ validated topology), so GPU count is not actually an open question for now.
+
+ User confirmed: static single-frame multi-trajectory overlay (not true
+ video), and rollouts must be the real ones generated during actual GRPO
+ training (not offline-sampled from a checkpoint, not synthetic perturbations).
+
+ Select-then-verify, clarified. The point isn't just "does clipgen's
+ score look reasonable" — it's the architecture already documented in
+ code_as_a_reward/clipgen/dossier.py:271: the reward function ranks the 12
+ rollouts, the argmax is a candidate, but it can only be trusted if it
+ also survives being run back through the same perturbation gate that
+ validated the reward function against GT in the first place (reversed/
+ flattened trajectory, gutted/no claims) — applied to the argmax rollout's
+ own claims+trajectory this time. This confirms the argmax isn't just "the
+ best of a bad batch." Confirmed via research: gate.py's
+ build_perturbations(scene_id, claims, waypoints, hz) and run_gate(source, cases) (gate.py:109-149, 173-305) take claims/waypoints as plain
+ parameters with no GT hardcoded — so this verification works unmodified
+ on any rollout's own (claims, trajectory), not just GT. That means all the
+ clipgen-specific logic (scoring, argmax, gate-verification) can run entirely
+ offline in Phase C against dumped raw data — Phase B needs no live
+ clipgen integration in the training job at all, which keeps it low-risk
+ (purely additive logging, zero change to training's actual reward
+ semantics). The user also wants the full reasoning (CoC) text and all
+ computed metrics persisted per scene, not just a single reward scalar.
+
+ Phase A — Close the two known clipgen gate gaps (code only, ~$1-2 to verify)
+
+ code_as_a_reward/clipgen/sandbox.py (_check_ast, lines 47-56):
+d an AST check rejecting string-literal comparisons against
+n-canonical entity/maneuver/state keys, and literal "Track N"-style
+tches. Canonical vocabulary comes from
+de_as_a_reward/coc_claim_parser.py's MANEUVER_PATTERNS (171-226),
+TITY_PATTERNS (243-347), STATE_PATTERNS (353-388) — extract the
+rst tuple element from each as the allowed key set. Wire in via
+mpile_reward_module(require_components=True, ...) in generate.py:562,
+ same enforcement point already used for the components() contract.
+ 2. code_as_a_reward/clipgen/gate.py (build_perturbations, lines
+ 109-149): add a 5th perturbation case that corrupts a claim's
+ maneuver/direction identity to a different-but-valid canonical key
+ (e.g. flip direction left↔right, or swap maneuver stop↔yield).
+ The generation prompt (generate.py:149-154) already tells the model
+ming/direction is "the sharpest reversal discriminator" but no gate
+se actually tests identity corruption — this closes that gap.
+ Run the existing offline test suite (code_as_a_reward/clipgen/*_test.py,
+ndbox.py/coc_claim_parser.py tests) to confirm nothing regresses.
+ Relaunch clipgen-gpt4o-15 smoke (state cost — same shape as 8750ne,
+1-1.5, ≤75 API calls — before launching, wait for go-ahead). Compare
+ pass rate against 8750ne's 3/15 baseline.
+
+ Phase B — Capture raw rollout data during training (additive only, no reward-path changes)
+
+ Extend the existing hook rather than building new plumbing —
+ rl_posttrain/rewards/code_reward_entry.py::_maybe_log_overlays
+ (lines 243-284) already receives overlay_rollouts: list[(rollout_id, pred_xyz_np, final_reward, l2_dist)] for the whole group (populated at
+ line 649/744 inside compute_reward_batch, one call per scene since
+ group_reward_calculation means the full 12-rollout group arrives together
+ with a shared reference["scene_id"], confirmed at lines 607-753). Today it
+ly logs up to _OVERLAY_MAX_ROLLOUTS=4 sampled 1-in-8 groups to W&B as
+ages; the CoC text (pred_cot, line 668), full trajectory, and the
+r-rollout metrics dict (reward_dicts, lines 745-753: traj_L2,
+mfort_reward, reasoning_score, reward, aux code-audit metrics) are
+ver persisted to durable storage — only reduced into W&B scalars.
+
+anges, all gated behind a new opt-in config flag (e.g.
+bug_dump_rollouts: bool, default False, so production runs are
+ unaffected — this phase makes no change to what is scored or how training
+ uses it, purely additive logging):
+ 1. Capture all 12 rollouts per scene when the flag is on, not the sampled 4.
+ 2. Add a sibling _maybe_dump_rollouts(...) that writes, per scene per step,
+ one JSON artifact to S3
+ (s3://research-datasets-chicago/code_as_a_reward/clipgen/rollout_dumps/<run_id>/<step>_<clip_id>.json)
+ containing, per rollout: rollout_id, coc_text, waypoints ((T,3)
+ ego-frame xyz), hz, and the full reward_dicts entry already
+ computed (traj_L2, comfort_reward, reasoning_score, reward,
+ aux) — i.e. dump the same dict that already exists at line 745-753
+ verbatim, plus the text/trajectory it currently omits. Use the existing
+ put_object-based S3 upload pattern (used by _CheckpointUploader and
+ clipgen's own fix, not upload_file, to avoid the known OCI
+ chunked-encoding failure).
+ 3. Verify at implementation time whether the training dataset loader
+ supports restricting to an explicit clip_id allowlist (needed for
+ Phase D) — add a minimal filter if it doesn't already exist.
+
+ Phase C — Offline select-then-verify + overlay + heatmap (new script)
+
+ New script, e.g. code_as_a_reward/clipgen/analyze_group_rollouts.py,
+ consuming Phase B's dumps. All clipgen-specific logic lives here, offline —
+ nothing in this phase touches the training job:
+
+ 1. Score + select: for each dumped scene whose clip_id has a
+ gate-passed cached reward_fns/<clip_id>.py, parse every rollout's
+ coc_text via coc_claim_parser.parse_coc_trace and score
+ (claims, waypoints) with that module's reward()/components().
+ Take the argmax rollout by clipgen score.
+ 2. Verify the argmax (the select-then-verify step,
+ dossier.py:271): run
+ cases = build_perturbations(clip_id, argmax_claims, argmax_waypoints, hz)
+ then result = run_gate(Path(f"reward_fns/{clip_id}.py").read_text(), cases)
+ — both take claims/waypoints as plain parameters with no GT
+ hardcoded (confirmed, gate.py:109-149, 173-305), so this runs unmodified
+ on the argmax rollout's own data. result gives .passed, .pos_score,
+ .max_pert, per-case .scores, per-case .components — record all of
+ it. This is the concrete "is the argmax actually good, or just the best
+ of a bad batch" check.
+ 3. Multi-trajectory overlay: reuse project_waypoints_ftheta and the
+ drawing pattern from build_overlays.py (render_overlay, lines
+ 142-165) and S3RangedFile for the t0 frame fetch — draw all 12
+ trajectories on one frame, colored by clipgen score (diverging colormap,
+ red→green), with the argmax rollout visually distinguished (thicker
+ line) and annotated pass/fail from step 2.
+ 4. Heatmap (matplotlib + Agg, repo convention — e.g.
+ masking/dashboard/generate_plots.py, pref_pairs/maneuver_report.py):
+ rows = clips, columns = rollout index (sorted by clipgen score); cells =
+ clipgen score, with a second heatmap for components() breakdown, and a
+ third row/column marking the argmax's gate pass/fail + per-perturbation
+ drop amounts. Include trace_reward's own metrics (already in the dump)
+ side by side for comparison.
+ 5. Persist the full per-scene record (all 12 rollouts' reasoning text +
+ metrics + clipgen scores, plus the argmax's gate verification) as one
+ JSON per scene alongside the images — this is the "store the reasoning
+ and all metrics" artifact for later inspection, not just the overlay PNG.
+
+ Phase D — Short diagnostic run (not the full production relaunch)
+
+ Rather than a full 264-step/352-clip relaunch, launch a short run scoped to
+st the clipgen clips that have a validated cached reward function after
+ase A (currently 3/15, hopefully more) with Phase B's dump flag on —
+ough steps to see each clip's rollout group at least once, at a fraction
+ the cost of a full relaunch. Reuse the existing validated GPU topology
+100.8, 8 GPUs, dp_shard_size=4 —
+_posttrain/configs/code_reward_full_cluster.yaml); no 16-GPU option
+ists, and this diagnostic run doesn't need more throughput than that.
+cide on GPU count for a full production relaunch only after these
+sults are in.
+
+fore launching: state the estimated GPU-hours/$ cost and wait for
+plicit go-ahead (per standing cost-announcement preference).
+
+ Verification
+
+Phase A: offline test suite green, then inspect the relaunched smoke's
+ report.json pass rate vs. 3/15.
+ - Phase B/C: before touching the training path, dry-run                                                                                                                   analyze_group_rollouts.py against a small hand-built fixture (fake dump                                                                                                   JSON covering a mix of passing/failing argmax cases) to catch                                                                                                           overlay/heatmap/gate-call bugs without spending training time.
+ - Phase D: confirm the run reaches EXPERIMENT_COMPLETED (or enough steps),
+ confirm dump artifacts land in S3 for the targeted clip_ids, then run
+ Phase C's script and visually inspect a few clips' overlay + heatmap +
+ per-scene JSON output, specifically checking whether any argmax rollout
+ actually fails its own gate (the case that would prove the "best of a bad
+ batch" risk is real).                                                                                                                                                ╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+
+# Select then verify:  
+    # The reward function ranks the 12 rollouts, the argmax is a candidate, but it can only be trusted if it also survives being run back through the same peturbaton gate that validated the reward function against GT in the first place (reversed/flattened trajectory, gutted/no claims) - applied to the argmax rollout's own claims+trajectory this time. This confirms the argmax isn't just "the best of a bad batch."
+    # Confirmed via research: gate.py's build_pertubations(scene_id, claims, waypoints, hz) and run_gate(source, cases) (gate.py:109-149, 173-305) take claims/waypoints as plain parameters with no GT hardcoded. 
+        # so this verification works unmodified on any rollout's own (claims, trajectory), not just GT. 
+        # All the clipgen-specific logic (scoring, argmax, gate-verification) can run entirely offline in Phase C against dumped raw data - Phase B needs no live clipgen integration in the training job at all, which keeps it low-risk (purely additive logging, zero change to training's actual reward semantics). The user also wants the full reasoning (CoC) text and all computed metrics persisted per scene, not just a single reward scalar. 
+
+# simlingo 
+    # per K-group:
+        # Text embedding z_text: mean-pool the LLM's hidden states over the prompt tokens only (language_inputs_mask & ~langauge__ids_mask - i.e. the instruction as fed in, excluding the answer/loss tokens), then project through a 2-layer MLP (text_proj) and L2-normalize. 
+        # Trajectory embedding z_traj: take the model's own predicted speed_wps prediction (+ route_prediction if present) - no tthe ground truth - flatten, project through traj_proj, L2-normalize. 
+            # gradients from this loss actually flow back through the actual trajectory-decoding head (the loss is asking "is the action the model just produced distinguishable from what it would have produced under a different instruction")
+
+            # The loss itself (models/utils.py:intra_scene_contrastive_loss), per group of size K: 
+                # Build a KxK similarity matrix z_text @ z_traj.T / temperature (temp = 0.07)
+                # Symmetric InfoNCE: cross-entropy with identity labels on the matrix (instruction->trajectory retrieval) and on its transpose (trajectory->instruction retrieval), averaged 50/50. 
+                # Groups with only 1 member (no counterfactual sibling survived filtering) get loss=0 and are excluded from the batch average via a count mask (not treated as 0% accuracy, just skipped)
+
+                # per-sample loss is multiplied by contrastive_loss_weight and summed into the total loss alongside route/speed/language losses (summarise_losses_, so it's a simple fixed-weight auxiliary term. 
+                
+                # gradietn conflict?
+                
+                # right now, gradients from this one loss term flow into both sides of the model and that's exactly the conflict for val/loss regression: 
+
+                    # text_features = features_by_adaptor['language'].float() # LLM hidden states
+                    # pooled_text = (text_features * prompt_mask).sum(1) / ... # mean-pool prompt tokens 
+                    ... 
+                    z_text = F.normalize(self.text_proj(pooled_text).float(), dim=-1)
+
+                    traj_parts = [loss_dict["speed_wps_prediction"].flatten(1)] # <-- same tensor used elsewhere
+                    if "route_prediction" in loss_dict:
+                        traj_parts.append(loss_dict["route_prediction"].flatten(1))
+                    traj_pred = torch.cat(traj_parts, dim=1)...
+                    z_traj = F.normalize(self.traj_prod(traj_pred).float(), dim=-1)
+
+                    # problem? loss_dict["speed_wps_prediction"] and loss_dict["route_prediction"] are the exact same output tensors that route_loss and speed_wps_loss already used (computed upstream in self.adaptors.compute_loss(...) at driving.py:268, before the contrastive block even runs).
+
+                    1. From route_loss/speed_wps_loss: "move this prediction closer to the ground-truth waypoints." (standard regression gradient)
+                    2. From contrastive_loss (via traj_proj → InfoNCE): "move this prediction's projected embedding in whatever direction makes it maximally separable from the other K-1 trajectories in its group.
+                
+                    # Every weight that the two embeddings pass through on their way to that grid, because backprop updates everything upstream of a loss:
+                        # text_proh - a small new 2-layer network we added just for this
+
+
+            
+# gradient fix?
+1. Detach the trajectory side for the text→traj direction, keep gradient only for traj→text (or vice versa) — right now both directions push gradient into both the LLM (text encoder) and the trajectory decoder. Splitting so the trajectory decoder only gets shaped by GT-supervision + one contrastive direction (not both) isolates whether the decoder head is the one being pulled off-course.
+2. Anchor against GT waypoints as well as predictions, at different weights — a z_traj_gt computed from ground-truth trajectories (no gradient into the decoder) could shape text_proj/the LLM cheaply and safely, while a much smaller weight on the predicted-trajectory version handles the "does the actual output stay discriminative" property. Two knobs instead of one, and the risky one (predicted-traj, weight in the sweep) can be tuned near zero without losing the text-side signal entirely.
+3. Weight warm-up / curriculum instead of a constant multiplier from step 0 — cheapest thing to try, no code redesign, just ramp contrastive_loss_weight 0→target over the first epoch so the base task losses get a head start before the aux gradient enters.
+4. Curate hard negatives instead of random.sample(options, k) — right now K is drawn uniformly from all counterfactuals for a frame, so many groups are probably "easy" (very different instructions, trivially separable trajectories). Sampling semantically-similar instruction pairs would make each gradient step carry more alignment signal per unit of weight, potentially needing much less weight (and less main-task damage) for the same retrieval benefit.
+5. Evaluate with the reversal-effect metric from the masking experiment D work ([[project-masking-experiment-d-launch-pending]] territory) instead of only trusting val/loss — that metric directly measures whether changing the instruction causally changes the trajectory, which is the actual property "reasoning-action alignment" is trying to buy. A checkpoint with worse composite val/loss but a stronger reversal effect would be evidence the aux loss is doing its job even though the headline SimLingo loss looks worse — right now you only have the InfoNCE retrieval-acc as a proxy, and that's self-referential (it's what's being optimized).
+
+# clipgen tuning (fix and launch with 300+ clips)
+# dpo today with a very strong pertubation generator (almost GAN-style)
+# heatmap results on wandb 
+    # get grpo internal code as a reward to work 
+# code as a reward global run and llm as a judge baseline (results), manually inspect
+# simlingo contrastive (fixing this)
+    # retrieval acc increased, but val/loss?
+
+# look into diffusion langauge models 
+
+# retrieval accuracy (how often the model's highest-scoring guess in that table is actually correct.) Random guessing among 4 = 25%. Our results (42%-71% mean it's genuinely leanring to tell them apart). 
+
+# What gets updated:
+    # Two losses are computed on the same output from step 2 (the predicted trajectory):
+        # The normal driving loss says: "get closer to the correct waypoints."
+        # The matching loss says: "make your fingerprint distingusihable from the other 3."
+
+        # Detaching: use the predicted trajectory's number values to build the action fingerprint, but block the matching loss's correction signal from reaching back into the trajectory-predicting part of the model. 
+        # Still updates the LLM side and the two small new networks 
+
+# Both losses are added into one single total number every step. Detach doesn't remove the contrastive loss from that sum, it only restricts which weights one of its two paths is allowed to touch. 
+
+# Every training step:  
+    # total_loss = language_loss + route_loss + speed_wps_loss + (weight * contrastive_loss)
+    # total_loss.backward() # one single call
+    # optimizer.step() # one single update
+
+    # That's it - it's one scalar, computed from all four terms, and one backward pass. Detaching doens't take contrastive loss out of this sum. 
+    # the loss now only reaches text_proj, traj_proj, and the LLM. 
+        # route_loss/speed_wps_loss send their gradient to the decoder like always (untouched by any of this)
+
+# Nothing here is "regression only." It's: decoder gets gradient from regression only (that part is true - that's the fix); but the model as a whole still gets traine with regression + language + contrastive, every step, in the same combined backward pass. Contrastive just lost one of its two targets. 
+
+# figure this out: 
+# 44% of the real 352-clip corpus can't be scored due to a rollout-horizon limit (next step is choosing whether to fitler those clips or redesign scoring before running at scale)
+
+# exact fix:
+    # before: 
+        traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].weight.dtype)
+    # after:
+        # detached: these predictions already carry the route/speed regression
+        # gradient; letting the contrastive loss also push on them fights that 
+        # objective directly. Only the text side should move to align. 
+
+        traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
+
+        # What changed: one .detach() call, on the tesnor that's about to be turned into the trajectory-side emebdding for the contrastive loss 
+
+        # contrastive loss can only push text representation to align with the (now-fixed) trajectory fingerprints
+
+        # once we have the KxK grid of similarity scores: 
+            # 1. Turn each row into a multiple-choice question: 
+                # Row i = text embedding i's similarity against all K trajectory embeddings. The correct answer is always trajectory i (the diagonal). Run softmax + cross-entropy on each row, with the correct label
+                # being "position i." Do this for all K rows, average them -> this is the "instruction -> trajectory" direction of the loss. 
+            # 2. Do the same thing on the transpose.   
+                # Now treat each column as a multiple choice question: trajectory j has to pick which of the K text embeddings caused it, correct answer is column position j. Same cross-entropy, averaged over column -> "trajectory -> iunstruction" direction. 
+
+            # 3. Average the two directions. 
+                0.5 * (loss_forward + loss_inverse) = the per-sample contrastive loss for that group. This is symmetric so neither direction dominates. 
+
+            # 4. check accuracy, separately from the loss: 
+                # For each row, did the highest score actually land on the diagonal (the correc trajectory)? logits.argmax(-1) == labels. Average that across the group -> 
+
+
+            # matrix -> two cross-entropies -> average -> weight -> sum into total loss -> one backward pass 
+
+# coupled trajectory and reasoning loss.. (i.e., i guess we are doing this with the simlingo appraoch); i want to generalize this to more VLAs. 
+# i think there is promise in using the pre-trained vlms (similar to SteerVLA) instead of prompting an LLM model here. 
+
+# the gradient's direction is simple and predictable. For cross-entropy, the gradient always says: increase the correct cell, decrease the incorrect cells in that row. 
+    # Concretely: increase the dot product between T_i and A_i (push those two vectors to point more alike), decrease the dot product between T_i and every other A_j (push those apart).
+
+    # gradient flows backward into the weights that produced T and A. "Push T_i's direction closer to A_i" isn't abstract - it's a real gradient value that flows back through text_proj and into the LLM's weights (and, before our fix, into the trajectory decoder too). 
+
+    # The text/language decoder - genuinely autoregressive. 
+        # Standard LLM behavior is to produce the answer text ("Following the given instruction. Waypoints:"), the model predicts one token at a time, each token oconditioned on everything before it, trained via next-token cross-entropy (language_loss). This is what you'd normally think of as "the decoder" in an LLM. 
+        # The trajectory decoder - NOT autoregressive. It's a one shot regression readout. 
+    
+    # 1. Dedicated "query" slots. The model has a fixed number of learned placeholder vectors - query_embeds_speed (10 of them) and query_embeds_wps (20 of them). Think of these as blank question-mark tokens with no inherent meaning yet, just learnable parameters. 
+    
+    # Full map of the architecture: 
+        1. Vision encoder (self.vision_model.image_encoder) - encodes the camera image into a sequence of tokens. Encoder-only; no vision decoder in model. 
+        2. Shared transformer (self.language_model.model) - takes everything as one sequence: the vision tokens + the instruction text tokens + the driving-adaptor's special query tokens, all concatenated, processed together in a single forward pass. 
+        3. Language decoder (LanguageAdaptor, using lm_head) - the standard vocabulary head. Takes the trunk's hidden states at the text token positions, projects to vocabulary size, and is trained via next-token cross-entropy (language_loss). 
+        4. Trajectory decoder DrivingAdaptor, speed_wps_head/route_head) - takes the trunk's hidden states at the query token positions (dedicated learned placeholder slots, not text), and runs them through a small MLP that directly regresses continuous (x,y) coordinates all at once, via cumsum. Trained via smooth-L1 regression against GT waypoints (route_loss/speed_wps_loss). Not autoregressive - one shot, no sampling, no vocabulary. 
+            # This is what produces the answer text: (e.g., "Following the given instruction. Waypoints: ")
+        
+        # two extra heads that exist for the contrastive experiment (not original architecture)
+        5. text_proj. takes the language decoder's pooled hidden states (from step 3's input, before the voabulary projection) and squahes them into the small embedding used for the contrastive matrix. 
+        6. traj_proj. takes the trajectory decoder's output (step 4's regression output) and squashes it into the small embedding used for the contrastive matrix. 
+
+        # So: one encoder (vision, in), one shared trunk (transformer, middle), two real decoders (language - autoregressive; trajectory - one-shot regressionm, out), and two small auxiliary projection heads bolted on top of the decoders' outputs purely for the contrastive loss. 
+        
+        # The corrected breakdown: of 341 real clips checked, 231 have any meaningful braking/deceleration event at all (>1 m/s drop somewhere in the full ~20s clip). 
+    
+        # striking, clean result? for nearly every clip in the local sample, a well-placed 6.4-second window captures 75-136% of the full event. 
+        # Let's confirm this holds on the real 352-clip corpus before proposing everything. 
+
+        # The reward function is not being built to check the full 20 seconds. Earlier fix, the dossier told the LLM "you can only be graded on a 6.4-second window" and shows it GT facts truncated to just that window - and we confirmed in the smoke re-runs that the model respects this (every generated function used window(0, 6.4), not the full clip).
+
+        # What's still wrong: that 6.4-second window is always anchored at t=0 (the very start of clip, the OOD event's start). 
+
+    # Fixes: 
+        # dossier.py: new find_rollout_anchor_s() (the sliding-window search, now a real resuable function with the full rationale in its docstring), summarize_tracks() and build_dossier() both gained 
+        a rollout_anchor_s/t0_offset_s parameter that keeps obstacle tracks and the GT trajectory on one consistent shifted clock, with an explicit note in the rendered text so it's never ambiguous which click is in play. 
+        # run_prototype.py: computes the anchor per clip directly from GT data (no dependency on rollouts existing yet), builds everything downstream from the re-anchored waypoints.
+        # Verified against real 333b20c5 data end-to-end: the checkable window's deceleration went from 0.3 m/s (old) to 6.8 m/s  - 74% of the real eventm matching the validation nubers from before. 
+
+    # A rollout 
+        # A real Alpamayo rolllout is 64 numbers (positions over 6.4 seconds) that the model predcited when you handed it a scene at some specific starting instant (t0_us) and said "predict forward from here." 
+        # The rollout itself has no idea what real-world clock time it represents - ut's just "the next 6.4 second from wherever I was told to start."
+        # What's cached: 12 of these rollouts for 333b20c5, produced by calling the real model with t0_us=10801763 - the original OOD event-start timestamp. So that cached data literally is "what the piolicy predicts happens in the first 6.4 seconds after the event starts." 
+        # We already know, from the dossier itself, what the period looks like: the ego is basically still cruising (13.4->13.2 m/s, a 0.3 m/s drop - nothing)
+        # What the new dossier tells the LLM to expect: "the checkable window is now [7.7s, 14.1s] on the original clock - that's where the real 6.8 m/s braking event is." So the LLM will write a function looking for real deceleration. 
+
+
+
+# Previous change summarized: 
+    # driving.py: we added .detach() to the trajectory prediction right before it gets used to build the contrastive loss. 
+        # traj_pred = torch.cat(traj_parts, dim=1).detach().to(...)
+
+    Why?
+    
+    The contrastive loss teaches the model to make instruction-embeddings and trajectory-embeddings match each other correctly (i.e., this is from K=4 counterfactual options per scene).
+    Before this change, the loss's gradient could push on two things: the language side (good, this is the goal) and the trajectory decoder's output (that's the same output the real driving-accuracy loss is trying to get exactly right).
+    # Those two pressures on the trajectory output could disagree and out smoke-test evidence oointed at this (i.e., this was with the contrastive retrieval accuracy increasing bu thte validation loss not bieng nearly as good)? i need to figure this out specifically. 
+
+    # Thes two pressures on the trajectory output could disagree, and our smoke-test evidence pointed at this: as we turned up the contrastive weight, the retrieval task got better but overall driving loss got steadiyl worse. 
+    # .detach() blocks the contrastive loss from touching the trajectory decoder at all. 
+        # Now the decoder is trained by the driving-accuracy loss only. 
+        # The contrastive loss can still improve, it just does so by reshaping langauge/instruction side to better match the trajectory outputs (not by reshaping the trajectory outputs to better match the language side).
+
+    # GT is a recording. 
+    # A rollout is a prediction. 
+
+    It makes more intuitive sense to shape the actions to match the languages because they come after this in the pipeline, but how does this make sense for us to shape the reasoning after the actions when the actions come after it?
+
+    # Gradient descent doesn't have to respect pipeline order - "shape X is using shape Y" just mean just "use Y as a fixed reference point," regardless of whether Y was computed before or after X in the forward pass. 
+
+    # Here's the parallel that makes it click: this is exactly what already happens with ground-truth waypoints (GT waypoints are, if anything, "further downstream" than the instruction - they're not the real-world outcome of following it.)
+    # A training target doesn't need to be causally upstream of what it's training (this just needs to be held fixed for that gradient step).
+
+    # Detach does the same thing locally: once we detach the trajectory prediction, it stops being "something we're updating" and becomes "a fixed number we're comparing against" - functionally a label. 
+    
+    # Before: 
+    The trajectory prediction gets used twice: once for the regular driving loss (compare to correct answer), and once for the contrastive loss (build the matching table). Both uses could push the decoder's weights, in two different, possibly conflicting directions, every single step.
+    
+    # After:
+    Same trajectory prediction, same two uses — but now only the driving loss can push the decoder's weights. The contrastive-loss use is a frozen copy; it still goes into the matching table, but any correction it wants to make stops at that copy and never reaches the decoder.
+
+# Main change: 
+# Before (original code)
+
+    traj_pred = torch.cat(traj_parts, dim=1).to(self.traj_proj[0].weight.dtype)
+    z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
+
+    Autograd graph, per parameter, per step: 
+
+    speed_wps_head, route_head, query_embeds_speeds/wps, shared transformer layers -> produce speed_wps_prediction/route_prediction -> this single tensor has two downstream consumers: 
+        1. 
+

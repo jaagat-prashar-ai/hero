@@ -72,19 +72,29 @@ def _bearing(x: float, y: float) -> str:
 
 # Take a full scene's worth of obstacle tracks and reduce it to a short ranked list of the most relevant ones (closest approach first).
 
-def summarize_tracks(scene: SceneObstacles) -> list[TrackSummary]:
-    """Rank tracks by the closest approach and keep the MAX_TRACKS nearest"""
-    # This list will collect one TrackSummary per obstacle track. 
+def summarize_tracks(scene: SceneObstacles, t0_offset_s: float = 0.0) -> list[TrackSummary]:
+    """Rank tracks by the closest approach and keep the MAX_TRACKS nearest.
+
+    t0_offset_s: subtract this from every track's timestamps before
+    reporting -- used when the dossier's t=0 has been re-anchored away from
+    the clip's original t=0 (see build_dossier's rollout_anchor_s / dossier
+    module docstring), so obstacle-track times stay on the SAME clock as
+    the (already-shifted) trajectory the caller passes to build_dossier.
+    A track can end up with a negative t_enter_s/t_exit_s here -- that just
+    means it was visible before the re-anchored window starts, which is
+    still useful context (e.g. "this vehicle was already alongside us").
+    """
+    # This list will collect one TrackSummary per obstacle track.
     out: list[TrackSummary] = []
 
     # Loop over every obstacle track that is present in the scene (e.g., from obstacle.offline from HF)
-    for tr in scene.tracks: 
-        # Compute the ego-relative distance (in the ground plane, x/y only) at every timestep of this track. 
+    for tr in scene.tracks:
+        # Compute the ego-relative distance (in the ground plane, x/y only) at every timestep of this track.
         dists = np.linalg.norm(tr.centers_m[:, :2], axis=1)
-        # Find the index of the timestep where the distance is smallest (closest approach). 
+        # Find the index of the timestep where the distance is smallest (closest approach).
         i = int(np.argmin(dists))
-        # Convert this track's timestamps from microseconds to seconds
-        ts = tr.timestamps_us.astype(np.float64) / 1e6
+        # Convert this track's timestamps from microseconds to seconds, on the same (possibly re-anchored) clock as the trajectory.
+        ts = tr.timestamps_us.astype(np.float64) / 1e6 - t0_offset_s
         # Build a TrackSummary for this track using the values computed above 
         out.append(
             TrackSummary(
@@ -145,6 +155,52 @@ def waypoints_from_egomotion(df, hz: float = 10.0) -> np.ndarray:
     return np.stack([x, y], axis=1)
 
 
+def find_rollout_anchor_s(waypoints: np.ndarray, hz: float, horizon_wp: int) -> tuple[float, float, float]:
+    """Find the best `horizon_wp`-waypoint window (as a start offset in
+    seconds from waypoints[0]) to anchor real rollout sampling at, instead
+    of always sampling from t=0.
+
+    Real Alpamayo rollouts are a FIXED length (64 waypoints / 6.4s on every
+    real rollout sampled so far, from the trajectory head's own output
+    shape -- not a tunable parameter) regardless of where the OOD event
+    technically "starts." t=0 is the OOD event's own annotated start
+    (ood_eval/manifest.py's event_start_timestamp), but the ego doesn't
+    always begin reacting right away -- e.g. a stop sign becoming relevant
+    while still far away is a real event start, yet the ego may not brake
+    for 10+ seconds. A rollout anchored at t=0 can miss the reaction
+    entirely: confirmed on 333b20c5, whose t=0-anchored 6.4s window
+    captured only 3% of the clip's full speed drop (the real event is at
+    t=17.6s). Sliding a horizon_wp window across the whole clip and
+    re-anchoring to wherever it captures the most speed drop was validated
+    directly against the real 352-clip training corpus: 89% of clips whose
+    real event fell outside a t=0-anchored rollout are FULLY fixed
+    (>=70% of the event captured) by this, 0% are unfixable by any anchor
+    choice.
+
+    Returns (best_offset_s, best_window_drop_mps, full_clip_drop_mps).
+    best_offset_s == 0.0 either means t=0 was already the best anchor, or
+    the clip is too short for horizon_wp waypoints (no re-anchoring
+    possible either way).
+    """
+    dt_s = 1.0 / hz
+    if len(waypoints) < 2:
+        return 0.0, 0.0, 0.0
+    diffs = np.diff(waypoints, axis=0)
+    step_speed = np.linalg.norm(diffs, axis=1) / dt_s
+    speed = np.concatenate([[step_speed[0]], step_speed])
+    full_drop = float(speed[0] - speed.min())
+    n = len(speed)
+    if n <= horizon_wp:
+        return 0.0, full_drop, full_drop
+    best_drop, best_offset_s = -1.0, 0.0
+    for i in range(0, n - horizon_wp + 1):
+        seg = speed[i : i + horizon_wp]
+        drop = float(seg[0] - seg.min())
+        if drop > best_drop:
+            best_drop, best_offset_s = drop, i * dt_s
+    return best_offset_s, best_drop, full_drop
+
+
 # Turn a TrajectoryFeatures object (the expert driver's trajectory) into a
 # short list of plain-English summary lines.
 def ego_lines(traj: TrajectoryFeatures) -> list[str]:
@@ -202,13 +258,49 @@ def build_dossier(
     scene: SceneObstacles,
     gt_traj: TrajectoryFeatures,
     gt_coc: str | None = None,
+    rollout_horizon_traj: TrajectoryFeatures | None = None,
+    rollout_anchor_s: float = 0.0,
 ) -> str:
-    """Render the dossier text handed to the generator."""
+    """Render the dossier text handed to the generator.
+
+    rollout_horizon_traj: GT's own trajectory re-extracted over ONLY the
+    first N waypoints a real sampled rollout actually covers (Alpamayo's
+    trajectory head has a fixed output length -- 64 waypoints / 6.4 s on
+    every real rollout sampled so far -- far shorter than the 20 s
+    egomotion window the full EXPERT EGO TRAJECTORY section below is built
+    from). Without this, the generator designs checks around events in
+    GT's full scene (e.g. min speed at t=17.6s) that no real rollout can
+    ever satisfy, since the array it's scored against ends at t=6.4s
+    (confirmed directly on 333b20c5's udqm59 smoke: the intended execution
+    window returned an empty slice on all 12 sampled rollouts).
+
+    rollout_anchor_s: seconds into the clip's ORIGINAL t=0 (the OOD event's
+    own start timestamp) that this dossier's t=0 has been shifted to. 0.0
+    means no re-anchoring. The caller is responsible for slicing gt_traj /
+    rollout_horizon_traj from that same offset (see
+    find_rollout_anchor_s) -- this parameter only re-times the obstacle
+    tracks so the whole dossier stays on ONE consistent clock. Re-anchoring
+    exists because the OOD event's own start is not always when the
+    trajectory shows a measurable reaction: some scenes react immediately,
+    but e.g. a stop sign becoming relevant while still far away can mean
+    the ego doesn't actually brake until 10+ seconds later -- confirmed on
+    the real 352-clip training corpus, re-anchoring to the best 6.4s window
+    fixes 89% of clips whose real event fell outside a t=0-anchored
+    rollout, with 0% unfixable by any anchor choice.
+    """
     # Start building the dossier as a list of text lines: a header with the clip ID,
     # a blank line, and a section header for the obstacle tracks.
-    parts = [f"CLIP {scene.clip_id}", "", "OBSTACLE TRACKS (ego-relative, nearest first):"]
+    parts = [f"CLIP {scene.clip_id}"]
+    if rollout_anchor_s > 0:
+        parts.append(
+            f"NOTE: t=0 below is RE-ANCHORED to {rollout_anchor_s:.1f}s into the"
+            " original clip -- shifted so a real rollout's fixed prediction horizon"
+            " actually covers this scene's decisive event (see ROLLOUT HORIZON"
+            " below). Obstacle/trajectory times are already on this new clock."
+        )
+    parts += ["", "OBSTACLE TRACKS (ego-relative, nearest first):"]
     # Add one line per obstacle track (already ranked nearest-first by summarize_tracks).
-    for t in summarize_tracks(scene):
+    for t in summarize_tracks(scene, t0_offset_s=rollout_anchor_s):
         parts.append(
             # Describe the track: its ID, class, when it was visible, and its closest approach.
             f"- track {t.track_id} [{t.label_class}] visible {t.t_enter_s:.1f}-{t.t_exit_s:.1f} s;"
@@ -218,9 +310,28 @@ def build_dossier(
     if len(scene.tracks) > MAX_TRACKS:
         parts.append(f"({len(scene.tracks) - MAX_TRACKS} farther tracks omitted)")
     # Add a blank line and a section header for the expert ego trajectory.
-    parts += ["", "EXPERT EGO TRAJECTORY (ground truth):"]
+    traj_label = "full scene" if rollout_anchor_s <= 0 else f"from re-anchored t=0 onward, {rollout_anchor_s:.1f}s into the original clip"
+    parts += ["", f"EXPERT EGO TRAJECTORY (ground truth, {traj_label}):"]
     # Add each ego-trajectory summary line, prefixed with "- " to match the bullet-point style above.
     parts += [f"- {line}" for line in ego_lines(gt_traj)]
+    # If a real rollout group was sampled for this clip, warn off any event
+    # past the horizon it can actually show.
+    if rollout_horizon_traj is not None:
+        horizon_s = rollout_horizon_traj.n_waypoints * rollout_horizon_traj.dt_s
+        parts += [
+            "",
+            f"ROLLOUT HORIZON -- what a REAL policy rollout can actually show ({horizon_s:.1f} s only):",
+            "Every rollout your function will be gate-verified against predicts only"
+            f" {horizon_s:.1f} s forward, NOT the full scene above. Within just that"
+            " window, the expert did:",
+        ]
+        parts += [f"  - {line}" for line in ego_lines(rollout_horizon_traj)]
+        parts.append(
+            "A decisive event timestamped LATER than this window may still explain the"
+            " scene, but must NOT anchor a trajectory-execution check or time window --"
+            " no real rollout will ever have data there, so such a check scores 0 on"
+            " every rollout, including a genuinely good one."
+        )
     # If a ground-truth reasoning annotation string was provided, append it as its own section.
     if gt_coc:
         parts += ["", "GROUND-TRUTH REASONING ANNOTATION:", gt_coc.strip()]

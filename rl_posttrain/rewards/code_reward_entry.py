@@ -89,6 +89,7 @@ from __future__ import annotations
 
 import functools
 import io
+import json
 import logging
 import math
 import os
@@ -282,6 +283,95 @@ def _maybe_log_overlays(
         _get_overlay_run(config).log({"overlays": images, "overlay_group": n})
     except Exception:
         logger.exception("[code_reward] W&B overlay logging failed (continuing)")
+
+
+# ---------------------------------------------------------------------------
+# Debug-only rollout dump. Opt-in (CODE_REWARD_DEBUG_DUMP_ROLLOUTS=1) and
+# purely additive -- persists the raw per-rollout CoC text + trajectory +
+# the SAME reward_dicts entry already computed above to S3, for offline
+# clipgen cross-scoring (code_as_a_reward/clipgen/analyze_group_rollouts.py:
+# score each rollout with the clip's own generated reward_fns/<clip_id>.py,
+# argmax, then verify the argmax via gate.build_perturbations/run_gate on
+# its own claims+trajectory -- the select-then-verify check from
+# code_as_a_reward/clipgen/dossier.py). Nothing here changes what training
+# scores or how it uses the reward; the training path is unaware this flag
+# exists. Off by default, so production runs pay zero cost for it.
+# ---------------------------------------------------------------------------
+
+_DUMP_BUCKET = "research-datasets-chicago"
+_dump_lock = threading.Lock()
+_dump_group_counter = 0
+
+
+def _dump_enabled() -> bool:
+    return os.environ.get("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "0") == "1"
+
+
+def _dump_allowed_clips() -> frozenset[str] | None:
+    """Optional clip_id allowlist (comma-separated CODE_REWARD_DEBUG_DUMP_CLIPS)
+    so a debug run only pays the S3-write cost for the scenes it's actually
+    scoped to inspect (e.g. the clipgen smoke clips). Unset means dump
+    every scene while the flag is on."""
+    raw = os.environ.get("CODE_REWARD_DEBUG_DUMP_CLIPS", "")
+    ids = frozenset(c.strip() for c in raw.split(",") if c.strip())
+    return ids or None
+
+
+def _dump_run_id() -> str:
+    return (
+        os.environ.get("CODE_REWARD_DEBUG_DUMP_RUN_ID")
+        or os.environ.get("WANDB_RUN_ID")
+        or "unlabeled"
+    )
+
+
+def _dump_client():
+    """Same auth/config as run.py's _pai_cache_client -- put_object only,
+    never upload_file: OCI's S3-compat endpoint rejects AWS chunked
+    encoding, which s3transfer's multipart upload always uses."""
+    import boto3
+    from botocore.config import Config
+
+    return boto3.client(
+        "s3",
+        endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"),
+        config=Config(
+            signature_version="s3v4",
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+            s3={"payload_signing_enabled": True},
+            retries={"max_attempts": 5, "mode": "adaptive"},
+        ),
+    )
+
+
+def _maybe_dump_rollouts(
+    clip_id: str,
+    scene_id: str,
+    hz: float,
+    rollouts: list[dict[str, Any]],
+) -> None:
+    """Write one JSON per scene: every rollout's coc_text, waypoints, and
+    full reward_dicts entry (traj_L2/comfort_reward/reasoning_score/reward
+    plus the code_* aux metrics) -- the "reasoning and all metrics per
+    scene observation" record, not just a reward scalar."""
+    if not _dump_enabled():
+        return
+    allowed = _dump_allowed_clips()
+    if allowed is not None and clip_id not in allowed:
+        return
+    global _dump_group_counter
+    with _dump_lock:
+        _dump_group_counter += 1
+        n = _dump_group_counter
+    key = f"code_as_a_reward/clipgen/rollout_dumps/{_dump_run_id()}/{n:06d}_{clip_id}.json"
+    try:
+        payload = {"scene_id": scene_id, "clip_id": clip_id, "hz": hz, "rollouts": rollouts}
+        _dump_client().put_object(
+            Bucket=_DUMP_BUCKET, Key=key, Body=json.dumps(payload).encode("utf-8")
+        )
+    except Exception:
+        logger.exception(f"[code_reward] rollout dump failed for {scene_id} (continuing)")
 
 
 # ---------------------------------------------------------------------------
@@ -647,6 +737,7 @@ def compute_reward_batch(
     rewards: list[float] = []
     reward_dicts: list[dict[str, float]] = []
     overlay_rollouts: list[tuple[int, Any, float, float]] = []
+    dump_rollouts: list[dict[str, Any]] = []
     for rollout_id, to_be_evaluated in enumerate(to_be_evaluated_list):
         predicted_fut_xyz, predicted_fut_rot = decode_rollout_trajectory(
             to_be_evaluated,
@@ -751,6 +842,14 @@ def compute_reward_batch(
                 **aux,
             }
         )
+        dump_rollouts.append(
+            {
+                "rollout_id": rollout_id,
+                "coc_text": pred_cot,
+                "waypoints": pred_xyz_np.tolist(),
+                **reward_dicts[-1],
+            }
+        )
 
     # cosmos-rl's aggregate_report_data (utils/util.py) reduces these dicts
     # into per-step W&B metrics with np.mean(data.get(k, 0)): a single NaN
@@ -773,6 +872,7 @@ def compute_reward_batch(
     gt0 = gt_fut_xyz[0]
     gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
     _maybe_log_overlays(reference, scene_id, gt_np, overlay_rollouts, config)
+    _maybe_dump_rollouts(clip_id, scene_id, hz, dump_rollouts)
 
     return rewards, reward_dicts
 

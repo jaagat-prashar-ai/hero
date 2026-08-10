@@ -13,6 +13,7 @@ hard gate, so GRPO advantages encoded threshold luck).
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -239,3 +240,84 @@ class TestObstacleManifest:
         (d / "_MANIFEST.txt").write_text("clip_a\n")
         monkeypatch.setenv("ALPAMAYO_PAI_REASONING_LOCAL_DIR", str(tmp_path))
         assert cre._load_scene("clip_absent_upstream") is None
+
+
+class TestDumpRollouts:
+    """The debug-only rollout dump: off by default, and -- when on -- must
+    never touch the training path (compute_reward_batch is untested here,
+    per the module docstring; these pin down the additive helpers only)."""
+
+    def test_disabled_by_default(self, monkeypatch):
+        monkeypatch.delenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", raising=False)
+        assert not cre._dump_enabled()
+
+    def test_enabled_only_on_exact_flag_value(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "1")
+        assert cre._dump_enabled()
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "true")
+        assert not cre._dump_enabled()
+
+    def test_allowed_clips_unset_means_no_filter(self, monkeypatch):
+        monkeypatch.delenv("CODE_REWARD_DEBUG_DUMP_CLIPS", raising=False)
+        assert cre._dump_allowed_clips() is None
+
+    def test_allowed_clips_parses_comma_list(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_CLIPS", "clip_a, clip_b ,clip_a")
+        assert cre._dump_allowed_clips() == frozenset({"clip_a", "clip_b"})
+
+    def test_maybe_dump_noop_when_disabled(self, monkeypatch):
+        monkeypatch.delenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", raising=False)
+        monkeypatch.setattr(
+            cre,
+            "_dump_client",
+            lambda: (_ for _ in ()).throw(AssertionError("must not touch S3 when disabled")),
+        )
+        cre._maybe_dump_rollouts("clip_a", "clip_a_123", 10.0, [{"rollout_id": 0}])
+
+    def test_maybe_dump_skips_clip_outside_allowlist(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "1")
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_CLIPS", "clip_b")
+        monkeypatch.setattr(
+            cre,
+            "_dump_client",
+            lambda: (_ for _ in ()).throw(AssertionError("must not touch S3 outside allowlist")),
+        )
+        cre._maybe_dump_rollouts("clip_a", "clip_a_123", 10.0, [{"rollout_id": 0}])
+
+    def test_maybe_dump_writes_payload_for_allowed_clip(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "1")
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_CLIPS", "clip_a")
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_RUN_ID", "test-run")
+        puts = []
+
+        class FakeClient:
+            def put_object(self, **kwargs):
+                puts.append(kwargs)
+
+        monkeypatch.setattr(cre, "_dump_client", lambda: FakeClient())
+        rollouts = [{"rollout_id": 0, "coc_text": "nudge left", "waypoints": [[0.0, 0.0, 0.0]]}]
+        cre._maybe_dump_rollouts("clip_a", "clip_a_123", 10.0, rollouts)
+
+        assert len(puts) == 1
+        call = puts[0]
+        assert call["Bucket"] == cre._DUMP_BUCKET
+        assert call["Key"].startswith("code_as_a_reward/clipgen/rollout_dumps/test-run/")
+        assert call["Key"].endswith("_clip_a.json")
+        payload = json.loads(call["Body"])
+        assert payload == {
+            "scene_id": "clip_a_123",
+            "clip_id": "clip_a",
+            "hz": 10.0,
+            "rollouts": rollouts,
+        }
+
+    def test_maybe_dump_survives_s3_failure(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_DEBUG_DUMP_ROLLOUTS", "1")
+        monkeypatch.delenv("CODE_REWARD_DEBUG_DUMP_CLIPS", raising=False)
+
+        class FailingClient:
+            def put_object(self, **kwargs):
+                raise RuntimeError("boom")
+
+        monkeypatch.setattr(cre, "_dump_client", lambda: FailingClient())
+        cre._maybe_dump_rollouts("clip_a", "clip_a_123", 10.0, [{"rollout_id": 0}])  # must not raise

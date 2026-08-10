@@ -1,0 +1,88 @@
+# Validation run for the rollout re-anchoring fix (2026-08-10): re-samples
+# real Alpamayo rollouts for the SAME 3 clips as
+# clipgen_real_rollout_smoke.yaml (udqm59), but anchored at each clip's
+# best_t offset (dossier.find_rollout_anchor_s) instead of the raw OOD
+# event_start_timestamp -- so the sampled rollout's fixed 6.4s prediction
+# window actually covers the clip's decisive event, not just whatever
+# happens right at event-onset.
+#
+# t0_us values below = original event_start_timestamp + anchor_s*1e6,
+# computed once locally from GT egomotion data (no GPU needed for that
+# part): 333b20c5 +7.7s -> 18501763; 3419aa15 +13.6s -> 24082767;
+# 02fd6a8f +0.6s -> 3200000 (02fd6a8f's original anchor was already near-
+# optimal, so this one barely moves).
+#
+# Separate name + S3 prefixes from clipgen_real_rollout_smoke.yaml on
+# purpose -- do NOT let this overwrite udqm59's diagnostic data.
+#
+# Submit (from repo root):
+#   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
+#     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_real_rollout_smoke_reanchor.yaml
+name: clipgen-real-rollout-smoke-reanchor
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
+  training_fn_config:
+    targets:
+      - {clip_id: "333b20c5-3598-465c-a175-76221e8100a6", t0_us: 18501763}
+      - {clip_id: "3419aa15-0975-4634-ba46-f3867802512f", t0_us: 24082767}
+      - {clip_id: "02fd6a8f-db9c-423e-beb6-37729e7e6af2", t0_us: 3200000}
+    group_size: 12
+    manifest: "code_as_a_reward/clipgen/data15/manifest_smoke3.json"
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_reanchor"
+    out_dir: "/mnt/work/tmp/clipgen_out_reanchor"
+    s3_bucket: "research-datasets-chicago"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/clipgen-real-rollout-smoke-reanchor"
+    s3_prefix: "code_as_a_reward/clipgen/runs/real-rollout-smoke-reanchor"
+    backend: "openai"
+    wandb_project: "code-as-reward-clipgen"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+    - OPENAI_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/convos/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"

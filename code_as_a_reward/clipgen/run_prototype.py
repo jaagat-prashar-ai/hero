@@ -72,6 +72,13 @@ from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
 MAX_ATTEMPTS = 3
+# Alpamayo's trajectory head has a fixed output length -- every real
+# rollout sampled so far is exactly this many waypoints (rollout_sampler.py
+# has no horizon parameter; this falls straight out of the model
+# architecture). Used both to decide how much of the dossier a real rollout
+# can actually cover, and where to re-anchor t=0 to (see
+# dossier.find_rollout_anchor_s).
+ROLLOUT_HORIZON_WP = 64
 
 
 def _load_clip(entry: dict) -> dict:
@@ -86,17 +93,33 @@ def _load_clip(entry: dict) -> dict:
         )
     gt_coc = Path(entry["gt_coc"]).read_text().strip()
     overlay = entry.get("overlay_jpeg")
+
+    # Re-anchor to wherever this clip's real decisive event actually is,
+    # rather than trusting the OOD event's own start timestamp -- the two
+    # can be 10+ seconds apart (see find_rollout_anchor_s's docstring;
+    # confirmed on the real 352-clip training corpus). anchored_waypoints
+    # is what a real rollout sampled from that new t0 would actually cover;
+    # gt_traj below is built from it so the WHOLE dossier (obstacle tracks +
+    # trajectory) is on one consistent clock.
+    anchor_s, _, _ = dossier_mod.find_rollout_anchor_s(waypoints, hz, ROLLOUT_HORIZON_WP)
+    anchored_waypoints = waypoints[int(round(anchor_s * hz)) :]
+
     return {
         "clip_id": clip_id,
         "scene": scene,
-        "waypoints": waypoints,
+        "waypoints": waypoints,  # ORIGINAL, unshifted (t=0 = OOD event start)
+        "anchored_waypoints": anchored_waypoints,  # t=0 = anchor_s into the original clip
+        "rollout_anchor_s": anchor_s,
         "hz": hz,
         "gt_coc": gt_coc,
         "gt_claims": parse_coc_trace(gt_coc, scene_id=clip_id),
-        "gt_traj": dossier_mod.features_from_waypoints(waypoints, hz, clip_id),
+        "gt_traj": dossier_mod.features_from_waypoints(anchored_waypoints, hz, clip_id),
         # Scene grounding for the generator (camera frame + projected GT
         # waypoints, see build_overlays.py); optional so older manifests
-        # still run text-only.
+        # still run text-only. NOTE: this image is still built relative to
+        # the ORIGINAL t0, not the re-anchored one -- not yet regenerated to
+        # match (would need re-fetching the camera frame at the new
+        # timestamp via build_overlays.py); known gap, not fixed here.
         "overlay_jpeg": Path(overlay).read_bytes() if overlay else None,
     }
 
@@ -154,9 +177,26 @@ def run(
     report: dict = {"clips": {}, "model": None}
     for clip in clips:
         clip_id = clip["clip_id"]
-        text = dossier_mod.build_dossier(clip["scene"], clip["gt_traj"], clip["gt_coc"])
-        (out / f"{clip_id}.dossier.txt").write_text(text + "\n")
         rollouts = rollout_groups.get(clip_id)
+        # Re-extract GT's own (already re-anchored, see _load_clip) trajectory
+        # over just ROLLOUT_HORIZON_WP waypoints, so the dossier and the
+        # generation prompt only ever cite numbers a real rollout could
+        # actually reproduce. Computed from the fixed horizon constant, NOT
+        # from `rollouts`' own length -- this must stay valid even before any
+        # rollout has been sampled at the (possibly new) anchor.
+        rollout_horizon_traj = None
+        if len(clip["anchored_waypoints"]) > ROLLOUT_HORIZON_WP:
+            rollout_horizon_traj = dossier_mod.features_from_waypoints(
+                clip["anchored_waypoints"][:ROLLOUT_HORIZON_WP], clip["hz"], clip_id
+            )
+        text = dossier_mod.build_dossier(
+            clip["scene"],
+            clip["gt_traj"],
+            clip["gt_coc"],
+            rollout_horizon_traj=rollout_horizon_traj,
+            rollout_anchor_s=clip["rollout_anchor_s"],
+        )
+        (out / f"{clip_id}.dossier.txt").write_text(text + "\n")
         entry: dict = {
             "n_rollouts": len(rollouts) if rollouts else 0,
             "gt_coc": clip["gt_coc"],
@@ -183,7 +223,7 @@ def run(
                     prior_transcript=transcript,
                     tracker=tracker,
                     overlay_jpeg=clip["overlay_jpeg"],
-                    gt_traj_facts=gate_mod._traj_facts(clip["gt_traj"]),
+                    gt_traj_facts=gate_mod._traj_facts(rollout_horizon_traj or clip["gt_traj"]),
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})

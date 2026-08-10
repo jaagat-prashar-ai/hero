@@ -227,7 +227,8 @@ def test_step3_carries_gt_traj_facts():
     facts = "speed 8.0->3.0 m/s (min 3.0 at t=4.0s, drop 5.0)"
     block = render_gt_traj_facts(facts)
     assert facts in block
-    assert "dry-run every execution predicate" in block
+    assert "dry run of your thresholds" in block
+    assert "Never anchor a time window past what these facts cover" in block
     filled = _STEP3.format(api_reference="API", gt_claims="CLAIMS", gt_traj_facts=block)
     assert facts in filled and "CLAIMS" in filled
 

@@ -105,11 +105,17 @@ _SYSTEM = """\
 You write per-scene reward functions for an autonomous-driving RL pipeline.
 
 A policy model watches a driving clip and produces (a) chain-of-causation
-reasoning text and (b) a planned trajectory. Your function scores ONE such
-rollout for FAITHFULNESS against this specific scene's ground truth: did the
-reasoning register what actually mattered in this scene, commit to
-appropriate behavior, and did the trajectory execute what the reasoning
-committed to?
+reasoning text and (b) a planned trajectory. You're shown three things about
+the ground truth for this scene: the camera frame at t0 with the expert's
+actual future trajectory drawn on it, the expert's own reasoning (what it
+says it noticed and committed to), and the expert's actual measured actions
+(the dossier's trajectory numbers). From those three things, infer a
+practical rubric for "was this rollout an ACCEPTABLE, faithful response to
+this scene" -- not "does it exactly reproduce GT." A real rollout from the
+policy will differ from GT in its exact phrasing, its exact numbers, and
+even its exact timing; build reasonably flexible bounds and tolerances into
+your checks from the start, rather than GT's literal values as hard
+requirements.
 
 How you score is entirely up to you. Reason about what faithfulness means
 for THIS scene and design whatever logic, heuristics, and intermediate
@@ -117,41 +123,34 @@ quantities capture it best. Perception, commitment, and execution checks
 are natural ingredients, but their structure, weighting, and combination
 are yours to invent per scene -- no fixed rubric is prescribed. Scores are
 used to RANK candidate rollouts, so correct ordering matters more than
-calibrated values.
+calibrated absolute values.
 
-Your function must discriminate. It is verified against corrupted variants
-of a rollout: the same reasoning with a time-reversed or no-reaction
-trajectory, and the same trajectory with the reasoning gutted. The
-verification gate requires, numerically:
-- the intact ground-truth pair scores >= 0.7;
-- EVERY corruption scores at least 0.4 below the intact pair.
-Work out the budget arithmetic BEFORE writing code. Each corruption
-RETAINS whole categories of credit untouched:
-- reversed / no-reaction trajectory: retains ALL claims-only credit;
-- gutted claims: retains ALL trajectory-only credit;
-- commitments removed: retains perception-mention credit AND ALL
-  trajectory-only credit (the trajectory itself is intact).
-Any retained total above (positive_score - 0.4) fails that case
-automatically, no matter how clever the individual checks are. The ONLY
-components that lose credit under EVERY corruption are CONJUNCTIONS:
-credit awarded solely when a commitment claim is present AND the
-trajectory executes that commitment inside the event's time window.
-Therefore budget your component maxima as:
-- conjunction (claim-AND-execution) components: >= 0.5 of the total;
-- mention-only components (claims present, trajectory ignored): <= 0.2;
-- trajectory-only components (no claim condition): <= 0.2;
-- everything must still sum to exactly 1.0.
-With that budget every corruption drops by >= 0.4 by construction; with
-equal-weight independent buckets it is arithmetically unreachable.
-Checks a corruption preserves -- aggregate statistics like
-min/max speed, order-insensitive quantities, "some deviation happened
-somewhere" -- hand the corruption the same credit as the real thing;
-anchor checks in the maneuver's temporal shape instead (what happens,
-WHEN, in what order, in which direction). The sharpest reversal
-discriminator is TIMING: a time-reversed trajectory keeps the same speeds
-but events happen at mirrored times -- e.g. require the minimum speed to
-occur inside the event's time window (argmin(speed) * dt_s), not just that
-a drop of some size exists.
+Your function will be empirically verified, not just trusted: after GRPO
+samples a group of rollouts, the highest-scoring one (the argmax) gets
+checked against corrupted variants of ITSELF -- the same reasoning with a
+time-reversed or no-reaction trajectory, the same trajectory with the
+reasoning gutted, with its commitments removed, or with a commitment
+flipped to a different maneuver. A good function scores the intact argmax
+meaningfully higher (roughly >= 0.7) than every one of its own corruptions
+(each dropping by roughly >= 0.4). You don't need to solve this as an exact
+formula up front -- keep one design principle in mind, and let the
+empirical feedback on a failed attempt guide the rest: only checks that
+require BOTH a commitment claim being present AND the trajectory actually
+executing it survive every corruption. Checks based on the claim alone, or
+the trajectory alone, tend to keep their credit under some corruption, so
+they should carry less weight than checks requiring both. Checks a
+corruption preserves -- aggregate statistics like min/max speed,
+order-insensitive quantities, "some deviation happened somewhere" -- hand
+the corruption the same credit as the real thing; anchor checks in the
+maneuver's temporal shape instead (what happens, WHEN, in what order, in
+which direction). Timing is the sharpest reversal discriminator: a
+time-reversed trajectory keeps the same speeds but events happen at
+mirrored times.
+
+If your first attempt doesn't clear the empirical check, you'll see exactly
+which case failed, by how much, and the real measured numbers behind it --
+use that concrete feedback to adjust your checks, rather than trying to get
+every threshold and weight perfect before ever seeing real data.
 
 Hard rules for the final function:
 - Signature exactly `def reward(claims, traj) -> float`, returning a value
@@ -160,28 +159,25 @@ Hard rules for the final function:
   component contributions (e.g. {"saw_pedestrian": 0.1, "stop_executed":
   0.5, ...}); `reward` must return exactly min(1.0, max(0.0,
   sum(components(claims, traj).values()))). The gate calls components() on
-  every case, rejects the function if the sum exceeds 1.0 or disagrees
-  with reward(), and shows you the per-case breakdown when a case fails.
-- Derive every threshold from THIS scene's numbers in the dossier (times,
-  distances, speed drops). Never invent generic constants like 0.3 m.
+  every case, rejects the function if the pre-clamp sum exceeds 1.0 or
+  disagrees with reward(), and shows you the per-case breakdown when a case
+  fails -- use that to reallocate credit rather than trying to hit an exact
+  budget from the start.
+- Use this scene's dossier numbers (times, distances, speed drops) as a
+  reference point for your thresholds, with reasonable margin -- not as
+  exact values a real rollout must reproduce.
 - No imports, no dunder access, no I/O. Available names: `np` (numpy),
   `window(values, dt_s, t0, t1)` (slice a per-waypoint series to a time
   window in seconds), and standard builtins (min, max, abs, any, ...).
 - Be robust: guard divisions, tolerate empty claim lists and short
   trajectories. An exception scores the rollout zero, which is worse than
   returning a low score.
-- Your component maxima must sum to EXACTLY 1.0. Never rely on a final
-  [0,1] clamp to absorb over-allocation: if claims-only credit can reach
-  1.0 on its own, every trajectory corruption saturates to the same score
-  as the positive and the gate rejects the function. The gate inspects the
-  PRE-clamp value and rejects any case returning above 1.0. Budget per the
-  system-prompt table: conjunctions >= 0.5, mention-only <= 0.2,
-  trajectory-only <= 0.2.
 - Real trajectories are NOISY: speed and lateral-offset series jitter from
   waypoint to waypoint, including the ground truth's. Never require
-  monotonicity, exact equality, or all()-over-raw-series conditions --
-  they fail on the ground truth itself. Compare windowed aggregates
-  (means, extrema over a time window) against thresholds with tolerance.
+  monotonicity, exact equality (`==`/`!=` against a float), or
+  all()-over-raw-series conditions -- they fail on the ground truth itself.
+  Compare windowed aggregates (means, extrema over a time window) against
+  thresholds with tolerance.
 """
 
 _API_REFERENCE = """\
@@ -243,13 +239,17 @@ remain authoritative for exact geometry and timing.
 """
 
 _STEP2 = """\
-Step 2: for each decisive event, define what a FAITHFUL rollout looks like:
-(a) which perceptual claims should be present (entity/state keys),
-(b) which commitments should be present (maneuver keys),
-(c) what the trajectory must quantitatively do, with thresholds derived
-from this scene's numbers (e.g. fractions of the expert's speed drop inside
-the event's time window). Also define what an UNFAITHFUL rollout looks like
-(mentions without execution, execution without mention, wrong direction).
+Step 2: for each decisive event, define what an ACCEPTABLE rollout looks
+like -- not an exact GT match:
+(a) which perceptual claims should reasonably be present (entity/state
+keys),
+(b) which commitments should reasonably be present (maneuver keys),
+(c) what the trajectory should approximately do, with flexible thresholds
+inspired by (not copied from) this scene's numbers -- a real rollout will
+differ from GT in its exact values and timing.
+Also define what an UNFAITHFUL rollout looks like (mentions without
+execution, execution without mention, wrong direction) -- this is what your
+function actually needs to separate.
 """
 
 _STEP3 = """\
@@ -266,9 +266,9 @@ Write ONE python code block containing `def components(claims, traj):`
 (exactly the clamped sum of components -- typically
 `return min(1.0, max(0.0, sum(components(claims, traj).values())))`).
 Compose the score however best fits this scene -- you decide the component
-structure and weighting within the budget table. Include a short docstring
-naming the decisive events and the scene-derived thresholds. Remember the
-hard rules from the system prompt.
+structure and weighting. Include a short docstring naming the decisive
+events and the scene-derived thresholds. Remember the hard rules from the
+system prompt.
 """
 
 _RETRY = """\
@@ -282,15 +282,16 @@ Before writing any code, answer these in one or two sentences each:
 2. WHAT measured fact from the facts block above separates that case from
    the positive (e.g. the TIME at which minimum speed occurs, not its
    magnitude)?
-3. Write out your component budget as a table (component: max, which
-   corruptions it survives). Does it satisfy conjunctions >= 0.5,
-   mention-only <= 0.2, trajectory-only <= 0.2, total exactly 1.0? If not,
-   the failing case is arithmetic, not logic -- fix the budget first.
+3. Which of your components require BOTH a claim AND matching trajectory
+   execution (conjunctions), versus claim-only or trajectory-only? If a
+   failing corruption kept most of its score, too much credit likely lives
+   in a claim-only or trajectory-only component -- shift more weight onto
+   conjunctions rather than chasing an exact formula.
 4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
    is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
-   threshold the GT trajectory never satisfies -- recheck against the
-   measured facts). Fix or REMOVE it and re-normalize the budget; dead
-   components cap the positive below the bar no matter what else you do.
+   threshold the real data never satisfies -- recheck against the measured
+   facts). Fix or REMOVE it; dead components cap the positive below the bar
+   no matter what else you do.
 Then rewrite the offending check AROUND that separating fact. Do NOT just
 nudge thresholds -- if a case scored identically to the positive, your
 current checks cannot see the difference and one of them must be replaced.
@@ -422,21 +423,33 @@ def render_gt_claims(trace) -> str:
 
 
 def render_gt_traj_facts(facts: str) -> str:
-    """Frame the measured GT trajectory numbers as a pre-flight check.
-    8750ne collapsed 11/15 positives because execution predicates were
-    anchored at invented time windows (a yield window at t=9-20s when the
-    GT's stop is at t=0.9s) -- the model only saw the measured facts in
-    retry feedback, after the budget was already spent on dead checks."""
+    """Frame the measured (horizon-truncated, when a rollout group exists)
+    GT trajectory numbers as a pre-flight check. 8750ne collapsed 11/15
+    positives because execution predicates were anchored at invented time
+    windows (a yield window at t=9-20s when the GT's stop is at t=0.9s) --
+    the model only saw the measured facts in retry feedback, after the
+    budget was already spent on dead checks. Since the 2026-08-09
+    real-rollout redesign the actual gate reference is a REAL sampled
+    rollout's own argmax, not GT (run_prototype.py) -- this wording used to
+    claim otherwise; fixed after udqm59's 333b20c5 analysis, where a window
+    anchored to GT's own event past the real rollout's 6.4s horizon
+    returned an empty slice on all 12 sampled rollouts."""
     return (
-        "Your positive gate case is EXACTLY this ground-truth trajectory,"
-        " measured:\n  " + facts + "\n"
-        "Before finalizing, dry-run every execution predicate against these"
-        " numbers: a component whose check cannot fire on THIS data (wrong"
-        " time window, wrong maneuver direction, a threshold the GT never"
-        " crosses) contributes 0.0 to the positive and caps it below the"
-        " 0.7 bar. Likewise, a component keyed to a claim that is NOT in the"
-        " GT parse above is dead weight on the positive. Every component"
-        " must be able to earn its credit on the GT pair."
+        "These are the ground-truth trajectory's numbers, restricted to the"
+        " window a real rollout can actually cover (see the dossier's"
+        " ROLLOUT HORIZON section) -- measured:\n  " + facts + "\n"
+        "The function you write will actually be gate-verified against a"
+        " REAL sampled policy rollout's own claims and trajectory, not this"
+        " GT pair -- its exact numbers, timing, and even its claimed"
+        " maneuvers may differ from GT. Use these numbers as a realistic"
+        " dry run of your thresholds, not as the literal case you'll be"
+        " scored against. A component whose check cannot fire on THIS data"
+        " (wrong time window, wrong maneuver direction, a threshold never"
+        " crossed) contributes 0.0 here and will likely contribute 0.0 on"
+        " the real rollout too. Likewise, a component keyed to a claim that"
+        " is NOT in the GT parse above is dead weight. Never anchor a time"
+        " window past what these facts cover -- no real rollout will have"
+        " data beyond that mark."
     )
 
 

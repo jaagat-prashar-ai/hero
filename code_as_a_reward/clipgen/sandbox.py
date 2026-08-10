@@ -80,6 +80,32 @@ def _check_canonical_vocab(tree: ast.AST) -> None:
                     )
 
 
+def _check_no_float_equality(tree: ast.AST) -> None:
+    """Reject exact float-literal equality/inequality checks (`x == 0.0`,
+    `x != 4.2`). Real trajectory-derived quantities (speed, offsets, windowed
+    extrema) are noisy floats that never hit an exact literal -- this
+    silently zeros a component on every real rollout, GT included
+    (02fd6a8f's `speed_window.min() == 0.0`: dead across all 12 real
+    rollouts in the udqm59 smoke despite every one of them physically
+    stopping to within 0.05 m/s). Int/bool/string equality (counts,
+    canonical keys) is unaffected -- only a float-typed literal operand
+    trips this. The system prompt already asks for this in prose (see
+    generate.py's "never require... exact equality"); that alone did not
+    stop gpt-4o writing it twice on the same clip, so it's enforced here."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Compare):
+            continue
+        if not any(isinstance(op, (ast.Eq, ast.NotEq)) for op in node.ops):
+            continue
+        for operand in (node.left, *node.comparators):
+            if isinstance(operand, ast.Constant) and isinstance(operand.value, float):
+                raise RewardFnError(
+                    f"exact equality against float literal {operand.value!r} -- real "
+                    "trajectory data is noisy and will never hit an exact value; use "
+                    "a tolerance instead (e.g. `abs(x - target) <= eps`, or `<=`/`>=`)"
+                )
+
+
 _SAFE_BUILTINS = {
     name: __builtins__[name] if isinstance(__builtins__, dict) else getattr(__builtins__, name)
     for name in (
@@ -116,6 +142,7 @@ def _check_ast(source: str) -> None:
         if isinstance(node, ast.Name) and node.id.startswith("__"):
             raise RewardFnError(f"dunder name forbidden: {node.id}")
     _check_canonical_vocab(tree)
+    _check_no_float_equality(tree)
 
 
 def compile_reward_module(source: str, require_components: bool = False):
