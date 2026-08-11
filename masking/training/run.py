@@ -40,8 +40,11 @@ Full config reference (all keys optional, defaults shown):
                                           # s3://{s3_bucket}/{this}/ after every write --
                                           # outdir is local-node storage, NOT shared across
                                           # nodes or persisted after the pod is torn down
-    checkpoint:       "nvidia/Alpamayo-1.5-10B"
-    experiment:       "a"              # "a" or "b"
+    model_family:     "a15"             # "a15" (Alpamayo 1.5) or "a2" (Alpamayo 2 Super)
+    checkpoint:       "nvidia/Alpamayo-1.5-10B"   # a2 family default: nvidia/Alpamayo2-Super
+    device_map:       null              # e.g. "auto" — shard the 34B a2 checkpoint across
+                                        # this worker's visible GPUs (single-replica runs)
+    experiment:       "a"              # "a".."d"
     seed:             0
     concepts:         "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
     resume:           false
@@ -75,7 +78,9 @@ _DEFAULTS: dict[str, Any] = {
     "max_shards":     None,
     "sample_clips_manifest": None,  # path to a masking.data.sample_clips.py manifest
     "results_s3_prefix": None,  # if set, upload results JSONL to s3://{s3_bucket}/{this}/
+    "model_family":   "a15",
     "checkpoint":     "nvidia/Alpamayo-1.5-10B",
+    "device_map":     None,
     "experiment":     "a",
     "seed":           0,
     "concepts":       "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light",
@@ -87,6 +92,13 @@ _DEFAULTS: dict[str, Any] = {
     "rank":                0,
     "world_size":          1,
     "download_wait_seconds": 3600,
+}
+
+
+# Used when a config sets model_family but leaves checkpoint at the module default.
+_FAMILY_DEFAULT_CHECKPOINT = {
+    "a15": "nvidia/Alpamayo-1.5-10B",
+    "a2": "nvidia/Alpamayo2-Super",
 }
 
 
@@ -196,15 +208,35 @@ def _acquire_shards(cfg: dict[str, Any], local_data: Path, rank: int) -> list[Pa
 # Model helpers
 # ---------------------------------------------------------------------------
 
-def _load_model(checkpoint: str, device: str = "cuda"):
-    """Load MaskedAlpamayo1_5 from a HuggingFace checkpoint."""
-    from masking.bootstrap import ensure_alpamayo1_5
+def _load_model(
+    checkpoint: str,
+    device: str = "cuda",
+    model_family: str = "a15",
+    device_map: str | None = None,
+):
+    """Load the masked model fork for the requested family from a HF checkpoint."""
+    if model_family == "a2":
+        from masking.bootstrap import ensure_alpamayo2
 
-    ensure_alpamayo1_5()
-    from masking.masked_model import MaskedAlpamayo1_5
-    model = MaskedAlpamayo1_5.from_pretrained(
-        checkpoint, dtype=torch.bfloat16, attn_implementation="sdpa",
-    ).to(device)
+        ensure_alpamayo2()
+        from masking.masked_model_a2 import MaskedAlpamayo2Super
+        model_cls = MaskedAlpamayo2Super
+    else:
+        from masking.bootstrap import ensure_alpamayo1_5
+
+        ensure_alpamayo1_5()
+        from masking.masked_model import MaskedAlpamayo1_5
+        model_cls = MaskedAlpamayo1_5
+
+    # sdpa everywhere: flash-attn is not in either requirements file, and the
+    # a2 repo only *prefers* flash-attn (_supports_sdpa is set on the model).
+    kwargs = dict(dtype=torch.bfloat16, attn_implementation="sdpa")
+    if device_map is not None:
+        # 34B a2 checkpoints may not fit one 80GB GPU with the multi-camera
+        # KV cache; let accelerate shard layers across this worker's GPUs.
+        model = model_cls.from_pretrained(checkpoint, device_map=device_map, **kwargs)
+    else:
+        model = model_cls.from_pretrained(checkpoint, **kwargs).to(device)
     model.eval()
     return model
 
@@ -215,14 +247,53 @@ def _resolve_device(local_rank: int) -> str:
     return "cpu"
 
 
-def _build_inputs(model, item: dict, device: str = "cuda") -> dict:
+# One processor per loaded model: alpamayo2_super.helper.prepare_model_inputs
+# would re-instantiate AutoProcessor.from_pretrained on every event.
+_A2_PROCESSOR_CACHE: dict[int, Any] = {}
+
+
+def _build_inputs(model, item: dict, device: str = "cuda", model_family: str = "a15") -> dict:
     """Convert a WDS event item to model inputs on the specified device."""
+    data = item["model_inputs"]
+
+    if model_family == "a2":
+        from masking.bootstrap import ensure_alpamayo2
+
+        ensure_alpamayo2()
+        from alpamayo2_super import helper
+
+        processor = _A2_PROCESSOR_CACHE.get(id(model))
+        if processor is None:
+            processor = helper.get_processor(model.tokenizer, model.config)
+            _A2_PROCESSOR_CACHE[id(model)] = processor
+
+        # Mirrors helper.prepare_model_inputs for the trajectory task: the
+        # assistant turn is empty in generation mode, so create_messages drops
+        # it and we add the generation prompt instead.
+        messages = helper.create_messages(data, model.config)
+        text = processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True, add_vision_id=False,
+        )
+        images = data["image_frames"].flatten(0, 1)
+        images = (images.float() / 255.0) if images.dtype == torch.uint8 else images.float()
+        tokenized = dict(
+            processor(
+                text=text, images=images, videos=None, padding=False,
+                return_tensors="pt", do_rescale=False,
+            )
+        )
+        model_inputs = {
+            "tokenized_data": tokenized,
+            "ego_history_xyz": data["ego_history_xyz"],
+            "ego_history_rot": data["ego_history_rot"],
+        }
+        return helper.to_device(model_inputs, device)
+
     from masking.bootstrap import ensure_alpamayo1_5
 
     ensure_alpamayo1_5()
     from alpamayo1_5 import helper
 
-    data = item["model_inputs"]
     messages = helper.create_message(
         frames=data["image_frames"].flatten(0, 1),
         camera_indices=data["camera_indices"],
@@ -441,6 +512,15 @@ def masking_loop(
     outdir.mkdir(parents=True, exist_ok=True)
     local_data.mkdir(parents=True, exist_ok=True)
 
+    model_family     = str(cfg.get("model_family", "a15")).lower()
+    checkpoint       = cfg["checkpoint"]
+    if model_family != "a15" and checkpoint == _DEFAULTS["checkpoint"]:
+        # Config picked a family but left checkpoint at the module default.
+        checkpoint = _FAMILY_DEFAULT_CHECKPOINT[model_family]
+    if cfg.get("device_map"):
+        # accelerate decides layer placement; inputs go to the first shard.
+        device = "cuda:0"
+
     experiment       = str(cfg["experiment"]).lower()
     seed             = int(cfg["seed"])
     concepts         = [c.strip() for c in str(cfg["concepts"]).split(",") if c.strip()]
@@ -477,16 +557,23 @@ def masking_loop(
         logger.info("Resuming: %d events already done on rank %d", len(done), rank)
 
     # ── 3. Load model once on this GPU ───────────────────────────────────────
-    logger.info("Loading model %s on %s …", cfg["checkpoint"], device)
-    model = _load_model(cfg["checkpoint"], device=device)
+    logger.info("Loading %s model %s on %s …", model_family, checkpoint, device)
+    model = _load_model(
+        checkpoint,
+        device=device,
+        model_family=model_family,
+        device_map=cfg.get("device_map"),
+    )
 
     # ── 4. Iterate WDS events assigned to this rank ───────────────────────
     from masking.data.wds_dataset import iter_clip_events, iter_clip_events_from_manifest
 
     if using_manifest:
-        event_iter = iter_clip_events_from_manifest(cfg["sample_clips_manifest"], cfg["s3_bucket"])
+        event_iter = iter_clip_events_from_manifest(
+            cfg["sample_clips_manifest"], cfg["s3_bucket"], camera_profile=model_family
+        )
     else:
-        event_iter = iter_clip_events(shards)
+        event_iter = iter_clip_events(shards, camera_profile=model_family)
 
     n_success = 0
     n_skipped = 0
@@ -509,7 +596,9 @@ def masking_loop(
             logger.info("[rank %d] clip=%.8s t0=%.2fs  cluster=%s",
                         rank, clip_id, t0_us / 1e6, item["event_cluster"])
             try:
-                model_inputs = _build_inputs(model, item, device=device)
+                model_inputs = _build_inputs(
+                    model, item, device=device, model_family=model_family
+                )
 
                 if experiment == "a":
                     result = _run_experiment_a(model, model_inputs, seed)
