@@ -357,6 +357,36 @@ def run_gate(
                 " positive keeps its credit in the components whose values did"
                 " not drop below the positive's:\n" + "\n".join(rows)
             )
+            # Name the exact culprit component(s), don't just show the table
+            # and hope the retry notices (2026-08-10 corpus352 run: 58% of
+            # clips reaching the positive bar still failed on perturbation
+            # margin alone, because a component kept most of its credit
+            # under a corruption and nothing ever said so directly).
+            pos_case_name = next((c.name for c in cases if c.kind == "positive"), None)
+            pos_components = components.get(pos_case_name, {}) if pos_case_name else {}
+            culprit_lines = []
+            for case in cases:
+                if case.kind != "negative" or case.name not in components:
+                    continue
+                s = scores.get(case.name)
+                if not (np.isfinite(s) and np.isfinite(ceiling) and s > ceiling):
+                    continue
+                case_components = components[case.name]
+                culprits = [
+                    f"{comp_name} (kept {case_components.get(comp_name, 0.0):.2f} of {pos_val:.2f})"
+                    for comp_name, pos_val in pos_components.items()
+                    if pos_val > 0.0 and case_components.get(comp_name, 0.0) >= 0.7 * pos_val
+                ]
+                if culprits:
+                    culprit_lines.append(f"  {case.name}: {', '.join(culprits)}")
+            if culprit_lines:
+                failures.append(
+                    "NAMED CULPRIT COMPONENTS -- these specific components kept most or"
+                    " all of their credit under a corruption that should have removed"
+                    " it. Each one is not actually conditioned on BOTH the claim and the"
+                    " trajectory agreeing -- add that condition, or cut its weight:\n"
+                    + "\n".join(culprit_lines)
+                )
     return GateResult(
         passed=passed,
         pos_score=pos_score,

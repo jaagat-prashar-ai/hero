@@ -71,7 +71,13 @@ from code_as_a_reward.clipgen.sandbox import RewardFnError
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 5
+# Bumped from 3 (2026-08-10): the corpus352 run's real-corpus cost was
+# only ~$0.07/clip (~5.4 calls/clip avg) -- real budget headroom to give
+# the self-correction loop more room, especially now that gate.py's
+# NAMED CULPRIT COMPONENTS feedback gives retries a sharper signal to act
+# on (02fd6a8f self-corrected exactly this way on its 3rd attempt already).
+
 # Alpamayo's trajectory head has a fixed output length -- every real
 # rollout sampled so far is exactly this many waypoints (rollout_sampler.py
 # has no horizon parameter; this falls straight out of the model
