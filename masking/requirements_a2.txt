@@ -1,0 +1,30 @@
+# Alpamayo 2 Super runtime for the masking experiments (model_family: "a2").
+# Mirrors NVlabs/alpamayo2 pyproject pins, minus notebook/viz-only extras.
+#  - flash-attn omitted on purpose: run.py loads with attn_implementation="sdpa"
+#    (the model sets _supports_sdpa; flash-attn needs nvcc at install time).
+#  - physical-ai-av omitted: masking/data/wds_dataset.py feeds the model from
+#    our WDS shards directly, bypassing the HF dataset loader.
+#  - alpamayo2_super itself is NOT pip-installed (pins requires-python==3.12.*,
+#    workers run 3.10) — masking/bootstrap.py::ensure_alpamayo2 puts the
+#    vendored third_party/alpamayo2/src on sys.path instead.
+#  - torch: upstream pins 2.8.0, but the Lilypad pip overlay only allows
+#    torch==2.7.1 (masking/configs/launch.py validator; same overlay the 1.5
+#    runs use). alpamayo2_super uses no 2.8-only APIs; torchvision 0.22.1 is
+#    the matching pair for 2.7.1.
+#  - numpy: pre-installed on Lilypad workers, deliberately unpinned here
+#    (upstream wants >=2.0 — if the worker image ships 1.x and something in
+#    alpamayo2_super trips on it, revisit).
+torch==2.7.1
+torchvision==0.22.1
+transformers==4.57.1
+accelerate>=1.12.0
+einops>=0.8.1
+hydra-core>=1.3.2
+hydra-colorlog>=1.2.0
+pandas>=2.3.3
+pyarrow
+scipy>=1.16.0
+av>=16.0.1
+pillow>=12.0.0
+boto3
+webdataset
