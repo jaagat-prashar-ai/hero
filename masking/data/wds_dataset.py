@@ -69,14 +69,39 @@ import webdataset as wds
 
 logger = logging.getLogger(__name__)
 
-# Camera indices for the standard 4-cam rig (CROSS_LEFT, FRONT_WIDE, CROSS_RIGHT, FRONT_TELE)
-CAMERA_INDICES = torch.tensor([0, 1, 2, 6], dtype=torch.long)
-CAMERA_FEATURES = [
-    "camera_cross_left_120fov",
-    "camera_front_wide_120fov",
-    "camera_cross_right_120fov",
-    "camera_front_tele_30fov",
-]
+# Camera profiles: which of the raw shards' 7 camera mp4 streams to decode, and
+# the camera-index ids each model family's prompt builder expects. Indices are
+# the canonical PhysicalAI-AV camera ids (cross_left=0, front_wide=1,
+# cross_right=2, rear_left=3, rear_tele=4, rear_right=5, front_tele=6) and MUST
+# stay ascending — both helpers' create_message(s) assert sorted camera ids.
+#   a15 — 4-cam rig used by Alpamayo 1.5
+#   a2  — Alpamayo 2 Super "trajectory" task profile (6 cams, ids 0,1,2,3,5,6:
+#         DRIVING_SIX_CAMERA_FOUR_FRAME in alpamayo2_super.input_profiles)
+CAMERA_PROFILES: dict[str, dict] = {
+    "a15": {
+        "indices": torch.tensor([0, 1, 2, 6], dtype=torch.long),
+        "features": [
+            "camera_cross_left_120fov",
+            "camera_front_wide_120fov",
+            "camera_cross_right_120fov",
+            "camera_front_tele_30fov",
+        ],
+    },
+    "a2": {
+        "indices": torch.tensor([0, 1, 2, 3, 5, 6], dtype=torch.long),
+        "features": [
+            "camera_cross_left_120fov",
+            "camera_front_wide_120fov",
+            "camera_cross_right_120fov",
+            "camera_rear_left_70fov",
+            "camera_rear_right_70fov",
+            "camera_front_tele_30fov",
+        ],
+    },
+}
+# Back-compat aliases for the default a15 profile (wds_dataset_test.py, older callers)
+CAMERA_INDICES = CAMERA_PROFILES["a15"]["indices"]
+CAMERA_FEATURES = CAMERA_PROFILES["a15"]["features"]
 
 NUM_HISTORY_STEPS = 16
 NUM_FUTURE_STEPS = 64
@@ -105,6 +130,7 @@ def iter_clip_events(
     *,
     shuffle_shards: bool = False,
     resampled: bool = False,
+    camera_profile: str = "a15",
 ) -> Generator[dict, None, None]:
     """
     Yield one OOD-event item per sample from the provided WDS shard paths.
@@ -145,7 +171,7 @@ def iter_clip_events(
 
     for raw_sample in dataset:
         try:
-            items = _expand_clip_to_events(raw_sample)
+            items = _expand_clip_to_events(raw_sample, camera_profile=camera_profile)
         except Exception as exc:
             logger.warning("Error expanding clip %s: %s", raw_sample.get("__key__"), exc)
             continue
@@ -153,7 +179,7 @@ def iter_clip_events(
 
 
 def iter_clip_events_from_manifest(
-    manifest_path: str | Path, bucket: str
+    manifest_path: str | Path, bucket: str, camera_profile: str = "a15"
 ) -> Generator[dict, None, None]:
     """Like iter_clip_events(), but for a masking.data.sample_clips.py manifest:
     pulls each clip's files directly from S3 via range reads (see
@@ -173,7 +199,9 @@ def iter_clip_events_from_manifest(
             logger.warning("clip %s: no members found in %s", clip_id, shard_key)
             continue
         try:
-            items = _expand_clip_to_events({"__key__": clip_id, **members})
+            items = _expand_clip_to_events(
+                {"__key__": clip_id, **members}, camera_profile=camera_profile
+            )
         except Exception as exc:
             logger.warning("Error expanding clip %s: %s", clip_id, exc)
             continue
@@ -234,9 +262,11 @@ def _decode_camera_frames(mp4_bytes: bytes, timestamps_us: np.ndarray) -> np.nda
         container.close()
 
 
-def _expand_clip_to_events(sample: dict) -> list[dict]:
+def _expand_clip_to_events(sample: dict, camera_profile: str = "a15") -> list[dict]:
     """Expand one raw WDS clip sample into one item per embedded OOD event."""
     clip_id = sample["__key__"]
+    profile = CAMERA_PROFILES[camera_profile]
+    cam_features: list[str] = profile["features"]
 
     raw_json = sample.get("json", {})
     if isinstance(raw_json, (bytes, bytearray)):
@@ -263,7 +293,7 @@ def _expand_clip_to_events(sample: dict) -> list[dict]:
     t_max = float(ego_df["timestamp_us"].max())
 
     cam_bytes: dict[str, bytes] = {}
-    for feat in CAMERA_FEATURES:
+    for feat in cam_features:
         raw = sample.get(f"{feat}.mp4")
         if raw is None:
             logger.warning("clip %s: missing camera %s", clip_id, feat)
@@ -314,8 +344,8 @@ def _expand_clip_to_events(sample: dict) -> list[dict]:
             image_us = t0_us + np.arange(-(NUM_FRAMES - 1), 1) * TIME_STEP_S * 1e6
             try:
                 frames = np.stack(
-                    [_decode_camera_frames(cam_bytes[feat], image_us) for feat in CAMERA_FEATURES]
-                )  # (4 cams, 4 frames, H, W, 3)
+                    [_decode_camera_frames(cam_bytes[feat], image_us) for feat in cam_features]
+                )  # (n_cams, 4 frames, H, W, 3)
             except Exception as exc:
                 logger.warning("clip %s: camera decode failed: %s", clip_id, exc)
                 continue
@@ -334,7 +364,7 @@ def _expand_clip_to_events(sample: dict) -> list[dict]:
                     "event_coc": str(ev.get("coc", "")),
                     "model_inputs": {
                         "image_frames": frame_t,
-                        "camera_indices": CAMERA_INDICES,
+                        "camera_indices": profile["indices"],
                         "ego_history_xyz": torch.from_numpy(hist_xyz_local.astype(np.float32))
                         .unsqueeze(0)
                         .unsqueeze(0),
