@@ -15,6 +15,8 @@ webdataset>=0.2.86
 einops>=0.7
 s3transfer>=0.10.0
 boto3>=1.34
+# alpamayo_r1 (model_family "a1") imports colorlog via alpamayo_r1.common.logging
+colorlog>=6.0.0
 
 # WDS build pipeline (build_webdataset.py) — requires Python >= 3.11
 huggingface_hub>=0.36.0  # hf_hub_download, login
