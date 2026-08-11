@@ -6,19 +6,29 @@
 # window actually covers the clip's decisive event, not just whatever
 # happens right at event-onset.
 #
-# t0_us values below = original event_start_timestamp + anchor_s*1e6,
-# computed once locally from GT egomotion data (no GPU needed for that
-# part): 333b20c5 +7.7s -> 18501763; 3419aa15 +13.6s -> 24082767;
-# 02fd6a8f +0.6s -> 3200000 (02fd6a8f's original anchor was already near-
-# optimal, so this one barely moves).
+# v2 (2026-08-10, after -reanchor-3cn0es): the first attempt at this config
+# computed t0_us as `original_t0_us + anchor_s*1e6` -- WRONG, double-counts,
+# since anchor_s (from find_rollout_anchor_s) is already on the clip's own
+# absolute clock, not an offset from t0_us (see that function's docstring
+# for the full clock explanation). That bug crashed 3419aa15's sampling
+# entirely (requested ~24.08s into a clip whose valid range only extends to
+# ~20.03s) and silently mis-anchored 333b20c5 (sampled from ~18.5s instead
+# of the intended ~7.7s). Corrected t0_us values below are simply
+# `anchor_s * 1e6` (with dossier.find_rollout_anchor_s's min_offset_s=1.7
+# history-window floor already applied): 333b20c5 -> 7700000 (unaffected by
+# the floor); 3419aa15 -> 13600000 (unaffected); 02fd6a8f -> 1700000
+# (clamped up from its raw best offset of 0.6s, which was below the
+# history-window minimum).
 #
-# Separate name + S3 prefixes from clipgen_real_rollout_smoke.yaml on
-# purpose -- do NOT let this overwrite udqm59's diagnostic data.
+# NEW run name + S3 prefixes vs. -reanchor-3cn0es on purpose: reusing the
+# same prefix would let run_real_rollout_gen.py's restore-from-S3 logic
+# find the OLD (wrong-anchor) cached rollouts for 333b20c5/02fd6a8f already
+# present and skip re-sampling them, silently keeping the bad data.
 #
 # Submit (from repo root):
 #   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
 #     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_real_rollout_smoke_reanchor.yaml
-name: clipgen-real-rollout-smoke-reanchor
+name: clipgen-real-rollout-smoke-reanchor-v2
 model_identifier: other.training.alpamayo15.default.v1
 ignore_idle_reaper: true
 
@@ -27,17 +37,17 @@ workload_variant_config:
   training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
   training_fn_config:
     targets:
-      - {clip_id: "333b20c5-3598-465c-a175-76221e8100a6", t0_us: 18501763}
-      - {clip_id: "3419aa15-0975-4634-ba46-f3867802512f", t0_us: 24082767}
-      - {clip_id: "02fd6a8f-db9c-423e-beb6-37729e7e6af2", t0_us: 3200000}
+      - {clip_id: "333b20c5-3598-465c-a175-76221e8100a6", t0_us: 7700000}
+      - {clip_id: "3419aa15-0975-4634-ba46-f3867802512f", t0_us: 13600000}
+      - {clip_id: "02fd6a8f-db9c-423e-beb6-37729e7e6af2", t0_us: 1700000}
     group_size: 12
     manifest: "code_as_a_reward/clipgen/data15/manifest_smoke3.json"
     venv_dir: "/mnt/work/tmp/alpamayo15_venv"
-    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_reanchor"
-    out_dir: "/mnt/work/tmp/clipgen_out_reanchor"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_reanchor_v2"
+    out_dir: "/mnt/work/tmp/clipgen_out_reanchor_v2"
     s3_bucket: "research-datasets-chicago"
-    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/clipgen-real-rollout-smoke-reanchor"
-    s3_prefix: "code_as_a_reward/clipgen/runs/real-rollout-smoke-reanchor"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/clipgen-real-rollout-smoke-reanchor-v2"
+    s3_prefix: "code_as_a_reward/clipgen/runs/real-rollout-smoke-reanchor-v2"
     backend: "openai"
     wandb_project: "code-as-reward-clipgen"
 

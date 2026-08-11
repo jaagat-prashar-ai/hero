@@ -76,20 +76,70 @@ def _restore_dir(s3, bucket: str, prefix: str, local_dir: str) -> None:
         logger.info("no existing s3://%s/%s -- starting fresh", bucket, prefix)
 
 
+def _restore_prefix(s3, bucket: str, prefix: str, local_dir: str) -> int:
+    """Download EVERY object under an S3 prefix into local_dir (flat, by
+    basename) -- unlike _restore_dir (rollout dumps only, .json), this is
+    for corpus-scale clipgen manifest data (obstacle/egomotion parquet +
+    coc.txt + manifest.json + targets.json), too large to bundle via
+    lilypad's code_assets zip (e.g. a 352-clip run is ~250MB total, split
+    into per-shard prefixes of ~30MB each). Returns the number of files
+    restored."""
+    paginator = s3.get_paginator("list_objects_v2")
+    n = 0
+    for page in paginator.paginate(Bucket=bucket, Prefix=prefix.rstrip("/") + "/"):
+        for obj in page.get("Contents", []):
+            s3.download_file(bucket, obj["Key"], os.path.join(local_dir, os.path.basename(obj["Key"])))
+            n += 1
+    return n
+
+
 def clipgen_real_rollout_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     from code_as_a_reward.ood_eval.bootstrap_venv import ensure_alpamayo15_venv
 
-    targets = training_fn_config["targets"]  # [{"clip_id","t0_us"}, ...]
-    group_size = training_fn_config.get("group_size", 12)
-    venv_dir = training_fn_config.get("venv_dir", "/mnt/work/tmp/alpamayo15_venv")
-    rollouts_local = training_fn_config.get("rollouts_local", "/mnt/work/tmp/clipgen_rollouts")
     s3_bucket = training_fn_config.get("s3_bucket", "research-datasets-chicago")
-    rollouts_s3_prefix = training_fn_config["rollouts_s3_prefix"]
-
-    os.makedirs(rollouts_local, exist_ok=True)
     import boto3
 
     s3 = boto3.client("s3")
+
+    manifest_data_s3_prefix = training_fn_config.get("manifest_data_s3_prefix")
+    if manifest_data_s3_prefix:
+        # Corpus-scale mode: manifest.json/targets.json/parquet/coc.txt for
+        # this shard live in S3 (staged offline -- see
+        # code_as_a_reward/clipgen/configs/ for the smoke configs' inline
+        # `targets`/`manifest` convention, used only at small scale).
+        # Restore once to local disk, then read manifest/targets from there.
+        manifest_local_dir = training_fn_config.get("manifest_local_dir", "/mnt/work/tmp/clipgen_manifest_data")
+        os.makedirs(manifest_local_dir, exist_ok=True)
+        n = _restore_prefix(s3, s3_bucket, manifest_data_s3_prefix, manifest_local_dir)
+        logger.info("restored %d manifest files from s3://%s/%s", n, s3_bucket, manifest_data_s3_prefix)
+        manifest_path = os.path.join(manifest_local_dir, "manifest.json")
+        # manifest.json's per-clip paths are bare filenames (correct
+        # alongside the manifest when staged offline) -- rewrite them to
+        # absolute paths now that they're restored to manifest_local_dir,
+        # since run_prototype._load_clip opens them relative to the
+        # process's cwd, not the manifest file's own directory (confirmed
+        # by a real FileNotFoundError on shard0: 'No such file or
+        # directory: <clip>.obstacle.offline.parquet').
+        with open(manifest_path) as f:
+            manifest_entries = json.load(f)
+        for e in manifest_entries:
+            for key in ("obstacle_parquet", "egomotion_parquet", "gt_coc", "overlay_jpeg", "waypoints_npy"):
+                if e.get(key) and not os.path.isabs(e[key]):
+                    e[key] = os.path.join(manifest_local_dir, e[key])
+        with open(manifest_path, "w") as f:
+            json.dump(manifest_entries, f)
+        with open(os.path.join(manifest_local_dir, "targets.json")) as f:
+            targets = json.load(f)
+    else:
+        manifest_path = training_fn_config["manifest"]
+        targets = training_fn_config["targets"]  # [{"clip_id","t0_us"}, ...]
+
+    group_size = training_fn_config.get("group_size", 12)
+    venv_dir = training_fn_config.get("venv_dir", "/mnt/work/tmp/alpamayo15_venv")
+    rollouts_local = training_fn_config.get("rollouts_local", "/mnt/work/tmp/clipgen_rollouts")
+    rollouts_s3_prefix = training_fn_config["rollouts_s3_prefix"]
+
+    os.makedirs(rollouts_local, exist_ok=True)
     _restore_dir(s3, s3_bucket, rollouts_s3_prefix, rollouts_local)
 
     repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -144,7 +194,7 @@ def clipgen_real_rollout_loop(training_fn_config: dict, experiment_tracker=None)
 
     clipgen_entrypoint(
         {
-            "manifest": training_fn_config["manifest"],
+            "manifest": manifest_path,
             "out_dir": training_fn_config.get("out_dir", "/mnt/work/tmp/clipgen_out"),
             "rollouts_dir": rollouts_local,
             "backend": training_fn_config.get("backend", "openai"),

@@ -472,3 +472,106 @@ Repo disk space currently:
 
             # Preserving base capabilities: the refernce model embodies everything the SFT stage learned (langauge quality, driving pairs) that ht everifier reward doesn't measure. 
             # The KL anchor keeps the policy from trading those away for rward. 
+
+# Sequence of runs for global heuristic: 
+┌─────────────────┬────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────┐
+│       Run       │                                  W&B link                                  │                             Config state                             │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ n3sxdq (before) │ https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260731220943 │ kl_beta = 0.0, flat LR 2e-6 — the drifting run                       │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ fbbpdd (broken  │ https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260803044211 │ New TOML, but hit the scheduler bug — trained 5h41m at effectively   │
+│ middle)         │                                                                            │ zero LR (3.1e-9), so it's not a useful "after" comparison            │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────┤
+│ p5fruu (after)  │ https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260803200341 │ New TOML + scheduler monkeypatch — the real "after" run (flat        │
+│                 │                                                                            │ reward, but for reward-gate reasons, not KL/LR)                      │
+└─────────────────┴────────────────────────────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────┘
+
+
+# next steps for clipgen:
+    # 1. Add a prompt constraint + sandbox lint that component weights must sumn to <= 1.0 (kills clamp saturation),
+    # 2. require >= 0.4 of weight on trajectory-dependent checks (makes the drop achievable by construction)
+    # 3. per-component breakdown in gate feedback so retries stop being blind. 
+
+# cosmos-RL (the GRPO trainer from alpamayo-recipes) takes its entire training configuration from a single TOML file - optimizer, LR schedule, kl_beta, FSDP settings, rollout counts, checkpointing, all of it. 
+# At launch time, rl_posttrain/training/run.py picks a template TOML based on reward_mode, patches the placeholder paths (output_dir, model path) into a scratch copy, and hands that to the job (rl_posttrain/training/run.py:1006-1019)
+
+# The "before/after" distinction is about which template the code branch pointed at: 
+    # Through n3sxdq, reward_mode == "code" reused the judge's template (kl_beta = 0.0, flat LR 2e-6, comfort_weight 0.0)
+    # Since 58d6bed, the code branch points at its own file, which is a verbatim copy of the judge TOML with exactly the three n3sdq post-mortem changes (the file's header documents this).
+        # KL_BETA = 1e-3, the warmup-stable-decay schedule (optm_warmup_steps = 0.03, optm_decay_type = "cosine", optim_min_lr_factor = 0.1 on the same peak optm_lr = 2e-6), and comfort_weight = 0.05. 
+
+# For this experiment, the dataset has "counterfactual" versions: the same exact camera frame, but paired with different instruction and a different trajectory. 
+# E.g., same frame, but: 
+    # version A: "turn left" -> path curving left 
+    # version B: "turn right" -> path curving right
+    # version C: "go straight" -> path going straight
+
+# The whole point of the exercise: since the image is identical across these versions, the only thing that can tell you which rtrajectory goes with which instructoion is the instruction text itself. So the model is scored on whether it can correclty match instruction <-> trajectory within that group. 
+# The bug: for some frames in the dataset, only one version like this exists (no alternate instructions/trajectories were generated for that particular scene). 
+
+# clipgen notes - august 11th 
+# By event cluster: 
+
+┌───────────────────────────────────┬─────────────────────────────────────────────────────────┐
+│              cluster              │                        pass rate                        │
+├───────────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ Cyclists & micromobility          │ 35% (7/20)                                              │
+├───────────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ Pedestrian density                │ 20% (23/116)                                            │
+├───────────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ Work zones / traffic control      │ 13% (19/145 — largest category, drags the average down) │
+├───────────────────────────────────┼─────────────────────────────────────────────────────────┤
+│ Special/uncommon vehicle behavior │ 7% (3/42 — worst meaningful-sized category)             │
+└───────────────────────────────────┴─────────────────────────────────────────────────────────┘
+
+horizon re-anchoring fix is confirmed working at scale, no longer th ebottleneck. 82% of the clips have good drop-capture after re-anchoring. 
+    # if horizon were still the problem, well-anchored clips would clearly do better, and they don't?
+    # what does this mean between well-anchored and not well-anchored clips?
+
+
+of 96 clips that reached the 0.7 positive bar, only 58% actually passed - the rest failed purely because some component keeps its credit even when the trajectory is corrupted. Two concrete examples pulled directly from data. 
+# look into these clips specifically:
+    # c2f0524f: a trajectory_execution component with zero claim-gating - survives every corruption at 0.5-0.7, max_pert=1.0 
+    # 8e83f069: one properly-gated component correctly drops to 0, but a second ungated one (weight 0.4) survives everything - capping the margin at exactly 0.6, failing by the smallest possible amount. 
+
+# Second most common issue: the non-canonical-vocabulary lint fired 109 times (vs. only 4 for float-equality, confirming that fix holds up well at scale)?
+# gpt-4o often reaches for dossier-style vocabulary instead of real parser vocabulary despite it being spelled oout in the prompt 
+
+# Each reward function is supposed to check two things about a rollout: (1) what the model said it was doing ("I'm decelerating to yield to the pedestrian") and (2) what the car actually did (did it really slow down?). A trustworthy reward function should onyl give full credit 
+    # We take the winning rollout and make deliberately broken copies of it - same reasoning text, but the trajectory reversed (car drives backward), or flattened (car just goes straight, ignoring everything), or the reasonign text deleted entirely. 
+    # A reward function that's actually checking "did the words match the action" should score these broken copies much lower, since they no longer have both halves. 
+    # "Claims-carry" is what happens when a component secretely only checks one half - usually just the trajectory shape, or just the presence of certain words - but doesn't actually 
+
+The gate: 
+    1. Pick the winner. Take 12 real Alpamayo rollouts sampled for a clip (each a reasoning text + trajectory pair). Score all 12 with the candidate reward function. 
+    # Take the highest scoring one (the "argmax"). This is the rollout the function currently believes is best. 
+
+    2. Build 5 corrupted copies of that specific winner (not of ground truth, not of the other 11 rollouts - of the argmax itself):
+        - reversed_traj - same reasoning text, trajectory played backward in time
+        - no_reaction_traj - same reasoning text, trajectory flattened to "just kept going at the initial speed," as if nothing happened. 
+        - gutted_claims - same trajectory, but the reasoning is stripped to nothing (no perception, no commitment, no causal claims at all)
+        - no_commitments - same trajectory, reasoning keeps what it saw but loses what it said it would do about it 
+        - corrupted_identity - same trajectory, but one stated commitment is flipped to a different valid one (e.g., "nudge left" -> "nudge right", "decelerate" -> "accelerate")
+        - so the claim now contradicts what actually happened 
+
+    3. Score all 6 (the real winner + the 5 fakes) with the same candidate function. 
+
+    4. Check two numeric bars: 
+        # The real winner must score >= 0.7 
+        # Every one of the 5 fakes must score at least 0.4 below that - i.e., <= (winner's score - 0.4)
+
+    # If even one fake doesn't drop enough, the whole function fails for that clip - this is exactly the check that catches the claims-carry problem: a component that doens't really tie claim to action will keep scoring high on one of these fakes (usually reversed_traj or gutted_claims, since those most directly separate "said it" from "did it"), and that single failure sinks the function. 
+
+    5. There's also a bookeeping check,e indepdnent of the corruption: the function's own components() breakdown must sum to <= 1.0 before any clamping, and must agree with what reward() returns - this catches a function that quuietly self-inflates and relies ont he final min(1.0, ...) clamp to hide it 
+
+    6. Retry loop. If it fails, the LLM sees exactly which case failed, by how much, the real measured trajectory numbers, and a per-component breakdown - then gets up to 3 total attempts to fix it. If none pass, that clip has no cached reward function at all. 
+
+    # why the winner's own self-corrupted perturbed trace, not the GT? this is a deliberate choice 
+    # gate thing? how do we ensure faithfulness ni the gate? this is the gate checker. 
+
+
+
+# PERTURBATION GENERATOR 
+    # gan-style training, build a generator and a discriminator 
+    # and have a very strong dataset for this 
+    
