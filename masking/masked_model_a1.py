@@ -64,6 +64,14 @@ logger = logging.getLogger(__name__)
 class MaskedAlpamayoR1(AlpamayoR1):
     """Alpamayo 1 (R1) with reasoning/word knockout in the diffusion expert's attention."""
 
+    # R1's ReasoningVLA predates the per-class attention-support flags that
+    # 1.5's base_model.py sets, so transformers 4.57 refuses
+    # attn_implementation="sdpa" at from_pretrained (bit run10-a1-a-gp3mxp,
+    # see BUGS.md 2026-08-11). Same Qwen3-VL-family stack 1.5 declares
+    # SDPA-safe, so declare it here on the fork.
+    _supports_sdpa: bool = True
+    _supports_flash_attn: bool = True
+
     # ------------------------------------------------------------------ #
     # Copied verbatim from alpamayo1_5.models.alpamayo1_5 (R1's base class
     # predates the 1.5 helper refactor; the bodies match the code R1 inlines

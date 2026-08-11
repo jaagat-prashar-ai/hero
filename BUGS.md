@@ -1215,6 +1215,31 @@ level partitioning in `masking_loop` is left to do the actual work division.
 
 ---
 
+## 2026-08-11 — a1 (Alpamayo R1) model load rejects attn_implementation="sdpa"
+
+**Symptom:** masking-run10-a1-a-gp3mxp died in `_load_model` with
+`ValueError: MaskedAlpamayoR1 does not support an attention implementation
+through torch.nn.functional.scaled_dot_product_attention yet` (transformers
+4.57 `_sdpa_can_dispatch` check inside `from_pretrained`).
+
+**Root cause:** NVlabs/alpamayo (R1) predates the per-class attention-support
+flags; its `ReasoningVLA` never sets `_supports_sdpa`, so transformers'
+init-time capability check refuses the sdpa request. The 1.5 repo's otherwise
+near-identical `base_model.py` sets `_supports_sdpa = True` /
+`_supports_flash_attn = True`, which is why the same load path always worked
+for MaskedAlpamayo1_5.
+
+**Fix:** set `_supports_sdpa = True` and `_supports_flash_attn = True` on the
+`MaskedAlpamayoR1` fork class (masking/masked_model_a1.py) — same Qwen3-VL
+family stack 1.5 declares SDPA-safe, and sdpa is the implementation the 1.5
+masking results were produced with.
+
+**How this was found:** first a1 smoke run after the a1 port; traceback in
+workload logs, then `grep _supports_sdpa` across both vendored repos showed
+the 1.5-only flags.
+
+---
+
 ## Format for new entries
 
 ```
