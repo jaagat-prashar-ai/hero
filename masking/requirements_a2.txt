@@ -23,7 +23,8 @@ hydra-core>=1.3.2
 hydra-colorlog>=1.2.0
 pandas>=2.3.3
 pyarrow
-scipy>=1.16.0
+# upstream wants scipy>=1.16, but 1.16+ requires Python >=3.11 (workers: 3.10)
+scipy<1.16
 av>=16.0.1
 pillow>=12.0.0
 boto3
