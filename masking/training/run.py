@@ -40,7 +40,8 @@ Full config reference (all keys optional, defaults shown):
                                           # s3://{s3_bucket}/{this}/ after every write --
                                           # outdir is local-node storage, NOT shared across
                                           # nodes or persisted after the pod is torn down
-    model_family:     "a15"             # "a15" (Alpamayo 1.5) or "a2" (Alpamayo 2 Super)
+    model_family:     "a15"             # "a15" (Alpamayo 1.5), "a2" (Alpamayo 2 Super),
+                                        # or "a1" (Alpamayo 1 / R1)
     checkpoint:       "nvidia/Alpamayo-1.5-10B"   # a2 family default: nvidia/Alpamayo2-Super
     device_map:       null              # e.g. "auto" — shard the 34B a2 checkpoint across
                                         # this worker's visible GPUs (single-replica runs)
@@ -97,6 +98,7 @@ _DEFAULTS: dict[str, Any] = {
 
 # Used when a config sets model_family but leaves checkpoint at the module default.
 _FAMILY_DEFAULT_CHECKPOINT = {
+    "a1": "nvidia/Alpamayo-R1-10B",
     "a15": "nvidia/Alpamayo-1.5-10B",
     "a2": "nvidia/Alpamayo2-Super",
 }
@@ -221,6 +223,12 @@ def _load_model(
         ensure_alpamayo2()
         from masking.masked_model_a2 import MaskedAlpamayo2Super
         model_cls = MaskedAlpamayo2Super
+    elif model_family == "a1":
+        from masking.bootstrap import ensure_alpamayo_r1
+
+        ensure_alpamayo_r1()
+        from masking.masked_model_a1 import MaskedAlpamayoR1
+        model_cls = MaskedAlpamayoR1
     else:
         from masking.bootstrap import ensure_alpamayo1_5
 
@@ -247,9 +255,9 @@ def _resolve_device(local_rank: int) -> str:
     return "cpu"
 
 
-# One processor per loaded model: alpamayo2_super.helper.prepare_model_inputs
-# would re-instantiate AutoProcessor.from_pretrained on every event.
-_A2_PROCESSOR_CACHE: dict[int, Any] = {}
+# One processor per loaded model (a1/a2): both helpers otherwise re-instantiate
+# AutoProcessor.from_pretrained on every call.
+_PROCESSOR_CACHE: dict[int, Any] = {}
 
 
 def _build_inputs(model, item: dict, device: str = "cuda", model_family: str = "a15") -> dict:
@@ -262,10 +270,10 @@ def _build_inputs(model, item: dict, device: str = "cuda", model_family: str = "
         ensure_alpamayo2()
         from alpamayo2_super import helper
 
-        processor = _A2_PROCESSOR_CACHE.get(id(model))
+        processor = _PROCESSOR_CACHE.get(id(model))
         if processor is None:
             processor = helper.get_processor(model.tokenizer, model.config)
-            _A2_PROCESSOR_CACHE[id(model)] = processor
+            _PROCESSOR_CACHE[id(model)] = processor
 
         # Mirrors helper.prepare_model_inputs for the trajectory task: the
         # assistant turn is empty in generation mode, so create_messages drops
@@ -284,6 +292,32 @@ def _build_inputs(model, item: dict, device: str = "cuda", model_family: str = "
         )
         model_inputs = {
             "tokenized_data": tokenized,
+            "ego_history_xyz": data["ego_history_xyz"],
+            "ego_history_rot": data["ego_history_rot"],
+        }
+        return helper.to_device(model_inputs, device)
+
+    if model_family == "a1":
+        from masking.bootstrap import ensure_alpamayo_r1
+
+        ensure_alpamayo_r1()
+        from alpamayo_r1 import helper
+
+        processor = _PROCESSOR_CACHE.get(id(model))
+        if processor is None:
+            # get_processor pulls the Qwen3-VL-2B base processor from HF.
+            processor = helper.get_processor(model.tokenizer)
+            _PROCESSOR_CACHE[id(model)] = processor
+        # R1's create_message takes only frames (no camera ids / nav text) and
+        # primes the assistant turn with <|cot_start|>, so we continue the
+        # final message rather than adding a generation prompt.
+        messages = helper.create_message(frames=data["image_frames"].flatten(0, 1))
+        inputs = processor.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=False,
+            continue_final_message=True, return_dict=True, return_tensors="pt",
+        )
+        model_inputs = {
+            "tokenized_data": inputs,
             "ego_history_xyz": data["ego_history_xyz"],
             "ego_history_rot": data["ego_history_rot"],
         }
