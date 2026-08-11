@@ -72,12 +72,25 @@ logger = logging.getLogger(__name__)
 # Camera profiles: which of the raw shards' 7 camera mp4 streams to decode, and
 # the camera-index ids each model family's prompt builder expects. Indices are
 # the canonical PhysicalAI-AV camera ids (cross_left=0, front_wide=1,
-# cross_right=2, rear_left=3, rear_tele=4, rear_right=5, front_tele=6) and MUST
-# stay ascending — both helpers' create_message(s) assert sorted camera ids.
+# cross_right=2, rear_left=3, rear_tele=4, rear_right=5, front_tele=6). For
+# a15/a2 they MUST stay ascending — those helpers' create_message(s) assert
+# sorted camera ids. a1's create_message ignores camera ids entirely; its
+# feature ORDER is the R1 training order (load_physical_aiavdataset default),
+# deliberately not ascending.
+#   a1  — Alpamayo 1 (R1) 4-cam rig, R1 loader order
 #   a15 — 4-cam rig used by Alpamayo 1.5
 #   a2  — Alpamayo 2 Super "trajectory" task profile (6 cams, ids 0,1,2,3,5,6:
 #         DRIVING_SIX_CAMERA_FOUR_FRAME in alpamayo2_super.input_profiles)
 CAMERA_PROFILES: dict[str, dict] = {
+    "a1": {
+        "indices": torch.tensor([1, 6, 0, 2], dtype=torch.long),
+        "features": [
+            "camera_front_wide_120fov",
+            "camera_front_tele_30fov",
+            "camera_cross_left_120fov",
+            "camera_cross_right_120fov",
+        ],
+    },
     "a15": {
         "indices": torch.tensor([0, 1, 2, 6], dtype=torch.long),
         "features": [
