@@ -29,6 +29,7 @@ CONFIG_DIR = pathlib.Path(__file__).resolve().parent
 REPO_ROOT = CONFIG_DIR.parents[1]
 DEFAULT_CONFIG = CONFIG_DIR / "cluster.yaml"
 ALPAMAYO1_5_PKG = REPO_ROOT / "third_party" / "alpamayo1.5" / "src" / "alpamayo1_5"
+ALPAMAYO2_PKG = REPO_ROOT / "third_party" / "alpamayo2" / "src" / "alpamayo2_super"
 
 _LILYPAD_CRED_FILE = Path.home() / ".creds" / "lilypad.env"
 _EXPORT_RE = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)="(.*)"$')
@@ -265,12 +266,19 @@ def _validate_dependencies(
     return errors, warnings
 
 
-def _validate_alpamayo_vendor() -> list[str]:
+def _validate_alpamayo_vendor(cfg: dict[str, Any] | None = None) -> list[str]:
     errors: list[str] = []
     if not ALPAMAYO1_5_PKG.is_dir():
         errors.append(
             "Missing alpamayo1_5 vendor source at third_party/alpamayo1.5 — run: "
             "git submodule update --init third_party/alpamayo1.5"
+        )
+    wvc = (cfg or {}).get("workload_variant_config", {})
+    fn_cfg = wvc.get("training_fn_config") or wvc.get("entrypoint_fn_config") or {}
+    if str(fn_cfg.get("model_family", "")).lower() == "a2" and not ALPAMAYO2_PKG.is_dir():
+        errors.append(
+            "Missing alpamayo2_super vendor source at third_party/alpamayo2 — run: "
+            "git submodule update --init third_party/alpamayo2"
         )
     return errors
 
@@ -335,7 +343,7 @@ def _preflight(
     warnings.extend(dep_warnings)
 
     if not _is_build_wds_config(cfg):
-        errors.extend(_validate_alpamayo_vendor())
+        errors.extend(_validate_alpamayo_vendor(cfg))
 
     errors.extend(_validate_hf_token(cfg, dry_run=dry_run))
 
