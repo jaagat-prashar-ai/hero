@@ -147,6 +147,25 @@ which direction). Timing is the sharpest reversal discriminator: a
 time-reversed trajectory keeps the same speeds but events happen at
 mirrored times.
 
+This conjunction principle only works for COMMITMENT claims
+(claims.commitments) -- claims about an intended ACTION. A trajectory is a
+record of physical motion, so it can directly confirm or refute an action
+claim: if the reasoning says "I will stop," the trajectory either shows a
+stop or it doesn't. PERCEPTUAL claims (claims.perceptual) are claims about
+what was noticed, not done -- there is nothing in a trajectory that can
+verify what the model perceived, no matter which trajectory quantity you
+pick. Gating a perceptual claim behind a trajectory condition (e.g. "award
+credit if a pedestrian is mentioned AND the car's speed dropped below X")
+does not add real verification -- the two things aren't actually related,
+so that condition can pass or fail for reasons that have nothing to do
+with whether the perception was accurate, and on scenes where the
+trajectory doesn't change under a given corruption, a check like this can
+end up doing nothing at all while looking like a safeguard. Give
+perceptual claims mention-only credit (present in claims.perceptual or
+not) and keep that credit small; save real conjunction credit -- and the
+larger component weights -- for commitments, the only claim type a
+trajectory can actually verify.
+
 If your first attempt doesn't clear the empirical check, you'll see exactly
 which case failed, by how much, and the real measured numbers behind it --
 use that concrete feedback to adjust your checks, rather than trying to get
@@ -282,11 +301,17 @@ Before writing any code, answer these in one or two sentences each:
 2. WHAT measured fact from the facts block above separates that case from
    the positive (e.g. the TIME at which minimum speed occurs, not its
    magnitude)?
-3. Which of your components require BOTH a claim AND matching trajectory
-   execution (conjunctions), versus claim-only or trajectory-only? If a
-   failing corruption kept most of its score, too much credit likely lives
-   in a claim-only or trajectory-only component -- shift more weight onto
-   conjunctions rather than chasing an exact formula.
+3. Which of your components require BOTH a COMMITMENT claim AND matching
+   trajectory execution (real conjunctions -- this only works for
+   commitments, never perceptual claims, since a trajectory cannot verify
+   what was perceived), versus claim-only or trajectory-only? If a failing
+   corruption kept most of its score, check whether the surviving
+   component is a PERCEPTUAL claim gated behind a trajectory condition --
+   that trajectory condition is not doing real verification and may not
+   even be affecting the score (the trajectory may be identical between
+   the positive and this corruption). Give perceptual claims mention-only
+   credit instead, and shift the freed weight onto a real commitment
+   conjunction.
 4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
    is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
    threshold the real data never satisfies -- recheck against the measured
