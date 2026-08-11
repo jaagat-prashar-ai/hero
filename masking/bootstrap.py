@@ -7,6 +7,7 @@ from pathlib import Path
 
 _THIRD_PARTY = Path(__file__).resolve().parents[1] / "third_party"
 _ALPAMAYO_SRC = _THIRD_PARTY / "alpamayo1.5" / "src"
+_ALPAMAYO_R1_SRC = _THIRD_PARTY / "alpamayo" / "src"
 _ALPAMAYO2_SRC = _THIRD_PARTY / "alpamayo2" / "src"
 
 
@@ -21,6 +22,19 @@ def ensure_alpamayo1_5() -> Path:
     if path not in sys.path:
         sys.path.insert(0, path)
     return _ALPAMAYO_SRC
+
+
+def ensure_alpamayo_r1() -> Path:
+    """Add NVlabs/alpamayo (Alpamayo 1 / R1) to sys.path — same trick as 1.5."""
+    if not (_ALPAMAYO_R1_SRC / "alpamayo_r1").is_dir():
+        raise RuntimeError(
+            f"alpamayo_r1 source missing at {_ALPAMAYO_R1_SRC}. "
+            "Run: git submodule update --init third_party/alpamayo"
+        )
+    path = str(_ALPAMAYO_R1_SRC)
+    if path not in sys.path:
+        sys.path.insert(0, path)
+    return _ALPAMAYO_R1_SRC
 
 
 def ensure_alpamayo2() -> Path:
