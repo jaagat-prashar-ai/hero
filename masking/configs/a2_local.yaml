@@ -1,0 +1,37 @@
+name: masking-cot-a2-local
+workload_variant_config:
+  workload_type: "training"
+  training_fn: masking.training.run.masking_loop
+  training_fn_config:
+    # ── Data source ───────────────────────────────────────────────────────────
+    local_data_dir: "/mnt/work/tmp/jaagat-prashar/wds"
+    skip_download: true
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    model_family: "a2"
+    checkpoint: "nvidia/Alpamayo2-Super"
+    device_map: "auto"   # 34B: shard across every locally visible GPU
+
+    # ── Experiment ────────────────────────────────────────────────────────────
+    experiment: "a"
+    seed: 0
+    concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+    threshold_words: [0, 5, 10, 20, 30, 50]
+    resume: false
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/tmp/masking_results_a2"
+
+  experiment_tracker: {}  # no W&B tracking for local runs
+
+cluster_resources:
+  gpu_machine_type: local
+  num_gpus: 1
+  customer_resource: research
+
+runtime_environment:
+  code_assets:
+    root_directory: .
+    pip_requirements_path: masking/requirements_a2.txt

@@ -1,0 +1,78 @@
+name: masking-cot-a2-cluster
+model_identifier: other.training.alpamayo15.default.v1
+workload_variant_config:
+  workload_type: "training"
+  training_fn: masking.training.run.masking_loop
+  training_fn_config:
+    # ── S3 data source (same shards as the 1.5 runs — the a2 camera profile
+    # decodes 6 of the 7 camera mp4 streams already in them) ─────────────────
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds"
+    local_data_dir: "/mnt/work/tmp/wds_cache"
+    max_shards: null
+
+    # Same 52-clip OOD manifest as run9 — REQUIRED so rank 0 doesn't mirror the
+    # whole prefix onto node-local disk (killed masking-run9-d-cr0skx's node).
+    sample_clips_manifest: "masking/configs/sample_clips.json"
+
+    # Durable S3 upload of the results JSONL after every write.
+    results_s3_prefix: "masking_results/run10_a2"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    model_family: "a2"
+    checkpoint: "nvidia/Alpamayo2-Super"
+    # 34B bf16 ≈ 64 GB of weights + a multi-camera KV cache: too tight for one
+    # A100-80G rank. Run ONE replica and let accelerate shard the model across
+    # the node's 8 GPUs. Scale out (num_gpus > 1 ranks, device_map: null) only
+    # after the smoke run shows the real per-model memory footprint.
+    device_map: "auto"
+
+    # ── Experiment ────────────────────────────────────────────────────────────
+    # "a" masked-vs-unmasked ADE, "b" per-word salience + concept ablation,
+    # "c" prefix/suffix threshold sweep, "d" clause-order reversal
+    experiment: "a"
+    seed: 0
+    concepts: "pedestrian,person,cyclist,crosswalk,vehicle,stop,red,light"
+    threshold_words: [0, 5, 10, 20, 30, 50]
+    resume: true
+
+    # ── Output ────────────────────────────────────────────────────────────────
+    outdir: "/mnt/work/tmp/masking_results"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: masking-cot
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  # One rank on the whole node; device_map above spreads the model over its GPUs.
+  num_gpus: 1
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch==2.7.1 wheel is ~3 GB per worker; allow ample setup time.
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: masking/requirements_a2.txt
+    regex_excludes:
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
