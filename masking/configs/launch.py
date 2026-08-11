@@ -30,6 +30,7 @@ REPO_ROOT = CONFIG_DIR.parents[1]
 DEFAULT_CONFIG = CONFIG_DIR / "cluster.yaml"
 ALPAMAYO1_5_PKG = REPO_ROOT / "third_party" / "alpamayo1.5" / "src" / "alpamayo1_5"
 ALPAMAYO2_PKG = REPO_ROOT / "third_party" / "alpamayo2" / "src" / "alpamayo2_super"
+ALPAMAYO_R1_PKG = REPO_ROOT / "third_party" / "alpamayo" / "src" / "alpamayo_r1"
 
 _LILYPAD_CRED_FILE = Path.home() / ".creds" / "lilypad.env"
 _EXPORT_RE = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)="(.*)"$')
@@ -279,6 +280,11 @@ def _validate_alpamayo_vendor(cfg: dict[str, Any] | None = None) -> list[str]:
         errors.append(
             "Missing alpamayo2_super vendor source at third_party/alpamayo2 — run: "
             "git submodule update --init third_party/alpamayo2"
+        )
+    if str(fn_cfg.get("model_family", "")).lower() == "a1" and not ALPAMAYO_R1_PKG.is_dir():
+        errors.append(
+            "Missing alpamayo_r1 vendor source at third_party/alpamayo — run: "
+            "git submodule update --init third_party/alpamayo"
         )
     return errors
 
