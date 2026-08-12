@@ -166,6 +166,22 @@ not) and keep that credit small; save real conjunction credit -- and the
 larger component weights -- for commitments, the only claim type a
 trajectory can actually verify.
 
+The same logic cuts the other way: a component built ONLY from a
+trajectory quantity, with NO claims.commitments check at all, is equally
+unverified -- two of the five corruptions (no_commitments, gutted_claims)
+strip the reasoning entirely and leave the trajectory untouched, so a
+trajectory-only component keeps its FULL credit under both, no matter how
+sharp its threshold is (this is not a maybe -- it is certain, by
+construction of those two corruptions). If you can name a
+claims.commitments maneuver key the trajectory is executing, require it in
+the same check: `any(c.maneuver == '<key>' for c in claims.commitments)
+and <trajectory condition>`. If the behavior doesn't correspond to any
+maneuver claim the model would plausibly state (e.g. "kept the lane" as
+opposed to "yielded" or "decelerated"), it isn't something a trajectory
+alone can prove was a FAITHFUL response to reasoning -- give it near-zero
+weight, the same way you would an unpaired perceptual claim, rather than a
+large "execution" score.
+
 If your first attempt doesn't clear the empirical check, you'll see exactly
 which case failed, by how much, and the real measured numbers behind it --
 use that concrete feedback to adjust your checks, rather than trying to get
@@ -205,8 +221,10 @@ _API_REFERENCE = """\
   "pedestrian", "stopped_vehicle", "construction_cones"), .state (canonical
   key or None, e.g. "blocking", "crossing"), .text (verbatim span).
 - claims.commitments: list of CommitmentClaim -- .maneuver (canonical key,
-  e.g. "stop", "yield", "decelerate", "nudge", "lane_change_left",
-  "accelerate", "maintain_speed"), .speed_profile ("accelerate" |
+  e.g. "stop", "yield", "decelerate", "nudge", "lane_change", "keep_lane",
+  "accelerate", "proceed" -- direction is a SEPARATE field, never part of
+  the maneuver key itself: "lane_change_left" is not canonical, use
+  .maneuver == "lane_change" and .direction == "left"), .speed_profile ("accelerate" |
   "decelerate" | "maintain" | "adapt" | None), .direction ("left" | "right"
   | None), .text.
 - claims.causal: list of CausalClaim -- .effects (list[CommitmentClaim]),
@@ -311,7 +329,12 @@ Before writing any code, answer these in one or two sentences each:
    even be affecting the score (the trajectory may be identical between
    the positive and this corruption). Give perceptual claims mention-only
    credit instead, and shift the freed weight onto a real commitment
-   conjunction.
+   conjunction. The mirror-image bug is just as common: a component that
+   checks ONLY traj (no claims.commitments reference anywhere in it) will
+   survive no_commitments and gutted_claims with IDENTICAL credit every
+   time, regardless of threshold -- if a failing corruption's surviving
+   component has no claims.commitments check in its code at all, that is
+   the bug; gate it on a maneuver key or shrink it to near-zero weight.
 4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
    is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
    threshold the real data never satisfies -- recheck against the measured
@@ -594,8 +617,19 @@ def generate_reward_fn(
         messages.append({"role": "assistant", "content": _text(response)})
 
     source = extract_code(_text(response))
-    # Raises RewardFnError on contract violations, including a missing
-    # components() -- run_prototype's invalid-reply path feeds that message
-    # back as a retry, so the model self-corrects instead of the clip dying.
-    compile_reward_module(source, require_components=True)
+    try:
+        # Raises RewardFnError on contract violations, including a missing
+        # components() -- run_prototype's invalid-reply path feeds that
+        # message back as a retry, so the model self-corrects instead of
+        # the clip dying. Attach the transcript built above so that retry
+        # can happen in-conversation even when THIS is the first attempt
+        # (no earlier successful transcript exists yet) -- without it,
+        # run_prototype had no transcript to retry against and silently
+        # discarded the error, letting the same mistake repeat for the
+        # whole attempt budget (confirmed: ba207fc6 repeated an identical
+        # non-canonical maneuver value on attempts 1-4).
+        compile_reward_module(source, require_components=True)
+    except RewardFnError as e:
+        e.transcript = messages
+        raise
     return GenerationResult(source=source, transcript=messages, model=_model(response))

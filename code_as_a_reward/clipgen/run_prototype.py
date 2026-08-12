@@ -238,13 +238,18 @@ def run(
             except (RewardFnError, GenerationRefused) as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})
                 print(f"[clipgen] {clip_id} attempt {attempt} invalid reply: {e}", flush=True)
-                # No usable transcript to critique when the failure predates a
-                # successful exchange -- regenerate from scratch instead of
-                # crashing generate_reward_fn's retry precondition.
-                if not transcript:
-                    feedback, transcript = None, None
-                else:
+                # generate_reward_fn attaches the transcript it built (even
+                # on a first, never-successful attempt) to RewardFnError --
+                # use it so the retry critiques ITS OWN mistake in
+                # conversation instead of regenerating blind. Only a bare
+                # GenerationRefused (no attached transcript) falls back to
+                # starting over with no feedback.
+                carried_transcript = getattr(e, "transcript", None)
+                if carried_transcript:
+                    transcript = carried_transcript
                     feedback = f"the reply was invalid: {e}"
+                else:
+                    feedback, transcript = None, None
                 continue
             transcript = result.transcript
             report["model"] = result.model
