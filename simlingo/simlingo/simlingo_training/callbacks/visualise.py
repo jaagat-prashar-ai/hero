@@ -90,7 +90,7 @@ class VisualiseCallback(Callback):
         batch: DrivingExample,
         batch_idx: int,
     ):
-        if trainer.global_step % self.val_interval != 0:
+        if batch_idx % self.val_interval != 0:
             return
 
         print("Validation visualization!")
@@ -100,8 +100,8 @@ class VisualiseCallback(Callback):
             speed_wps, route, language = pl_module.forward(batch, return_language=True)
 
         try:
-            self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'val_waypoints')
-            self._visualise_training_examples(batch, route, trainer, pl_module, 'val_route')
+            self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'val_waypoints', group_ids=batch.group_ids)
+            self._visualise_training_examples(batch, route, trainer, pl_module, 'val_route', group_ids=batch.group_ids)
             # visualise_cameras(batch, pl_module, trainer, language, route, speed_wps, name='val_imgs')
             
             print("visualised_val_example")
@@ -134,8 +134,8 @@ class VisualiseCallback(Callback):
             speed_wps, route, language = pl_module.forward(batch, return_language=True)
 
         try:
-            self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'waypoints', language_pred=language)
-            self._visualise_training_examples(batch, route, trainer, pl_module, 'route', language_pred=language)
+            self._visualise_training_examples(batch, speed_wps, trainer, pl_module, 'waypoints', language_pred=language, group_ids=batch.group_ids)
+            self._visualise_training_examples(batch, route, trainer, pl_module, 'route', language_pred=language, group_ids=batch.group_ids)
             # visualise_cameras(batch, pl_module, trainer, language, route, speed_wps, name='imgs')
 
             print("visualised_training_example")
@@ -154,14 +154,15 @@ class VisualiseCallback(Callback):
         pl_module: pl.LightningModule,
         name: str,
         language_pred = None,
+        group_ids = None,
     ):
         if not pl_module.logger:
             return
 
         if 'waypoints' in name:
-            waypoint_vis, prompt_img = visualise_waypoints(batch, waypoints, language_pred=language_pred)
+            waypoint_vis, prompt_img = visualise_waypoints(batch, waypoints, language_pred=language_pred, group_ids=group_ids)
         elif 'route' in name:
-            waypoint_vis, prompt_img = visualise_waypoints(batch, waypoints, language_pred=language_pred, route=True)
+            waypoint_vis, prompt_img = visualise_waypoints(batch, waypoints, language_pred=language_pred, route=True, group_ids=group_ids)
         pl_module.logger.log_image(
             f"visualise/{name}", images=[Image.fromarray(waypoint_vis), prompt_img], step=trainer.global_step
         )
@@ -176,7 +177,7 @@ def fig_to_np(fig):
 
 
 @torch.no_grad()
-def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_pred=None):
+def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_pred=None, group_ids=None):
     assert batch.driving_label is not None
     # arial.ttf lives at the package root (simlingo/simlingo/), so resolve it
     # relative to this file — the hydra cwd differs on the cluster.
@@ -192,7 +193,7 @@ def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_
         gt_waypoints = batch.driving_label.path[:, :n, :].cpu().numpy()
     else:
         gt_waypoints = batch.driving_label.waypoints[:, :n].cpu().numpy()
-    
+
     org_wps = []
     if len(batch.driving_input.prompt.placeholder_values) > 0:
         for b in batch.driving_input.prompt.placeholder_values:
@@ -202,11 +203,26 @@ def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_
                 org_wps.append(np.array(b[32005]))
 
     pred_waypoints = waypoints[:, :n].cpu().numpy()
-    b = gt_waypoints.shape[0]
-    # visualise max 16 examples
-    b = min(b, 16)
-    rows = int(np.ceil(b / 4))
-    cols = min(b, 4)
+
+    # Samples sharing a group_id (dl_collate_fn) are counterfactual variants of the
+    # same frame — overlay them in one subplot instead of one subplot per item, so
+    # it's easy to see how the K predictions vary against each other and their own
+    # GT. Ungrouped batches (group_ids is None) fall back to one singleton group per
+    # item, which reduces to the old one-subplot-per-item layout.
+    if group_ids is not None:
+        group_ids_np = group_ids.cpu().numpy()
+        groups_by_id: Dict[int, list] = {}
+        for i, gid in enumerate(group_ids_np):
+            groups_by_id.setdefault(int(gid), []).append(i)
+        groups = list(groups_by_id.values())
+    else:
+        groups = [[i] for i in range(gt_waypoints.shape[0])]
+
+    # visualise max 16 groups
+    groups = groups[:16]
+    n_groups = len(groups)
+    rows = int(np.ceil(n_groups / 4))
+    cols = min(n_groups, 4)
 
     white_pil = Image.new("RGB", (1024, 1024), "white")
     white_draw = ImageDraw.Draw(white_pil)
@@ -214,35 +230,43 @@ def visualise_waypoints(batch: DrivingExample, waypoints, route=False, language_
     # add space for text
     fig.subplots_adjust(hspace=0.8)
     y_curr = 10
-    for i in range(b):
-        if batch.driving_label.answer is not None:
-            language = batch.driving_label.answer.language_string[i]
+    cmap = plt.get_cmap("tab10")
+    for g, members in enumerate(groups):
+        ax = fig.add_subplot(rows, cols, g + 1)
+        for j, i in enumerate(members):
+            color = cmap(j % 10)
+            instruction = (
+                batch.driving_input.prompt.language_string[i]
+                if batch.driving_input.prompt is not None
+                else str(j)
+            )
+            pred_text = language_pred[i] if language_pred is not None else ""
+            label = textwrap.shorten(instruction, width=40, placeholder="...")
 
-            wrapped_text = textwrap.fill(language, width=80) 
-            wrapped_pred_text = textwrap.fill(language_pred[i], width=80) if language_pred is not None else ""
+            wrapped_text = textwrap.fill(f'{g}.{j} instr: {instruction}', width=80)
+            white_draw.text((10, y_curr), wrapped_text, fill="black", font=font)
+            y_curr += 20 * len(textwrap.wrap(wrapped_text, width=80))
+            if pred_text:
+                wrapped_pred_text = textwrap.fill(f'{g}.{j} pred: {pred_text}', width=80)
+                white_draw.text((10, y_curr), wrapped_pred_text, fill="black", font=font)
+                y_curr += 20 * len(textwrap.wrap(wrapped_pred_text, width=80))
+            y_curr += 10
 
-            lines_wrap = len(textwrap.wrap(wrapped_text, width=80))
-            lines_wrap_pred = len(textwrap.wrap(wrapped_pred_text, width=80))
-        
-            white_draw.text((10, y_curr), f'{i} GT: {wrapped_text}', fill="black", font=font)
-            y_curr += 20*lines_wrap
-            white_draw.text((10, y_curr), f'{i} Pred: {wrapped_pred_text}', fill="black", font=font)
-            y_curr += 20*lines_wrap_pred + 20
-        ax = fig.add_subplot(rows, cols, i + 1)
-        # Predicted waypoints
-        ax.scatter(pred_waypoints[i, :, 1], pred_waypoints[i, :, 0], marker="o", c="b")
-        ax.plot(pred_waypoints[i, :, 1], pred_waypoints[i, :, 0], c="b")
-        # Ground truth waypoints (i.e. ideal waypoints)
-        ax.scatter(gt_waypoints[i, :, 1], gt_waypoints[i, :, 0], marker="x", c="g")
-        ax.plot(gt_waypoints[i, :, 1], gt_waypoints[i, :, 0], c="g")
-        # Original waypoints
-        if len(org_wps) > 0:
-            ax.scatter(org_wps[i][:, 1], org_wps[i][:, 0], marker="o", c="r")
-            ax.plot(org_wps[i][:, 1], org_wps[i][:, 0], c="r")
-            
-        ax.set_title(f"waypoints {i}")
+            # Predicted waypoints: solid line
+            ax.scatter(pred_waypoints[i, :, 1], pred_waypoints[i, :, 0], marker="o", c=[color])
+            ax.plot(pred_waypoints[i, :, 1], pred_waypoints[i, :, 0], c=color, label=label)
+            # Ground truth waypoints for this specific option: dashed line, same color
+            ax.scatter(gt_waypoints[i, :, 1], gt_waypoints[i, :, 0], marker="x", c=[color])
+            ax.plot(gt_waypoints[i, :, 1], gt_waypoints[i, :, 0], c=color, linestyle="--")
+            # Original (pre-counterfactual) waypoints, when available
+            if len(org_wps) > i:
+                ax.scatter(org_wps[i][:, 1], org_wps[i][:, 0], marker="o", c="r")
+                ax.plot(org_wps[i][:, 1], org_wps[i][:, 0], c="r")
+
+        ax.set_title(f"group {g} (K={len(members)}) solid=pred dashed=GT")
         ax.grid()
         ax.set_aspect("equal", adjustable="box")
         ax.set_box_aspect(1.5)
+        ax.legend(fontsize=6, loc="best")
 
     return fig_to_np(fig), white_pil
