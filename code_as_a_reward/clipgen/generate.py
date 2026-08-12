@@ -334,7 +334,11 @@ Before writing any code, answer these in one or two sentences each:
    survive no_commitments and gutted_claims with IDENTICAL credit every
    time, regardless of threshold -- if a failing corruption's surviving
    component has no claims.commitments check in its code at all, that is
-   the bug; gate it on a maneuver key or shrink it to near-zero weight.
+   the bug. Per the system prompt: if you can name a claims.commitments
+   maneuver key the trajectory is executing, gate on it. Only use
+   near-zero weight if you can state which maneuver key you considered
+   and why it doesn't plausibly apply here -- shrinking without that
+   justification is not an acceptable fix.
 4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
    is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
    threshold the real data never satisfies -- recheck against the measured
