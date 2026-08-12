@@ -118,6 +118,12 @@ class LLM(nn.Module):
             self.model = get_peft_model(self.model, peft_config)
             self.model.print_trainable_parameters()
 
+        if getattr(self, 'gradient_checkpointing', False):
+            self.model.gradient_checkpointing_enable()
+            # required for gradients to flow into LoRA adapters when the base
+            # model's input embeddings are frozen and checkpointing is on
+            self.model.enable_input_require_grads()
+
         self.vocab_size = self.model.config.vocab_size
         self.hidden_size = self.model.config.hidden_size
         self.max_position_embeddings = self.model.config.max_position_embeddings

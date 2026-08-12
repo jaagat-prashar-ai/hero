@@ -48,6 +48,11 @@ class LingoInternVLModel(nn.Module):
             # for_inputs_embeds_ids[(input_ids >= self.num_embeddings)] = 0
             # inputs_embeds = language_model.model.get_input_embeddings()(for_inputs_embeds_ids)
             inputs_embeds = adaptor_dict['language_inputs']
+            # gradient checkpointing + enable_input_require_grads() makes this a leaf
+            # Variable requiring grad; the in-place writes below (placeholder/image
+            # merge) then fail with "a view of a leaf Variable ... in-place operation".
+            # Clone once so the in-place ops land on a non-leaf, grad flows unchanged.
+            inputs_embeds = inputs_embeds.clone()
             input_ids = adaptor_dict['language__ids']
             
             # 2a replace placeholder

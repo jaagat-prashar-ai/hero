@@ -20,6 +20,9 @@ class LanguageModelConfig:
     lora_alpha: int = 64
     lora_r: int = 32
     lora_dropout: float = 0.1
+    # trades ~20-30% slower steps for lower activation memory; needed to scale
+    # dreamer_contrastive_k up without OOMing at a fixed batch_size
+    gradient_checkpointing: bool = False
 
     _target_: str = "simlingo_training.models.language_model.llm.LLM"
 
