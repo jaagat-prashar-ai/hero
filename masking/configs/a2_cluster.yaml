@@ -71,6 +71,11 @@ runtime_environment:
     root_directory: .
     pip_requirements_path: masking/requirements_a2.txt
     regex_excludes:
+      # .venv is 7.8G and made the code-assets zip 6.4GB — concurrent pod
+      # setups crash-looped on it for an hour (run10, 2026-08-11, five
+      # workloads STOPPED with zero progress). The env comes from
+      # pip_requirements_path; the local venv must never ship.
+      - "^/\\.venv/"
       - "^/build_wds/"
       - "^/mnist/"
       - "^/research-core/"
