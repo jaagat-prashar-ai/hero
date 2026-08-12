@@ -6,6 +6,32 @@ now, not routine typos.
 
 ---
 
+## 2026-08-12 — gradient_checkpointing + enable_input_require_grads() broke InternVL2's in-place embedding merge
+
+**Symptom:** every `dreamer_contrastive_k=7` smoke attempt that used the new
+`model.language_model.gradient_checkpointing=true` override (`kq7dbm`) died
+almost immediately after `train.py` started, with `RuntimeError: a view of
+a leaf Variable that requires grad is being used in an in-place operation.`
+K=2/3/5/6 (no gradient checkpointing) never hit this.
+
+**Root cause:** `llm.py`'s new gradient-checkpointing path calls
+`self.model.enable_input_require_grads()` so gradients can flow into the
+LoRA adapters through the checkpointed layers. Under LoRA the base
+embedding table is frozen, so `inputs_embeds` normally has no grad history
+at all — `enable_input_require_grads()` forces it to become a genuine
+**leaf** Variable requiring grad. `internvl2_model.py` (lines ~91, 124,
+130) then merges waypoint-placeholder and image-patch embeddings into
+`inputs_embeds` via in-place indexed assignment
+(`inputs_embeds[selected] = ...`) — legal on a normal tensor, illegal on a
+leaf requiring grad.
+
+**Fix:** clone `inputs_embeds` once, immediately after it's obtained in
+`replace_placeholder_tokens`, before any of the in-place merge writes.
+Gradients still flow back through the clone to the original leaf
+unchanged. Commit `802c3da`. K=7 relaunch pending to confirm.
+
+---
+
 ## 2026-08-09 (2nd) — run_real_rollout_gen.py's S3 sync used upload_file, hitting the same known chunked-encoding rejection
 
 **Symptom:** `clipgen-real-rollout-smoke-05vvru` failed after successfully
