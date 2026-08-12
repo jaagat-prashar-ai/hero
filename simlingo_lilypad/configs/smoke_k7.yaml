@@ -22,10 +22,14 @@ workload_variant_config:
       # so the forward batch is up to 7x this on dreamer-heavy batches.
       # batch_size=2 OOMed (run 3t6t4r, rank 7: 77.68GB used, tried to alloc
       # 2.27GB more on an 80GB A100) - effective batch 14 is too big at K=7.
-      # gradient checkpointing trades ~20-30% slower steps for lower
-      # activation memory, letting batch_size stay at 2 (uniform with the
-      # rest of the K-sweep) instead of dropping to 1.
-      - data_module.batch_size=2
+      # gradient checkpointing alone did NOT fix it: batch_size=2 + ckpt
+      # still OOMed (run whblpx, rank 7: 77.70GB used, tried 2.27GB more,
+      # died in the adaptor CE loss at adaptors.py:272, which checkpointing
+      # doesn't shrink). batch_size=1 (effective 7 <= the K=6-proven 12) is
+      # the only K-sweep arm that can't keep bs=2 - note this halves the
+      # per-step item count vs the other arms when comparing step-indexed
+      # train curves.
+      - data_module.batch_size=1
       - model.language_model.gradient_checkpointing=true
       - data_module.num_workers=8
       # keep the safety objective out of the first contrastive experiment
