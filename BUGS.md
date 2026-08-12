@@ -1240,6 +1240,33 @@ the 1.5-only flags.
 
 ---
 
+## 2026-08-12 — a2 experiment d failed 0/61: "No <|cot_start|> marker in sequence"
+
+**Symptom:** masking-run10-a2-d-g5ewv7 completed with 0 succeeded / 61 failed;
+every event raised `ValueError: No <|cot_start|> marker in sequence and no
+prompt_len provided` from MaskedAlpamayo2Super._reasoning_span.
+
+**Root cause:** Alpamayo 2 Super does not emit `<|cot_start|>`/`<|cot_end|>`
+in generation. Its chat template drops the empty assistant turn entirely
+(create_messages), so generation starts bare at `<|im_start|>assistant\n` and
+the model produces CoC text directly until `<|traj_future_start|>` — unlike
+1.5/R1, whose assistant turn is primed with `<|cot_start|>`. Experiments a/b/c
+worked because compare_conditions threads prompt_len from the prefix dict into
+the span fallback; experiment d's forced-decode path called
+`model._reasoning_span(seq)` bare, hitting the refuse-to-guess guard.
+
+**Fix:** `_reasoning_span(seq, prompt_len=None)` on all three forks (a15/a1
+gain the same optional fallback, default behavior unchanged), and
+experiment_d_reversal.py threads `prefix.get("prompt_len")` through
+run_experiment_d and splice_reasoning.
+
+**How this was found:** first a2 exp-d run after the port; the guard raised
+exactly the error message it was written to raise — better than the silent
+start=0 the 1.5 code would have used (which would have spliced over the whole
+multi-camera prompt).
+
+---
+
 ## Format for new entries
 
 ```

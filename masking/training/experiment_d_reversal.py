@@ -206,7 +206,9 @@ def rollout_forced_cot(model, data: dict[str, Any], forced_seq: torch.Tensor) ->
     }
 
 
-def splice_reasoning(model, seq: torch.Tensor, new_cot_text: str | None) -> torch.Tensor:
+def splice_reasoning(
+    model, seq: torch.Tensor, new_cot_text: str | None, prompt_len: int | None = None
+) -> torch.Tensor:
     """Return a (1, L) forced sequence: `seq` (1D generated token ids) with
     its reasoning span replaced by the tokenization of `new_cot_text`, then
     truncated at the first <|traj_future_start|> so the sequence ends exactly
@@ -219,7 +221,7 @@ def splice_reasoning(model, seq: torch.Tensor, new_cot_text: str | None) -> torc
     decode->encode round-trips); splicing the raw ids keeps the control a
     pure test of the forward-pass machinery.
     """
-    rs_start, rs_end = model._reasoning_span(seq)
+    rs_start, rs_end = model._reasoning_span(seq, prompt_len)
     if new_cot_text is None:
         new_ids = seq[rs_start:rs_end]
     else:
@@ -263,8 +265,13 @@ def run_experiment_d(model, model_inputs: dict, seed: int) -> dict:
         prefix = model._rollout_prefix(model_inputs)
         gen_xyz, _, _ = model._denoise_with_mask(prefix, None, seed=seed)
         seq0 = prefix["sequences"][0]
+        # Alpamayo 2 generates WITHOUT <|cot_start|> markers (bit run10-a2-d,
+        # 0/61 — see BUGS.md 2026-08-12); its prefix dict carries prompt_len
+        # for the span fallback. a15/a1 prefixes have no prompt_len key ->
+        # None -> marker-based path, behavior unchanged.
+        prompt_len = prefix.get("prompt_len")
 
-        rs_start, rs_end = model._reasoning_span(seq0)
+        rs_start, rs_end = model._reasoning_span(seq0, prompt_len)
         cot_text = model.tokenizer.decode(
             seq0[rs_start:rs_end], skip_special_tokens=False
         ).strip()
@@ -273,7 +280,7 @@ def run_experiment_d(model, model_inputs: dict, seed: int) -> dict:
         rev = reverse_coc_text(cot_text)
 
         # 3. Control: identical token ids through the forced-prefill path.
-        forced_orig_seq = splice_reasoning(model, seq0, None)
+        forced_orig_seq = splice_reasoning(model, seq0, None, prompt_len)
         ctrl_prefix = rollout_forced_cot(model, model_inputs, forced_orig_seq)
         ctrl_xyz, _, _ = model._denoise_with_mask(ctrl_prefix, None, seed=seed)
 
@@ -282,7 +289,7 @@ def run_experiment_d(model, model_inputs: dict, seed: int) -> dict:
         #    again would just reproduce the control.
         rev_xyz = None
         if rev["n_beats_reversed"] > 0:
-            reversed_seq = splice_reasoning(model, seq0, rev["text"])
+            reversed_seq = splice_reasoning(model, seq0, rev["text"], prompt_len)
             rev_prefix = rollout_forced_cot(model, model_inputs, reversed_seq)
             rev_xyz, _, _ = model._denoise_with_mask(rev_prefix, None, seed=seed)
 

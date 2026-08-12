@@ -167,7 +167,7 @@ class MaskedAlpamayoR1(AlpamayoR1):
             for name in ("cot_start", "cot_end", "traj_future_start")
         }
 
-    def _reasoning_span(self, seq: torch.Tensor) -> tuple[int, int]:
+    def _reasoning_span(self, seq: torch.Tensor, prompt_len: int | None = None) -> tuple[int, int]:
         """[start, end) token columns holding the chain-of-causation CONTENT.
 
         Strictly between <|cot_start|> and <|cot_end|> (markers themselves stay
@@ -177,7 +177,14 @@ class MaskedAlpamayoR1(AlpamayoR1):
         cs = (seq == sid["cot_start"]).nonzero(as_tuple=True)[0]
         ce = (seq == sid["cot_end"]).nonzero(as_tuple=True)[0]
         ts = (seq == sid["traj_future_start"]).nonzero(as_tuple=True)[0]
-        start = int(cs[0]) + 1 if len(cs) else 0
+        if len(cs):
+            start = int(cs[0]) + 1
+        elif prompt_len is not None:
+            # Marker-less generation (Alpamayo 2 style): CoT = everything
+            # generated before <|traj_future_start|>.
+            start = int(prompt_len)
+        else:
+            start = 0
         end = int(ce[0]) if len(ce) else (int(ts[0]) if len(ts) else int(seq.shape[0]))
         return start, max(start, end)
 
