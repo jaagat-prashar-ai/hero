@@ -61,6 +61,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -160,10 +161,29 @@ _REQUIRED_OUTPUT_KEYS = (
     "perturbed_trace", "semantic_delta", "decision_impact", "plausibility_rationale",
 )
 
-# Pricing for the cost estimate printed by the dry run (claude-fable-5,
-# per claude-api skill as of 2026-08): $/Mtok in, out, cache-read.
-_PRICE_IN, _PRICE_OUT, _PRICE_CACHE_READ = 5.0, 25.0, 0.50
+# Pricing for the cost estimate printed by the dry run, $/Mtok
+# (input, output, cached-input-read). claude-fable-5 per claude-api skill
+# as of 2026-08; gpt-4o per OpenAI pricing page as of the same date.
+_PRICING = {
+    "claude-fable-5": (5.0, 25.0, 0.50),
+    "gpt-4o": (2.50, 10.00, 1.25),
+}
 _EST_SYSTEM_TOKENS, _EST_USER_TOKENS, _EST_OUTPUT_TOKENS = 1500, 350, 450
+
+_OPENAI_KEY_PATH = Path.home() / ".creds" / "openai.key"
+
+
+def load_openai_api_key(key_path: Path = _OPENAI_KEY_PATH) -> None:
+    """Same convention as pref_pairs' load_api_key, for ~/.creds/openai.key:
+    bridges the key file into OPENAI_API_KEY unless one is already set."""
+    if os.environ.get("OPENAI_API_KEY"):
+        return
+    if not key_path.exists():
+        raise RuntimeError(
+            f"OPENAI_API_KEY unset and {key_path} does not exist. Save an "
+            f"OpenAI API key there or export OPENAI_API_KEY before running."
+        )
+    os.environ["OPENAI_API_KEY"] = key_path.read_text().strip()
 
 
 # ---------------------------------------------------------------------------
@@ -267,6 +287,36 @@ def validate_perturbation(original_trace: str, result: dict[str, Any]) -> str | 
 # Generation (real, billed API calls — no mocked tests, smoke-then-scale)
 # ---------------------------------------------------------------------------
 
+def _call_backend(client: Any, model: str, user_payload: dict[str, Any]) -> tuple[str, bool]:
+    """One model call; returns (response_text, refused). Dispatches on the
+    client's type so the validation/retry pipeline stays backend-agnostic."""
+    if client.__class__.__module__.startswith("openai"):
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=2048,
+            # JSON mode guarantees parseable output (SYSTEM_PROMPT_V2 already
+            # demands a bare JSON object, which JSON mode requires be mentioned).
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT_V2},
+                {"role": "user", "content": json.dumps(user_payload)},
+            ],
+        )
+        choice = response.choices[0]
+        return choice.message.content or "", choice.finish_reason == "content_filter"
+
+    response = client.beta.messages.create(
+        model=model,
+        max_tokens=2048,
+        betas=["server-side-fallback-2026-06-01"],
+        fallbacks=[{"model": "claude-opus-4-8"}],
+        system=[{"type": "text", "text": SYSTEM_PROMPT_V2, "cache_control": {"type": "ephemeral"}}],
+        messages=[{"role": "user", "content": json.dumps(user_payload)}],
+    )
+    text = next((b.text for b in response.content if b.type == "text"), "")
+    return text, response.stop_reason == "refusal"
+
+
 def generate_perturbation_v2(
     client: Any,
     trace_id: str,
@@ -293,18 +343,10 @@ def generate_perturbation_v2(
             )
         raise PerturbationError(f"trace_id={trace_id}: {reason} after retry")
 
-    response = client.beta.messages.create(
-        model=model,
-        max_tokens=2048,
-        betas=["server-side-fallback-2026-06-01"],
-        fallbacks=[{"model": "claude-opus-4-8"}],
-        system=[{"type": "text", "text": SYSTEM_PROMPT_V2, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": json.dumps(user_payload)}],
-    )
-    if response.stop_reason == "refusal":
-        return _retry("refused even with fallback")
+    text, refused = _call_backend(client, model, user_payload)
+    if refused:
+        return _retry("refused")
 
-    text = next((b.text for b in response.content if b.type == "text"), "")
     try:
         parsed = json.loads(_extract_json_object(text))
     except json.JSONDecodeError as e:
@@ -435,15 +477,16 @@ def fingerprint_check(perturbations_path: str | Path, threshold: float = 0.60) -
 # CLI — dry run by default; --confirm required for the paid batch
 # ---------------------------------------------------------------------------
 
-def estimate_cost(n_calls: int) -> float:
+def estimate_cost(n_calls: int, model: str = "claude-fable-5") -> float:
     """USD estimate. System prompt is cache-read after the first call; user
-    turn + output are per-call."""
+    turn + output are per-call. Unknown models fall back to fable pricing."""
     if n_calls == 0:
         return 0.0
-    first = _EST_SYSTEM_TOKENS / 1e6 * _PRICE_IN
-    rest = (n_calls - 1) * _EST_SYSTEM_TOKENS / 1e6 * _PRICE_CACHE_READ
-    user = n_calls * _EST_USER_TOKENS / 1e6 * _PRICE_IN
-    out = n_calls * _EST_OUTPUT_TOKENS / 1e6 * _PRICE_OUT
+    price_in, price_out, price_cache_read = _PRICING.get(model, _PRICING["claude-fable-5"])
+    first = _EST_SYSTEM_TOKENS / 1e6 * price_in
+    rest = (n_calls - 1) * _EST_SYSTEM_TOKENS / 1e6 * price_cache_read
+    user = n_calls * _EST_USER_TOKENS / 1e6 * price_in
+    out = n_calls * _EST_OUTPUT_TOKENS / 1e6 * price_out
     return first + rest + user + out
 
 
@@ -453,7 +496,9 @@ def main() -> None:
     ap.add_argument("--scene_reasoning_dir",
                     default="pref_pairs/results/fixed_reasoning/scene_reasoning")
     ap.add_argument("--out_path", default="dpo_pairs/results/perturbations_v2/perturbations.jsonl")
-    ap.add_argument("--model", default="claude-fable-5")
+    ap.add_argument("--backend", choices=("anthropic", "openai"), default="anthropic")
+    ap.add_argument("--model", default=None,
+                    help="default: claude-fable-5 (anthropic) / gpt-4o (openai)")
     ap.add_argument("--max_scenes", type=int, default=None)
     ap.add_argument("--confirm", action="store_true",
                     help="Actually run the paid batch. Without this flag the script only "
@@ -472,21 +517,28 @@ def main() -> None:
     if args.max_scenes is not None:
         ground_truth_traces = ground_truth_traces[: args.max_scenes]
 
+    model = args.model or ("gpt-4o" if args.backend == "openai" else "claude-fable-5")
     n_jobs = sum(len(select_targets(gt["trace"])) for gt in ground_truth_traces)
-    cost = estimate_cost(n_jobs)
+    cost = estimate_cost(n_jobs, model)
     logger.info("%d scenes -> %d claim-targeted jobs, estimated cost $%.2f on %s",
-                len(ground_truth_traces), n_jobs, cost, args.model)
+                len(ground_truth_traces), n_jobs, cost, model)
 
     if not args.confirm:
         logger.info("DRY RUN (no --confirm): no API calls made. Re-run with --confirm "
                     "after the cost above is approved.")
         return
 
-    load_api_key()
-    import anthropic
+    if args.backend == "openai":
+        load_openai_api_key()
+        from openai import OpenAI
 
-    client = anthropic.Anthropic()
-    results, failures = generate_all_perturbations_v2(client, ground_truth_traces, model=args.model)
+        client = OpenAI()
+    else:
+        load_api_key()
+        import anthropic
+
+        client = anthropic.Anthropic()
+    results, failures = generate_all_perturbations_v2(client, ground_truth_traces, model=model)
     out_path = write_perturbations_jsonl(results, args.out_path)
     logger.info("wrote %d perturbations to %s (%d failed after retry)",
                 len(results), out_path, len(failures))
