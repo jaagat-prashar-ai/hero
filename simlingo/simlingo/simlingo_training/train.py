@@ -15,6 +15,7 @@ from transformers import AutoProcessor
 from simlingo_training.utils.logging_project import setup_logging, sync_wandb
 
 from simlingo_training.config import TrainConfig
+from simlingo_training.callbacks.s3_checkpoint import S3CheckpointUpload
 from simlingo_training.callbacks.visualise import VisualiseCallback
 
 
@@ -124,6 +125,12 @@ def main(cfg: TrainConfig):
         # ThroughputMonitor(batch_size_fn=lambda batch: batch.driving_input.camera_images.size(0)), 
         VisualiseCallback(interval=1000, val_interval=1000)
     ]
+    # after checkpoint_callback so its hooks run once shards are on disk
+    if os.environ.get("CHECKPOINT_S3_PREFIX"):
+        callbacks.append(S3CheckpointUpload(
+            dirpath="./checkpoints",
+            s3_uri=f"{os.environ['CHECKPOINT_S3_PREFIX'].rstrip('/')}/{cfg.wandb_name}",
+        ))
     if not cfg.debug: 
         callbacks.append(lr_monitor)
     
