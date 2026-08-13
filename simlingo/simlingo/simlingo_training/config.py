@@ -156,6 +156,10 @@ class TrainConfig:
     
     # max_steps: int = 100_000
     max_epochs: int = 20
+    # optimizer batch = batch_size x accumulate_grad_batches x world_size items;
+    # lets arms whose K fan-out forces a small forward microbatch keep the same
+    # optimizer batch / LR schedule as the rest of a sweep
+    accumulate_grad_batches: int = 1
     precision: str = "16-mixed"
     strategy: str = "deepspeed_stage_2" # deepspeed_stage_2 ddp
     # val_check_interval: int = 5000

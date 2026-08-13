@@ -147,6 +147,7 @@ def main(cfg: TrainConfig):
             sync_batchnorm=True,
             # use_distributed_sampler=False,
             max_epochs=cfg.max_epochs,
+            accumulate_grad_batches=cfg.accumulate_grad_batches,
             overfit_batches=overfit,
             check_val_every_n_epoch=cfg.val_every_n_epochs,
             # val_check_interval=cfg.val_check_interval,
