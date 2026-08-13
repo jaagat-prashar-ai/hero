@@ -34,7 +34,7 @@ OVERFIT_CONJUNCTION_FN = """\
 def components(claims, traj):
     has_decelerate = any(c.maneuver == 'decelerate' for c in claims.commitments)
     has_yield = any(c.maneuver == 'yield' for c in claims.commitments)
-    saw = any(c.entity in ('stopped_vehicle', 'automobile') for c in claims.perceptual)
+    saw = any(c.entity in ('stopped_vehicle', 'vehicle_generic') for c in claims.perceptual)
     conjunction = 0.0
     if has_decelerate and has_yield:
         win = window(traj.speed_mps, traj.dt_s, 1.5, 4.5)

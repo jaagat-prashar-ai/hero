@@ -59,7 +59,7 @@ def components(claims, traj):
     (reversed/flat trajectory, gutted claims) drops well below the intact
     pair.
     \"\"\"
-    saw = any(c.entity in ("stopped_vehicle", "automobile") for c in claims.perceptual)
+    saw = any(c.entity in ("stopped_vehicle", "vehicle_generic") for c in claims.perceptual)
     committed = any(c.maneuver in ("yield", "decelerate", "stop") for c in claims.commitments)
     win = window(traj.speed_mps, traj.dt_s, 1.5, 4.5)
     executed = 0.0

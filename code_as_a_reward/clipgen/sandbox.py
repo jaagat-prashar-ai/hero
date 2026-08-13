@@ -32,6 +32,7 @@ _CANONICAL_KEYS: dict[str, frozenset[str]] = {
     "maneuver": frozenset(key for key, *_ in MANEUVER_PATTERNS),
     "state": frozenset(key for key, _ in STATE_PATTERNS),
     "direction": frozenset({"left", "right"}),
+    "speed_profile": frozenset({"accelerate", "decelerate", "maintain", "adapt"}),
 }
 
 # "Track 32"-style dossier track ids are obstacle_tracks.py bookkeeping, never
@@ -61,23 +62,33 @@ def _check_canonical_vocab(tree: ast.AST) -> None:
             continue
         operands = [node.left, *node.comparators]
         for left, right in zip(operands, operands[1:]):
-            for attr_node, str_node in ((left, right), (right, left)):
+            for attr_node, other in ((left, right), (right, left)):
                 if not isinstance(attr_node, ast.Attribute):
                     continue
-                literal = _string_const(str_node)
-                if literal is None:
-                    continue
-                if _TRACK_LITERAL_RE.search(literal):
-                    raise RewardFnError(
-                        f"comparing .{attr_node.attr} against dossier-only literal {literal!r}; "
-                        "no rollout's own CoC text will ever contain a track id"
-                    )
-                canonical = _CANONICAL_KEYS.get(attr_node.attr)
-                if canonical is not None and literal not in canonical:
-                    raise RewardFnError(
-                        f"non-canonical .{attr_node.attr} value {literal!r}; "
-                        f"the parser only ever emits: {sorted(canonical)}"
-                    )
+                # `attr in ('a', 'b')` membership: lint every element, not
+                # just bare string constants -- the taught idioms are
+                # tuple-membership predicates, and a typo'd key inside a
+                # set must fail as loudly as one in an == comparison.
+                elements = (
+                    other.elts
+                    if isinstance(other, (ast.Tuple, ast.List, ast.Set))
+                    else [other]
+                )
+                for element in elements:
+                    literal = _string_const(element)
+                    if literal is None:
+                        continue
+                    if _TRACK_LITERAL_RE.search(literal):
+                        raise RewardFnError(
+                            f"comparing .{attr_node.attr} against dossier-only literal {literal!r}; "
+                            "no rollout's own CoC text will ever contain a track id"
+                        )
+                    canonical = _CANONICAL_KEYS.get(attr_node.attr)
+                    if canonical is not None and literal not in canonical:
+                        raise RewardFnError(
+                            f"non-canonical .{attr_node.attr} value {literal!r}; "
+                            f"the parser only ever emits: {sorted(canonical)}"
+                        )
 
 
 def _check_no_float_equality(tree: ast.AST) -> None:
@@ -102,7 +113,8 @@ def _check_no_float_equality(tree: ast.AST) -> None:
                 raise RewardFnError(
                     f"exact equality against float literal {operand.value!r} -- real "
                     "trajectory data is noisy and will never hit an exact value; use "
-                    "a tolerance instead (e.g. `abs(x - target) <= eps`, or `<=`/`>=`)"
+                    "`>=`/`<=` with generous one-sided margin instead (a two-sided "
+                    "`abs(x - target) <= eps` band only when the scene genuinely needs one)"
                 )
 
 

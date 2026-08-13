@@ -113,7 +113,15 @@ says it noticed and committed to), and the expert's actual measured actions
 practical rubric for "was this rollout an ACCEPTABLE, faithful response to
 this scene" -- not "does it exactly reproduce GT." A real rollout from the
 policy will differ from GT in its exact phrasing, its exact numbers, and
-even its exact timing; build reasonably flexible bounds and tolerances into
+even its exact timing -- and it typically states FEWER claims than the
+expert: expect one commitment phrased with any family synonym and one or
+two mentioned entities, not the expert's full inventory, so a check that
+requires two or more distinct claims simultaneously will usually find at
+most one. Never make full credit REQUIRE multiple claims at once: score
+additional events or claims as independent ADDITIVE components with their
+own conjunctions, so a rollout that faithfully covers more of the scene
+ranks above one that covers less while a sparse-but-faithful rollout still
+clears the bar. Build reasonably flexible bounds and tolerances into
 your checks from the start, rather than GT's literal values as hard
 requirements.
 
@@ -172,10 +180,26 @@ unverified -- two of the five corruptions (no_commitments, gutted_claims)
 strip the reasoning entirely and leave the trajectory untouched, so a
 trajectory-only component keeps its FULL credit under both, no matter how
 sharp its threshold is (this is not a maybe -- it is certain, by
-construction of those two corruptions). If you can name a
-claims.commitments maneuver key the trajectory is executing, require it in
-the same check: `any(c.maneuver == '<key>' for c in claims.commitments)
-and <trajectory condition>`. If the behavior doesn't correspond to any
+construction of those two corruptions). If the trajectory is
+executing a commitment the model would plausibly state, require it in the
+same check -- matched at the FAMILY level, never by one exact maneuver
+key: `any(c.speed_profile == 'decelerate' for c in claims.commitments)
+and <trajectory condition>`. Put the specificity on the TRAJECTORY side
+(how much, WHEN, which direction) and keep the claim side family-level:
+the parser maps stop, yield, wait, and decelerate all to
+speed_profile='decelerate', and a real rollout picks any one of those
+words -- an exact `c.maneuver == 'stop'` zeroes the whole conjunction the
+moment the rollout said 'yield', and exactness buys no extra corruption
+sensitivity (stripping commitments kills both forms equally, and the
+identity corruption flips the speed_profile when the claim carries no
+direction; when a stray direction word got attached to a longitudinal
+claim only the direction flips, and then NO claim-side check, family or
+exact, can separate that corruption -- the trajectory checks must). Keep
+the family to the flippable profiles ('decelerate', 'accelerate'); for
+lateral commitments use the API reference's lateral idiom, and never
+REQUIRE .direction on a longitudinal maneuver -- the parser attaches
+.direction only when a direction word happens to sit near the verb, so it
+is often None even when a direction is implied. If the behavior doesn't correspond to any
 maneuver claim the model would plausibly state (e.g. "kept the lane" as
 opposed to "yielded" or "decelerated"), it isn't something a trajectory
 alone can prove was a FAITHFUL response to reasoning -- give it near-zero
@@ -198,9 +222,29 @@ Hard rules for the final function:
   disagrees with reward(), and shows you the per-case breakdown when a case
   fails -- use that to reallocate credit rather than trying to hit an exact
   budget from the start.
-- Use this scene's dossier numbers (times, distances, speed drops) as a
-  reference point for your thresholds, with reasonable margin -- not as
-  exact values a real rollout must reproduce.
+- Trajectory thresholds: one-sided, generous, and GRADED. Demand roughly
+  HALF of this scene's magnitude as the floor, not most of it -- a rollout
+  that slowed 5 m/s where GT slowed 9 is still faithfully slowing
+  (`drop >= 4.5`, never `drop >= 9.0`, and never a NARROW two-sided band
+  copied from GT like `8.5 <= drop <= 9.5`, which real rollouts just
+  miss). Scores are used to RANK 12 rollouts, so let the trajectory factor
+  vary continuously above the floor (e.g. `0.5 * min(1.0, drop / 6.0)`
+  behind the claim gate) instead of a bare pass/fail step -- a step hands
+  the sloppiest passing rollout the same credit as the crispest. Prefer
+  CHANGE quantities (speed drop, heading change) over absolute levels -- a
+  no-reaction trajectory has zero drop, so a generous drop floor still
+  fails it, while a loose absolute-speed ceiling can pass it on an
+  already-slow scene -- and compute them time-directionally: early-window
+  speed minus the minimum AFTERWARD, and SIGNED heading change, never
+  max-minus-min over the whole series or abs(), which a time-reversed
+  trajectory preserves exactly. Never set a floor below the trajectory's
+  noise: if half the scene's magnitude is within the jitter shown in the
+  measured facts, that quantity is too small to verify -- pick a different
+  one or shrink the component. Dossier DISTANCES to obstacles are scene
+  geometry, not trajectory quantities -- never reuse one as a
+  lateral-offset or speed threshold (in-lane lateral offsets on straight
+  roads are typically under ~3 m; on curving roads heed the traj
+  reference's frozen-frame caution before using lateral offset at all).
 - No imports, no dunder access, no I/O. Available names: `np` (numpy),
   `window(values, dt_s, t0, t1)` (slice a per-waypoint series to a time
   window in seconds), and standard builtins (min, max, abs, any, ...).
@@ -221,14 +265,48 @@ _API_REFERENCE = """\
   "pedestrian", "stopped_vehicle", "construction_cones"), .state (canonical
   key or None, e.g. "blocking", "crossing"), .text (verbatim span).
 - claims.commitments: list of CommitmentClaim -- .maneuver (canonical key,
-  e.g. "stop", "yield", "decelerate", "nudge", "lane_change", "keep_lane",
-  "accelerate", "proceed" -- direction is a SEPARATE field, never part of
-  the maneuver key itself: "lane_change_left" is not canonical, use
-  .maneuver == "lane_change" and .direction == "left"), .speed_profile ("accelerate" |
-  "decelerate" | "maintain" | "adapt" | None), .direction ("left" | "right"
-  | None), .text.
+  EXACTLY one of: stop, yield, wait, decelerate, accelerate, adapt_speed,
+  keep_distance, create_gap, proceed, lane_change, keep_lane, nudge, merge,
+  turn, enter, exit; anything else is rejected at compile time, so
+  "maintain_speed" or "lane_change_left" matches nothing -- direction is a
+  SEPARATE field, never part of the maneuver key), .speed_profile
+  ("accelerate" | "decelerate" | "maintain" | "adapt" | None), .direction
+  ("left" | "right" | None), .text.
+  FAMILIES -- the .speed_profile the parser assigns: stop/yield/wait/
+  decelerate -> "decelerate"; accelerate -> "accelerate"; keep_distance ->
+  "maintain"; adapt_speed -> "adapt"; the lateral maneuvers and
+  proceed/create_gap -> None. Idiomatic commitment predicates -- default
+  to these:
+    slowing:  0.5 * min(1.0, drop / 6.0) if any(c.speed_profile ==
+              'decelerate' for c in claims.commitments) else 0.0
+              # the claim side is binary by design; the GRADED trajectory
+              # factor is where the 12 rollouts in a group get separated --
+              # scale it, never step it
+    speeding: the same shape with 'accelerate' and a speed-gain factor
+    lateral:  any(c.maneuver in ('lane_change', 'nudge', 'merge', 'turn',
+              'enter', 'exit') and c.direction != '<opposite>' for c in
+              claims.commitments) gating a graded lateral factor
+              # tolerates direction=None; exclude only the CONTRADICTING
+              # direction, never require one. Caveat: if the rollout ALSO
+              # claims keep_lane, the identity corruption maps keep_lane
+              # INTO this set -- gate feedback will show it; drop or
+              # down-weight the component then
+  An exact `c.maneuver == '<key>'` equality is the marked, exceptional
+  case: use it only when no family expresses the scene, and put
+  stop-vs-slow specificity in the trajectory side (e.g. min_speed <= 1.0)
+  instead of the claim key. Prefer the decelerate/accelerate families for
+  the MAIN conjunction; build it on keep_distance or adapt_speed only when
+  that IS the scene's decisive commitment (car-following scenes) -- the
+  parser emits those keys only for narrow phrasings, and the identity-flip
+  corruption skips them, so keep their trajectory factor sharp and graded.
 - claims.causal: list of CausalClaim -- .effects (list[CommitmentClaim]),
-  .cause (list[PerceptualClaim]), .connective.
+  .cause (list[PerceptualClaim]), .connective. These hold claim OBJECTS,
+  not strings: `'stop' in cl.effects` is ALWAYS False -- write
+  `any(e.speed_profile == 'decelerate' for e in cl.effects)`. In practice
+  do not key components on claims.causal at all: causal parses are sparse
+  on real rollouts and the same evidence is available more robustly from
+  claims.commitments/.perceptual directly; never require an exact
+  .connective.
 - claims.unparsed_spans: list[(start, end)] char spans the parser could not
   account for.
 
@@ -244,12 +322,35 @@ _API_REFERENCE = """\
 - traj.stop_event, traj.yield_event (bool, threshold-derived -- prefer the
   raw per-waypoint series over these flags)
 
-Entity keys the parser can emit for matching against dossier classes:
-pedestrian<->pedestrian, automobile/stopped_vehicle<->automobile,
-heavy_truck<->heavy truck, bicycle/cyclist<->bicycle, motorcycle<->motorcycle.
+The ONLY .entity keys the parser can emit (anything else is rejected at
+compile time): pedestrian, cyclist, workers, emergency_vehicle,
+lead_vehicle, stopped_vehicle, cutin_vehicle, vehicle_generic,
+cross_traffic, oncoming_traffic, construction_cones, barricades,
+work_zone, signal, crosswalk, intersection, roundabout, gate,
+ramp_or_freeway, curve, shoulder_or_median, lane, speed_hump,
+speed_limit_sign, weather_or_surface. There is no "automobile",
+"heavy_truck", "motorcycle", or "bicycle": plain cars/trucks parse to
+vehicle_generic (or lead_vehicle/stopped_vehicle/cutin_vehicle when so
+qualified); rider words (cyclist, bicyclist, biker, scooter) parse to
+cyclist, while the bare words "bike", "bicycle", and "motorcycle" parse
+to NOTHING at all -- on motorcycle/bicycle scenes keep perceptual weight
+tiny and never build a component that requires the mention. Idiomatic
+perceptual predicate -- an any-of entity FAMILY set, one entity family
+per component, .entity only:
+  any(p.entity in ('work_zone', 'construction_cones', 'barricades',
+      'workers') for p in claims.perceptual)
+Never require an exact (.entity, .state) pair -- .state is a
+nearest-word heuristic (each entity gets at most its single closest
+state word, often None), so pairing roughly doubles the miss rate even
+when both words appear; use .state only as a tiny optional bonus. Never
+AND two different entities in one component: a real rollout usually
+mentions one.
 
 `window()` returns a numpy ARRAY -- never use it in a boolean context
 (`if arr:` raises ValueError); use len(arr) > 0, arr.any(), or arr.all().
+`np.argmin(window(v, traj.dt_s, t0, t1))` is an index RELATIVE to the
+window -- the absolute event time is `t0 + idx * traj.dt_s`; comparing a
+bare windowed argmin against absolute clip times can never be true.
 """
 
 _STEP1 = """\
@@ -278,12 +379,22 @@ remain authoritative for exact geometry and timing.
 _STEP2 = """\
 Step 2: for each decisive event, define what an ACCEPTABLE rollout looks
 like -- not an exact GT match:
-(a) which perceptual claims should reasonably be present (entity/state
-keys),
-(b) which commitments should reasonably be present (maneuver keys),
-(c) what the trajectory should approximately do, with flexible thresholds
-inspired by (not copied from) this scene's numbers -- a real rollout will
-differ from GT in its exact values and timing.
+(a) which perceptual entity FAMILY should reasonably be mentioned (an
+any-of set of related canonical .entity keys per event -- not one exact
+entity, and no .state requirement),
+(b) which commitment FAMILY should reasonably be present (a
+speed_profile value like 'decelerate' = stop/yield/wait/decelerate, or
+the lateral maneuver set lane_change/nudge/merge/turn/enter/exit --
+never keep_lane -- plus a direction to EXCLUDE; name an exact maneuver
+key only if you can state why the family won't do),
+(c) what the trajectory should approximately do, as ONE-SIDED graded
+factors floored at roughly half this scene's magnitudes and anchored on
+WHEN the maneuver happens -- a real rollout will differ from GT in its
+exact values and timing, and its parsed reasoning typically contains
+FEWER claims than the expert's, so plan for the case where only the
+single most central commitment family plus one or two mentions fire,
+and score any additional event as its own independent ADDITIVE
+component rather than requiring it.
 Also define what an UNFAITHFUL rollout looks like (mentions without
 execution, execution without mention, wrong direction) -- this is what your
 function actually needs to separate.
@@ -305,7 +416,26 @@ Write ONE python code block containing `def components(claims, traj):`
 Compose the score however best fits this scene -- you decide the component
 structure and weighting. Include a short docstring naming the decisive
 events and the scene-derived thresholds. Remember the hard rules from the
-system prompt.
+system prompt. Then pre-flight your own code before emitting:
+- commitment credit matched at the FAMILY level (speed_profile, or the
+  lateral set excluding the contradicting direction) per the API
+  reference idioms; any exact .maneuver equality needs a one-line
+  justification in the docstring;
+- perceptual credit as an any-of entity set, no .state conjunct, small
+  additive weight, never mixed into a commitment/trajectory conjunction;
+- trajectory factors one-sided and GRADED above a generous
+  (~half-magnitude) floor, with at least one commitment-conjunction
+  component varying continuously with the trajectory -- 12 competent
+  rollouts must not tie; identical scores in a group train nothing;
+  absolute event times computed as t0 + argmin(window(...)) * traj.dt_s;
+- component maxima sum to exactly 1.0, AND the components a typical
+  sparse rollout will actually fire (ONE commitment-family conjunction
+  plus mention credit) can reach 0.7 by themselves with the graded
+  factors at ~70% execution quality;
+- every key in the components() dict is assigned a possibly-positive
+  value on some code path (a zero-initialized key nothing writes to can
+  never score), and no component reads another component's score or
+  flag.
 """
 
 _RETRY = """\
@@ -334,16 +464,32 @@ Before writing any code, answer these in one or two sentences each:
    survive no_commitments and gutted_claims with IDENTICAL credit every
    time, regardless of threshold -- if a failing corruption's surviving
    component has no claims.commitments check in its code at all, that is
-   the bug. Per the system prompt: if you can name a claims.commitments
-   maneuver key the trajectory is executing, gate on it. Only use
-   near-zero weight if you can state which maneuver key you considered
-   and why it doesn't plausibly apply here -- shrinking without that
-   justification is not an acceptable fix.
+   the bug. Per the system prompt: if the trajectory is executing a commitment
+   the model would plausibly state, gate on its FAMILY (speed_profile,
+   or the lateral set excluding the contradicting direction). Only use
+   near-zero weight if you can state which commitment FAMILY you
+   considered and why it doesn't plausibly apply here -- shrinking
+   without that justification is not an acceptable fix.
 4. Any component that scored 0.00 on the POSITIVE case (see the breakdown)
-   is mis-keyed (a claim not in the GT parse) or mis-timed (a window or
-   threshold the real data never satisfies -- recheck against the measured
-   facts). Fix or REMOVE it; dead components cap the positive below the bar
-   no matter what else you do.
+   is dead. The fix is typed, not open-ended:
+   - dead COMMITMENT predicate: do NOT swap one exact .maneuver key for
+     another (retries that do this die again on the same component) --
+     rewrite it at the family level (`any(c.speed_profile == 'decelerate'
+     for c in claims.commitments)`, or the lateral set excluding the
+     contradicting direction);
+   - dead PERCEPTUAL predicate: delete any .state requirement and widen
+     the entity to an any-of family set; if it was ALREADY family-level,
+     the rollout never mentioned that family -- remove the component;
+   - dead TRAJECTORY condition: rebuild it as a ONE-SIDED threshold at
+     about half the measured magnitude in the facts above, and re-check
+     the event TIME against those facts -- never tighten on retry; if the
+     measured motion contradicts the check outright, remove the component.
+   When you REMOVE a component, delete its dict key and helper code
+   entirely (a zero-initialized key nothing assigns, or a computed flag
+   never added to the score, permanently caps the positive) and RE-SPEND
+   its weight: after the rewrite, the components a sparse real rollout
+   will actually fire must still be able to reach 0.7, or this attempt
+   fails by construction no matter how correct each check is.
 Then rewrite the offending check AROUND that separating fact. Do NOT just
 nudge thresholds -- if a case scored identically to the positive, your
 current checks cannot see the difference and one of them must be replaced.
@@ -426,15 +572,19 @@ class OpenAIChat:
 
 
 def render_gt_claims(trace) -> str:
-    """Render the parsed ground-truth CoC as the exact claim objects the
-    positive gate case passes to the function. Without this the generator
+    """Render the parsed ground-truth CoC as a per-scene VOCABULARY
+    REFERENCE (since the 2026-08-09 real-rollout redesign the gate's
+    positive case is a real sampled rollout's own parse, not this GT pair). Without this the generator
     predicates claim credit on dossier vocabulary (track IDs, free-form
     labels like "trailer") the parser never emits, so ground truth earns
     zero perception/commitment credit (pduuqq smoke, 4/5 clips)."""
     lines = [
         f'The ground-truth CoC text:\n  "{trace.raw_text}"',
-        "parses to EXACTLY these claim objects -- this is the `claims` value",
-        "your function receives for the ground-truth (positive) gate case:",
+        "parses to EXACTLY these claim objects. This is the GT parse -- a",
+        "VOCABULARY REFERENCE for this scene, NOT the `claims` value you will",
+        "be scored on (the gate's positive case is a REAL sampled rollout's",
+        "own parsed reasoning, which typically claims FEWER and DIFFERENT",
+        "things):",
         "- perceptual:",
     ]
     for p in trace.perceptual:
@@ -458,18 +608,24 @@ def render_gt_claims(trace) -> str:
         # invented label here (.cause is the actual attribute).
         lines.append(
             f"    CausalClaim(connective={cl.connective!r},"
-            f" effects={[e.maneuver for e in cl.effects]!r} (.maneuver of each),"
-            f" cause={[p.entity for p in cl.cause]!r} (.entity of each))"
+            f" effects={[e.maneuver for e in cl.effects]!r} (CommitmentClaim OBJECTS, shown by .maneuver),"
+            f" cause={[p.entity for p in cl.cause]!r} (PerceptualClaim OBJECTS, shown by .entity))"
         )
     if not trace.causal:
         lines.append("    (none)")
     lines.append(
-        "\nYour claim predicates must fire on these exact objects. Match only the\n"
-        'canonical .entity/.maneuver/.state/.direction keys. Dossier labels and\n'
-        'track IDs (e.g. "Track 32") NEVER appear in claims or their .text -- a\n'
-        "predicate testing for them scores zero even on the ground truth. Other\n"
-        "faithful rollouts may phrase things differently, so key off canonical\n"
-        "fields, never exact .text strings."
+        "\nTreat this parse as an upper bound on what a faithful rollout might\n"
+        "claim, not a target it will reproduce. The rollout usually parses to\n"
+        "a subset: the same slowing intent arrives as any of stop/yield/wait/\n"
+        "decelerate (all speed_profile='decelerate'), and often only one of\n"
+        "the entities above is mentioned. Predicate on each GT key's FAMILY\n"
+        "(per the API reference idioms), never on this exact parse -- copying\n"
+        "a GT key into an exact-equality check is the most common way\n"
+        "functions die at the gate. Match only canonical .entity/.maneuver/\n"
+        ".speed_profile/.direction keys. Dossier labels and track IDs (e.g.\n"
+        '"Track 32") NEVER appear in claims or their .text -- a predicate\n'
+        "testing for them scores zero even on the ground truth -- and never\n"
+        "key off exact .text strings."
     )
     return "\n".join(lines)
 
