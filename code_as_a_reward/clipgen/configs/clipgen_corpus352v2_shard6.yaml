@@ -1,0 +1,78 @@
+# Corpus-scale clipgen reward-function curation, shard 6/8 REGEN (v2, loosened claim-validation prompts aa8411c) of the 352-clip
+# training corpus (pai_warm_cache/ood_dense_100chunks). Each of the 8 shards
+# is a fully independent copy of the SAME already-validated single-GPU
+# pipeline (clipgen-real-rollout-smoke-reanchor-v2) -- no new distributed/
+# sharding code, just 8 disjoint clip lists run in parallel across 8
+# separate non-preemptible nodes. Manifest data (obstacle/egomotion parquet,
+# GT coc, re-anchored t0_us per clip -- computed offline via
+# dossier.find_rollout_anchor_s) is staged in S3 at manifest_data_s3_prefix
+# rather than bundled via code_assets (too large: ~250MB total corpus).
+#
+# Submit (from repo root):
+#   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
+#     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_corpus352_shard6.yaml
+name: clipgen-corpus352v2-shard6
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
+  training_fn_config:
+    manifest_data_s3_prefix: "code_as_a_reward/clipgen/manifest352/shard_6"
+    group_size: 12
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_corpus352v2_shard6"
+    out_dir: "/mnt/work/tmp/clipgen_out_corpus352v2_shard6"
+    s3_bucket: "research-datasets-chicago"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/corpus352-shard6"
+    s3_prefix: "code_as_a_reward/clipgen/runs/corpus352v2-shard6"
+    backend: "openai"
+    wandb_project: "code-as-reward-clipgen"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+    - OPENAI_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/convos/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"
+      - "^/simlingo/"
