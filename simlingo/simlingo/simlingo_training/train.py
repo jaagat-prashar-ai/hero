@@ -106,8 +106,9 @@ def main(cfg: TrainConfig):
         )
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        save_top_k=-1,
-        monitor=None,
+        save_top_k=1,
+        monitor="val/loss",
+        mode="min",
         dirpath="./checkpoints",
         filename="{epoch:03d}",
         save_last=True,
