@@ -1,0 +1,94 @@
+# SimLingo full-data K-sweep, definitive batch 1 (K=2/3/4 x 2 seeds).
+# Recipe: upstream simlingo_seed1 (lr=3e-5, OneCycleLR) at the upstream
+# 48-item global optimizer batch, reached as batch_size x accumulation so
+# every K stays under the measured ~12-samples-per-forward memory ceiling
+# (K=6 bs=2=12 fit; K=7 bs=2=14 OOMed in the adaptor CE loss).
+# 3 epochs over the full ~650GB mirror (~4x the training signal of the
+# 2-epoch 57GB smokes), val every epoch, uniform sampling (carla_no_buckets
+# kept from the smokes: bucket sampling is unvalidated on this pipeline).
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/full_k4_s9876.yaml
+name: simlingo-full-k4-s9876
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo-full"
+    workdir: "/mnt/work/simlingo_full"
+    # ~650GB download+extract runs for hours; ranks 1..7 wait this long
+    extract_timeout_s: 21600
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      - data_module=carla_no_buckets
+      - max_epochs=3
+      - val_every_n_epochs=1
+      # 3 items x K=4 fan-out = 12 samples/forward;
+      # x2 accumulation = 6 items/GPU/optimizer-step = 48 global (upstream)
+      - data_module.batch_size=3
+      - accumulate_grad_batches=2
+      - data_module.num_workers=8
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      - model.contrastive_loss_weight=0.5
+      - seed=9876
+      - wandb_project=simlingo-contrastive
+      - name=full_k4_w0.5_s9876
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # multi-day definitive runs; preemption cost > spot savings
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  # torch pip install ~3 GB before first GPU step (dataset extract happens
+  # inside the training fn, not setup)
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    SIMLINGO_EXPECTED_OBJECTS: "155"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
