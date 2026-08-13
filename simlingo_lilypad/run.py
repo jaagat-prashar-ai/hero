@@ -108,7 +108,9 @@ def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = No
     if rank == 0:
         _download_and_extract(cfg["s3_bucket"], cfg["s3_prefix"].rstrip("/") + "/", workdir)
     else:
-        _wait_for_marker(workdir)
+        # full-dataset extract (~650GB compressed) runs for hours; the 1h
+        # default would kill ranks 1..7 before rank 0 finishes
+        _wait_for_marker(workdir, timeout_s=int(cfg.get("extract_timeout_s", 3600)))
 
     repo_root = Path(__file__).resolve().parents[1]
     sim_root = repo_root / "simlingo" / "simlingo"
