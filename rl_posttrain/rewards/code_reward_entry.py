@@ -613,6 +613,42 @@ def _load_scene(clip_id: str):
         return None
 
 
+# Gate-passed per-clip generated reward functions (clipgen). When a clip
+# has one, it REPLACES TraceReward as the reasoning-score source: the
+# function was empirically verified (select-then-verify gate,
+# code_as_a_reward/clipgen/gate.py) to score that clip's real argmax
+# rollout >= 0.7 and every corruption of it >= 0.4 lower. TraceReward
+# remains only as a loud, logged fallback for compile/runtime failures --
+# a clipgen-corpus run filters the training clip index to clips that HAVE
+# a function (run.py, clipgen_only_clips), so the fallback firing at all
+# means something is wrong and code_clipgen_used=0.0 makes it visible in
+# W&B rather than silently diluting the experiment with the global
+# heuristic (2026-08-11 design decision).
+_CLIPGEN_REWARD_FNS_DIR = _REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+
+
+@functools.lru_cache(maxsize=512)
+def _load_clipgen_fn(clip_id: str):
+    """The clip's own gate-passed generated reward function, compiled once
+    per process (sandboxed AST-checked exec, thread-safe timeout runner --
+    see clipgen/sandbox.py), or None when the clip has none or the source
+    no longer compiles (logged loudly; caller falls back to TraceReward)."""
+    path = _CLIPGEN_REWARD_FNS_DIR / f"{clip_id}.py"
+    if not path.exists():
+        return None
+    from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_module
+
+    try:
+        fn, _components = compile_reward_module(path.read_text())
+        return fn
+    except RewardFnError:
+        logger.exception(
+            f"[code_reward] clip {clip_id}: clipgen reward_fn failed to compile "
+            "-- falling back to TraceReward for this clip"
+        )
+        return None
+
+
 def _score_cot(
     pred_cot: str,
     pred_xyz_np,  # (T, 3) float ndarray, ego frame at t0 -- decode_rollout_trajectory's output
@@ -620,6 +656,7 @@ def _score_cot(
     rollout_id: int,
     hz: float,
     scene,  # SceneObstacles | None
+    clipgen_fn=None,  # compiled reward_fns/<clip_id>.py, when the clip has one
 ) -> tuple[float, dict[str, float]]:
     """Deterministic reasoning score for one rollout's decoded CoC, in
     [-1, 0], plus the audit metrics logged into its reward_dict.
@@ -639,6 +676,33 @@ def _score_cot(
     trace = parse_coc_trace(pred_cot, scene_id=scene_id, rollout_id=rollout_id)
     features = extract_features(pred_xyz_np, hz=hz, scene_id=scene_id, rollout_id=rollout_id)
     horizon_us = int(round(len(pred_xyz_np) / hz * 1e6))
+
+    if clipgen_fn is not None:
+        from code_as_a_reward.clipgen.sandbox import RewardFnError, run_reward_fn
+
+        try:
+            score = run_reward_fn(clipgen_fn, trace, features)  # [0, 1]
+        except RewardFnError:
+            logger.exception(
+                f"[code_reward] {scene_id} rollout {rollout_id}: clipgen fn raised "
+                "-- falling back to TraceReward for this rollout"
+            )
+        else:
+            # Same scale as the TraceReward path: [0, 1] -> [-1, 0]. No
+            # coverage/prior blend -- the fn is a per-clip verified rubric
+            # with no abstention concept; its score IS the reasoning score.
+            aux = {
+                "code_neutral_prior": _neutral_prior(),
+                "code_reward_raw": float(score),
+                "code_atomic_precision": math.nan,  # group-filled below
+                "code_decided_fraction": 1.0,
+                "code_n_fail": 0.0,
+                "code_scene_available": 0.0 if scene is None else 1.0,
+                "code_undecided_cnt": 0.0,
+                "code_no_cot_cnt": 0.0,
+                "code_clipgen_used": 1.0,
+            }
+            return float(score) - 1.0, aux
 
     if scene is not None:
         tr = score_trace(trace, features, scene, horizon_us=horizon_us).reward
@@ -690,6 +754,7 @@ def _score_cot(
         "code_scene_available": 0.0 if scene is None else 1.0,
         "code_undecided_cnt": 0.0 if r is not None else 1.0,
         "code_no_cot_cnt": 0.0,
+        "code_clipgen_used": 0.0,
     }
     return reasoning_score, aux
 
@@ -730,6 +795,7 @@ def compute_reward_batch(
     hz = float(reference.get("future_hz") or 10.0)
     clip_id, _t0_us = split_scene_id(scene_id)
     scene = _load_scene(clip_id)
+    clipgen_fn = _load_clipgen_fn(clip_id)
 
     ade_threshold = 3.0
     reasoning_threshold = -0.4
@@ -762,7 +828,7 @@ def compute_reward_batch(
 
         if pred_cot_decoded:
             reasoning_score, aux = _score_cot(
-                pred_cot, pred_xyz_np, scene_id, rollout_id, hz, scene
+                pred_cot, pred_xyz_np, scene_id, rollout_id, hz, scene, clipgen_fn
             )
         else:
             # No decoded CoC: nothing to verify; flat -1.0 below (the
@@ -779,6 +845,7 @@ def compute_reward_batch(
                 "code_scene_available": 0.0 if scene is None else 1.0,
                 "code_undecided_cnt": 1.0,
                 "code_no_cot_cnt": 1.0,
+                "code_clipgen_used": 0.0 if clipgen_fn is None else 1.0,
             }
 
         if pred_cot_decoded:

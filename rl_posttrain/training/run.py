@@ -608,6 +608,37 @@ def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: in
     return mini_path
 
 
+def _filter_index_to_clipgen_clips(pai_dir: Path) -> None:
+    """Restrict clip_index_reasoning_mini.parquet to clips that have a
+    gate-passed clipgen reward function (code_as_a_reward/clipgen/
+    reward_fns/<clip_id>.py, shipped with the code assets). The fns are
+    generated from and gate-verified against rollouts sampled at the SAME
+    training keyframe this dataset uses (keyframe-window design, 85e184a),
+    so no further alignment filtering is needed. Runs AFTER the dense
+    selector every time, since the selector unconditionally rebuilds the
+    mini index on warm nodes."""
+    import pandas as pd
+
+    fns_dir = REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+    passing = {p.stem for p in fns_dir.glob("*.py")}
+
+    mini_path = pai_dir / "clip_index_reasoning_mini.parquet"
+    index = pd.read_parquet(mini_path)
+    filtered = index[index.index.isin(passing)]
+    if filtered.empty:
+        raise RuntimeError(
+            f"clipgen_only_clips: 0 of {len(index)} index clips have a reward_fn "
+            f"({len(passing)} fns shipped) -- refusing to train on an empty corpus"
+        )
+    filtered.to_parquet(mini_path)
+    logger.info(
+        "clipgen_only_clips: filtered clip index %d -> %d clips (%d reward_fns shipped)",
+        len(index),
+        len(filtered),
+        len(passing),
+    )
+
+
 def _extract_obstacles_by_clip(pai_dir: Path) -> None:
     """Unzip every obstacle.offline chunk's per-clip parquet members into
     obstacles_by_clip/ so reward-time _load_scene never opens the multi-GB
@@ -1038,6 +1069,11 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         # LR decay, comfort_weight = 0.05 -- the n3sxdq post-mortem fixes)
         # so judge experiments keep their exact config.
         _fetch_reasoning_dataset()
+        # Clipgen-corpus mode: train ONLY on clips whose reward comes from
+        # their own gate-passed generated function -- no TraceReward
+        # dilution (2026-08-11 design decision; see code_reward_entry.py).
+        if cfg.get("clipgen_only_clips"):
+            _filter_index_to_clipgen_clips(pai_reasoning_dir)
         # Code reward reads per-clip obstacle ground truth at reward time;
         # pre-extract it so those reads never touch the chunk zips.
         _extract_obstacles_by_clip(pai_reasoning_dir)
