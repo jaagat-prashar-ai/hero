@@ -1,41 +1,42 @@
-"""clip f0947d1e-482a-44c9-94f1-3bdff177dc8c - attempt 2/3 - gate PASS (pos 0.90, max pert 0.50, real rollout argmax 0)"""
+"""clip f0947d1e-482a-44c9-94f1-3bdff177dc8c - attempt 1/5 - gate PASS (pos 1.00, max pert 0.10, real rollout argmax 0)"""
 def components(claims, traj):
     """
     Components for scoring the rollout based on the decisive event of yielding to a pedestrian at a crosswalk.
-    Thresholds are inspired by the expert's behavior in the scene:
-    - Speed reduction of at least 2.5 m/s within the first 5.5 seconds.
-    - Lateral offset adjustment within ±2.5 m.
-    - Commitment to yield with a deceleration profile.
+    Scene-derived thresholds:
+    - Perceptual mention of pedestrian or crosswalk.
+    - Commitment to decelerate (speed_profile='decelerate').
+    - Trajectory speed reduction of at least 1.4 m/s (half of GT's 2.8 m/s drop), graded.
     """
+
     # Initialize component scores
+    perceptual_score = 0.0
     commitment_score = 0.0
     trajectory_score = 0.0
 
-    # Check commitment claims
-    committed_to_yield = any(cc.maneuver == 'yield' and cc.speed_profile == 'decelerate' for cc in claims.commitments)
-    if committed_to_yield:
-        commitment_score = 0.3
+    # Check for perceptual mentions of pedestrian or crosswalk
+    if any(p.entity in ('pedestrian', 'crosswalk') for p in claims.perceptual):
+        perceptual_score = 0.1  # Small additive weight for mention
 
-    # Check trajectory execution
-    if traj.n_waypoints > 0:
-        # Speed reduction check with timing
+    # Check for commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate the speed drop over the trajectory
         initial_speed = traj.initial_speed_mps
-        min_speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4).min() if len(window(traj.speed_mps, traj.dt_s, 0, 6.4)) > 0 else initial_speed
-        speed_reduction = initial_speed - min_speed_window
-        min_speed_time = np.argmin(window(traj.speed_mps, traj.dt_s, 0, 6.4)) * traj.dt_s
+        min_speed_after = min(window(traj.speed_mps, traj.dt_s, 0.0, 6.4))
+        speed_drop = initial_speed - min_speed_after
 
-        if speed_reduction >= 2.5 and min_speed_time <= 6.4 and committed_to_yield:
-            trajectory_score += 0.4
+        # Graded trajectory factor for speed reduction
+        trajectory_score = 0.5 * min(1.0, speed_drop / 2.8)
 
-        # Lateral offset check
-        final_lateral_offset = traj.final_lateral_offset_m
-        if abs(final_lateral_offset) <= 2.5:
-            trajectory_score += 0.2
+        # Combine with commitment check
+        commitment_score = 0.4 * (trajectory_score > 0.0)
 
+    # Return the component contributions
     return {
-        "commitment_score": commitment_score,
-        "trajectory_score": trajectory_score
+        "perceptual_mention": perceptual_score,
+        "commitment_execution": commitment_score,
+        "trajectory_execution": trajectory_score
     }
 
 def reward(claims, traj):
+    # Calculate the total reward as the clamped sum of components
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

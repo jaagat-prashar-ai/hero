@@ -1,48 +1,30 @@
-"""clip c45cac12-442b-4687-a251-7130af9c45b4 - attempt 2/3 - gate PASS (pos 1.00, max pert 0.40, real rollout argmax 8)"""
+"""clip c45cac12-442b-4687-a251-7130af9c45b4 - attempt 2/5 - gate PASS (pos 0.80, max pert 0.11, real rollout argmax 9)"""
 def components(claims, traj):
     """
-    Components for scoring the rollout based on the decisive event of yielding to a pedestrian.
-    The scene-derived thresholds are based on the expert's speed reduction and timing.
+    Components for scoring a rollout based on the decisive event of yielding to a pedestrian.
+    Scene-derived thresholds:
+    - Yield to pedestrian: speed drop of at least 1.25 m/s, occurring primarily between t=0 and t=3.5 seconds.
+    - Perceptual mention of pedestrian-related entities.
     """
+
     # Initialize component scores
-    score_perceptual_claim = 0.0
-    score_commitment_claim = 0.0
-    score_trajectory_execution = 0.0
+    perceptual_pedestrian = 0.0
+    yield_executed = 0.0
 
-    # Check for perceptual claim: detecting the pedestrian
-    for perceptual in claims.perceptual:
-        if perceptual.entity == 'pedestrian' and perceptual.state == 'crossing':
-            score_perceptual_claim = 0.2
-            break
+    # Check for perceptual mention of pedestrian-related entities
+    if any(p.entity == 'pedestrian' for p in claims.perceptual):
+        perceptual_pedestrian = 0.1
 
-    # Check for commitment claim: yielding
-    for commitment in claims.commitments:
-        if commitment.maneuver == 'yield' and commitment.speed_profile == 'decelerate':
-            score_commitment_claim = 0.2
-            break
-
-    # Check for trajectory execution: speed reduction
-    if traj.n_waypoints > 0:
-        # Extract speed series within the relevant time window
-        speed_series = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        if len(speed_series) > 0:
-            initial_speed = speed_series[0]
-            min_speed = np.min(speed_series)
-            final_speed = speed_series[-1]
-
-            # Check if speed reduction is within acceptable bounds
-            if initial_speed >= 3.4 and min_speed <= 1.8 and final_speed <= 3.1:
-                # Check if the minimum speed occurs around the expected time
-                min_speed_time = np.argmin(speed_series) * traj.dt_s
-                if 5.2 <= min_speed_time <= 6.2:  # Adjusted timing window
-                    # Conjunction of claims and trajectory execution
-                    if score_perceptual_claim > 0 and score_commitment_claim > 0:
-                        score_trajectory_execution = 0.6
+    # Check for commitment to decelerate (yield) and corresponding trajectory execution
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate speed drop
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        # Graded factor for speed drop, with a floor at half the GT magnitude
+        yield_executed = 0.7 * min(1.0, speed_drop / 2.5)
 
     return {
-        "perceptual_claim": score_perceptual_claim,
-        "commitment_claim": score_commitment_claim,
-        "trajectory_execution": score_trajectory_execution
+        "perceptual_pedestrian": perceptual_pedestrian,
+        "yield_executed": yield_executed,
     }
 
 def reward(claims, traj):

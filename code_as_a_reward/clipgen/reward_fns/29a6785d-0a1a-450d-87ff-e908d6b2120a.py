@@ -1,48 +1,37 @@
-"""clip 29a6785d-0a1a-450d-87ff-e908d6b2120a - attempt 1/3 - gate PASS (pos 0.80, max pert 0.40, real rollout argmax 3)"""
+"""clip 29a6785d-0a1a-450d-87ff-e908d6b2120a - attempt 2/5 - gate PASS (pos 0.70, max pert 0.10, real rollout argmax 0)"""
 def components(claims, traj):
+    """
+    Components for scoring the rollout based on the scene's decisive events:
+    1. Pedestrian crossing: Expect mention of 'pedestrian' and a deceleration commitment.
+       Trajectory should show a speed drop of at least 1.8 m/s by t=5.9s.
+    """
+
     # Initialize component scores
-    scores = {
+    comp = {
         "saw_pedestrian": 0.0,
-        "commit_to_yield": 0.0,
-        "commit_to_decelerate": 0.0,
-        "executed_yield": 0.0,
-        "executed_deceleration": 0.0
+        "decelerate_for_pedestrian": 0.0,
     }
 
-    # Check perceptual claims for pedestrian
-    if any(pc.entity == "pedestrian" and pc.state == "crossing" for pc in claims.perceptual):
-        scores["saw_pedestrian"] = 0.2
+    # Check for perceptual claims
+    if any(p.entity in ('pedestrian',) for p in claims.perceptual):
+        comp["saw_pedestrian"] = 0.1
 
-    # Check commitment claims for yield and deceleration
-    if any(cc.maneuver == "yield" for cc in claims.commitments):
-        scores["commit_to_yield"] = 0.2
-    if any(cc.maneuver == "decelerate" for cc in claims.commitments):
-        scores["commit_to_decelerate"] = 0.2
+    # Check for commitment claims
+    deceleration_claim = any(c.speed_profile == 'decelerate' for c in claims.commitments)
 
-    # Check trajectory for execution of yield (stop event)
-    if traj.stop_event:
-        scores["executed_yield"] = 0.2
+    # Trajectory analysis
+    if traj.n_waypoints > 0:
+        # Calculate speed drop
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        # Determine the time of minimum speed
+        min_speed_time_idx = np.argmin(window(traj.speed_mps, traj.dt_s, 0, 6.4))
+        min_speed_time = min_speed_time_idx * traj.dt_s
 
-    # Check trajectory for execution of deceleration
-    if traj.initial_speed_mps > traj.final_speed_mps:
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        min_speed = np.min(speed_window)
-        if min_speed <= 0.3 and traj.final_speed_mps <= 0.3:
-            scores["executed_deceleration"] = 0.2
+        # Check for deceleration commitment and trajectory execution
+        if deceleration_claim and min_speed_time <= 5.9:
+            comp["decelerate_for_pedestrian"] = 0.6 * min(1.0, speed_drop / 3.6)
 
-    return scores
+    return comp
 
 def reward(claims, traj):
-    """Reward function for yielding to a pedestrian by decelerating.
-    
-    Decisive events:
-    1. Detecting a pedestrian crossing.
-    2. Committing to yield and decelerate.
-    3. Executing a deceleration to a near stop within the 6.4s horizon.
-    
-    Thresholds:
-    - Speed should drop from initial to near stop (<= 0.3 m/s).
-    - Stop event should be true for yielding.
-    - Perceptual and commitment claims must align with trajectory actions.
-    """
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

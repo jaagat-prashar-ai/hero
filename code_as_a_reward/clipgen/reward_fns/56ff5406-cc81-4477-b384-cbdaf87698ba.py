@@ -1,45 +1,40 @@
-"""clip 56ff5406-cc81-4477-b384-cbdaf87698ba - attempt 2/3 - gate PASS (pos 0.80, max pert 0.40, real rollout argmax 5)"""
+"""clip 56ff5406-cc81-4477-b384-cbdaf87698ba - attempt 2/5 - gate PASS (pos 0.90, max pert 0.30, real rollout argmax 0)"""
 def components(claims, traj):
-    """
-    Components for scoring the rollout based on the scene's decisive events:
-    - Gentle acceleration through the intersection.
-    - Navigation around construction cones.
-    
-    Thresholds:
-    - Speed increase from ~0.3 m/s to ~4.3 m/s, allowing for a range of 4.0 to 4.6 m/s.
-    - Lateral offset within ±0.1 m of the GT's final offset of +0.40 m.
-    - Total heading change between +5.0 and +9.0 degrees.
+    """Components for scoring the rollout based on decisive events:
+    1. Gentle acceleration through intersection while navigating around construction cones.
+       - Perceptual mention of 'construction_cones' or 'intersection'.
+       - Commitment to 'accelerate'.
+       - Trajectory shows speed increase, gated by the commitment claim.
+    2. Awareness of nearby vehicles.
+       - Perceptual mention of 'vehicle_generic'.
     """
     # Initialize component scores
-    score = {
-        "committed_to_accelerate_and_executed": 0.0,
-        "committed_to_proceed_and_executed": 0.0,
-        "executed_lateral_navigation": 0.0,
-        "executed_heading_adjustment": 0.0
+    perceptual_construction = 0.0
+    perceptual_vehicle = 0.0
+    accelerate_commitment = 0.0
+    speed_increase_execution = 0.0
+
+    # Check perceptual claims
+    if any(p.entity in ('construction_cones', 'intersection') for p in claims.perceptual):
+        perceptual_construction = 0.1
+
+    if any(p.entity == 'vehicle_generic' for p in claims.perceptual):
+        perceptual_vehicle = 0.1
+
+    # Check commitment claims
+    if any(c.speed_profile == 'accelerate' for c in claims.commitments):
+        accelerate_commitment = 0.2
+        # Check trajectory execution for acceleration, gated by commitment
+        speed_increase = traj.final_speed_mps - traj.initial_speed_mps
+        if speed_increase > 0:
+            speed_increase_execution = 0.6 * min(1.0, speed_increase / 2.0)
+
+    return {
+        "perceptual_construction": perceptual_construction,
+        "perceptual_vehicle": perceptual_vehicle,
+        "accelerate_commitment": accelerate_commitment,
+        "speed_increase_execution": speed_increase_execution,
     }
-    
-    # Check commitment claims and trajectory execution
-    if any(cc.maneuver == 'accelerate' and cc.speed_profile == 'accelerate' for cc in claims.commitments):
-        # Check for speed increase
-        if traj.n_waypoints > 0 and traj.final_speed_mps > traj.initial_speed_mps:
-            score["committed_to_accelerate_and_executed"] = 0.4
-    
-    if any(cc.maneuver == 'proceed' for cc in claims.commitments):
-        # Check for speed profile consistency
-        if traj.n_waypoints > 0 and all(np.diff(traj.speed_mps) > 0):
-            score["committed_to_proceed_and_executed"] = 0.2
-    
-    # Check trajectory execution
-    if traj.n_waypoints > 0:
-        # Lateral offset check
-        if abs(traj.final_lateral_offset_m - 0.40) <= 0.1:
-            score["executed_lateral_navigation"] = 0.2
-        
-        # Heading change check
-        if 5.0 <= traj.total_heading_change_deg <= 9.0:
-            score["executed_heading_adjustment"] = 0.2
-    
-    return score
 
 def reward(claims, traj):
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

@@ -1,36 +1,24 @@
-"""clip 51bc1dd7-1188-4412-90ea-2939f90cb377 - attempt 2/3 - gate PASS (pos 0.70, max pert 0.20, real rollout argmax 9)"""
+"""clip 51bc1dd7-1188-4412-90ea-2939f90cb377 - attempt 3/5 - gate PASS (pos 0.70, max pert 0.00, real rollout argmax 7)"""
 def components(claims, traj):
-    """
-    Components for scoring the rollout based on the decisive events of
-    navigating through traffic barrels with cautious speed control.
-    """
-
-    # Initialize component scores
-    commitment_score = 0.0
-    trajectory_score = 0.0
-
-    # Check for commitment to stop or creep and link it to trajectory execution
-    if any(claim.maneuver in ['stop', 'creep'] for claim in claims.commitments):
-        # Evaluate trajectory for speed and stop event
-        if traj.n_waypoints > 0:
-            # Speed should start near 0 and remain low, with a slight increase
-            speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-            if len(speed_window) > 0:
-                initial_speed = speed_window[0]
-                final_speed = speed_window[-1]
-                if 0.0 <= initial_speed <= 0.5 and 0.0 <= final_speed <= 2.0 and traj.stop_event:
-                    commitment_score = 0.5
-
-    # Evaluate trajectory for lateral offset
-    if traj.n_waypoints > 0:
-        lateral_window = window(traj.lateral_offset_m, traj.dt_s, 0, 6.4)
-        if len(lateral_window) > 0 and np.all(np.abs(lateral_window) <= 0.1):
-            trajectory_score = 0.2
-
-    return {
-        "commitment_claims": commitment_score,
-        "trajectory_execution": trajectory_score
+    """Components for scene with traffic barrels: maintain straight path and speed."""
+    comp = {
+        "maintain_speed": 0.0,
+        "maintain_lane": 0.0,
     }
+
+    # Maintain speed: check for speed_profile 'maintain' or 'decelerate'
+    if any(c.speed_profile in ('maintain', 'decelerate') for c in claims.commitments):
+        initial_speed = traj.initial_speed_mps
+        final_speed = traj.final_speed_mps
+        speed_maintenance = final_speed - initial_speed
+        comp["maintain_speed"] = 0.7 * min(1.0, speed_maintenance / 6.4)
+
+    # Maintain lane: minimal lateral deviation
+    max_lateral_offset = max(abs(offset) for offset in traj.lateral_offset_m)
+    if any(c.maneuver in ('keep_lane', 'nudge') for c in claims.commitments):
+        comp["maintain_lane"] = 0.3 * min(1.0, (0.10 - max_lateral_offset) / 0.10)
+
+    return comp
 
 def reward(claims, traj):
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

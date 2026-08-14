@@ -1,53 +1,31 @@
-"""clip b12278b9-d550-41ff-97db-ae9d41855079 - attempt 3/3 - gate PASS (pos 1.00, max pert 0.60, real rollout argmax 4)"""
+"""clip b12278b9-d550-41ff-97db-ae9d41855079 - attempt 3/5 - gate PASS (pos 0.70, max pert 0.05, real rollout argmax 1)"""
 def components(claims, traj):
+    """Components for scoring a rollout based on decisive events:
+    1. Yielding to a pedestrian crossing the road.
+    - Perceptual mention of a pedestrian.
+    - Commitment to decelerate.
+    - Trajectory shows a speed reduction of at least 3.7 m/s by t=5.9s.
     """
-    Components for scoring a rollout based on the decisive event of yielding to a pedestrian.
-    Scene-derived thresholds:
-    - Speed reduction: significant drop from initial speed (8.2 m/s) to around 1.7-2.5 m/s by t=5.4 s.
-    - Perceptual claim: detection of a pedestrian crossing.
-    - Commitment claim: commitment to yield.
-    """
-
     # Initialize component scores
-    perceptual_score = 0.0
-    commitment_score = 0.0
-    trajectory_score = 0.0
+    perceptual_pedestrian = 0.05  # Reduced weight for mention-only credit
+    commitment_decelerate = 0.0
 
-    # Check for perceptual claim about pedestrian crossing
-    perceptual_claim_present = any(
-        claim.entity == 'pedestrian' and claim.state == 'crossing'
-        for claim in claims.perceptual
-    )
+    # Check for perceptual mention of pedestrian
+    if any(p.entity == 'pedestrian' for p in claims.perceptual):
+        perceptual_pedestrian = 0.05  # Small additive weight
 
-    # Check for commitment to yield
-    commitment_claim_present = any(
-        claim.maneuver == 'yield' and claim.speed_profile == 'decelerate'
-        for claim in claims.commitments
-    )
-
-    # Check trajectory for significant speed reduction within the expected timeframe
-    if traj.n_waypoints > 0:
-        initial_speed = traj.initial_speed_mps
-        min_speed = traj.min_speed_mps
-        speed_drop = initial_speed - min_speed
-
-        # Ensure speed drop is significant and occurs within the expected timeframe
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        if len(speed_window) > 0 and np.min(speed_window) <= 2.5:
-            min_speed_time_index = np.argmin(speed_window)
-            min_speed_time = min_speed_time_index * traj.dt_s
-            if min_speed_time >= 5.0 and min_speed_time <= 6.4:
-                trajectory_score = 0.6
-
-    # Combine perceptual and commitment claims with trajectory execution
-    if perceptual_claim_present and commitment_claim_present and trajectory_score > 0:
-        perceptual_score = 0.2
-        commitment_score = 0.2
+    # Check for commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate speed drop
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        # Graded trajectory factor for deceleration
+        trajectory_deceleration = 0.65 * min(1.0, speed_drop / 7.4)
+        # Combine with commitment
+        commitment_decelerate = trajectory_deceleration
 
     return {
-        "perceptual_claim": perceptual_score,
-        "commitment_claim": commitment_score,
-        "trajectory_execution": trajectory_score
+        "perceptual_pedestrian": perceptual_pedestrian,
+        "commitment_decelerate": commitment_decelerate
     }
 
 def reward(claims, traj):

@@ -1,40 +1,31 @@
-"""clip 5c242dfc-e30b-48d8-942d-ee13482fdc6d - attempt 2/3 - gate PASS (pos 1.00, max pert 0.20, real rollout argmax 0)"""
+"""clip 5c242dfc-e30b-48d8-942d-ee13482fdc6d - attempt 2/5 - gate PASS (pos 1.00, max pert 0.40, real rollout argmax 2)"""
 def components(claims, traj):
     """
-    Components for scoring the rollout based on the decisive event of stopping for the red traffic light.
-    - Perceptual recognition of the red traffic light.
-    - Commitment to stop with matching trajectory execution.
+    Components for scoring a rollout based on the scene's decisive event:
+    - Stop for the red traffic light.
+    - Thresholds derived from the expert trajectory: speed drop of 7.7 m/s
+      (floor at 3.85 m/s), stop by t=5.8 s.
     """
     # Initialize component scores
     perceptual_score = 0.0
-    commitment_and_trajectory_score = 0.0
+    commitment_score = 0.0
+    trajectory_score = 0.0
 
-    # Check for perceptual claim of red traffic light
-    for perceptual in claims.perceptual:
-        if perceptual.entity == 'signal' and perceptual.state == 'red':
-            perceptual_score = 0.2
-            break
+    # Perceptual component: mention of traffic signal
+    if any(p.entity == 'signal' for p in claims.perceptual):
+        perceptual_score = 0.1
 
-    # Check for commitment to stop and matching trajectory execution
-    commitment_present = False
-    for commitment in claims.commitments:
-        if commitment.maneuver == 'stop' and commitment.speed_profile == 'decelerate':
-            commitment_present = True
-            break
-
-    if commitment_present and traj.n_waypoints > 0:
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        initial_speed = traj.initial_speed_mps
-        final_speed = traj.final_speed_mps
-        min_speed = traj.min_speed_mps
-
-        # Check if the speed drops significantly
-        if initial_speed > 8.0 and final_speed < 1.0 and min_speed < 1.0:
-            commitment_and_trajectory_score = 0.8
+    # Commitment component: deceleration family
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Trajectory component: graded speed drop
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        trajectory_score = 0.6 * min(1.0, speed_drop / 7.7)
+        commitment_score = 0.3  # Base score for having the correct commitment
 
     return {
-        "perceptual_recognition": perceptual_score,
-        "commitment_and_trajectory": commitment_and_trajectory_score
+        "perceptual_mention": perceptual_score,
+        "commitment_executed": commitment_score,
+        "trajectory_executed": trajectory_score
     }
 
 def reward(claims, traj):

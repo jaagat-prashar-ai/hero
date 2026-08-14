@@ -1,33 +1,44 @@
-"""clip 8260e7c4-d797-4920-a98e-33e62158a7fd - attempt 3/3 - gate PASS (pos 0.80, max pert 0.20, real rollout argmax 0)"""
+"""clip 8260e7c4-d797-4920-a98e-33e62158a7fd - attempt 2/5 - gate PASS (pos 0.90, max pert 0.20, real rollout argmax 0)"""
 def components(claims, traj):
+    """
+    Components for evaluating the rollout:
+    - Perception of traffic control devices (e.g., traffic light).
+    - Commitment to decelerate (stop/yield/wait/decelerate).
+    - Trajectory execution showing a speed drop consistent with stopping.
+    - Lateral stability (staying in lane).
+    """
+
     # Initialize component scores
-    comp = {
-        "saw_red_light": 0.0,
-        "commit_and_execute_stop": 0.0
+    perception_score = 0.0
+    commitment_score = 0.0
+    trajectory_score = 0.0
+    lateral_stability_score = 0.0
+
+    # Check for perception of traffic control devices
+    if any(p.entity == 'signal' for p in claims.perceptual):
+        perception_score = 0.1  # Small additive weight for perception
+
+    # Check for commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate speed drop over the trajectory
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        # Graded trajectory factor for deceleration
+        trajectory_score = 0.5 * min(1.0, speed_drop / 0.05)  # Floor at 0.05 m/s
+
+        # Combine commitment and trajectory for deceleration
+        commitment_score = 0.4 * trajectory_score  # Increased weight for commitment
+
+    # Check for lateral stability (staying in lane)
+    lateral_offset_change = abs(traj.final_lateral_offset_m - traj.lateral_offset_m[0])
+    if lateral_offset_change < 0.5:  # Allow small lateral movement
+        lateral_stability_score = 0.1  # Small weight for lateral stability
+
+    return {
+        "perception_traffic_control": perception_score,
+        "commitment_decelerate": commitment_score,
+        "trajectory_decelerate": trajectory_score,
+        "lateral_stability": lateral_stability_score
     }
 
-    # Check for perceptual claim of seeing a red traffic light
-    if any(p.entity == 'signal' and p.state == 'red' for p in claims.perceptual):
-        comp["saw_red_light"] = 0.2
-
-    # Check for both commitment to stop and executed stop in the trajectory
-    if any(c.maneuver == 'stop' and c.speed_profile == 'decelerate' for c in claims.commitments):
-        if traj.n_waypoints > 0:
-            speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-            initial_speed = traj.initial_speed_mps
-            final_speed = traj.final_speed_mps
-            min_speed = traj.min_speed_mps
-
-            # Check if the speed drops significantly and reaches near zero
-            if initial_speed - final_speed >= 8.0 and min_speed <= 0.5:
-                comp["commit_and_execute_stop"] = 0.6
-
-    return comp
-
 def reward(claims, traj):
-    """
-    Reward function for the scene involving stopping for a red traffic light.
-    Decisive events include detecting the red light, committing to stop, and
-    executing the stop with a significant speed drop.
-    """
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

@@ -1,51 +1,39 @@
-"""clip 3b6f9335-f0d7-464a-aa3d-e9c0d52e935d - attempt 2/3 - gate PASS (pos 1.00, max pert 0.40, real rollout argmax 1)"""
+"""clip 3b6f9335-f0d7-464a-aa3d-e9c0d52e935d - attempt 3/5 - gate PASS (pos 0.70, max pert 0.10, real rollout argmax 0)"""
 def components(claims, traj):
     """
-    Components for reward function based on decisive events:
-    1. Stopping for the red traffic light.
-    2. Yielding to the lead vehicle.
-    
-    Scene-derived thresholds:
-    - Speed reduction to approximately 0.0 m/s by around t=5.4 s, with a tolerance of ±0.5 s.
-    - Final speed close to 0.0 m/s, with a tolerance of ±0.1 m/s.
-    - Minimal lateral offset changes, maintaining within ±0.02 m.
+    Components for scoring the rollout based on the decisive events:
+    1. Stopping at the red traffic light behind the lead vehicle.
+       - Perceptual mention: {'vehicle_generic', 'lead_vehicle', 'signal'}
+       - Commitment: speed_profile='decelerate'
+       - Trajectory: Speed drop to approximately 0.0 m/s, with a minimum floor of 0.05 m/s drop, and timing around t=0.5s.
     """
     # Initialize component scores
-    scores = {
-        "perceived_traffic_light": 0.0,
-        "commitment_stop": 0.0,
-        "stop_execution": 0.0
+    comp = {
+        "perceptual_vehicle_or_signal": 0.0,
+        "commitment_decelerate": 0.0,
     }
-    
-    # Check perceptual claims
-    perceived_traffic_light = any(
-        claim.entity == "signal" and claim.state == "red"
-        for claim in claims.perceptual
-    )
-    
-    if perceived_traffic_light:
-        scores["perceived_traffic_light"] = 0.2
-    
-    # Check commitment claims
-    commitment_stop = any(
-        claim.maneuver == "stop" and claim.speed_profile == "decelerate"
-        for claim in claims.commitments
-    )
-    
-    if commitment_stop:
-        scores["commitment_stop"] = 0.2
-    
-    # Check trajectory for stopping
-    if traj.n_waypoints > 0:
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        min_speed = np.min(speed_window) if len(speed_window) > 0 else float('inf')
-        final_speed = traj.final_speed_mps
-        
-        # Check if speed drops to approximately 0.0 m/s by t=5.4 s
-        if min_speed <= 0.1 and abs(final_speed - 0.0) <= 0.1 and commitment_stop:
-            scores["stop_execution"] = 0.6
-    
-    return scores
+
+    # Perceptual mention of vehicle or signal
+    if any(p.entity in ('vehicle_generic', 'lead_vehicle', 'signal') for p in claims.perceptual):
+        comp["perceptual_vehicle_or_signal"] = 0.1
+
+    # Commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate speed drop
+        initial_speed = traj.initial_speed_mps
+        min_speed = traj.min_speed_mps
+        speed_drop = initial_speed - min_speed
+
+        # Graded trajectory factor for deceleration with timing consideration
+        min_speed_time_idx = np.argmin(window(traj.speed_mps, traj.dt_s, 0, 6.4))
+        min_speed_time = min_speed_time_idx * traj.dt_s
+
+        # Ensure the minimum speed occurs around the expected time
+        if 0.0 <= min_speed_time <= 1.0:  # Allow some tolerance around the expected time
+            deceleration_factor = 0.6 * min(1.0, speed_drop / 0.05)  # GT drop is 0.1 m/s
+            comp["commitment_decelerate"] = deceleration_factor
+
+    return comp
 
 def reward(claims, traj):
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

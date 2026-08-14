@@ -1,34 +1,39 @@
-"""clip 3ccff50d-289b-46ab-ae15-ab5570f8beca - attempt 3/3 - gate PASS (pos 1.00, max pert 0.50, real rollout argmax 2)"""
+"""clip 3ccff50d-289b-46ab-ae15-ab5570f8beca - attempt 4/5 - gate PASS (pos 0.70, max pert 0.00, real rollout argmax 1)"""
 def components(claims, traj):
+    """
+    Components for scene with decisive events:
+    1. Steering right through construction zone: expect a rightward maneuver
+       with a heading change of at least -5 degrees and a lateral offset of
+       at least -1.5 m. Perceptual mentions: construction-related entities.
+    2. Speed adjustment: expect a speed drop of at least 1.1 m/s. Perceptual
+       mentions: pedestrians, vehicles, or obstacles.
+    """
+
     # Initialize component scores
-    scores = {
-        "perceived_construction_zone": 0.0,
-        "committed_to_steer_right": 0.0,
-        "steer_right_conjunction": 0.0,
-        "executed_speed_adjustment": 0.0
+    comp = {
+        "rightward_maneuver": 0.0,
+        "speed_deceleration": 0.0
     }
 
-    # Check for perception of construction zone
-    if any(pc.entity == 'construction_cones' for pc in claims.perceptual):
-        scores["perceived_construction_zone"] = 0.1
+    # Rightward maneuver: lane_change/nudge/merge/turn/enter/exit with direction not left
+    if any(c.maneuver in ('lane_change', 'nudge', 'merge', 'turn', 'enter', 'exit') and c.direction != 'left' for c in claims.commitments):
+        heading_change = traj.total_heading_change_deg
+        lateral_offset = traj.final_lateral_offset_m
+        # Graded factor for heading change
+        heading_factor = 0.3 * min(1.0, abs(heading_change) / 10.0)
+        # Graded factor for lateral offset
+        lateral_factor = 0.3 * min(1.0, abs(lateral_offset) / 2.99)
+        comp["rightward_maneuver"] = heading_factor + lateral_factor
 
-    # Check for commitment to steer right
-    if any(cc.direction == 'right' for cc in claims.commitments):
-        scores["committed_to_steer_right"] = 0.1
+    # Speed deceleration: decelerate family
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        initial_speed = traj.initial_speed_mps
+        min_speed = traj.min_speed_mps
+        speed_drop = initial_speed - min_speed
+        # Graded factor for speed drop
+        comp["speed_deceleration"] = 0.7 * min(1.0, speed_drop / 2.2)
 
-    # Conjunction: Check for both commitment and execution of steering right
-    if scores["committed_to_steer_right"] > 0 and -4.0 < traj.final_lateral_offset_m < -3.0:
-        scores["steer_right_conjunction"] = 0.5
-
-    # Check for execution of speed adjustment
-    speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-    if len(speed_window) > 0:
-        min_speed = min(speed_window)
-        if 6.5 <= min_speed <= 6.7:
-            scores["executed_speed_adjustment"] = 0.3
-
-    return scores
+    return comp
 
 def reward(claims, traj):
-    """Reward function for scene with decisive events: steering right through construction zone and speed adjustment."""
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

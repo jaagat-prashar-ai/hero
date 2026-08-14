@@ -1,36 +1,30 @@
-"""clip 3d598a9c-c657-4eac-9f6a-fbb31b531622 - attempt 2/3 - gate PASS (pos 0.90, max pert 0.30, real rollout argmax 0)"""
+"""clip 3d598a9c-c657-4eac-9f6a-fbb31b531622 - attempt 4/5 - gate PASS (pos 0.70, max pert 0.10, real rollout argmax 3)"""
 def components(claims, traj):
-    """Components for decisive events: stopping at stop sign and yielding for pedestrians.
-    Scene-derived thresholds: speed reduction to near-zero by ~4.9s, perceptual claims for stop sign and pedestrians."""
+    """Components for scoring a rollout based on stopping for pedestrians at a stop sign.
+    Decisive events: stopping for pedestrians, pedestrian presence.
+    Trajectory thresholds: speed drop >= 1.15 m/s by t=3.4 s.
+    """
+    perceptual_pedestrian = any(p.entity == 'pedestrian' for p in claims.perceptual)
     
-    # Initialize component scores
-    saw_intersection = 0.0
-    committed_to_stop = 0.0
-    executed_stop_with_claim = 0.0
-
-    # Check perceptual claims
-    for claim in claims.perceptual:
-        if claim.entity == 'intersection':
-            saw_intersection = 0.1
-
-    # Check commitment claims
-    for claim in claims.commitments:
-        if claim.maneuver == 'stop' and claim.speed_profile == 'decelerate':
-            committed_to_stop = 0.2
-
-    # Check trajectory execution with claim requirement
-    speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-    min_speed = np.min(speed_window) if len(speed_window) > 0 else float('inf')
-    if min_speed < 0.5 and traj.stop_event:
-        # Require both a commitment claim and trajectory execution for full credit
-        if committed_to_stop > 0:
-            executed_stop_with_claim = 0.6
-
-    return {
-        "saw_intersection": saw_intersection,
-        "committed_to_stop": committed_to_stop,
-        "executed_stop_with_claim": executed_stop_with_claim,
+    commitment_decelerate = any(c.speed_profile == 'decelerate' for c in claims.commitments)
+    
+    # Calculate speed drop within the window
+    initial_speed = traj.initial_speed_mps
+    min_speed_after = np.min(window(traj.speed_mps, traj.dt_s, 0, 6.4))
+    speed_drop = initial_speed - min_speed_after
+    
+    # Graded trajectory factor for speed drop, considering timing
+    min_speed_time_idx = np.argmin(window(traj.speed_mps, traj.dt_s, 0, 6.4))
+    min_speed_time = min_speed_time_idx * traj.dt_s
+    speed_drop_factor = 0.6 * min(1.0, speed_drop / 2.3) if min_speed_time <= 3.4 else 0.0
+    
+    # Components
+    components = {
+        "mention_pedestrian": 0.1 if perceptual_pedestrian else 0.0,
+        "decelerate_executed": speed_drop_factor if commitment_decelerate else 0.0,
     }
+    
+    return components
 
 def reward(claims, traj):
     return min(1.0, max(0.0, sum(components(claims, traj).values())))

@@ -1,47 +1,35 @@
-"""clip 6303353e-7b55-4216-b1a1-64b362e76aba - attempt 2/3 - gate PASS (pos 1.00, max pert 0.50, real rollout argmax 6)"""
+"""clip 6303353e-7b55-4216-b1a1-64b362e76aba - attempt 1/5 - gate PASS (pos 0.90, max pert 0.40, real rollout argmax 4)"""
 def components(claims, traj):
-    """
-    Components for scoring the rollout based on the decisive event:
-    Stopping for pedestrians crossing the crosswalk.
-    - Perceptual claims: Detecting pedestrians and crosswalk.
-    - Commitment claims: Committing to stop.
-    - Trajectory execution: Decelerating to a stop within the time window.
+    """Components for scoring the rollout based on decisive events:
+    1. Stopping for pedestrians crossing the crosswalk.
+       - Perceptual mention of 'pedestrian'.
+       - Commitment to decelerate (stop/yield/wait/decelerate).
+       - Trajectory shows a speed drop of at least 3.5 m/s by t=5.4 s.
+    2. Proximity of nearby automobiles is not a decisive event, so no
+       commitment or trajectory component is required for them.
     """
     # Initialize component scores
-    saw_pedestrian = 0.0
-    saw_crosswalk = 0.0
-    committed_to_stop = 0.0
-    executed_stop = 0.0
+    perceptual_pedestrian = 0.0
+    commitment_decelerate = 0.0
+    trajectory_decelerate = 0.0
 
-    # Check perceptual claims
-    if any(pc.entity == 'pedestrian' and pc.state == 'crossing' for pc in claims.perceptual):
-        saw_pedestrian = 0.2
+    # Check for perceptual mention of pedestrians
+    if any(p.entity == 'pedestrian' for p in claims.perceptual):
+        perceptual_pedestrian = 0.1  # Small weight for mention
 
-    if any(pc.entity == 'crosswalk' and pc.state == 'crossing' for pc in claims.perceptual):
-        saw_crosswalk = 0.1
+    # Check for commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        commitment_decelerate = 0.3  # Larger weight for commitment
 
-    # Check commitment claims
-    if any(cc.maneuver == 'stop' and cc.speed_profile == 'decelerate' for cc in claims.commitments):
-        committed_to_stop = 0.2
-
-    # Check trajectory execution with conjunction of commitment
-    if traj.n_waypoints > 0 and committed_to_stop > 0.0:
-        # Check if the trajectory shows a significant speed drop to a stop
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        if len(speed_window) > 0:
-            initial_speed = speed_window[0]
-            final_speed = speed_window[-1]
-            speed_drop = initial_speed - final_speed
-
-            # Allow some noise in speed reduction
-            if speed_drop >= 7.0 and final_speed <= 0.5:
-                executed_stop = 0.5
+        # Calculate speed drop in the trajectory
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        if speed_drop >= 3.5:  # Floor at half the GT drop
+            trajectory_decelerate = 0.5 * min(1.0, speed_drop / 6.9)
 
     return {
-        "saw_pedestrian": saw_pedestrian,
-        "saw_crosswalk": saw_crosswalk,
-        "committed_to_stop": committed_to_stop,
-        "executed_stop": executed_stop
+        "perceptual_pedestrian": perceptual_pedestrian,
+        "commitment_decelerate": commitment_decelerate,
+        "trajectory_decelerate": trajectory_decelerate
     }
 
 def reward(claims, traj):

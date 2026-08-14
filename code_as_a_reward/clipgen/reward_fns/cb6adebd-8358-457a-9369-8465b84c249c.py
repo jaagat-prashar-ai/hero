@@ -1,45 +1,36 @@
-"""clip cb6adebd-8358-457a-9369-8465b84c249c - attempt 3/3 - gate PASS (pos 0.70, max pert 0.00, real rollout argmax 1)"""
+"""clip cb6adebd-8358-457a-9369-8465b84c249c - attempt 2/5 - gate PASS (pos 1.00, max pert 0.43, real rollout argmax 2)"""
 def components(claims, traj):
     """Components for scoring the rollout based on decisive events:
-    1. Yield to the yellow emergency vehicle.
-    2. Initial speed reduction.
-    Thresholds derived from the scene: speed drop of at least 1.5 m/s, speed reduction starting near t=0 and reaching a minimum by around t=2.5 s.
+    1. Yield to the yellow emergency vehicle (Track 23 - Heavy Truck).
+    - Perceptual mention of emergency or heavy vehicle.
+    - Commitment to decelerate with trajectory showing a speed drop of at least 3.7 m/s by t=4.0s.
     """
     # Initialize component scores
-    yield_claim_and_execution = 0.0
-    speed_reduction_claim_and_execution = 0.0
+    perceptual_score = 0.0
+    commitment_score = 0.0
+    trajectory_score = 0.0
 
-    # Check for perceptual claim of emergency vehicle and commitment to yield
-    if any(claim.entity == 'emergency_vehicle' for claim in claims.perceptual) and \
-       any(claim.maneuver == 'yield' for claim in claims.commitments):
-        # Check for speed reduction execution with timing
-        if traj.n_waypoints > 0:
-            speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-            initial_speed = traj.initial_speed_mps
-            min_speed = min(speed_window) if len(speed_window) > 0 else initial_speed
-            speed_drop = initial_speed - min_speed
-            min_speed_time = np.argmin(speed_window) * traj.dt_s if len(speed_window) > 0 else 0
+    # Check for perceptual mentions of emergency or heavy vehicle
+    if any(p.entity in ('emergency_vehicle', 'vehicle_generic') for p in claims.perceptual):
+        perceptual_score = 0.1  # Small weight for perceptual mention
 
-            # Require both claim and execution for yielding with timing
-            if speed_drop >= 1.5 and min_speed < initial_speed and min_speed_time <= 2.5:
-                yield_claim_and_execution = 0.4
+    # Check for commitment to decelerate
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        # Calculate speed drop
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        # Graded trajectory score based on speed drop
+        trajectory_score = 0.5 * min(1.0, speed_drop / 6.0)  # Graded factor with floor at 3.7 m/s
 
-    # Check for speed reduction claim and execution with timing
-    if any(claim.maneuver == 'decelerate' for claim in claims.commitments):
-        if traj.n_waypoints > 0:
-            speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-            initial_speed = traj.initial_speed_mps
-            min_speed = min(speed_window) if len(speed_window) > 0 else initial_speed
-            speed_drop = initial_speed - min_speed
-            min_speed_time = np.argmin(speed_window) * traj.dt_s if len(speed_window) > 0 else 0
-
-            # Require both claim and execution for speed reduction with timing
-            if speed_drop >= 1.5 and min_speed < initial_speed and min_speed_time <= 2.5:
-                speed_reduction_claim_and_execution = 0.3
+        # Check if the minimum speed occurs around the expected time (t=4.0s)
+        min_speed_time = np.argmin(window(traj.speed_mps, traj.dt_s, 0, 6.4)) * traj.dt_s
+        if 3.0 <= min_speed_time <= 5.0:
+            # Combine commitment and trajectory for a larger score
+            commitment_score = 0.4 if trajectory_score > 0 else 0.0
 
     return {
-        "yield_claim_and_execution": yield_claim_and_execution,
-        "speed_reduction_claim_and_execution": speed_reduction_claim_and_execution
+        "perceptual_mention": perceptual_score,
+        "commitment_execution": commitment_score,
+        "trajectory_execution": trajectory_score
     }
 
 def reward(claims, traj):

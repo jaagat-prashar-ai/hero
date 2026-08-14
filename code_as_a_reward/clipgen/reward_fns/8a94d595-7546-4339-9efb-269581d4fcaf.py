@@ -1,62 +1,44 @@
-"""clip 8a94d595-7546-4339-9efb-269581d4fcaf - attempt 2/3 - gate PASS (pos 0.80, max pert 0.20, real rollout argmax 1)"""
+"""clip 8a94d595-7546-4339-9efb-269581d4fcaf - attempt 1/5 - gate PASS (pos 0.95, max pert 0.45, real rollout argmax 0)"""
 def components(claims, traj):
+    """Components for scene with strong deceleration for construction zone and large vehicle ahead.
+    
+    Decisive Events:
+    1. Strong deceleration for construction zone and large vehicle ahead.
+       - Perceptual entities: {'work_zone', 'construction_cones', 'vehicle_generic'}
+       - Commitment family: 'decelerate'
+       - Trajectory: Speed drop of at least 2.15 m/s by t=5.1 s.
+    2. Presence of nearby automobiles (awareness, not a decisive maneuver).
+       - Perceptual entities: {'vehicle_generic'}
+       - No specific trajectory change required beyond deceleration.
+    
+    Trajectory thresholds are one-sided and graded, with a focus on speed drop.
+    """
+
     # Initialize component scores
-    scores = {
-        "perceived_construction_zone": 0.0,
-        "perceived_large_vehicle": 0.0,
-        "committed_deceleration": 0.0,
-        "executed_deceleration": 0.0,
-        "causal_link": 0.0
+    comp = {
+        "perceptual_construction_zone": 0.0,
+        "commitment_decelerate": 0.0,
+        "trajectory_deceleration": 0.0,
+        "perceptual_nearby_vehicles": 0.0
     }
 
-    # Check for perceptual claims
-    perceived_construction_zone = any(
-        claim.entity in ["work_zone", "construction_cones"] for claim in claims.perceptual
-    )
-    perceived_large_vehicle = any(
-        claim.entity == "vehicle_generic" for claim in claims.perceptual
-    )
+    # Perceptual claims
+    if any(p.entity in {'work_zone', 'construction_cones', 'vehicle_generic'} for p in claims.perceptual):
+        comp["perceptual_construction_zone"] = 0.1
 
-    # Check for commitment claims
-    committed_deceleration = any(
-        claim.maneuver == "decelerate" for claim in claims.commitments
-    )
+    if any(p.entity == 'vehicle_generic' for p in claims.perceptual):
+        comp["perceptual_nearby_vehicles"] = 0.05
 
-    # Check for causal claims
-    causal_link = any(
-        causal.connective == "for" and
-        "decelerate" in [effect.maneuver for effect in causal.effects] and
-        any(cause.entity in ["work_zone", "construction_cones", "vehicle_generic"] for cause in causal.cause)
-        for causal in claims.causal
-    )
+    # Commitment claims
+    if any(c.speed_profile == 'decelerate' for c in claims.commitments):
+        comp["commitment_decelerate"] = 0.3
 
-    # Check trajectory for deceleration
-    if traj.n_waypoints > 0:
-        speed_window = window(traj.speed_mps, traj.dt_s, 0, 6.4)
-        initial_speed = traj.initial_speed_mps
-        final_speed = traj.final_speed_mps
-        min_speed = traj.min_speed_mps
+        # Trajectory check for deceleration
+        speed_drop = traj.initial_speed_mps - traj.min_speed_mps
+        if speed_drop >= 2.15:
+            comp["trajectory_deceleration"] = 0.5 * min(1.0, speed_drop / 4.3)
 
-        # Calculate speed drop
-        speed_drop = initial_speed - min_speed
-
-        # Check if deceleration was executed
-        executed_deceleration = (speed_drop >= 6.0) and (min_speed <= 1.5)
-
-    # Assign scores based on checks
-    scores["perceived_construction_zone"] = 0.0  # Removed due to mis-keying
-    scores["perceived_large_vehicle"] = 0.1 if perceived_large_vehicle else 0.0
-    scores["committed_deceleration"] = 0.2 if committed_deceleration else 0.0
-    scores["executed_deceleration"] = 0.0  # Adjusted to require conjunction
-    scores["causal_link"] = 0.0  # Removed due to mis-keying
-
-    # Conjunction: Require both claim and execution for deceleration
-    if committed_deceleration and executed_deceleration:
-        scores["executed_deceleration"] = 0.6
-
-    return scores
+    return comp
 
 def reward(claims, traj):
-    """Decisive Events: Strong deceleration for construction zone and large vehicle ahead.
-    Thresholds: Speed drop >= 6.0 m/s, min speed <= 1.5 m/s, perceptual and commitment claims present."""
     return min(1.0, max(0.0, sum(components(claims, traj).values())))
