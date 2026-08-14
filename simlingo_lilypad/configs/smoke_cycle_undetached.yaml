@@ -24,8 +24,12 @@ workload_variant_config:
       - val_every_n_epochs=1
       # batch_size counts dataset items; dreamer items expand to K=4 samples,
       # so the forward batch is up to 4x this on dreamer-heavy batches.
-      # 4 OOMed on 80GB A100s (run va9ixh, ~72GB allocated at failure)
-      - data_module.batch_size=2
+      # bs=2 + the cycle pass (32 extra full-vocab-logit sequences) OOMed at
+      # 75.5GB on the first training step (y35tq3/a1flqu, 2026-08-14); bs=1
+      # halves both passes (4 samples + 16 cycle seqs), same fix as K=7 (6d986b8).
+      # CAVEAT: bs=1 doubles optimizer steps/epoch vs the bs=2 baseline arm -
+      # compare epoch-indexed val metrics; det-vs-undet comparison is unaffected.
+      - data_module.batch_size=1
       - data_module.num_workers=8
       # keep the safety objective out of the alignment experiments
       - data_module.base_dataset.use_safety_flag=false
@@ -66,6 +70,8 @@ runtime_environment:
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
     AWS_DEFAULT_REGION: us-chicago-1
+    # reduce fragmentation headroom pressure (suggested by the OOM error itself)
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
     SIMLINGO_EXPECTED_OBJECTS: "121"
 
   code_assets:
