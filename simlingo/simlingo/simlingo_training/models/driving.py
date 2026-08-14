@@ -17,7 +17,7 @@ from hydra.utils import get_original_cwd
 
 
 from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, AdaptorList
-from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss
+from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
                                                 TrainingOutput)
@@ -115,6 +115,20 @@ class DrivingModel(pl.LightningModule):
             self.tokenizer = self.processor.tokenizer
         else:
             self.tokenizer = self.processor
+
+        # grouped inverse-cycle consistency (getattr so checkpoints from before
+        # this feature still load). The fixed template is a task marker, not a
+        # question the model must already answer: it is trained in.
+        self.cycle_loss_weight = getattr(self, 'cycle_loss_weight', 0.0)
+        self.cycle_detach = getattr(self, 'cycle_detach', True)
+        self.cycle_temperature = getattr(self, 'cycle_temperature', 1.0)
+        self.cycle_warmup_steps = getattr(self, 'cycle_warmup_steps', 0)
+        if self.cycle_loss_weight > 0:
+            template_ids = self.tokenizer(
+                "\nWhich instruction produced this trajectory?\n",
+                add_special_tokens=False, return_tensors="pt",
+            ).input_ids.squeeze(0)
+            self.register_buffer("cycle_template_ids", template_ids, persistent=False)
 
 
     def forward(self,
@@ -270,6 +284,9 @@ class DrivingModel(pl.LightningModule):
         if self.contrastive_loss_weight > 0 and example.group_ids is not None:
             loss_dict.update(self.contrastive_alignment_loss(adaptor_dict, adaptor_features, loss_dict, example.group_ids))
 
+        if self.cycle_loss_weight > 0 and example.group_ids is not None:
+            loss_dict.update(self.cycle_consistency_loss(adaptor_dict, loss_dict, example.group_ids))
+
         loss_dict_only_losses = {k:v for k, v in loss_dict.items() if k.endswith("loss")}
         loss_logs = {k:v for k, v in loss_dict.items() if k.endswith("log")}
         
@@ -323,6 +340,118 @@ class DrivingModel(pl.LightningModule):
             acc_value = accuracy if accuracy is not None else z_text.new_zeros(())
             self.log(f"{phase}_losses/contrastive_retrieval_acc", acc_value, sync_dist=True)
         return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
+
+    def cycle_consistency_loss(self, adaptor_dict, loss_dict, group_ids):
+        """
+        Grouped inverse-cycle consistency: the model's own predicted trajectory,
+        re-entered through wp_encoder WITHOUT the camera image, must make the
+        instruction that produced it the most likely explanation among its K
+        counterfactual siblings, scored by the trunk's own token likelihoods
+        (objective: models/utils.py:grouped_rank_cycle_loss).
+
+        The cycle pass sees no vision tokens, so all discriminative signal must
+        flow through the waypoints; sequences are short (trajectory tokens +
+        template + prompt text), so the extra forward is cheap relative to the
+        image-bearing main pass.
+        """
+        B = group_ids.size(0)
+
+        # trajectory side: predicted speed waypoints (+ route if present)
+        traj = loss_dict['speed_wps_prediction']
+        if traj.size(-1) == 1:  # 1d mode: distances along x, y=0
+            traj = torch.cat([traj, torch.zeros_like(traj)], dim=-1)
+        traj_parts = [traj]
+        if 'route_prediction' in loss_dict:
+            traj_parts.append(loss_dict['route_prediction'])
+        traj_pts = torch.cat(traj_parts, dim=1)
+        if self.cycle_detach:
+            # explainer-only arm: train the trunk to read trajectories without
+            # letting the ranking gradient reshape the trajectory itself
+            traj_pts = traj_pts.detach()
+        traj_tokens = self.wp_encoder(traj_pts.to(self.wp_encoder.mlp[0].weight.dtype))
+
+        # candidate side: plain-text prompt tokens (speed prefix + instruction).
+        # Excludes answer tokens (loss-masked), padding, and every added special
+        # token - the <IMG_CONTEXT> run and wp-placeholder tokens whose raw
+        # embeddings are only meaningful after replace_placeholder_tokens.
+        ids = adaptor_dict['language__ids']
+        valid = adaptor_dict['language_inputs_mask'].bool()
+        answer = adaptor_dict['language__ids_mask'].bool()
+        smallest_added_id = self.tokenizer.additional_special_tokens_ids[0]
+        cand_mask = valid & ~answer & (ids < smallest_added_id)
+        cand_lengths = cand_mask.sum(1)
+
+        # all ordered within-group pairs (i: trajectory, j: candidate)
+        pair_row, pair_col = [], []
+        for group_id in group_ids.unique():
+            idx = (group_ids == group_id).nonzero(as_tuple=True)[0]
+            if idx.numel() < 2 or (cand_lengths[idx] < 1).any():
+                continue
+            for i in idx.tolist():
+                pair_row.extend([i] * idx.numel())
+                pair_col.extend(idx.tolist())
+
+        if not pair_row:
+            # keep wp_encoder in the graph so backward sees the same param set on
+            # every rank regardless of this rank's group composition
+            loss = (traj_tokens.sum() * 0.0).expand(B).clone()
+            count = torch.zeros(B, dtype=torch.long, device=ids.device)
+            accuracy = None
+        else:
+            embed_tokens = self.adaptors.language.embed_tokens
+            template = embed_tokens(self.cycle_template_ids).to(traj_tokens.dtype)
+            seqs, targets = [], []
+            for i, j in zip(pair_row, pair_col):
+                cand_ids = ids[j][cand_mask[j]]
+                cand_embeds = embed_tokens(
+                    cand_ids.clamp(min=0, max=embed_tokens.num_embeddings - 1)
+                ).to(traj_tokens.dtype)
+                seqs.append(torch.cat([traj_tokens[i], template, cand_embeds], dim=0))
+                targets.append(cand_ids)
+
+            max_len = max(s.size(0) for s in seqs)
+            inputs_embeds = traj_tokens.new_zeros(len(seqs), max_len, traj_tokens.size(-1))
+            attention_mask = torch.zeros(len(seqs), max_len, dtype=torch.bool, device=ids.device)
+            for p, s in enumerate(seqs):
+                inputs_embeds[p, : s.size(0)] = s
+                attention_mask[p, : s.size(0)] = True
+
+            outputs = self.language_model.model(
+                attention_mask=attention_mask,
+                inputs_embeds=inputs_embeds.to(self.language_model.model.dtype),
+                return_dict=True,
+            )
+            logits = outputs[0]
+
+            cand_start = traj_tokens.size(1) + template.size(0)
+            ce = []
+            for p, cand_ids in enumerate(targets):
+                length = cand_ids.size(0)
+                # logits at position t predict token t+1: slice starts one before
+                # the candidate span
+                logit_slice = logits[p, cand_start - 1 : cand_start + length - 1].float()
+                ce.append(F.cross_entropy(logit_slice, cand_ids.clamp(min=0), reduction="mean"))
+            ce = torch.stack(ce)
+
+            loss, count, accuracy = grouped_rank_cycle_loss(
+                ce,
+                torch.tensor(pair_row, device=ids.device),
+                torch.tensor(pair_col, device=ids.device),
+                B,
+                temperature=self.cycle_temperature,
+            )
+
+        weight = self.cycle_loss_weight
+        if self.cycle_warmup_steps > 0 and getattr(self, '_trainer', None) is not None:
+            weight = weight * min(1.0, float(self.global_step + 1) / self.cycle_warmup_steps)
+
+        if getattr(self, '_trainer', None) is not None:
+            phase = 'train' if self.training else 'val'
+            # unconditional sync_dist every rank every step (see the contrastive
+            # note above: rank-conditional collectives deadlock DDP)
+            acc_value = accuracy if accuracy is not None else loss.new_zeros(())
+            self.log(f"{phase}_losses/cycle_rank_acc", acc_value, sync_dist=True)
+        return {"cycle_loss": (loss * weight, count)}
 
     def training_step(self, batch: DrivingExample, _batch_idx: int = 0):
         output, loss_logs = self.forward_loss(batch)
