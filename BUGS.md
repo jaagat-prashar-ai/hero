@@ -1320,6 +1320,31 @@ multi-camera prompt).
 
 ---
 
+## 2026-08-14 — lilypad launch dies with SSLEOFError uploading working-directory zip
+
+**Symptom:** two consecutive `lilypad/launch.py` attempts (45 min apart) failed
+with `SSLError(SSLEOFError(8, 'EOF occurred in violation of protocol'))` during
+the PUT of `working_directory_*.zip` to the phoenix object store — before any
+workload was created.
+**Root cause:** the top-level `bench2drive/` checkout (added in 00b99bf, ~210MB
+working tree) was being swept into the code-asset zip. The packager only skips
+individual files ≥10MB (with launch-time warnings naming
+`bench2drive/Bench2Drive/...` paths); the thousands of smaller files still
+ballooned the zip until the upload connection was cut mid-transfer. Existing
+`regex_excludes` only covered `^/simlingo/simlingo/Bench2Drive/`, not the new
+top-level path.
+**Fix:** [b930c4d](../../commit/b930c4d) — add `^/bench2drive/` to
+`regex_excludes` in both `smoke_cycle_*.yaml` configs; next launch succeeded
+immediately (`simlingo-cycle-det-smoke-y35tq3`). Any other config with
+`root_directory: .` needs the same exclude (the `full_k*.yaml` sweep configs
+predate bench2drive and lack it).
+**How this was found:** the launch log's packaging warnings ("Skipping file ...
+very large") named `bench2drive/` paths that no previous successful launch had
+ever printed — same diagnostic habit as the 2026-08-05 `max_file_size_mb`
+incident: always read launch-time packaging warnings before blaming the network.
+
+---
+
 ## Format for new entries
 
 ```
