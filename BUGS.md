@@ -6,6 +6,33 @@ now, not routine typos.
 
 ---
 
+## 2026-08-14 — 12-samples/forward SimLingo configs OOM stochastically: ~1.07GiB foreign CUDA context on every GPU + allocator fragmentation
+
+**Symptom:** of six full-data K-sweep/weight-ablation arms whose dreamer
+batches fan out to 12 samples per forward (K=4 bs=3, K=2 bs=6), three
+died with CUDA OOM at training steps 0/49/399 (`rpb7xa`, `lnd2ge`,
+`qqzugc`, `hpnpdh`) while identical configs on other nodes ran fine past
+30k-63k steps. Crash steps looked data- or seed-dependent but weren't.
+
+**Root cause:** the 12-sample forward peaks at ~76.7GiB on an 80GiB A100
+— only ~2.7GiB headroom. Every failed rank's OOM dump shows a second
+process holding exactly **1.07GiB** on the same GPU (consistent across
+three different nodes ⇒ systematic, most plausibly the Ray train
+worker's own CUDA context; the training subprocess is a child of it
+sharing the same pinned GPU), plus ~8.2-8.4GiB "reserved but
+unallocated" fragmentation. Headroom minus squatter minus fragmentation
+makes 12-sample configs a per-node coin flip; 8-9-sample configs (K=3
+bs=3, K=7 bs=1 historically) never hit it.
+
+**Fix:** config-only — failed arms relaunched at `batch_size=2 x
+accumulate_grad_batches=3` (8 samples/forward, identical 48-item
+optimizer batch, so gradient math and LR schedule unchanged) plus
+`PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` against the
+fragmentation. Rule of thumb going forward: budget dreamer-fanout
+microbatches to ≤9-10 samples/forward, not 12.
+
+---
+
 ## 2026-08-12 — gradient_checkpointing + enable_input_require_grads() broke InternVL2's in-place embedding merge
 
 **Symptom:** every `dreamer_contrastive_k=7` smoke attempt that used the new
