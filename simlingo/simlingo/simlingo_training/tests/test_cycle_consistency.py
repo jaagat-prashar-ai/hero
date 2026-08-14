@@ -1,0 +1,81 @@
+"""
+Unit tests for the grouped inverse-cycle ranking loss.
+
+Run standalone (only needs torch, not the full training stack):
+    python simlingo_training/tests/test_cycle_consistency.py
+"""
+import sys
+from pathlib import Path
+
+import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from simlingo_training.models.utils import grouped_rank_cycle_loss
+
+
+def make_pairs(group_sizes):
+    pair_row, pair_col = [], []
+    start = 0
+    for k in group_sizes:
+        idx = list(range(start, start + k))
+        for i in idx:
+            pair_row.extend([i] * k)
+            pair_col.extend(idx)
+        start += k
+    return torch.tensor(pair_row), torch.tensor(pair_col)
+
+
+def test_true_pairing_lowest_ce_full_accuracy():
+    pair_row, pair_col = make_pairs([3, 2])
+    # true instruction (row == col) gets CE 0.1, siblings get 3.0
+    ce = torch.where(pair_row == pair_col, torch.tensor(0.1), torch.tensor(3.0))
+    loss, count, acc = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=5)
+    assert count.tolist() == [1] * 5
+    assert acc is not None and acc.item() == 1.0
+    assert loss.mean().item() < 0.2
+
+
+def test_inverted_pairing_high_loss_zero_accuracy():
+    pair_row, pair_col = make_pairs([3])
+    ce = torch.where(pair_row == pair_col, torch.tensor(3.0), torch.tensor(0.1))
+    loss_bad, _, acc = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=3)
+    ce_good = torch.where(pair_row == pair_col, torch.tensor(0.1), torch.tensor(3.0))
+    loss_good, _, _ = grouped_rank_cycle_loss(ce_good, pair_row, pair_col, batch_size=3)
+    assert acc.item() == 0.0
+    assert loss_bad.mean() > loss_good.mean() + 1.0
+
+
+def test_singletons_and_missing_pairs_skipped():
+    # sample 2 has no siblings: only its self-pair exists
+    pair_row = torch.tensor([0, 0, 1, 1, 2])
+    pair_col = torch.tensor([0, 1, 0, 1, 2])
+    ce = torch.tensor([0.1, 3.0, 3.0, 0.1, 0.5])
+    loss, count, acc = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=3)
+    assert count.tolist() == [1, 1, 0]
+    assert loss[2].item() == 0.0
+    assert acc.item() == 1.0
+
+
+def test_temperature_scales_confidence():
+    pair_row, pair_col = make_pairs([2])
+    ce = torch.tensor([0.5, 1.0, 1.0, 0.5])
+    loss_sharp, _, _ = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=2, temperature=0.1)
+    loss_soft, _, _ = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=2, temperature=10.0)
+    # same (correct) ranking, but low temperature should be far more confident
+    assert loss_sharp.mean() < loss_soft.mean()
+
+
+def test_gradient_flows_to_ce():
+    pair_row, pair_col = make_pairs([2])
+    ce = torch.tensor([0.5, 1.0, 1.0, 0.5], requires_grad=True)
+    loss, _, _ = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=2)
+    loss.sum().backward()
+    assert ce.grad is not None and ce.grad.abs().sum() > 0
+
+
+if __name__ == "__main__":
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_"):
+            fn()
+            print(f"PASS {name}")
