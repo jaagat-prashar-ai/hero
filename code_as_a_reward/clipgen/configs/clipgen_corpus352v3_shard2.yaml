@@ -1,4 +1,4 @@
-# Corpus-scale clipgen reward-function curation, shard 2/8 REGEN (v2, loosened claim-validation prompts aa8411c) of the 352-clip
+# Corpus-scale clipgen reward-function curation, shard 2/8 REGEN v3: loosened claim-validation prompts (aa8411c) + window-pure GT reference anchored at the TRAINING KEYFRAME (85e184a) -- fresh rollout sampling at keyframe t0, no cached-rollout reuse of the 352-clip
 # training corpus (pai_warm_cache/ood_dense_100chunks). Each of the 8 shards
 # is a fully independent copy of the SAME already-validated single-GPU
 # pipeline (clipgen-real-rollout-smoke-reanchor-v2) -- no new distributed/
@@ -11,7 +11,7 @@
 # Submit (from repo root):
 #   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
 #     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_corpus352_shard2.yaml
-name: clipgen-corpus352v2-shard2
+name: clipgen-corpus352v3-shard2
 model_identifier: other.training.alpamayo15.default.v1
 ignore_idle_reaper: true
 
@@ -19,14 +19,14 @@ workload_variant_config:
   workload_type: "training"
   training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
   training_fn_config:
-    manifest_data_s3_prefix: "code_as_a_reward/clipgen/manifest352/shard_2"
+    manifest_data_s3_prefix: "code_as_a_reward/clipgen/manifest352v3/shard_2"
     group_size: 12
     venv_dir: "/mnt/work/tmp/alpamayo15_venv"
-    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_corpus352v2_shard2"
-    out_dir: "/mnt/work/tmp/clipgen_out_corpus352v2_shard2"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_corpus352v3_shard2"
+    out_dir: "/mnt/work/tmp/clipgen_out_corpus352v3_shard2"
     s3_bucket: "research-datasets-chicago"
-    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/corpus352-shard2"
-    s3_prefix: "code_as_a_reward/clipgen/runs/corpus352v2-shard2"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/corpus352v3-shard2"
+    s3_prefix: "code_as_a_reward/clipgen/runs/corpus352v3-shard2"
     backend: "openai"
     wandb_project: "code-as-reward-clipgen"
 
