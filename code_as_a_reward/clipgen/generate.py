@@ -643,9 +643,9 @@ def render_gt_traj_facts(facts: str) -> str:
     anchored to GT's own event past the real rollout's 6.4s horizon
     returned an empty slice on all 12 sampled rollouts."""
     return (
-        "These are the ground-truth trajectory's numbers, restricted to the"
-        " window a real rollout can actually cover (see the dossier's"
-        " ROLLOUT HORIZON section) -- measured:\n  " + facts + "\n"
+        "These are the ground-truth trajectory's numbers over EXACTLY the"
+        " prediction window a rollout covers (the dossier's expert-trajectory"
+        " section) -- measured:\n  " + facts + "\n"
         "The function you write will actually be gate-verified against a"
         " REAL sampled policy rollout's own claims and trajectory, not this"
         " GT pair -- its exact numbers, timing, and even its claimed"

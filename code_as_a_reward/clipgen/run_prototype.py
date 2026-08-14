@@ -81,9 +81,9 @@ MAX_ATTEMPTS = 5
 # Alpamayo's trajectory head has a fixed output length -- every real
 # rollout sampled so far is exactly this many waypoints (rollout_sampler.py
 # has no horizon parameter; this falls straight out of the model
-# architecture). Used both to decide how much of the dossier a real rollout
-# can actually cover, and where to re-anchor t=0 to (see
-# dossier.find_rollout_anchor_s).
+# architecture). The GT reference below is truncated to exactly this
+# window so generation only ever sees what a rollout can be compared
+# against.
 ROLLOUT_HORIZON_WP = 64
 
 
@@ -100,32 +100,36 @@ def _load_clip(entry: dict) -> dict:
     gt_coc = Path(entry["gt_coc"]).read_text().strip()
     overlay = entry.get("overlay_jpeg")
 
-    # Re-anchor to wherever this clip's real decisive event actually is,
-    # rather than trusting the OOD event's own start timestamp -- the two
-    # can be 10+ seconds apart (see find_rollout_anchor_s's docstring;
-    # confirmed on the real 352-clip training corpus). anchored_waypoints
-    # is what a real rollout sampled from that new t0 would actually cover;
-    # gt_traj below is built from it so the WHOLE dossier (obstacle tracks +
-    # trajectory) is on one consistent clock.
-    anchor_s, _, _ = dossier_mod.find_rollout_anchor_s(waypoints, hz, ROLLOUT_HORIZON_WP)
-    anchored_waypoints = waypoints[int(round(anchor_s * hz)) :]
+    # The window is anchored at the TRAINING KEYFRAME (entry["t0_us"],
+    # clip-relative microseconds -- the same instant the RL pipeline's
+    # dataset samples rollouts from, get_clip_key_frame). No search for
+    # where the action is (the pre-2026-08-14 find_rollout_anchor_s
+    # design): the model predicts 6.4s of future from the keyframe, and
+    # the GT future over that SAME window is the reference. gt_traj is
+    # truncated at the horizon so the whole generation reference
+    # (trajectory numbers AND obstacle tracks, see build_dossier) contains
+    # nothing a rollout cannot be compared against; if the scene's
+    # decisive maneuver completes after the window, the dossier
+    # deliberately shows only its in-window beginning.
+    anchor_s = float(entry.get("t0_us", 0)) / 1e6
+    i0 = int(round(anchor_s * hz))
+    window_waypoints = waypoints[i0 : i0 + ROLLOUT_HORIZON_WP]
 
     return {
         "clip_id": clip_id,
         "scene": scene,
-        "waypoints": waypoints,  # ORIGINAL, unshifted (t=0 = OOD event start)
-        "anchored_waypoints": anchored_waypoints,  # t=0 = anchor_s into the original clip
+        "waypoints": waypoints,  # full clip, t=0 = the clip's own start
+        "window_waypoints": window_waypoints,  # t=0 = keyframe; ends at the horizon
         "rollout_anchor_s": anchor_s,
         "hz": hz,
         "gt_coc": gt_coc,
         "gt_claims": parse_coc_trace(gt_coc, scene_id=clip_id),
-        "gt_traj": dossier_mod.features_from_waypoints(anchored_waypoints, hz, clip_id),
+        "gt_traj": dossier_mod.features_from_waypoints(window_waypoints, hz, clip_id),
         # Scene grounding for the generator (camera frame + projected GT
         # waypoints, see build_overlays.py); optional so older manifests
-        # still run text-only. NOTE: this image is still built relative to
-        # the ORIGINAL t0, not the re-anchored one -- not yet regenerated to
-        # match (would need re-fetching the camera frame at the new
-        # timestamp via build_overlays.py); known gap, not fixed here.
+        # still run text-only. The frame is fetched at the clip's default
+        # t0; with the keyframe anchor these are usually close, but not
+        # exactly time-synced -- known approximation.
         "overlay_jpeg": Path(overlay).read_bytes() if overlay else None,
     }
 
@@ -184,22 +188,14 @@ def run(
     for clip in clips:
         clip_id = clip["clip_id"]
         rollouts = rollout_groups.get(clip_id)
-        # Re-extract GT's own (already re-anchored, see _load_clip) trajectory
-        # over just ROLLOUT_HORIZON_WP waypoints, so the dossier and the
-        # generation prompt only ever cite numbers a real rollout could
-        # actually reproduce. Computed from the fixed horizon constant, NOT
-        # from `rollouts`' own length -- this must stay valid even before any
-        # rollout has been sampled at the (possibly new) anchor.
-        rollout_horizon_traj = None
-        if len(clip["anchored_waypoints"]) > ROLLOUT_HORIZON_WP:
-            rollout_horizon_traj = dossier_mod.features_from_waypoints(
-                clip["anchored_waypoints"][:ROLLOUT_HORIZON_WP], clip["hz"], clip_id
-            )
+        # clip["gt_traj"] IS the prediction window (see _load_clip: sliced at
+        # the training keyframe, truncated at ROLLOUT_HORIZON_WP), so the
+        # dossier needs no separate rollout-horizon section -- every number
+        # in it is already something a real rollout can be compared against.
         text = dossier_mod.build_dossier(
             clip["scene"],
             clip["gt_traj"],
             clip["gt_coc"],
-            rollout_horizon_traj=rollout_horizon_traj,
             rollout_anchor_s=clip["rollout_anchor_s"],
         )
         (out / f"{clip_id}.dossier.txt").write_text(text + "\n")
@@ -229,7 +225,7 @@ def run(
                     prior_transcript=transcript,
                     tracker=tracker,
                     overlay_jpeg=clip["overlay_jpeg"],
-                    gt_traj_facts=gate_mod._traj_facts(rollout_horizon_traj or clip["gt_traj"]),
+                    gt_traj_facts=gate_mod._traj_facts(clip["gt_traj"]),
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})

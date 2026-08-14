@@ -72,44 +72,61 @@ def _bearing(x: float, y: float) -> str:
 
 # Take a full scene's worth of obstacle tracks and reduce it to a short ranked list of the most relevant ones (closest approach first).
 
-def summarize_tracks(scene: SceneObstacles, t0_offset_s: float = 0.0) -> list[TrackSummary]:
+def summarize_tracks(
+    scene: SceneObstacles, t0_offset_s: float = 0.0, t1_cutoff_s: float | None = None
+) -> list[TrackSummary]:
     """Rank tracks by the closest approach and keep the MAX_TRACKS nearest.
 
     t0_offset_s: subtract this from every track's timestamps before
-    reporting -- used when the dossier's t=0 has been re-anchored away from
-    the clip's original t=0 (see build_dossier's rollout_anchor_s / dossier
-    module docstring), so obstacle-track times stay on the SAME clock as
-    the (already-shifted) trajectory the caller passes to build_dossier.
-    A track can end up with a negative t_enter_s/t_exit_s here -- that just
-    means it was visible before the re-anchored window starts, which is
+    reporting -- used when the dossier's t=0 is the prediction-window start
+    (the training keyframe) rather than the clip's own t=0 (see
+    build_dossier's rollout_anchor_s), so obstacle-track times stay on the
+    SAME clock as the (already-sliced) trajectory the caller passes to
+    build_dossier. A track can end up with a negative t_enter_s here --
+    that just means it was visible before the window starts, which is
     still useful context (e.g. "this vehicle was already alongside us").
+
+    t1_cutoff_s: drop every track timestep AFTER this time (on the shifted
+    clock) and omit tracks that only appear after it. The dossier must
+    describe ONLY what the prediction window contains -- a closest approach
+    that happens after the window ends is future the model cannot predict
+    over and the ground truth doesn't cover, so reporting it teaches the
+    generator to check for events no in-window trajectory can show.
     """
     # This list will collect one TrackSummary per obstacle track.
     out: list[TrackSummary] = []
 
     # Loop over every obstacle track that is present in the scene (e.g., from obstacle.offline from HF)
     for tr in scene.tracks:
-        # Compute the ego-relative distance (in the ground plane, x/y only) at every timestep of this track.
-        dists = np.linalg.norm(tr.centers_m[:, :2], axis=1)
+        # Convert this track's timestamps from microseconds to seconds, on the same (possibly shifted) clock as the trajectory.
+        ts = tr.timestamps_us.astype(np.float64) / 1e6 - t0_offset_s
+        centers = tr.centers_m
+        if t1_cutoff_s is not None:
+            # Keep only the timesteps inside the window; a track with no
+            # in-window presence is invisible to this dossier on purpose.
+            mask = ts <= t1_cutoff_s
+            if not mask.any():
+                continue
+            ts, centers = ts[mask], centers[mask]
+        # Compute the ego-relative distance (in the ground plane, x/y only) at every remaining timestep.
+        dists = np.linalg.norm(centers[:, :2], axis=1)
         # Find the index of the timestep where the distance is smallest (closest approach).
         i = int(np.argmin(dists))
-        # Convert this track's timestamps from microseconds to seconds, on the same (possibly re-anchored) clock as the trajectory.
-        ts = tr.timestamps_us.astype(np.float64) / 1e6 - t0_offset_s
-        # Build a TrackSummary for this track using the values computed above 
+        # Build a TrackSummary for this track using the values computed above
         out.append(
             TrackSummary(
                 track_id=str(tr.track_id),
                 label_class=tr.label_class,
                 # First timestamp in the track = where it enters view
                 t_enter_s = float(ts[0]),
-                # Last timestamp in the track = when it enters view
+                # Last timestamp in the track = when it leaves view (or the window cutoff)
                 t_exit_s = float(ts[-1]),
-                # Distance at the closest-approach index. 
+                # Distance at the closest-approach index.
                 closest_approach_m=float(dists[i]),
-                # Time at the closest-approach index. 
+                # Time at the closest-approach index.
                 t_closest_s = float(ts[i]),
                 # Direction bucket at the closets-approach index (x, y position at the moment)
-                bearing_at_closest = _bearing(float(tr.centers_m[i, 0]), float(tr.centers_m[i, 1])),
+                bearing_at_closest = _bearing(float(centers[i, 0]), float(centers[i, 1])),
             )
         )
 
@@ -302,50 +319,69 @@ def build_dossier(
     window returned an empty slice on all 12 sampled rollouts).
 
     rollout_anchor_s: seconds into the clip's OWN absolute-clock origin
-    (NOT the OOD event's t0_us -- see find_rollout_anchor_s's docstring for
-    why those differ) that this dossier's t=0 has been shifted to. 0.0
-    means no re-anchoring. The caller is responsible for slicing gt_traj /
-    rollout_horizon_traj from that same offset (see
-    find_rollout_anchor_s) -- this parameter only re-times the obstacle
+    that this dossier's t=0 sits at -- the PREDICTION-WINDOW START, i.e.
+    the training keyframe the policy is sampled from (2026-08-14 design:
+    the window is anchored where TRAINING anchors it, never slid to hunt
+    for the scene's decisive event; if the decisive maneuver completes
+    after the window, the dossier deliberately shows only what the window
+    contains). 0.0 means the window starts at the clip's own t=0. The
+    caller is responsible for slicing gt_traj to [anchor, anchor+horizon]
+    on this same clock -- this parameter only re-times/cuts the obstacle
     tracks so the whole dossier stays on ONE consistent clock. A caller
     that also needs a real `t0_us` to sample a rollout at this same anchor
     (rollout_sampler.sample_rollout_group_for_clip) must pass
     `rollout_anchor_s * 1e6` as t0_us directly -- NOT
-    `original_t0_us + rollout_anchor_s * 1e6`. Re-anchoring exists because
-    the OOD event's own start is not always when the trajectory shows a
-    measurable reaction: some scenes react immediately, but e.g. a stop
-    sign becoming relevant while still far away can mean the ego doesn't
-    actually brake until 10+ seconds later -- confirmed on
-    the real 352-clip training corpus, re-anchoring to the best 6.4s window
-    fixes 89% of clips whose real event fell outside a t=0-anchored
-    rollout, with 0% unfixable by any anchor choice.
+    `original_t0_us + rollout_anchor_s * 1e6` (the historical
+    double-counting bug).
     """
     # Start building the dossier as a list of text lines: a header with the clip ID,
     # a blank line, and a section header for the obstacle tracks.
     parts = [f"CLIP {scene.clip_id}"]
+    # The window this dossier is allowed to describe: exactly what gt_traj
+    # covers. Every number below (tracks included) is cut at this horizon,
+    # so nothing the model cannot predict over leaks into generation.
+    window_s = gt_traj.n_waypoints * gt_traj.dt_s
     if rollout_anchor_s > 0:
         parts.append(
-            f"NOTE: t=0 below is RE-ANCHORED to {rollout_anchor_s:.1f}s into the"
-            " original clip -- shifted so a real rollout's fixed prediction horizon"
-            " actually covers this scene's decisive event (see ROLLOUT HORIZON"
-            " below). Obstacle/trajectory times are already on this new clock."
+            f"NOTE: t=0 below is the PREDICTION-WINDOW START ({rollout_anchor_s:.1f}s"
+            " into the original clip) -- the same instant the policy is asked to"
+            f" predict from. Everything below covers ONLY t=0 to t={window_s:.1f}s,"
+            " the window the policy predicts and is scored on. Times are on this clock."
         )
-    parts += ["", "OBSTACLE TRACKS (ego-relative, nearest first):"]
-    # Add one line per obstacle track (already ranked nearest-first by summarize_tracks).
-    for t in summarize_tracks(scene, t0_offset_s=rollout_anchor_s):
+    parts += [
+        "",
+        "OBSTACLE TRACKS (ego-relative, nearest first, within the window only):",
+    ]
+    # Add one line per obstacle track (nearest-first, cut at the window end).
+    tracks = summarize_tracks(scene, t0_offset_s=rollout_anchor_s, t1_cutoff_s=window_s)
+    for t in tracks:
         parts.append(
             # Describe the track: its ID, class, when it was visible, and its closest approach.
             f"- track {t.track_id} [{t.label_class}] visible {t.t_enter_s:.1f}-{t.t_exit_s:.1f} s;"
             f" closest {t.closest_approach_m:.1f} m ({t.bearing_at_closest}) at t={t.t_closest_s:.1f} s"
         )
-    # If there were more tracks than MAX_TRACKS, note how many were left out.
-    if len(scene.tracks) > MAX_TRACKS:
-        parts.append(f"({len(scene.tracks) - MAX_TRACKS} farther tracks omitted)")
+    # If there were more tracks than shown, note how many were left out.
+    if len(scene.tracks) > len(tracks):
+        parts.append(
+            f"({len(scene.tracks) - len(tracks)} tracks omitted: farther away, or"
+            " not visible within the window)"
+        )
     # Add a blank line and a section header for the expert ego trajectory.
-    traj_label = "full scene" if rollout_anchor_s <= 0 else f"from re-anchored t=0 onward, {rollout_anchor_s:.1f}s into the original clip"
-    parts += ["", f"EXPERT EGO TRAJECTORY (ground truth, {traj_label}):"]
+    parts += [
+        "",
+        f"EXPERT EGO TRAJECTORY (ground truth, ONLY the {window_s:.1f}s prediction window):",
+    ]
     # Add each ego-trajectory summary line, prefixed with "- " to match the bullet-point style above.
     parts += [f"- {line}" for line in ego_lines(gt_traj)]
+    parts.append(
+        "This is everything the expert did WITHIN the window -- the maneuver the"
+        " scene calls for may only BEGIN here (e.g. easing off toward a still-far"
+        " obstacle), with its completion falling after the window ends. Derive"
+        " every execution threshold from these in-window numbers, never from the"
+        " maneuver's full semantics: if the expert only slowed 2 m/s in-window,"
+        ' a faithful rollout slows about that much here too -- "stop" does NOT'
+        " mean reaching 0 m/s inside this window unless the numbers above show it."
+    )
     # If a real rollout group was sampled for this clip, warn off any event
     # past the horizon it can actually show.
     if rollout_horizon_traj is not None:
@@ -366,7 +402,16 @@ def build_dossier(
         )
     # If a ground-truth reasoning annotation string was provided, append it as its own section.
     if gt_coc:
-        parts += ["", "GROUND-TRUTH REASONING ANNOTATION:", gt_coc.strip()]
+        parts += [
+            "",
+            "GROUND-TRUTH REASONING ANNOTATION:",
+            gt_coc.strip(),
+            "(This annotation describes the driver's response to the WHOLE event,"
+            " which may complete after the prediction window ends. Expect a"
+            " faithful rollout to state a matching intent, but hold its"
+            " trajectory only to what the window trajectory above actually"
+            " shows.)",
+        ]
     # Join all the lines together with newlines into the final dossier text.
     return "\n".join(parts)
 
