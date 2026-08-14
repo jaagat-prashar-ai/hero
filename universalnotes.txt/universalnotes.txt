@@ -698,9 +698,665 @@ So it's assymetric: the language decoder is trained by two losses (langauge + co
 # Two other things worth naming so the picture is complete: 
     # shared transformer backboen underneath both decoder gets gradient from all four loss terms combined (language_loss, route_loss, speed_wps_loss, contrastive_loss), since everything sits on top of it. 
     # text_proj/traj_proj are small extra heads that only exist for the contrastive loss - they're not "decoders" in the architecture, just projection layers we bolted on for this experiment, trained only by contrastive_loss. 
+
+
+│   metric (epoch 0 val)    │ before (loss reached both decoders) │ after (detached) │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ val/loss                  │ 1.854                               │ 1.971            │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ route_loss                │ 0.337                               │ 0.343            │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ speed_wps_loss            │ 1.284                               │ 1.378            │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ language_loss             │ 0.0453                              │ 0.0458           │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ contrastive_loss          │ 0.201                               │ 0.274            │
+├───────────────────────────┼─────────────────────────────────────┼──────────────────┤
+│ contrastive_retrieval_acc │ 0.624                               │ 0.569            │
+└───────────────────────────┴─────────────────────────────────────┴──────────────────┘
+
+# full ablations description (get the results here for each of these):
+┌────────────────┬────────────────┬───────────────┬────────────────┬───────────────┬───────────────────────────────┐
+│     weight     │    val/loss    │  route_loss   │ speed_wps_loss │ language_loss │ val contrastive_retrieval_acc │
+├────────────────┼────────────────┼───────────────┼────────────────┼───────────────┼───────────────────────────────┤
+│ 0.0 (baseline) │ 1.329          │ 0.253         │ 1.017          │ 0.033         │ —                             │
+├────────────────┼────────────────┼───────────────┼────────────────┼───────────────┼───────────────────────────────┤
+│ 0.1            │ 1.469 (+10.6%) │ 0.228 (−10%)  │ 1.054 (+3.6%)  │ 0.037 (+14%)  │ 0.422                         │
+├────────────────┼────────────────┼───────────────┼────────────────┼───────────────┼───────────────────────────────┤
+│ 0.2            │ 1.456 (+9.6%)  │ 0.241 (−5%)   │ 1.080 (+6%)    │ 0.040 (+21%)  │ 0.575                         │
+├────────────────┼────────────────┼───────────────┼────────────────┼───────────────┼───────────────────────────────┤
+│ 0.5            │ 1.511 (+13.7%) │ 0.251 (−0.7%) │ 1.053 (+3.6%)  │ 0.038 (+16%)  │ 0.680                         │
+├────────────────┼────────────────┼───────────────┼────────────────┼───────────────┼───────────────────────────────┤
+│ 1.0            │ 1.669 (+25.6%) │ 0.287 (+13%)  │ 1.128 (+11%)   │ 0.039 (+20%)  │ 0.708                         │
+└────────────────┴────────────────┴───────────────┴────────────────┴───────────────┴───────────────────────────────┘
+
+
+
+
+
+
+The pattern that motiviated the fix: retrieval accuracy climbs cleanly with weight, but val/loss gets worse at every weight tested, and worsens roughly monotinically from w=0.1 to 1=1.0 (th aux task learning came at the cost of the main driving objective, at every setting tried)
+
+# for contrastive weight:
+    # driving.py:332 - one multiplication, applied diretly to the per-sample contrastive loss before it's summed into the total:
+        # return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
+        # Here loss is the per-sample value from intra_scene_contrastive_loss (the 0.5x(forward+inverse) cross-entropy from earlier). It gets muleiplied by self.contrastive_loss_weight (the sweep value: 0, 0.1, 0.2, 0.5, or 1.0) before going into loss_dict. 
+
+        # Written as full equation for one training step:
+            total_loss = langauge_loss + route_loss + speed_wps_loss + weight x contrastive_loss
+            
+        language_loss, route_loss, speed_wps_loss all have an implicit weight of 1 (nothing scales them). 
+        # contastive loss is the only term with an explicit, tunable multiplier (that scalar weight is the exact knob the 5-point sweep (0.0/0.1/0.2/0.5/1.0) was turning. Bigger weight -> bigger share of total_loss comes from the matching task -> bigger gradient push from it during backward() -> the effect we measured (more retrieval accuracy, less driving accuracy, scaling with the weight)
+
+        # retrieval accuracy is a separate diagonistic metric - not part of the total_loss equation, doesn't get weighted, doesn't get backpropagated. 
+        # Compute alongside the loss (from same KxK matrix)
+        # logits = z_text[idx] @ z_traj[idx].T / temperature # KxK matrix
+        # labels = torch.arange(idx.numel()) # [0, 1, ..., K-1]
+        # accuracy = (logits.argmax(-1) == labels).float().mean() # per group
+
+        for each row of the matrix, take argmax (col with highest score). Compare that column index to the correct index (labels, which is just the row's position)
+
+ # how do we get more strong pertubations as well? 
+
+# global code as a reward determinsitic heuristic
+# llm as a judge
+# other reasoning model
+
+1. feed in the cropped image
+2. if the GT trace is not good, how do we fix this?
+3. have multiple VLM agents converge on a very good labeling? or just remove the bad clips from the training data? we want the GRPO model to actually learn these properly. 
+
+┌───────────────────────────────┬────────────────┬─────────────────────────────────────────┬──────────────────────┐
+│            metric             │ baseline (w=0) │ before fix (loss reached both decoders) │ after fix (detached) │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ val/loss                      │ 1.329          │ 1.511                                   │ 1.577                │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ route_loss                    │ 0.253          │ 0.251                                   │ 0.271                │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ speed_wps_loss                │ 1.017          │ 1.053                                   │ 1.096                │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ language_loss                 │ 0.033          │ 0.038                                   │ 0.038                │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ contrastive_loss              │ —              │ 0.140                                   │ 0.193                │
+├───────────────────────────────┼────────────────┼─────────────────────────────────────────┼──────────────────────┤
+│ val contrastive_retrieval_acc │ —              │ 0.680                                   │ 0.650                │
+└───────────────────────────────┴────────────────┴─────────────────────────────────────────┴──────────────────────┘
+
+# making training better? how?
+
+pre-trained VLM approach. 
+- can this reason better abou tthe images than an LLM? i.e., a pedestrian (false positive), horse, etc. 
+
+# 8 parallel shards of ~42-43 clips each (341 of 352 clips - 11 are missing source data, a knopwn pre-existing gap), each running the exact same already-validated single-GPU pipeline, no new distributed code. 
+# New capability added to run_real_rollout_gen.py: restores manifest data (obstacle/egomotion parquet, GT reasoning, re-anchored t0_us) from S3 rather than bundling ~250MB via code_assets - tested (35/35 tests pass, dry-run validated)
+# Estimated cost: ~$25-40 in LLM calls total across all 341 clips, plus GPU time on 8 non-preemtible A100.8 nodes running roughly 1-2 hours each in parallel 
+
+# config and hyperparameters:
+    # max_epochs = 2 (chosen because for smoke test; the goal was "does the pipeline run without crashing and does the effect show up at all")
+    # batch_size = 2 (epochs was picked to keep each run to ~4 hours, not because 2 is enough to trust a comparison)
+    # 
+
+
+august 11 universal notes:
+    # scoping out the exact fix?
+
+# SimLingo predicts both language and trajectories, but nothing forces those two outputs to actually be connected - the model could drive off visual habits while the language is just decoration. 
+    # Nothing forces those two outputs to actually be connected - the model could drive off visual habits while the language is just decoration. 
+    # The contrastive loss is the attempted fix: it takes the embedding of the instruction and the embedding of the predicted trajectory and trains them to match, so "what the model says" and "what the model does" are pushed to encode the same content. 
+
+# goal of the contrastive loss is to take the embedding of the instruction and the embedding of the predicted trajectory and train them to match (so "what the model says" and "what the model does" are pushed to encode the same content).
+
+# How "match" is defined today. You can't just say "be similar - the loss needs wrong answers to push away from, or everything collapses to one point. Currently the wrong answers are the counterfactual siblings: the same camera frame appears K times in a batch with different instructions (turn left, stop, accelerate), each with its own trajectory. The loss is a matching quiz: given this trajectory, ewhich of the K instructions produced it?
+
+# The weakness is that the quiz is too easy? "turn left" and "stop for the pedestrian" are so different that a crude, coarse embedding tells them apart - the model can score high while grounding almost nothing about the language. you can see the risk in own logs: contrastive_retreieval_Acc climbs to nearly 100%. 
+    # loss has essentially stopped teaching because every comparison already won. 
+# samples with no siblings get zero loss at all. so the loss's gradient (actual teaching signal, weakest exactly where you want it strongest).
+
+# Keep the quiz, but make twe wrong answers hard. 
+
+
+# How "match" is defined today. You can't just say "be similar" - the loss needs wrong answers to push away from, or everything collapses to one point. 
+
+# hard negatives (dpo perturbation generator)
+    # enforce this into the InfoNCE loss as well 
+
+# experimenting with differnent weights 
+    # 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 for contrastive weight
+
+# experiementing with different number of counterfactuals
+    # K=1, 2, 3, 4, 5, 6, 7? cuda oom, gradient checkpointing as temporary solution 
+
+# counterfactual vla pre-training
+
+# loss function creativity
+    # adaptive contrsastive learning?
+    # or also teach the model to discriminate against the other hard negatives as well?
+
+# paper suggests world model rollouts
+
+# more scenes, move the frame timestamps 
+# making perturbed reasonings isntead of the commands 
+# adaptive contrastive loss with counterfactual training (for which scenes) 
+
+# hard perturation generator    
+    # assembly line with 5 steps: 
+        1. Find what's worth flipping - select_targets() (line 173). A claim parser reads each trace and tags the meaningful parts: commitments ("nudge left") perceptions ("cones blocking the lane"), causes ("due to..."), and numbers ("15 m"). For each, it marks the exact character positions. Six flip types are defined (line 82): direction flips (left <-> right), maneuever swaps (stop<-> proceed), state flips (blocking<-> clear, red<->green), entity swaps (pedestrian<-> cyclist), cause substitutions, and number corruptions. A scene only gets the types it has material for - on this corpus that averages ~4 per scene (477 jobs / 120 scenes).
+
+        2. Ask Claude to make the edit - generate_perturbation_v2() (line 270). One API call per scene (scene, flip type). The system prompt (line 99) gives strict rules: change only the marked span, keep word count within +- 2, add no hedging words, reuse old vocabulary the corpus already uses. Those style rules exist because v1 of this tool failed exactly there - its edits had a detectable "written differently" smell.
+
+        3. Trust nothing, verify mechanically - validate_perturbation() (line 229). Plain Python checks the model actually obeyed: is every character outside the edited span byte-identical? Is the word count within +- 2? Is it a real change, not a paraphrase? Violations get one fresh retry, then the job is skipped rather than letting a bad sample through. 
+
+        4. The fingerprint gate - fingerprint_check() (line 416). After the batch is done, this replays the exact attack that killed v1: embed all real and fake texts, and try to classify real-vs-fake from text alone, with no scene or trajectory information. 
+            # If that classifier beats 60% accuracy, the fakes have a giveaway and the corpus is rejected (v1 scored 95.8% - completely broken). Only a passing corpus is safe to train on, because otherwise the contrastive loss would learn to spot the giveaway instead of checking the trajectory. 
+
+        5. Cost discipline built it - main() runs as a dry run by default: it prints the job count and price and exits. Nothing is billed without --confirm. That's what I just ran, giving the $6.57 figure. 
+
+        # Each output row is one JSON record: the original trace, the fake trace, which type of flip was made, and one-sentence descriptions of what changed and how the correct driving action changes. 
+            # This corpus's traces are Alpamayo-style CoC reasoning, and the pipeline was built for the DPO project. It's the right first batch - it exercises the whole pipeline and the fingerprint gate, and DPO was its original purpose. Pointing it at the SimLingo dreamer instructions 
+            (for the contrastive-loss idea we discussed) would be a follow-up step: same file, different input corpus, and I'd want to sanity-check the claim parser on a few SimLingo instructions first. 
+
+        # a third axis to GRPO/
+            # so we have rasonable generations 
+            # and we introduce a third axis? 
+    
+    
+    # gate.py's pertubation battery does exactly what we are describing no_commitments/gutted_claims (reasoning-only corruption, trajectory untouched), reversed_traj/no_reaction_traj (trajectory-only corruption, reasoning untouched), plus corrupted_identity as a combined-ish case. 
+    # It scores the LLM-generated reward function against the real argmax (r, t) pair and each corrupted variant, and requires the positive score to clear a bar (POS_MIN_ and every corruption to drop by a minimum margin (MIN_DRO)., 
+    # That mechanism is precisely how we know c2f0524f/8e83f069  are bad (gate caught them correctly).
+
+    # The gap isn't the test, it's the fix loop that runs? When a component survives a corruption it shouldn't, the retry ptompt tells gpt-4o "this component didn't drop enough under X, fix it."
+        # Two ways to make that complaint literally go away:
+            # 1. Correct fix: gate the component behind a real component
+
+    # 
+
+
+    # user per-token loss assigned with the trajectory to decide which token?
     
 
+# Experiment summary: 
+    # Experiment A (mask all reasoning): a1 depends on its reasoning the most (0.537m), a2 middling (0.292m), a15 the least (0.170m) - all three are separabel, sod ependence is non-monotonic across generations
+    # Experiment B (concept ablation): No family is distinguishable from any other - all pairwise contrasts span zero, and the design can't support a comparison anyway since each model masks whichever concepts it happened to mention. 
+    # Experiment C (word-position sweep): a16's reasoning influence is concentrated in the opening words while a2's is spread across the whole string, with a1 in between but not separable from a2. 
+    # Experiment D (clause reversal)L a2 is roughly 2.5x more sensitive to reasoning order than others (0.377m vs 0.151/0.147 m), while a1 and a15 are tied. 
+
+# All ADE values in meters; contrasts are paired bootstrap (20K resamples, seed 0) over common events: 
+
+Experiment A - mask entire reasoning span: 
+┌────────┬─────────┬──────────┬───────┐
+│ family │ n valid │ mean ADE │ zeros │
+├────────┼─────────┼──────────┼───────┤
+│ a1     │ 61/61   │ 0.5370   │ 0     │
+├────────┼─────────┼──────────┼───────┤
+│ a15    │ 61/61   │ 0.1700   │ 0     │
+├────────┼─────────┼──────────┼───────┤
+│ a2     │ 61/61   │ 0.2919   │ 0     │
+└────────┴─────────┴──────────┴───────┘
+
+┌─────────────────┬─────────┬────────────────────┬────────────────────────┐
+│ contrast (n=61) │  diff   │       95% CI       │        verdict         │
+├─────────────────┼─────────┼────────────────────┼────────────────────────┤
+│ a1 − a15        │ +0.3670 │ [+0.1574, +0.6809] │ significant            │
+├─────────────────┼─────────┼────────────────────┼────────────────────────┤
+│ a1 − a2         │ +0.2451 │ [+0.0220, +0.5643] │ significant            │
+├─────────────────┼─────────┼────────────────────┼────────────────────────┤
+│ a15 − a2        │ −0.1219 │ [−0.2554, −0.0053] │ significant (marginal) │
+└─────────────────┴─────────┴────────────────────┴────────────────────────┘
+
+Experiment B - concept ablation 
+
+┌────────┬───────────────────────────┬──────────────────┬───────────────────┬────────────────────────┬────────────────────────┐
+│ family │ rows w/ ≥1 concept masked │ mean cols masked │ mean ADE (all 61) │ mean ADE (masked only) │ mean ADE (common n=32) │
+├────────┼───────────────────────────┼──────────────────┼───────────────────┼────────────────────────┼────────────────────────┤
+│ a1     │ 49/61                     │ 1.26             │ 0.0254            │ 0.0316                 │ 0.0397                 │
+├────────┼───────────────────────────┼──────────────────┼───────────────────┼────────────────────────┼────────────────────────┤
+│ a15    │ 42/61                     │ 1.18             │ 0.0362            │ 0.0526                 │ 0.0393                 │
+├────────┼───────────────────────────┼──────────────────┼───────────────────┼────────────────────────┼────────────────────────┤
+│ a2     │ 43/61                     │ 1.25             │ 0.0429            │ 0.0609                 │ 0.0557                 │
+└────────┴───────────────────────────┴──────────────────┴───────────────────┴────────────────────────┴────────────────────────┘
+
+┌─────────────────┬─────────┬────────────────────┬─────────────────────┐
+│ contrast (n=32) │  diff   │       95% CI       │       verdict       │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a1 − a15        │ +0.0004 │ [−0.0485, +0.0565] │ not distinguishable │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a1 − a2         │ −0.0159 │ [−0.1044, +0.0545] │ not distinguishable │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a15 − a2        │ −0.0163 │ [−0.0828, +0.0346] │ not distinguishable │
+└─────────────────┴─────────┴────────────────────┴─────────────────────┘
+
+The all-61 column is deflated by rows where nothing was masked (they contribute exactly 0) - use the masked-only or common column. 
+
+Experiment C - word-position sweeps
+
+Mask first n words (expert sees reasoning from word n onward): 
+
+┌─────┬────────┬────────┬────────┐
+│  n  │   a1   │  a15   │   a2   │
+├─────┼────────┼────────┼────────┤
+│ 0   │ 0.0000 │ 0.0000 │ 0.0000 │
+├─────┼────────┼────────┼────────┤
+│ 5   │ 0.1865 │ 0.1304 │ 0.0795 │
+├─────┼────────┼────────┼────────┤
+│ 10  │ 0.4469 │ 0.1415 │ 0.1639 │
+├─────┼────────┼────────┼────────┤
+│ 20  │ 0.5344 │ 0.1608 │ 0.2568 │
+├─────┼────────┼────────┼────────┤
+│ 30  │ 0.5351 │ 0.1668 │ 0.2943 │
+├─────┼────────┼────────┼────────┤
+│ 50  │ 0.5357 │ 0.1721 │ 0.2943 │
+└─────┴────────┴────────┴────────┘
+
+Keep only first n words (mask everything after n):
+
+┌─────┬────────┬────────┬────────┐
+│  n  │   a1   │  a15   │   a2   │
+├─────┼────────┼────────┼────────┤
+│ 0   │ 0.5357 │ 0.1721 │ 0.2943 │
+├─────┼────────┼────────┼────────┤
+│ 5   │ 0.1043 │ 0.0807 │ 0.2322 │
+├─────┼────────┼────────┼────────┤
+│ 10  │ 0.0251 │ 0.0393 │ 0.1442 │
+├─────┼────────┼────────┼────────┤
+│ 20  │ 0.0005 │ 0.0183 │ 0.0434 │
+├─────┼────────┼────────┼────────┤
+│ 30  │ 0.0001 │ 0.0049 │ 0.0000 │
+├─────┼────────┼────────┼────────┤
+│ 50  │ 0.0000 │ 0.0000 │ 0.0000 │
+└─────┴────────┴────────┴────────┘
+
+Reasoning length and normalization: 
+
+┌────────┬──────────────┬──────┬─────────┬────────────────┬──────────────────────────┐
+│ family │ median words │ mean │ min–max │ 5w as % of CoC │ mask-first-half (interp) │
+├────────┼──────────────┼──────┼─────────┼────────────────┼──────────────────────────┤
+│ a1     │ 11           │ 11.2 │ 6–33    │ 49%            │ 0.2065                   │
+├────────┼──────────────┼──────┼─────────┼────────────────┼──────────────────────────┤
+│ a15    │ 14           │ 13.0 │ 6–32    │ 43%            │ 0.1184                   │
+├────────┼──────────────┼──────┼─────────┼────────────────┼──────────────────────────┤
+│ a2     │ 10           │ 10.9 │ 6–27    │ 50%            │ 0.0775                   │
+└────────┴──────────────┴──────┴─────────┴────────────────┴──────────────────────────┘
+
+Front-loading share (mask-first-5 + mask-all, ratio-of-means):
+
+┌────────┬───────┬─────────────────┐
+│ family │ share │     95% CI      │
+├────────┼───────┼─────────────────┤
+│ a1     │ 34.7% │ [29.0%, 41.8%]  │
+├────────┼───────┼─────────────────┤
+│ a15    │ 76.7% │ [41.9%, 138.3%] │
+├────────┼───────┼─────────────────┤
+│ a2     │ 27.2% │ [18.9%, 41.0%]  │
+└────────┴───────┴─────────────────┘
+
+
+┌──────────┬──────────────────────────────┬─────────────────────────────┬────────────────────────────────────────────┐
+│ contrast │   raw mask-first-5 (n=61)    │    share, ratio-of-means    │           share, mean-of-ratios            │
+├──────────┼──────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────┤
+│ a1 − a15 │ +0.0561 [−0.085, +0.191] ns  │ −42.0pp [−102.2, −7.4] sig  │ −0.381 [−0.626, −0.166] sig                │
+├──────────┼──────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────┤
+│ a1 − a2  │ +0.1070 [+0.038, +0.216] sig │ +7.5pp [−5.7, +16.7] ns     │ −0.256 [−0.512, −0.056] sig, opposite sign │
+├──────────┼──────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────┤
+│ a15 − a2 │ +0.0509 [−0.018, +0.165] ns  │ +49.5pp [+11.5, +109.3] sig │ +0.126 [−0.213, +0.444] ns                 │
+└──────────┴──────────────────────────────┴─────────────────────────────┴────────────────────────────────────────────┘
+
+only a1-a15 agrees across both aggregations, a1-a2 conflicts in direction -> no claim. 
+
+Experiment D - cause reversal
+
+┌────────┬─────────────┬─────────────────┬───────────────────────┬────────────────────────┬───────────────┐
+│ family │ control ADE │ reversible rows │ reversal (own subset) │ reversal (common n=23) │ cot unchanged │
+├────────┼─────────────┼─────────────────┼───────────────────────┼────────────────────────┼───────────────┤
+│ a1     │ 0.0089      │ 30/61           │ 0.1407                │ 0.1512                 │ 31/61         │
+├────────┼─────────────┼─────────────────┼───────────────────────┼────────────────────────┼───────────────┤
+│ a15    │ 0.0044      │ 51/61           │ 0.1724                │ 0.1474                 │ 10/61         │
+├────────┼─────────────┼─────────────────┼───────────────────────┼────────────────────────┼───────────────┤
+│ a2     │ 0.0046      │ 41/61           │ 0.2965                │ 0.3768                 │ 20/61         │
+└────────┴─────────────┴─────────────────┴───────────────────────┴────────────────────────┴───────────────┘
+
+┌─────────────────┬─────────┬────────────────────┬─────────────────────┐
+│ contrast (n=23) │  diff   │       95% CI       │       verdict       │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a1 − a15        │ +0.0038 │ [−0.0748, +0.0804] │ not distinguishable │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a1 − a2         │ −0.2256 │ [−0.4535, −0.0408] │ significant         │
+├─────────────────┼─────────┼────────────────────┼─────────────────────┤
+│ a15 − a2        │ −0.2294 │ [−0.4329, −0.0559] │ significant         │
+└─────────────────┴─────────┴────────────────────┴─────────────────────┘
+
+Pairwise-common subsets (larger n than the three-way intersection): a1 vs a15 n=28 -> 0.1425 / 0.2020; a1 vs a2 n=24 -> 0.1474 / 0.3632; a15 vs a2 n=35 ->  0.1259/0.2850. 
+
+
+Scale reference (for interpereting ADE): 
+
+┌────────┬──────────────────────────────────────┬───────────────┬───────────┐
+│ family │ baseline path length (mean / median) │ endpoint dist │ waypoints │
+├────────┼──────────────────────────────────────┼───────────────┼───────────┤
+│ a1     │ 58.21 / 49.26 m                      │ 55.69 m       │ 64        │
+├────────┼──────────────────────────────────────┼───────────────┼───────────┤
+│ a15    │ 52.60 / 34.89 m                      │ 53.14 m       │ 64        │
+├────────┼──────────────────────────────────────┼───────────────┼───────────┤
+│ a2     │ 52.25 / 38.64 m                      │ 52.80 m       │ 64        │
+└────────┴──────────────────────────────────────┴───────────────┴───────────┘
+
+The ~11% mean path-length spread (larger at median) means difference sbelow roughly 10-15% shouldn't be read as real without path normalization (relevant to Exp B, not to Exp A or D). 
+
+# It seems that Alpamayo 2 is placing a larger emphasis on prefix? i.e., but it's also indifferent in some sense? 
+    # i.e., masking for first n=5 words and compare this also to swapping commitment and perception?  
+    # 
+
+Mask first n words (expert sees reasoning from word n onward): 
+
+┌─────┬────────┬────────┬────────┐
+│  n  │   a1   │  a15   │   a2   │
+├─────┼────────┼────────┼────────┤
+│ 0   │ 0.0000 │ 0.0000 │ 0.0000 │
+├─────┼────────┼────────┼────────┤
+│ 5   │ 0.1865 │ 0.1304 │ 0.0795 │
+├─────┼────────┼────────┼────────┤
+│ 10  │ 0.4469 │ 0.1415 │ 0.1639 │
+├─────┼────────┼────────┼────────┤
+│ 20  │ 0.5344 │ 0.1608 │ 0.2568 │
+├─────┼────────┼────────┼────────┤
+│ 30  │ 0.5351 │ 0.1668 │ 0.2943 │
+├─────┼────────┼────────┼────────┤
+│ 50  │ 0.5357 │ 0.1721 │ 0.2943 │
+└─────┴────────┴────────┴────────┘
+# this implies that the first 5 words aren't as important, the ADE doesn't shift as much, in fact it shifts less compared to previous models?
 
 
 
-    # how do we get more strong pertubations as well?
+Keep only first n words (mask everything after n):
+
+┌─────┬────────┬────────┬────────┐
+│  n  │   a1   │  a15   │   a2   │
+├─────┼────────┼────────┼────────┤
+│ 0   │ 0.5357 │ 0.1721 │ 0.2943 │
+├─────┼────────┼────────┼────────┤
+│ 5   │ 0.1043 │ 0.0807 │ 0.2322 │
+├─────┼────────┼────────┼────────┤
+│ 10  │ 0.0251 │ 0.0393 │ 0.1442 │
+├─────┼────────┼────────┼────────┤
+│ 20  │ 0.0005 │ 0.0183 │ 0.0434 │
+├─────┼────────┼────────┼────────┤
+│ 30  │ 0.0001 │ 0.0049 │ 0.0000 │
+├─────┼────────┼────────┼────────┤
+│ 50  │ 0.0000 │ 0.0000 │ 0.0000 │
+└─────┴────────┴────────┴────────┘
+
+# this probably suggests the same thing. i.e., first 5 words don't contriubute as much for a2? for a1 and a15 they provide a lower loss and are probably more important?
+    # not for a2?
+
+
+# pre-training recipes
+# get K=7 working and compare them 
+    # do also ablations with various weights i.e., 7x10 = 70 ablations with 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+    # move with grpo run, launch three clean runs and run an active experiment logger/tracker! 
+
+# ablations with k=2, 3, 4, 5, 6, 7 with counterfactuals
+# silly bug with trying to measure perceptual faithfulness in trajectory (we can measure commitment in trajectory, but not perception)
+# ground-truth labels are not good (exclude this for RL post-training for time-being), and we can look into a CoC autolabeler later?
+
+# 1. DPO pertubation generator 
+    # get a really good hard-negative generator working and start training this
+
+# 2. Look into a general pre-training recipe with counterfactuals but advance this further?
+    # Counterfactual reward functions? We build the initial reward function using scenes/observations, GT COC reasoning, and the GT trajectory from NVIDIA. 
+        # not sure, this could be a more expensive idea to do. 
+        # 
+
+# 3. We want a really good generator and discrimiantor signal to get more counterfactuals and then a really good pre-trainig recipe / RL post-training strategy. 
+
+# simlingo-contrastive-smoke-whblpx, K=7
+# Two artifacts:   
+    # 1. https://claude.ai/code/artifact/ec41c6f1-a8b0-471e-b8dc-ccc2c7b03f7b?via=auto_preview
+    # 2. https://claude.ai/code/artifact/49f7d164-d3e9-4e1f-b4ca-e676f940cd0f?org=d1462296-4318-45e9-a645-1ecf6fd51c54 
+
+
+# run weight-ablations
+# adaptive gradient-updating (i.e., if the scene is straight-forward, we don't yield counterfactuals but when it is not straihgforwad/ood, we do the counterfactual trick, we can pull these counterfactuals)
+    # reach the same val/loss with fewer tokens, flops, etc. 
+
+# GRPO 
+
+# what if we take the ones from GRPO that are top 3 and then fight to see which one of those can win and then we reward it? sampled GRPO almost?
+    # recursive GRPO until a certain threshold is met?
+
+# diffusion tree feeding into each other with tokens, etc. 
+
+# Can we couple the loss between language and reasoning here as well?
+    # i.e., doesn't autovla kind of do this?
+
+    # generator/discriminator approach could be interesting?
+
+
+    for vlas, we essentially have to generate a strong understanding of generation/discrimination 
+        # gans are well-suited for diffusion, but how does this operate for includning langauge?
+        # how do we reprsent (R,t) in some good space?
+
+    # GAN approach 
+        # What is a really good way of doing this?
+            # Just start witht he reward function and (r, t) pair embedding (find a strong embedding repsresntation for this)
+
+        # VLMs, multiple VLM agents that give counterfactual guidance?
+            # i.e., what not to do/generate
+        
+        # diffusion LLMs?
+            # dLLMs?
+                # denoise a chain of thought reasoning trace but do this in a coupled way with actions
+                # i.e., denoise slowly language, denoise slowly actions 
+
+        # a good approach for mapping from actions to reasoning 
+            # and can use this for a coupled loss approach
+
+# August 13th Agenda
+    # Inspect K=7 run 
+    # Run stuff in NAVSIM/benchmark the checkpoints for various K counterfactual ablations
+    # work on the hard-negative perturbation strategy
+    # Work on more pre-training recipes
+    # Look at previous papers, build on it and start getting clean results 
+    # Keep thinking creatively about good experiments, run them, and work on them 
+        # steervla, counterfactual VLA, CAST, simlingo, autovla, poutine, alpamayo 
+
+    # compare the metrics to faithfulness paper and cvpr paper 
+    # have a strong position paper with continued ablations 
+    # have a strong publication 
+
+    # alpamayo reasoning challenge
+         - win this. 
+
+     # InfoNCE loss
+        # is there a better way to extract this? 
+
+    # generate a really good perturbation generator 
+
+
+# Analyzing results from the various K ablations 
+    # Runs were 2 epochs, not 1. Lightning's "Epoch 1" in the logs is the second epoch (0-indexed); every arm ran max_epochs=2 plus validation after each. 
+
+# Goals:
+    # Build a really good peturbation generator. 
+    # Work on SteerVLA. 
+
+# review state of open research at ICLR 
+# review the main papers and build a strong interpretability narrative that actually allows us to justify our own model development
+    # why introduce the gate, why have the perturber, etc. 
+        # and we can even introduce a third axis to grpo 
+        # pre-training for reasoning is another interesting approach
+            # can experiment with diffusion LLMs and making them faster 
+                # I think coupling the loss between diffusion LLMs and a diffusion head expert and recursively jsutifying that each action chunk corresponds to each token would be a great move 
+                    # the main question here is how do we associate x token witih n waypoints? how do we determine how much a token carries?
+                        # these actions sometimes follow the generated reasonings, but there are two axes to optimize for, one is alignment and the other is accuracy 
+                            # sometimes when the model strives for accuracy for GT, it sacrifices alignment? is this true? how do we find very concrete examples of this? push for more examples. 
+
+
+# gradient checkpointing and gradient accumulation
+
+# How do we make K=7 apples-to-apples?
+    # Cleanest fix is gradient accumulation: relaunch K=7 at batch_size=1 with accumulate_grad_batches=2. 
+    Memory peak stays at bs=1 (which is what saved it from the OOM - the adaptor CE loss peak scales with the per-forward batch), but the optimizer then sees gradients averaged over 2 items per step, takes ~16.2K steps instead of ~32.5K and walks the sam LR schedule as every other arm. 
+        # K=7's optimization dynamics are then mathematically equivalent to bs=2 - the accumulated gradient over two microbatches is identical to one bs=2 gradient. 
+            # One run, ~7-8h on 8xA100, and the asterick dissapears. 
+            # The alternative (rerunning K=2-6 at bs=1 to match K=7) is 6x the cost and makes everything worse instead of one thing better. 
+
+    # Is bs=2 good? Two separate concerns here: 
+        # For the contrastive objective: batch size doesn't matter much, by design. 
+        # The negatives come from within each K-group (the KxK InfoNCE is intra-group), so K=6 at bs=2 and k=6 at bs=20 pose the same retrieval problem. 
+        That makes K=7's optimizaiton dynamics mathematically equivalent to bs=2 - the accumulated gradient over two microbatches is identical to one bs=2 gradient. 
+        # One run, ~7-8h on 8xA100, and the asterick dissapears. The alternative (rerunning K=2-6 at bs=1 to match K=7) is 6x the cost and makes everything worse instead of one thing better. 
+
+    # Is bs=2 good? Two separate concerns: 
+
+# K ablations 
+# weight ablations as well 
+
+# 1.17TB mirror
+    # use the one already loaded on S3. 
+    # same thing with waymo. 
+
+
+
+# VLM as a pertubation generator 
+    # get more hard-negatives. 
+
+# peturbation generator
+# benchmarking
+# another pre-training recipe with ablations 
+    # compare this 
+        # perhaps compare alpamayo with only using half the reasoning? does the model perform well?
+            # keep only first 5 tokens. 
+            # get a checkpoint of the model and evaluate?
+
+# simlingo validation data 
+# autovla experiments 
+    # have a very clear pre-training reicpe that will make these models much more accurate 
+
+# uniform sampling from counterfactuals can also weigh this per category 
+# 
+
+# Validation data for S3: 
+
+┌──────────────┬──────────────────┬───────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│   Category   │  data_ chunks    │ dreamer_ chunks   │                                                   Coverage                                                    │
+│              │     upstream     │     upstream      │                                                                                                               │
+├──────────────┼──────────────────┼───────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 3_scenarios  │ 16               │ 3                 │ Hard ceiling — dreamer counterfactuals were only ever generated for 3/16 chunks upstream. Can't get more no   │
+│              │                  │                   │ matter what.                                                                                                  │
+├──────────────┼──────────────────┼───────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 1_scenario   │ 11               │ 11                │ Full 1:1 coverage upstream — every data chunk has a matching dreamer chunk. We already mirrored all 11        │
+│              │                  │                   │ dreamer sidecars but never pulled the paired data_ (sensor) tars.                                             │
+├──────────────┼──────────────────┼───────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ parking_lane │ 1                │ 1                 │ Full coverage — same story, 1 chunk, dreamer sidecar already on S3, data tar never pulled.                    │
+└──────────────┴──────────────────┴───────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+So the 3_scenarios-only validation set wasn't a deliberate scope choice - it's just that only that category's data_/dreamer_ gap was noticed and fixed. 
+# Nobody went back and pulled the 1_scenario and parking_lane data, even though nothing blocks it. 
+
+# Pulling the missing pieces would give you dreamer-paired validation across all three categories instead of one, size: 
+    - 1_sceario: 11 chunks, ~300GB
+    - parking_lane: 1 chunk, ~41GB
+    - Total: ~341GB (HF download -> re-upload to s3://research-datasets-chicago/hf-datasets/RenzKa/simlingo-full/)
+
+# Claude: 
+I'll ground this in what you've already built (the contrastive K-sweep work), then run a multi-agent workflow to generate and stress-test genuinely novel pre-training ideas. First a quick scout of the repo.
+
+  Read 1 file, listed 2 directories, ran 2 shell commands, recalled 1 memory
+
+● Workflow(Generate + adversarially vet novel pre-training recipes for CoC-action alignment in SimLingo)
+/workflows to view dynamic workflow runs
+
+The workflow is running: 6 ideation agents (causal-intervention, information-bottleneck, cycle-consistency, data-curriculum, architecture/decoding, and steal-from-other-fields lenses), each feeding straight into an adversarial critic that tries to kill its ideas against the published literature and your infra constraints, then one synthesis pass that merges survivors into a tiered portfolio. I'll report the ranked results when it finishes — you can watch live with /workflows.
+
+✻ Waiting for 1 dynamic workflow to finish
+
+● Dynamic workflow "Generate + adversarially vet novel pre-training recipes for CoC-action alignment in SimLingo" completed · 59m 48s
+
+  Read 1 file, recalled 1 memory, wrote 2 memories
+
+The workflow is done — 24 ideas generated across 6 lenses, each adversarially critiqued against the literature and your infra constraints, then merged into a ranked portfolio. Here's the result.
+
+The cross-cutting diagnosis (all six lenses converged on this)
+
+Your current symmetric InfoNCE recipe under-delivers on consistency — as opposed to retrieval accuracy — for three structural reasons:
+
+1. It's discriminative and information-thin. Winning K-way retrieval needs only ~log₂(K) bits of any fingerprint — template surface slots, speed numbers, prompt length — and those bits live in the throwaway text_proj/traj_proj heads that are discarded at inference. Nothing forces them to be causal semantics, and the same-frame group design even removes any pressure for the text embedding to read the image.
+2. It's disconnected from the pathways that matter. The trajectory side is detached (driving.py:308), so all alignment gradient flows into text-side side-heads — the action computation is never required to read the reasoning. And the loss only ever sees teacher-forced GT text and GT trajectories, never the model's own generated commentary or own predicted waypoints. The deployment distribution where consistency must hold is literally untrained.
+3. Almost every naive fix has a shortcut channel — steganographic waypoint dithering, positional scene caches through reasoning-token residual streams, template fingerprints, probe gaming. Ideas survived critique only when the shortcut is closed by construction, not monitored.
+
+The frontier, per the synthesis: move consistency pressure onto the model's own likelihoods and own outputs, use interventional supervision with directional targets (already mineable from data on disk), and do measurement before mechanism — you have never actually measured whether baseline commentary is causally inert, and that number gates everything else.
+
+Tier 1 — run these next
+
+1. Consistency Instrument Panel (zero training — do this first). An eval battery run on checkpoints: substitute the commentary fed to the waypoint decode ({own CoC, sibling's CoC, shuffled, empty, GT}) and measure per-condition ADE + sibling-flip rate; sample 8 commentaries per frame and measure reasoning-induced trajectory spread; Lanham-style truncation curves on self-generated CoC; an image-swap probe on pooled embeddings; cross-checked against your masking reversal-effect tool. Four independent critiques converged on "measure first." It piggybacks free on the full-data K-sweep's S3 checkpoints, and it's standalone publishable (Lanham faithfulness tests transplanted to continuous actions). Pre-registered decision rule: if sibling-CoC substitution moves ADE <5% and spread ≈ 0, baseline reasoning is decorative and the enforced-channel ideas get priority; if interventions already move actions, the loss-shaping ideas below become the frontier.
+
+2. Grouped Inverse-Cycle (highest-scoring training idea, 4/4/4). A second trunk pass per dreamer batch: encode the model's predicted waypoints via the existing wp_encoder, drop all vision tokens, teacher-force each of the K sibling instructions, and apply a within-group softmax ranking loss over the K CEs — the true instruction must be the most likely explanation of the model's own trajectory. This exploits the one asset token-action VLAs don't have: exact gradients through a continuous regressed action into language CE, no REINFORCE. The two known kill-shots are closed by construction: within-group ranking (not absolute CE) kills the scene-token-smuggling gradient, and the vision-free pass keeps sequences short. ~150 lines in driving.py/utils.py, two arms (detach vs no-detach), with a steganography tripwire: if ranking accuracy collapses under 0.3 m Gaussian noise on eval waypoints, the model is dithering waypoints to encode the instruction — kill the undetached arm.
+
+3. Minimal-Intervention Corpus (zero-cost data, highest novelty in the data lens). Because commentary/instructions are template-generated from privileged CARLA state, single-clause flips are exact and rule-based — no paid API. Emit K=2 groups where one causal clause is flipped (target = the matching dreamer sibling's GT trajectory) or deleted (target = original waypoints), with the intervention operator randomized and one operator held out of training purely for eval. Gradient lands exactly on the tokens that should explain the action. Metric: clause-flip action-sensitivity ratio vs a paraphrase control, ≥1.5× baseline or kill. Step 1 is a zero-GPU generator script + hand-audit of 100 pairs.
+
+Tier 2 (gated) and moonshots
+
+Tier 2, each gated on a Tier-1 outcome: a frozen trajectory→instruction critic (drop-in substitute if the undetached cycle proves unstable, and later the GRPO reward); cross-scene identical-prompt negatives (gated on the image-swap probe confirming the text-only shortcut); a TG-DPO commentary variant (needs ~$10–30 of API — would need your approval); hard-group mining to replace uniform random.sample at dataset_dreamer.py:105; a cycle-ADE survival KPI (fraction of the model's own explanations that reproduce their trajectory when fed back — the most direct operational definition of consistency in the whole portfolio); and a CLUB conditional-MI diagnostic across the K-sweep checkpoints.
+
+Moonshots: Plan Bus (a ~4-token low-rank latent plan that is the only attention path from instruction to waypoint queries, with plan-swap mediation of the generated commentary as the headline); Reason-then-Act text bottleneck (action head reads only a vision-blind re-embedding of self-generated commentary — the one bottleneck variant the critique says can't leak, accepted openly as two-pass); and consistency-GRPO using the frozen critic as a code-based reward (no LLM judge, so it clears your standing cost directive).
+
+Killed ideas worth knowing about (so you don't re-derive them)
+
+An energy-based verifier + best-of-N decoding died to prior art (RoboMonkey, 2025) and to the fact that its value hinges on nonzero reasoning-induced spread — exactly what the rationalization hypothesis predicts is ~0. A pairwise treatment-effect regression loss turned out to be algebraically a reweighting of the dreamer regression you already run. A prefix-truncation curriculum has label leakage (teacher-forced GT commentary contains the answer). CLUB-style MI as a training loss, a FiLM reasoning gate, probe-based regularizers, and the scene-blind 4D-mask bottleneck all died to specific shortcut channels — each survives only as a measurement or in a repaired form already folded into the tiers above.
+
+Suggested sequence: build the Instrument Panel now (pure inference, runs the moment the first full-data K-sweep checkpoint hits S3 — and the panel itself will tell you whether the K-sweep arms differ in consistency, not just loss), start the Inverse-Cycle implementation in parallel, and kick off the corpus generator script since it needs no GPU. I've saved the full portfolio summary to project memory.
+
+Two things I can do next if you want: publish the full portfolio (including all kill criteria and implementation sketches) as a private artifact page like the K-Sweep one — your org policy requires your explicit OK before I publish anywhere — or start implementing the Instrument Panel eval module now.
+
+# Grouped Inverse-Cycle 
+    # highest-coring training idea 
+    # drop all vision tokens, teacher-force each of the K sibling instructions, and apply a within-group softmax ranking loss over the K CEs - the true instruction must be the most likely explanation of the model's own trajectory 
+        # this exploits the one asset token-action VLA's dont have: exact graidents through a continued regression action into language CE, no REINFORCE. 
+        # the two known kill-shots are closed by construction: within-group ranking (not absolute CE) kills the scene-token-smuggling gradient and the vision-free pass keeps sequences short. 
+        # ~150 lines in driving.py/utils.py 
+            # two arms (detach vs no-detach), with a steganography tripwire: if ranking accuracy collapses under 0.3m Gaussian noise on eval waypoints, the model is dithering waypoints to encode the instruction (kill the undetached arm).
+
+    
+    # Grouped Inverse-Cycle: "Can you tell what I was told, just from what I did?"
+        # Training only ever pushes in one direction: text goes in, a trajectory comes out. Nothing ever checks whether the trajectory the model produced actually reflects the instruction; the model is free to produce reasoning and driving that are only loosely related. 
+
+    The idea adds a second check within the same training step, using the dreamer groups you already have (one camera frame, K different instructions like "stop", "slow down", "change lane left", each with its own ground-truth trajectory):
+        1. The model predicts a trajectory for each instruction, as normal. 
+        2. Then we flip the direction: take the model's own predicted trajectory, hide the camera image entirely, and show the model all K instructions from the group. 
+        3. We score: "given only this trajectory, which of these K instructions is most likely to be the one that produced it?" - using the model's own language likelihoods. 
+        4. The loss rewards the true instruction winning that comparison. 
+
+    Intuition: if you rdriving genuinely follows your reasoning, then someone watching only your driving should be able to pick out which instruction you were given. If they can't, the reasoning wasn't really steering the wheel. 
+
+    # Design details: 
+        # The image is hidden in the reverse pass. Otherwise the model could "cheat" by reading the scene instead of the trajectory. 
+        # It's a ranking among K siblings, not "reproduce the instruction word-for-word." The trajectory can't legitimately tell you the exact phrasing ("please" vs "now"), but it can tell you "stop" vs "speed up." 
+        # Ranking only demands the second thing, which kills the incentive to smuggle irrelevant text details into the waypoints. 
+
+    # After training, we add 30cm of random noise to the trajectories and re-check the ranking. If accuracy collapses, the model was encoding the instruction in tiny wiggles of the waypoints (a hidden code) instead of in the actual driving behavior. 
+
+
+# SimLingo
+    # What the forward pass looks like today (inputs, outputs)
+
+    # The LLM trunk never sees "images" or "trajectories" - sequence of vectors. Anything projected to its hidden size is a valid token: 
+
+        # Camera image -> InternVL vision encoder -> a block of image tokens (vectors).
+        # Prompt text ("Current speed: 4 m/s. ... Slow down and stop.") -> normal token embeddings. 
+        # Learned driving query tokens -> the DrivingAdaptor appends a few trainable placeholder vectors at the end of the sequence (query_embeds_speed, query_embeds_wps in adaptors.py:112-135). 
+
+    # One trunk forward over [image tokens][prompt tokens][query tokens], then two readouts:  
+        # Langauge head: next-token logits over the answer/commentary tokens (standard CE loss).
+        # Action heads: the hidden states at the query-token positions go through small MLPs (route_head, speed_wps_head) that regress actual numbers. 
+        # The predicted trajectory is literally a small array of (x, y) coordinates - e.g., 11 future positions of the ego vehicle at fixed time steps, in the vehicle's frame. 
+        # Not tokens, not text - a [N, 2] float tensor from a regression head. 
+
+
+    How a trajectory becomes an input - the part that already exists
+        # Your model already has WaypointInputAdaptor(self.wp_encoder, driving.py:92): a 3-layer MLP that maps each (x, y) waypoint to one vector of the LLM's hidden size 
+            # (adaptors.py:64-93, 2 -> 256 -> 512 -> hidden_size). So a trajectory of N waypoints becomes N pseudo-tokens - the exact same trick the vision encoder does for image, just with a much smaller encoder. 
+            # Upstream SimLingo already wires it through replace_placeholder_tokens (driving.py:136-141), so "feed the LLM a trajectory" is an existing, exercised code path, not new modality surgery. 
+
+        # The reverse pass, step by step: 
+            Take one dreamer group: same frame, K=3 sibling instructions I_1 = "stop", I2 = "slow down", I3 = "change lane lef", "each with its own GT trajectory. 
+            # Step 1 - normal forward pass (unchanged). 
+

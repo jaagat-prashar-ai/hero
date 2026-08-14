@@ -16,3 +16,43 @@
 
     # The loader: one new self-contained file, reasoning/wds_test_loader.py, no edits to other files. It downloads the 5 shards from wds/test/ locally (matching the exact convention masking/data/s3_download.py already uses for train/val), then iterates samples with webdatast, and per event does: (!) build an egomotion interpoloator from the clip's egomotion.parquet bytes, (2) compute the ego-local history/future windows at the event's t0, (3) decode 4 camera frames using the real frame_timestamps sidecare we just started storing (np.searchsorted to find the frame at/before to, then SeekVideoReader.decode_images_from_frame_indices) - this is the actual fix, real timestamp-based f"{clip_id}_{event_idx}" for the JSON output format. 
 
+    # reasonign experiment that we are doing for the challenge
+    # reasoning experiment with a different weight (compared to baseline)
+    # simlingo experiment, contrastive vs baseline
+    # pre-training recipe in general with vlas 
+
+    # openvla for self-driving? 
+        # adapt this to a very aligned model, task with coupled-loss functions 
+
+# How can we enforce hard-negatives in this InfoNCE loss?
+    dpo_pairs/pertubation_generator_v2.py end to end, and there's one fact that shapes the whole design: the v2 perturber perturbs text, not trajectories. 
+    # It takes a reasoning trace, targets one parsed claim, and flips exactly one verifiable quantity (direction, maneuever, entity state, cause, number) while keeping everything else byte-identical. 
+
+    # hard negatives enter on the texts side of the contrastive loss, not the trajectory side: for each sample, you get M "impostor" instructions that are stylistically indistugishable from the real one but imply a materially different action. 
+        # how do we imply a materially different action?
+        # The trajectory must then pick out its true instruction from among impostors that differ in exactly one load-bearing claim (a far harder and more targeted discrimination than picking among K sibling instructions that differ wholesale)
+
+
+    # Problem: the contrastive loss is supposed to teach the model "your trajectory should match your instructions." To learn that, the model needs wrong answers to compare against. 
+    # Right now wrong answers are just the other instructions in the same scene, and there are only a few of them - sometimes none - and they're often easy to tell apart. 
+    # The idea: manufactur better wrong answers. We have a tool (dpo perturber) that takes a driving sentence like "nudge left because cones block the lane" and changes exactly one important word 
+
+# Actionable next steps: 
+    # How do we inject really good counterfactuals into the model? 
+        # we want more hard-negatives?
+            # what if we keep the command consistent, during GRPO we force the model to produce really bad counterfactuals for say half of them and then learn per this?
+                # i.e., we inject counterfactuals into GRPO generation or tack them on to teach the model these are not good pairs. 
+
+
+# good pertubation generator
+
+# adverserial training
+# update weights only when it is most surprised (i.e., based on perplexity to some extent)
+    # how do we appropriately update weights so we can also reach more dense training that accumulates valid learning signals?
+
+# Fix was sized for K=4, and K scales the effective forward batch. The dreamer contrastive dataset fans each sample out to a group of K counterfactuals: 
+
+# figure out exact perturbation generation approach for hard-negatives 
+    # we can do this tuned to the actual gate verifier
+    # we can do this with vlms
+    # we can also do this through a really good python code script that knows how to perturb the reasoning and trajectory absed on attribuetes such as characteristics, causal, speed, etc. timing, etc. 
