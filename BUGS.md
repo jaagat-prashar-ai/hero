@@ -1345,6 +1345,31 @@ incident: always read launch-time packaging warnings before blaming the network.
 
 ---
 
+## 2026-08-14 — cycle-smoke arms OOM on training step 0 at bs=2×K=4
+
+**Symptom:** both inverse-cycle smoke arms (`y35tq3` detached, `a1flqu`
+undetached) passed the sanity check then died on the very first training step
+with `torch.OutOfMemoryError` — 75.5GB PyTorch-allocated, failing to grab
+176MB/612MB more. Identical allocation numbers on both arms.
+**Root cause:** the cycle pass adds sum-over-groups K² short sequences per
+step (bs=2 × K=4 → 32), and each carries full-vocabulary logits
+(~151k vocab on InternVL2-1B) through the LM head. That extra few-GB
+footprint sat on top of a main pass already near ~70GB at bs=2×K=4, over
+the 80GB A100 ceiling. Detach state is irrelevant — it changes gradient
+routing, not forward memory, hence the identical failures.
+**Fix:** [f93f4ea](../../commit/f93f4ea) — `data_module.batch_size=1` in both
+`smoke_cycle_*.yaml` (4 samples + 16 cycle sequences per GPU, same playbook
+as the K=7 OOM fix `6d986b8`) + `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`.
+Analysis caveat recorded in the configs: bs=1 doubles optimizer steps/epoch
+vs the bs=2 baseline arm, so compare epoch-indexed val metrics; the
+det-vs-undet comparison (both bs=1) is unaffected.
+**How this was found:** lilypad still showed EXPERIMENT_RUNNING for ~3h
+because the first attempt was preempted and requeued before reaching training;
+only the log tail revealed the second pod's step-0 OOM. Check logs, not just
+workload status.
+
+---
+
 ## Format for new entries
 
 ```
