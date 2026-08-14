@@ -45,6 +45,16 @@ class DrivingModelConfig:
     contrastive_embed_dim: int = 256
     contrastive_temperature: float = 0.07
 
+    # trajectory->instruction grouped inverse-cycle consistency (0.0 = disabled).
+    # cycle_detach=True trains only the explainer direction (trunk reads the
+    # trajectory); False lets the ranking gradient reshape the trajectory itself.
+    cycle_loss_weight: float = 0.0
+    cycle_detach: bool = True
+    cycle_temperature: float = 1.0
+    # linear ramp of the cycle weight over the first N optimizer steps
+    # (0 = no warmup); protects early waypoint regression
+    cycle_warmup_steps: int = 0
+
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 
 
