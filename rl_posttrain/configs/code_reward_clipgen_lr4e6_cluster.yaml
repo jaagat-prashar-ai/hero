@@ -1,0 +1,140 @@
+# ABLATION ARM [lr4e6] vs code_reward_clipgen_cluster.yaml (clipgen main run):
+# peak LR 2e-6 -> 4e-6, warmup/cosine shape unchanged: is the run optimization-limited under the clipgen reward?
+name: alpamayo-rl-code-reward-clipgen-lr4e6
+model_identifier: other.training.alpamayo15.default.v1
+# Same reward-latency-bound idle-GPU-reaper caveats as
+# code_reward_cluster.yaml / llm_judge_full_cluster.yaml (this flag only
+# silences the alert; the real protection is run.py's keepalive thread
+# running through training for reward_mode in (llm_judge, code)). Note
+# code-reward evidence: a1npli survived 16h53m without a single worker
+# eviction, so the ~2h45m reaper cadence that killed llm-judge-full runs
+# (API-latency GPU idleness) has never been observed in this mode.
+ignore_idle_reaper: true
+workload_variant_config:
+  # "generic" + ray.remote GPU dispatch -- same rationale as cluster.yaml:
+  # cosmos-rl fans out to the node's GPUs itself, so this must be one
+  # process that sees all of them, not Lilypad's per-rank replicas.
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    # ── Workspace ─────────────────────────────────────────────────────────────
+    # SAME persistent root as the other rl_posttrain configs: venv +
+    # converted model are reused on a warm node; the dense dataset lands in
+    # its own parameter-stamped subdir (PAI_Reasoning_dense100/), shared
+    # with llm-judge-full runs since the download is identical.
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    # ── Model ─────────────────────────────────────────────────────────────────
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    # ── Reward ────────────────────────────────────────────────────────────────
+    # Deterministic code-as-a-reward claim verification (see
+    # code_reward_cluster.yaml). No Anthropic key -- the reward never
+    # leaves the node. First full-scale run on the 2026-07-30 reward fixes
+    # (coverage blend 8a69ac3 + mirrored reasoning term 683dd4d).
+    reward_mode: "code"
+
+    # Per-clip generated reward functions (clipgen): the training corpus is
+    # restricted to the 156 clips whose gate-passed reward_fns/<clip_id>.py
+    # shipped with the code assets (cc42ac3, keyframe-window design), and
+    # code_reward_entry scores reasoning with each clip's own function
+    # instead of TraceReward. No fallback dilution: the filter guarantees
+    # every trained clip has its function (code_clipgen_used tracks this).
+    clipgen_only_clips: true
+
+    # Ablation override (see toml template default):
+    optm_lr: 0.000004
+
+    # ── Dataset: the "extensive OOD" configuration ────────────────────────────
+    # Identical to llm_judge_full_cluster.yaml BY DESIGN -- the two full
+    # runs must differ in the reasoning signal only. All OOD clips inside
+    # the 100 OOD-densest chunks (352 clips after the t0-margin filter,
+    # ~570 GB of cameras); the download's --labels already include
+    # obstacle.offline, which run.py pre-extracts per-clip at setup for
+    # _load_scene (e901539).
+    reasoning_dense_chunks: 100
+
+    # Same warm-cache prefix as llm-judge-full: the dataset is identical,
+    # so a fresh node restores ~570 GB at datacenter speed instead of
+    # re-downloading from HuggingFace.
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+
+    # ── Checkpoint persistence ────────────────────────────────────────────────
+    # cosmos-rl saves to node-local /mnt/work, which dies with the pod --
+    # canary o08s80 (2026-07-30) saved checkpoints at every save point and
+    # lost all of them at teardown. run.py's _CheckpointUploader ships
+    # output_dir to this in-region prefix continuously during training and
+    # does a final sync after cosmos-rl exits (also on the failure path).
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/code_reward_clipgen_lr4e6"
+
+    # ── Cosmos-RL TOML overrides ──────────────────────────────────────────────
+    dp_shard_size: 4
+    # 6 epochs over the 156 clipgen clips ≈ 234 GRPO steps -- matches the
+    # prior full runs' ~264-step data budget at the smaller corpus. At code-reward step cadence (~48 s/step end-to-end
+    # measured on voevpz/o08s80, no API latency) that is ~3.5 h of
+    # training; save_freq=15 gives ~17 checkpoint points (max_keep 10).
+    train_epoch: 6
+
+    # ── W&B ───────────────────────────────────────────────────────────────────
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_code_reward_clipgen_lr4e6"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # NOT preemptible: same arithmetic as llm_judge_full_cluster.yaml -- the
+  # us-chicago-1 A100 pool preempts workers every ~2h15m, there is no
+  # cosmos-rl resume across requeues, and this run needs ~3.5h.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # Heavy bootstrapped-venv install (torch/vllm/flash-attn from source) --
+  # same allowance as cluster.yaml.
+  setup_timeout_seconds: 7200
+
+  # UNLIKE llm_judge_full_cluster.yaml, no ANTHROPIC_API_KEY: the code
+  # reward is computed locally on the GPU node.
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      # NOTE: the SDK matches "/" + path-relative-to-root (packaging_utils.py
+      # _get_excludes), so patterns must anchor as ^/dir/ -- ^dir/ never
+      # matches and is silently ignored.
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      # pref_pairs/ code must ship: the reward imports
+      # pref_pairs.trajectory_features (commitment verification reads its
+      # TrajectoryFeatures). code_as_a_reward/ ships too (not excluded) --
+      # it IS the reward. Only the 46M generated-results tree stays out.
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      # perplexity/alpamayo/ar1_venv (8.1G, a checked-out venv) and
+      # perplexity/clip_cache (2.1G of sample mp4s) are not needed by this
+      # job and would otherwise dominate the code upload.
+      - "^/perplexity/"
+      # 1.2G and 1.1G of local virtualenvs plus repo history -- never
+      # needed on the cluster (the job builds its own env via uv).
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
