@@ -120,6 +120,11 @@ _DEFAULTS: dict[str, Any] = {
     # "reasoning" mode only: overrides [custom.alpamayo.reward].reasoning_weight
     # in the recipe's Lingo-Judge TOML template (None keeps the template's 0.3).
     "reasoning_weight": None,
+    # Ablation overrides (None keeps the TOML template's value): peak learning
+    # rate [train].optm_lr (warmup/decay shape unchanged) and KL anchor
+    # coefficient [train.train_policy].kl_beta.
+    "optm_lr": None,
+    "kl_beta": None,
     # When set (int N), llm_judge/reasoning modes IGNORE num_reasoning_clips
     # and instead train on ALL OOD clips within the N chunks densest in OOD
     # clips (select_dense_ood_chunks.py) -- ~2x more clips per downloaded GB
@@ -690,6 +695,8 @@ def _patch_toml(
     wandb_experiment: str,
     reasoning_grading_model_path: Path | None = None,
     reasoning_weight: float | None = None,
+    optm_lr: float | None = None,
+    kl_beta: float | None = None,
 ) -> None:
     import tomlkit
 
@@ -704,6 +711,10 @@ def _patch_toml(
         doc["custom"]["alpamayo"]["reasoning_grading_model_path"] = str(reasoning_grading_model_path)
     if reasoning_weight is not None:
         doc["custom"]["alpamayo"]["reward"]["reasoning_weight"] = float(reasoning_weight)
+    if optm_lr is not None:
+        doc["train"]["optm_lr"] = float(optm_lr)
+    if kl_beta is not None:
+        doc["train"]["train_policy"]["kl_beta"] = float(kl_beta)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(tomlkit.dumps(doc))
@@ -1105,6 +1116,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         wandb_experiment=cfg["wandb_experiment"],
         reasoning_grading_model_path=lingo_judge_dir,
         reasoning_weight=cfg.get("reasoning_weight"),
+        optm_lr=cfg.get("optm_lr"),
+        kl_beta=cfg.get("kl_beta"),
     )
 
     _ensure_redis_server()

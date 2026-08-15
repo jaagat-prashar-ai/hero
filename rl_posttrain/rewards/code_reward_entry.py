@@ -632,7 +632,14 @@ def _load_clipgen_fn(clip_id: str):
     """The clip's own gate-passed generated reward function, compiled once
     per process (sandboxed AST-checked exec, thread-safe timeout runner --
     see clipgen/sandbox.py), or None when the clip has none or the source
-    no longer compiles (logged loudly; caller falls back to TraceReward)."""
+    no longer compiles (logged loudly; caller falls back to TraceReward).
+
+    CODE_REWARD_DISABLE_CLIPGEN=1 forces None for every clip: the ablation
+    control arm that scores the SAME clipgen-filtered corpus with
+    TraceReward, isolating the reasoning-signal source from the corpus
+    restriction (code_clipgen_used stays 0.0 so W&B shows the arm)."""
+    if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0") == "1":
+        return None
     path = _CLIPGEN_REWARD_FNS_DIR / f"{clip_id}.py"
     if not path.exists():
         return None
