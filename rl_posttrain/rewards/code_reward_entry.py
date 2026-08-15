@@ -640,6 +640,20 @@ def _load_clipgen_fn(clip_id: str):
     restriction (code_clipgen_used stays 0.0 so W&B shows the arm)."""
     if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0") == "1":
         return None
+    if os.environ.get("CODE_REWARD_SHUFFLE_CLIPGEN", "0") == "1":
+        # Shuffled-reward CONTROL arm: score every clip with a DIFFERENT
+        # clip's gate-passed function (deterministic rotate-by-one over the
+        # sorted fn set). If training under mismatched functions matches the
+        # properly-paired run, per-clip tailoring contributes nothing --
+        # the falsification test for clipgen's core premise. Deterministic
+        # so every worker process agrees on the mapping.
+        fns = sorted(p.stem for p in _CLIPGEN_REWARD_FNS_DIR.glob("*.py"))
+        if clip_id in fns:
+            shuffled = fns[(fns.index(clip_id) + 1) % len(fns)]
+            logger.warning(
+                f"[code_reward] SHUFFLE control: clip {clip_id} scored by {shuffled}'s fn"
+            )
+            clip_id = shuffled
     path = _CLIPGEN_REWARD_FNS_DIR / f"{clip_id}.py"
     if not path.exists():
         return None
