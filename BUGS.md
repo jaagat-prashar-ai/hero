@@ -1420,6 +1420,54 @@ workload status.
 
 ---
 
+## 2026-08-16 — cycle smoke trio: ranking loss pinned at exactly ln(K), main task wrecked in both cycle arms
+
+**Symptom:** all three cycle smoke arms (`91rjbd` det / `hzn72w` undet /
+`4s2jeo` baseline) completed cleanly, but `cycle_rank_acc` never beat the
+K=4 chance rate (train ~0.13-0.16, val 0.187) in either cycle arm, and the
+main-task losses were catastrophically worse than the matched baseline
+(final val route_loss 0.24 base / 1.03 det / 7.35 undet; language_loss
+0.03 / 2.34 / 6.08). W&B step histories showed the logged
+`train_losses/cycle_loss` quantized to exact multiples of
+`0.2·ln(4)·r/8` (r = participating ranks) and `cycle_rank_acc` to `r/32`
+for the ENTIRE 32k-step run — the signature of a perfectly uniform
+ranking softmax: per-candidate CEs numerically equal, zero learnable
+signal, in both arms, from step 0 to the end.
+**Root cause:** `cycle_consistency_loss` filtered candidate tokens with
+`ids < tokenizer.additional_special_tokens_ids[0]`. In this pipeline
+`additional_special_tokens` holds ONLY the 8 SimLingo wp placeholders
+added last by `datamodule.py` (ids 151655-151662); InternVL's own added
+tokens sit BELOW that threshold — `<IMG_CONTEXT>` (151648), `<img>`/
+`</img>`, `<|im_start|>`/`<|im_end|>` — so the ~256-token `<IMG_CONTEXT>`
+run passed the filter and flooded every candidate span. Every sibling
+candidate = hundreds of identical filler tokens + a ~10-20-token
+differing instruction, so per-candidate mean CEs were equal to within
+noise → uniform softmax → loss exactly ln(4), gradient = pure noise
+pushing the trunk to predict IMG_CONTEXT runs from trajectory embeddings.
+That noise gradient (through the shared trunk LoRA + wp_encoder in both
+arms, plus the driving heads in the undetached arm) is what destroyed the
+main-task losses; the damage was visible by step 49, when warmup weight
+was still 0.01. Empirically verified offline: the old threshold keeps
+`<|im_start|>system ... <img><IMG_CONTEXT>×N</img> ...` verbatim; the
+fixed one keeps only real text including the instruction. Note the
+near-identical line in `internvl2_model.py:59` is CORRECT there — it
+intentionally selects only wp-placeholder ids for `placeholder_values`
+lookup; the threshold was wrong only as a "strip all special tokens"
+filter.
+**Fix:** [c0326a4](../../commit/c0326a4) — threshold on
+`tokenizer.vocab_size` (151643), below every added token, in
+`driving.py:cycle_consistency_loss`.
+**How this was found:** the exact-ln(4) quantization in the W&B history
+(not the code) gave it away — a real ranking loss fluctuates; a loss
+pinned at ln(K) to 3 decimals for 32k steps means the candidates are
+indistinguishable, which pointed straight at the candidate mask. Then
+`tokenizer.added_tokens_decoder` showed the wp placeholders are NOT the
+lowest added ids. The two defensive `.clamp(min=0)` calls near the mask
+were a red herring (negative ids never occur; the clamps are copied
+boilerplate from `LanguageAdaptor`).
+
+---
+
 ## Format for new entries
 
 ```
