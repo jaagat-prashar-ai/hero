@@ -6,6 +6,28 @@ now, not routine typos.
 
 ---
 
+## 2026-08-16 — remaining 12-samples/forward SimLingo arms (K=2, K=4 w0.1/w0.3/baseline) never got the 2026-08-14 OOM fix
+
+**Symptom:** the 2026-08-14 fix (below) only patched the 3 arms that had
+actually failed by that point (k4-s1234, w0.7, w0.9). k2-s1234, k2-s9876,
+k4-s9876 (baseline w0.5), k4-w0.1-s9876, and k4-w0.3-s9876 were left at
+their original 12-samples/forward configs (K=2 bs=6, K=4 bs=3) — the
+exact tier the same-day root-cause analysis calls a per-node coin flip.
+They happened not to OOM on their first attempt (they died to the
+separate S3-checkpoint bug instead, see above), but remained exposed to
+the same risk on relaunch.
+
+**Fix:** applied the identical, already-proven mitigation to all 5:
+K=4 arms dropped `batch_size=3/accumulate_grad_batches=2` (12
+samples/forward) to `batch_size=2/accumulate_grad_batches=3` (8
+samples/forward); K=2 arms dropped `batch_size=6/accumulate_grad_batches=1`
+(12 samples/forward) to `batch_size=3/accumulate_grad_batches=2` (6
+samples/forward). All keep the identical 48-item global optimizer batch
+(6 items/GPU/step x 8 GPUs). `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`
+added to all 5 (previously only on the 3 arms fixed 2026-08-14).
+
+---
+
 ## 2026-08-15 — SimLingo S3CheckpointUpload used upload_file, hit the known aws-chunked bug on every epoch-end checkpoint
 
 **Symptom:** 7 of the 10 full-data K-sweep/weight-ablation arms (k2-s1234,
