@@ -374,11 +374,17 @@ class DrivingModel(pl.LightningModule):
         # Excludes answer tokens (loss-masked), padding, and every added special
         # token - the <IMG_CONTEXT> run and wp-placeholder tokens whose raw
         # embeddings are only meaningful after replace_placeholder_tokens.
+        # Threshold on vocab_size, NOT additional_special_tokens_ids[0]: the
+        # latter only holds the 8 SimLingo wp placeholders (added last, ids
+        # 151655+), so InternVL's own added tokens below them - including the
+        # ~256-token <IMG_CONTEXT> run (151648) and chat markers - passed the
+        # old filter, flooding every candidate with identical filler that
+        # pinned the ranking CEs equal (loss stuck at exactly ln K).
         ids = adaptor_dict['language__ids']
         valid = adaptor_dict['language_inputs_mask'].bool()
         answer = adaptor_dict['language__ids_mask'].bool()
-        smallest_added_id = self.tokenizer.additional_special_tokens_ids[0]
-        cand_mask = valid & ~answer & (ids < smallest_added_id)
+        first_added_id = self.tokenizer.vocab_size
+        cand_mask = valid & ~answer & (ids < first_added_id)
         cand_lengths = cand_mask.sum(1)
 
         # all ordered within-group pairs (i: trajectory, j: candidate)
