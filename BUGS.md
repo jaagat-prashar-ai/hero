@@ -1468,6 +1468,51 @@ boilerplate from `LanguageAdaptor`).
 
 ---
 
+## 2026-08-16 — cycle ranking pinned at 1/K accuracy: mean-token CE ranks instructions by their language prior, not by the trajectory
+
+**Symptom:** after the candidate-mask fix (c0326a4) the relaunched arms
+(`29ukt0` det / `pfoty4` undet) reproduced the previous results almost
+exactly: `cycle_rank_acc` 0.190 val (chance 0.25), main task still wrecked
+(val route 0.98 det / 7.34 undet vs 0.244 baseline). The loss DID move,
+though, and diagnostically: val `cycle_loss / weight` went from 1.3963
+(= ln 4 to 3 decimals, a perfectly uniform softmax — the old mask bug)
+to 1.5066, i.e. now strictly ABOVE ln(K). Ranking worse than uniform is
+not "no signal", it is anti-signal.
+**Root cause:** `grouped_rank_cycle_loss` scored a row-only softmax — for
+each trajectory, rank the K candidate instructions. But `ce[i][j]` is the
+mean-token CE of *instruction text j*, so it is dominated by how cheap
+that text is to say, and that offset is **identical down column j** (same
+text, all K trajectories). A softmax is shift-invariant only along the
+axis it normalises, so a row softmax is NOT invariant to a per-column
+offset: it ranks instructions by their language prior alone, picking the
+same cheapest instruction for every trajectory in the group. That is
+correct for exactly one of the K trajectories → accuracy pinned at 1/K,
+and because the true pairing is usually not that one, loss > ln(K). The
+0.3-nat genuine match signal was swamped by prior gaps of several nats.
+Reproduced exactly in a 6-line numeric model (row acc 0.250, loss 2.279
+vs ln4 1.386) and as a unit test against the old implementation.
+**Fix:** [35fdc4d](../../commit/35fdc4d) — build each group as a K x K
+matrix, centre columns (cancels the per-instruction prior exactly), and
+score symmetrically: rows = "which instruction explains this trajectory",
+columns = "which trajectory does this instruction explain". Column
+centring leaves the column term unchanged (shift-invariance along its own
+axis), so it only repairs the row term. The column direction is
+intrinsically prior-free, which is why the symmetric form is the one that
+learns.
+**How this was found:** ratio-testing the logged loss against ln(K)
+instead of eyeballing it. `loss/weight ÷ ln K` = 1.007 before the mask fix
+(exactly uniform) and 1.087 after (worse than uniform) — two different
+failures that look identical in a dashboard. Cross-check any K-way ranking
+metric against its chance value AND its ln(K) loss floor; "at chance" and
+"pinned uniform" are distinguishable and have different causes.
+**Still open:** whether the main-task degradation shrinks now that the
+auxiliary gradient carries signal instead of noise. If the cycle arms
+still degrade the task well past the 5% kill threshold, the next suspect
+is gradient scale (the cycle pass backprops K²=16 sequences per step
+against the main pass's K=4), not the objective.
+
+---
+
 ## Format for new entries
 
 ```
