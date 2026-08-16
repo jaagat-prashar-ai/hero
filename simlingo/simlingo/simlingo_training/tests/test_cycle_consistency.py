@@ -66,6 +66,48 @@ def test_temperature_scales_confidence():
     assert loss_sharp.mean() < loss_soft.mean()
 
 
+def test_per_instruction_prior_does_not_decide_the_ranking():
+    """
+    Regression for the 2026-08-16 smoke failure: mean-token CE is dominated by
+    how cheap each instruction is to say, an offset identical down its column.
+    A raw row softmax ranks by that prior alone -> the same winner for every
+    trajectory, exactly 1/K correct, loss above ln(K). The objective must key
+    on the trajectory-conditional part instead.
+    """
+    k = 4
+    pair_row, pair_col = make_pairs([k])
+    prior = torch.tensor([2.0, 3.5, 5.0, 6.5])  # per-instruction, same for every trajectory
+    signal = torch.full((k, k), 0.30)
+    signal.fill_diagonal_(0.0)  # true pair is only 0.3 nats better
+    ce = (prior.unsqueeze(0) + signal).flatten()
+
+    loss, count, acc = grouped_rank_cycle_loss(ce, pair_row, pair_col, batch_size=k)
+    assert count.tolist() == [1] * k
+    assert acc.item() == 1.0, f"prior swamped the match signal, acc={acc.item()}"
+    assert loss.mean().item() < torch.log(torch.tensor(float(k))).item()
+
+    # the prior must be what is ignored: shifting it must not move the ranking
+    shifted = (prior.unsqueeze(0) * 7.0 - 4.0 + signal).flatten()
+    _, _, acc_shifted = grouped_rank_cycle_loss(shifted, pair_row, pair_col, batch_size=k)
+    assert acc_shifted.item() == 1.0
+
+
+def test_symmetric_both_directions_contribute():
+    """Trajectory->instruction and instruction->trajectory are both scored."""
+    k = 3
+    pair_row, pair_col = make_pairs([k])
+    ce = torch.full((k, k), 2.0)
+    ce.fill_diagonal_(0.5)
+    loss_sym, _, acc = grouped_rank_cycle_loss(ce.flatten(), pair_row, pair_col, batch_size=k)
+    assert acc.item() == 1.0
+    # break only the column direction: instruction 0 explains trajectory 1 better
+    # than its own trajectory 0, while row 0 still prefers instruction 0.
+    ce_col_broken = ce.clone()
+    ce_col_broken[1, 0] = 0.1
+    loss_broken, _, _ = grouped_rank_cycle_loss(ce_col_broken.flatten(), pair_row, pair_col, batch_size=k)
+    assert loss_broken.sum() > loss_sym.sum(), "column direction is not penalised"
+
+
 def test_gradient_flows_to_ce():
     pair_row, pair_col = make_pairs([2])
     ce = torch.tensor([0.5, 1.0, 1.0, 0.5], requires_grad=True)

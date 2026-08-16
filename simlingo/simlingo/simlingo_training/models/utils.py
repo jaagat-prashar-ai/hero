@@ -54,15 +54,27 @@ def grouped_rank_cycle_loss(
     ce: Tensor, pair_row: Tensor, pair_col: Tensor, batch_size: int, temperature: float = 1.0
 ) -> Tuple[Tensor, Tensor, Optional[Tensor]]:
     """
-    Within-group ranking of candidate instructions by how well they explain a
-    trajectory, from precomputed per-pair language cross-entropies.
+    Within-group ranking of trajectories against the instructions that explain
+    them, from precomputed per-pair language cross-entropies.
 
     ce[p] is the mean-token CE of candidate instruction pair_col[p] teacher-forced
-    behind the (vision-free) encoding of trajectory pair_row[p]. For each
-    trajectory, a softmax over -CE/temperature across its group's candidates must
-    rank the instruction that actually produced it first. Ranking (not absolute
-    CE) removes gradient pressure on tokens a trajectory cannot legitimately
-    encode (scene references, template phrasing shared by all siblings).
+    behind the (vision-free) encoding of trajectory pair_row[p]. Arranged as a
+    per-group K x K matrix M[i][j], the objective is a symmetric within-group
+    softmax over -M/temperature: rows ask "which instruction explains this
+    trajectory", columns ask "which trajectory does this instruction explain".
+    Ranking (not absolute CE) removes gradient pressure on tokens a trajectory
+    cannot legitimately encode (scene references, template phrasing shared by
+    all siblings).
+
+    M[i][j] is dominated by an intrinsic per-instruction language-model prior:
+    the same text j scored behind any trajectory costs roughly the same, and
+    that offset is identical down column j. A raw row softmax is NOT invariant
+    to a per-column offset, so it just ranks instructions by how cheap they are
+    to say - the same winner for every trajectory in the group, i.e. exactly
+    1/K correct with a loss ABOVE ln(K). Columns are centred first, which
+    cancels the prior exactly and leaves only the trajectory-conditional part;
+    the column direction is already invariant to it (softmax is shift-invariant
+    along the axis it normalises), so centring changes only the row term.
 
     Args:
         ce: [P] per-pair mean-token cross-entropies.
@@ -79,18 +91,35 @@ def grouped_rank_cycle_loss(
     loss = ce.new_zeros(batch_size)
     count = torch.zeros(batch_size, dtype=torch.long, device=ce.device)
     correct = []
-    for i in pair_row.unique():
-        sel = (pair_row == i).nonzero(as_tuple=True)[0]
-        if sel.numel() < 2:
+
+    position = {
+        (int(r), int(c)): p
+        for p, (r, c) in enumerate(zip(pair_row.tolist(), pair_col.tolist()))
+    }
+    # every member of a complete group yields the same sorted member tuple
+    groups = {tuple(sorted(pair_col[pair_row == i].tolist())) for i in pair_row.unique().tolist()}
+
+    for members in sorted(groups):
+        k = len(members)
+        if k < 2:
             continue  # no counterfactual siblings to rank against
-        logits = -ce[sel] / temperature
-        label = (pair_col[sel] == i).nonzero(as_tuple=True)[0]
-        if label.numel() != 1:
-            continue
-        loss[i] = F.cross_entropy(logits.unsqueeze(0), label)
-        count[i] = 1
-        correct.append((logits.argmax() == label[0]).float())
-    accuracy = torch.stack(correct).mean() if correct else None
+        if any((r, c) not in position for r in members for c in members):
+            continue  # incomplete K x K block, cannot rank
+        flat = ce[torch.tensor([position[(r, c)] for r in members for c in members], device=ce.device)]
+        m = flat.view(k, k)
+
+        m = m - m.mean(dim=0, keepdim=True)  # drop the per-instruction prior
+        logits = -m / temperature
+        labels = torch.arange(k, device=ce.device)
+        row_loss = F.cross_entropy(logits, labels, reduction="none")
+        col_loss = F.cross_entropy(logits.t(), labels, reduction="none")
+
+        idx = torch.tensor(members, device=ce.device)
+        loss[idx] = 0.5 * (row_loss + col_loss)
+        count[idx] = 1
+        correct.append((logits.argmax(dim=1) == labels).float())
+
+    accuracy = torch.cat(correct).mean() if correct else None
     return loss, count, accuracy
 
 def summarise_losses(
