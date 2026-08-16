@@ -1797,3 +1797,19 @@ And there's a nice symmetry in why the bug hit one direction and not the other. 
 The column-centering fix removes p(j) exactly, which repairs the row direction — and p(j) was the empirically huge one (several nats, since sentences differ wildly in length and commonness). To be fully honest about the residual: q(i) is not explicitly removed, so the column term is in principle exposed to it. It's expected to be small — the trajectories within a group are the same kind of object (same encoder, same token budget, same scene), unlike the instructions, which differ in wording and length — but it hasn't been measured the way p(j)'s dominance was. If the live runs show column-side accuracy lagging row-side, centering rows as well would be the one-line follow-up.
 
 So the corrected picture: one matrix, two readouts, each readout naturally immune to one kind of baseline and vulnerable to the other; the fix removed the baseline that was actually dominating (the instruction prior), which is why the symmetric loss is now expected to train genuine trajectory↔instruction alignment in both directions.
+
+# both directions read off the same singl emeasurement. We never run a second kinf od pass that "predicts a trajectory from an instruction"
+
+No relaunch needed — W&B visualizations are already enabled and working on both runs. I left them running.
+
+Details:
+
+- The visualizations aren't opt-in: VisualiseCallback(interval=1000, val_interval=1000) is wired unconditionally in simlingo/simlingo/simlingo_training/train.py:126, and both smokes launched with this code. It logs visualise/waypoints and visualise/route image panels (with the K=4 counterfactual overlays from commit e036cdf) to W&B every 1000 steps, plus on validation.
+- I verified it's actually executing, not just wired — the callback swallows exceptions, so I checked the live logs. Both arms printed the success marker visualised_training_example (first firing; the next panels land at step 1000).
+- Both workloads are healthy (EXPERIMENT_RUNNING, ~35 min in), and the images will show up under the visualise/ section of these W&B runs:
+  - det: research-interns/simlingo-contrastive/runs/20260816221828_smoke_cycle_det_w0.2
+  - undet: research-interns/simlingo-contrastive/runs/20260816221133_smoke_cycle_undet_w0.2
+
+One thing to know: killing and relaunching would have cost you the ~35 min of non-preemptible progress for no gain, so I deliberately didn't touch the jobs.
+
+
