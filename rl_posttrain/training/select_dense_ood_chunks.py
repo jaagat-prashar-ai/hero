@@ -26,9 +26,18 @@ only the two small metadata parquets.
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 
 DEFAULT_REPO_ID = "nvidia/PhysicalAI-Autonomous-Vehicles"
+
+# Retry schedule (seconds) for a transient HF 429 -- killed runs
+# alpamayo-rl-code-reward-clipgen-{w06,lr4e6,shufctl} (2026-08-14) all died
+# here identically, instantly, on the account-wide HF quota (5000 req/5min)
+# being momentarily exhausted by unrelated concurrent jobs. Long enough to
+# ride out a 5-minute window; an 8-GPU node crash is far more expensive than
+# waiting.
+_HF_BACKOFF_S = (10, 30, 60, 120, 300)
 
 # Constants mirroring the recipe runtime (src/alpamayo/data/pai_utils.py and
 # the alpamayo1_5_rvla_rl_pai hydra config): the runtime keeps events with
@@ -85,6 +94,24 @@ def _loader_safe(events_cell: object) -> bool:
     return t0 is not None and t0 > _HISTORY_RANGE_US
 
 
+def _hf_hub_download_with_retry(repo_id: str, filename: str, *, repo_type: str) -> str:
+    """hf_hub_download, retrying transient 429s instead of crashing the node."""
+    from huggingface_hub import hf_hub_download
+
+    for attempt, delay in enumerate((*_HF_BACKOFF_S, None)):
+        try:
+            return hf_hub_download(repo_id, filename, repo_type=repo_type)
+        except Exception as e:  # huggingface_hub wraps 429s in several exception types
+            if delay is None or ("429" not in str(e) and "Too Many Requests" not in str(e)):
+                raise
+            print(
+                f"[select_dense_ood_chunks] HF 429 on {filename} (attempt {attempt + 1}), "
+                f"retrying in {delay}s"
+            )
+            time.sleep(delay)
+    raise AssertionError("unreachable")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -104,13 +131,14 @@ def main() -> None:
         parser.error("--num-chunks must be a positive integer")
 
     import pandas as pd
-    from huggingface_hub import hf_hub_download
 
     clip_index = pd.read_parquet(
-        hf_hub_download(args.repo_id, "clip_index.parquet", repo_type="dataset")
+        _hf_hub_download_with_retry(args.repo_id, "clip_index.parquet", repo_type="dataset")
     )
     ood = pd.read_parquet(
-        hf_hub_download(args.repo_id, "reasoning/ood_reasoning.parquet", repo_type="dataset")
+        _hf_hub_download_with_retry(
+            args.repo_id, "reasoning/ood_reasoning.parquet", repo_type="dataset"
+        )
     )
     if "events" in ood.columns:
         ood = ood[ood["events"].map(_events_nonempty)]
