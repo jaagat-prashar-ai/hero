@@ -53,7 +53,11 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # These smokes have no checkpoint persistence, so an eviction is a total
+  # restart, not a resume: gen-1 burned 31h of wall-clock on a 7h job and
+  # gen-3 lost ~45% of epoch 0 the same way. Preemption cost > spot savings
+  # at this point, same reasoning as the full_k* runs.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true
