@@ -11,7 +11,28 @@ import os
 from pathlib import Path
 
 import boto3
+from botocore.config import Config
 from pytorch_lightning.callbacks import Callback
+
+
+def _s3_client():
+    # OCI's S3-compat endpoint rejects s3transfer's multipart chunked
+    # encoding ("NotImplemented: AWS chunked encoding not supported") -- same
+    # bug and fix as rl_posttrain/training/run.py's _pai_cache_client
+    # (BUGS.md 2026-07-01). payload_signing_enabled=True disables chunking
+    # for single-shot requests only; callers below must use put_object, never
+    # the multipart upload_file (s3transfer always chunks regardless).
+    return boto3.client(
+        "s3",
+        endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"),
+        config=Config(
+            signature_version="s3v4",
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+            s3={"payload_signing_enabled": True},
+            retries={"max_attempts": 5, "mode": "adaptive"},
+        ),
+    )
 
 
 class S3CheckpointUpload(Callback):
@@ -25,7 +46,7 @@ class S3CheckpointUpload(Callback):
         trainer.strategy.barrier()
         if not trainer.is_global_zero or not self.dirpath.exists():
             return
-        s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
+        s3 = _s3_client()
         uploaded = 0
         for f in sorted(self.dirpath.rglob("*")):
             if not f.is_file():
@@ -35,7 +56,10 @@ class S3CheckpointUpload(Callback):
             sig = (stat.st_size, stat.st_mtime_ns)
             if self._uploaded.get(rel) == sig:
                 continue
-            s3.upload_file(str(f), self.bucket, f"{self.prefix.rstrip('/')}/{rel}")
+            with open(f, "rb") as fh:
+                s3.put_object(
+                    Bucket=self.bucket, Key=f"{self.prefix.rstrip('/')}/{rel}", Body=fh
+                )
             self._uploaded[rel] = sig
             uploaded += 1
         print(f"[s3ckpt] uploaded {uploaded} files from {self.dirpath} "

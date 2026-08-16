@@ -6,6 +6,34 @@ now, not routine typos.
 
 ---
 
+## 2026-08-15 — SimLingo S3CheckpointUpload used upload_file, hit the known aws-chunked bug on every epoch-end checkpoint
+
+**Symptom:** 7 of the 10 full-data K-sweep/weight-ablation arms (k2-s1234,
+k2-s9876, k3-s1234, k3-s9876, k4-s9876, k4-w0.1-s9876, k4-w0.3-s9876) died
+identically right after finishing their first epoch: `boto3.exceptions.
+S3UploadFailedError: ... An error occurred (NotImplemented) when calling
+the UploadPart operation: AWS chunked encoding not supported`, always on
+`checkpoints/epoch=000.ckpt/checkpoint/mp_rank_00_model_states.pt`.
+
+**Root cause:** `simlingo_training/callbacks/s3_checkpoint.py`'s
+`S3CheckpointUpload._sync` called `s3.upload_file(...)` with a plain
+`boto3.client("s3", ...)` (no Config). This is the exact same bug already
+diagnosed and fixed twice elsewhere in this repo (BUGS.md 2026-07-01,
+`rl_posttrain/training/run.py::_pai_cache_client`/`_CheckpointUploader`):
+`s3transfer`'s multipart `upload_file` always uses aws-chunked trailer
+encoding for large files regardless of `AWS_REQUEST_CHECKSUM_CALCULATION`,
+and OCI's S3-compat endpoint rejects it outright. The env-var-only mitigation
+already set in these configs' `constant_environment_variables` was never
+sufficient on its own -- callers must avoid `upload_file` entirely.
+
+**Fix:** `s3_checkpoint.py` gained the same `_s3_client()` helper
+(`Config(signature_version="s3v4", request_checksum_calculation=
+"when_required", response_checksum_validation="when_required",
+s3={"payload_signing_enabled": True})`) and switched the upload call to
+`put_object` with an open file handle, never `upload_file`.
+
+---
+
 ## 2026-08-14 — 12-samples/forward SimLingo configs OOM stochastically: ~1.07GiB foreign CUDA context on every GPU + allocator fragmentation
 
 **Symptom:** of six full-data K-sweep/weight-ablation arms whose dreamer
