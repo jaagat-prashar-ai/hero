@@ -1503,6 +1503,8 @@ xm reasoning, latent tokens.
         # i.e., if we take a reasoning, trajectory and swap with another scene's trajectory, we should get something else?
             # likewise for reasoning, trajectory, but we swap the reasoning, we shoul dget something else?
 
+# run large-scale experiments
+# interp, benchmkar, cool idea 
     
 # NAVSIM, compare and run bench2drive to observe results. 
     # compare and improve. 
@@ -1548,5 +1550,250 @@ Both run w = 0.2, k=4, contrastive off, gradient checkpointing on, 1000-step war
         # It's deliberatelly not tuned, and doens't need to be yet. 
 
 
+# Approach for simlingo, new reverse-pass idea: 
+
+Before: the contrastive recipe 
+    # One training step did one forward pass, then computed the alignment loss off to the side:
+
+image + instruction → LLM trunk → waypoint head → trajectory  (main task losses)
+                          │                          │
+                          ▼                          ▼
+                 pooled text vector          predicted waypoints
+                          │                          │
+                    text_proj (MLP)            traj_proj (MLP)     ← two small side networks
+                          │                          │
+                          └────── dot products ──────┘
+                              "do these match?"  (InfoNCE loss)           
+
+text_proj and traj_proj are two tiny MLPs whose only job is to map both sides into a little 256-dim comparison space where the InfoNCE loss lives. 
+# Problem in three layers:
+    # 1. Throwawy: at deployment, nobody calls text_proj or traj_proj. The model drives using the trunk and the waypoint head; the side heads are dead weight after training. 
+    # 2. The bar is too low. The loss only asks: "can these two vectors be told apart from 3 siblings?" Telling 4 things apart needs only 2 bits of information - any 2 bits. If sibling instructions differ in a template word or a number, the side heads can latch onto that fingerprint, win the matching game, and the loss goes to zero - while the trunk's actual driving never consutled the reasoning at all. It's a correlation check, not a comprehension check. 
+    # 3. The gradient goes to the wrong place. The trajectory side is detached in that loss, so all the "align!" pressure flows into... the side heads and the text pooloing. The pathway that actually produces actions feels nothing. 
+
+# Retrieval acc climbed to 66-100% (the game was won) while the main task got slightly worse and nothing suggested the driving now depended on the reasoning. 
+
+After:
+    # The new step has no comparison space and no side heads. It re-uses the model's own language ability as the judge: 
+
+    Pass 1 (unchanged): image + instruction -> trunk -> waypoint head -> trajectory y hat 
+
+    Pass 2 (new):  ŷ → wp_encoder → trajectory-as-tokens ─┐
+                "Which instruction produced this?"      ├→ SAME trunk → "how surprised am I
+                candidate instruction (each of the K)  ─┘               by this instruction?"
+
+    Loss: among the K siblings, the trus instruction must be the least surprising.
+    Score is the trunk's own next-token likelihood - the very same machinery that generates commentary at deployment. There is nothign to throw away: the component being trained to connect actions and reasoning is the deployed model .
+
+    # Creativity: 
+        # Three moves, each closing a specific escape hatch the old recipe left open:  
+            # 1. The judge is the model itself, not a bolt-on. Instead of inventing an external similarity metric (embedding space, side heads), we ask: can the model explain its own behavior, in its own words, scored by its own probabilities? Alignment pressure lands on the trunk and stays there. 
+
+            # 2. The action is inside the loss (undetached arm): This is the move most VLAs literally cannot make. Models like RT-2 or OpenVLA output actions as discrete tokens - you can't smoothly nudge a token. SimLingo's waypoints are continuous numbers from a regresion head, so the gradient of "your explanation didn't win" can flow backward into the coordinates of the trajectory itself and reshape the driving to be more explainable. 
+            # We're exploiting a quirk of this architecture that the field mostly doesn't have access to - that's the genuinely novel lever. 
+
+            # 3. Two escape hatches welded shut by construction, not by hoping: 
+            # No image in pass 2 - otherwise the model could answer "which instruction?" by reading the scene and ignoring the trajectory entirely (the exact cheat the same-frame InfoNCE permitted, since it never had to look at anything but text)
+            # Ranking, not reproduction - we only require the true instruction to beat its 3 siblings, never "regenerate the wording from the trajectory." A trajectory legitametely can't encode phrasing, so demanding it would push the model to cheat by hiding phrasing infromation in millimeter-scale waypoint wiggles. (And we still keep a tripwire for that failure mode: if ranking accuracy: if ranking accuracy collapses when we add 30 cm of noise to trajectories at eval, it means the signal was hidden in wiggles, not in the driving.)
+
+            # One sentence version: before, we trained two disposable adaptors to say "these look related"
+            # Now we train the deployed model so that its driving alone is sufficient evidence for its stated reasoning - and, int he undetached arm, we let that requirement reshape the drivint iself. 
+
+        # build an inverse approach here as well 
 
 
+# fix anchoring 
+    # fixed this, running clipgen corpus again 
+
+# relaunched k runs and fixed them with gradient checkpoinitng
+
+# Approach: 
+    # No new sampling is needed. The K options come from the dataset itself. One training step from the beginning: 
+
+    Step 0: the data already comes in packs of K. Dreamer dataset: for one camera frame, it doesn't store just one instruction - it stores several alternative instructions, each with its own correct trajectory ("if the driver had been told stop, here's the stopping path; if told speed up, here's the path..."). These were generated when the dataset was built. When we assemble a batch, we grab K=4 of these alternatives for the same frame and put them in as 4 separate rows: 
+
+
+    row 1: frame F + "Stop." -> model predicts y delta 1 
+    row 2: frame F + "Slow down." -> model predicts y delta 2 
+    row 3: frame F + "Change lane left" -> model predicts y delta 3 
+    row 4: frame F + "Speed up." -> model predicts y delta 4 
+
+    Each individual drive had only one instruction (but the batch contains all four drives of the same scene, side by side. That's the whole reason the data is grouped this way.)
+
+    Step 1: the quiz options are just those 4 instructions. When we quiz trajectory y delta 1, the multiple-choice options are the four instrsuctions already sitting in rows 1-4. Nothing is invented or sampled - the three decoys are the siblings from the same pack. 
+    # Same for y delta 2's quiz, y delta 3's quiz, y delta 4's quiz. Four quizzes, four options each = the 16 scored pairs. 
+
+    Step 2: "How does it know?"
+    # It doesn't need to; we're the ones grading 
+    # During training, we know the right answer with ceratinty, because we put it there: y delta 1 was pronounced when we fed in "Stop." so "Stop." is the answer key for y delta 1's quiz. 
+    # The model just asigns each of the 4 options a surprise score: if the true one isn't the least surprising, it loses points and gets corrected. It's exactly like any supervised learning: the model doesn't "know" the label - the label comes from the data, and the model is trained until its guesses match it. 
+
+    # We're not sampling from the model K times. Nothing here is generated by the model except trajectories thesmselves(which pass 1 produces anyway). The instructions all come from the dataset. 
+    # (Model-sampled reasoning is a different, future idea - the "trajectory spread" measurement is the Instrument panel - but the cycle loss doesn't do it)
+
+    # One small honest footnote: the quiz options are actually each row's full prompt text (which includes the speed prefix and a navigation phrase along with the instruction)
+    # Within a pack the speed prefix is identical - same frame - so the instruction remains that only part that reliably distinguishes the options 
+
+    # the dataset hands us 4 what-if drives of the same scene: teh model drives all 4; then each drive is quizzed against eactly those 4 instructions, and we grade it because w know hich instruction caused which drive. 
+
+    # get navsim set up 
+
+
+# dossier stuff, fixing this, and relaunching on clipgen with 352 corpus.   
+    # build the dossier at the true training keyframe and confirm nothing outside the window appears: 
+
+# benchmark various models for their capabilities in getting good reward functions and justify why?
+
+# Dossier fix?
+    # Before: Where verification rollouts were sampled:   
+    # fixed anchoring for dossier clips (i.e., to not do the sliding window approach)
+
+┌───────────────┬────────────────────────────────────┬──────────────┬─────────────────────────────────────┐
+│   Full arm    │            Progress now            │ Epoch length │     Est. finish (frees 8 GPUs)      │
+├───────────────┼────────────────────────────────────┼──────────────┼─────────────────────────────────────┤
+│ K2 seed 9876  │ epoch 1 of 3, 54%                  │ ~13.8 h      │ ~20 h from now (Aug 15 mid-day PDT) │
+├───────────────┼────────────────────────────────────┼──────────────┼─────────────────────────────────────┤
+│ K2 seed 1234  │ launched same minute, similar pace │ ~13.8 h      │ ~same time                          │
+├───────────────┼────────────────────────────────────┼──────────────┼─────────────────────────────────────┤
+│ K3 seed 9876  │ epoch 1 of 3, 11%                  │ ~21.3 h      │ ~40 h (Aug 16)                      │
+├───────────────┼────────────────────────────────────┼──────────────┼─────────────────────────────────────┤
+│ K4 timing arm │ epoch 0 of 3, 93%                  │ ~26.8 h      │ ~53 h (Aug 16–17)                   │
+└───────────────┴────────────────────────────────────┴──────────────┴─────────────────────────────────────┘
+
+# forward pass and backward pass approach. 
+    # exact loss function. 
+
+# literature notes, forward and backward (a good pre-training recipe)
+# continued clipgen analysis / anchoring fix with dossier.py
+# code as a reward, gate fix (hard-negative perturbation generation)
+
+# 3 scenarios category:
+    # data_chunks 001, 002, 003 - all on S3 (12.5GB + 17.2GB + 12.1GB)
+    # Matching dreamer_/commentary_/drivelm_ sidecars for 001-003 - all on S3 (12.5GB + 17.2GB + 12.1GB)
+    # Matching dreamer_/commentary_/drivelm_ sidecars for 001-003 - all on S3 
+    # This is the entire dreamer-paired subset that exists upstream for this category (16 total data_ chunks exist on HF, but only 3 ever got dreamer counterfactuals generated) - nothing more to pull here 
+
+
+    # 1_scenario category - in progress 
+    - dreamer_ / commentary_ / drivelm  
+
+
+# main bug, look back at run file for other comments (Scattered, make this cohesive) 
+
+# Everything upstream is identical between the two versions - the fix touched only grouped_rank_cycle_loss in models/utils.py (plus tests). Same data, same sampled counterfactual commands, same forward passes, same K^2 teacher-forced scoring passes. 
+    # K^2 teacher-forced scoring passes. 
+
+# Both versions end at the same object: a per group KxK matrix. why a K^2 teacher-forced scoring pass? what is this exactly? 
+
+# M[i][j] = mean-token cross-entropy of instruction text j, generated by the model conditioned on predicted trajectory i 
+# The only difference is the scalar loss computed from that matrix: 
+
+# The decomposition that explains everything. Each entry splits into two terms: 
+    # what is M, what is p, what is f?
+    # M[i][j] = p(j) + f(i, j)
+    # where p(j) is the intrinsic cost of saying text j (identical for every trajectory i - same words), and f(i, j) is the trajectory-conditional part - the alignment singal. 
+    Empirically p varies across instructions by several nats; f varies by ~0.3 (how did we precisely measure this).
+
+# Buggy loss (what 28ykt0/pfoty4 trained on): for each trajectory i, a softmax across its row 
+
+    # loss_i = -log [exp(-M[i][j]/t) / sigma_j exp(-M[i][j]/t)]
+
+# A softmax over j only cancels terms that are constant in j. But p(j) varies with j - so it survives and since |p| >> |f|, the softmax is effectively softmax(-p(j)): the same distribution for every row, peaked on the cheapest text. 
+    # peaked on cheapest text?
+
+# Consequences you measured: argmax identical across all K rows -> accuracy exactly 1/K; and the gradient partial_deriv loss/partial_deriv M flows almost entirely into p(j) - i.e., the training pushes the model to make the already-cheap instruction cheaper unconditionally .That's the sense in which the buggy arms "trained fluency."
+
+# Fixed loss function: 
+    # (grivw1/sucszd train on): two changes: 
+
+# 1. Column centering: M[i][j] - (1/K) sigma i M[i][j]. Since p(j) is constant down column j, the colum mean is p(j) + mean, f(i, j).
+
+
+# Each training group is one camera frame with K=4 different instructions sampled for it (counterfactuals), and th emodel predicts a trajectory
+    # A group is 4 matched pairs: 
+        - instruction 1 -> trajectory 1 
+        - instruction 2 -> trajectory 2 
+        - instruction 3 -> trajectory 3 
+        - instruction 4 -> trajectory 4 
+
+The forward loss (normal SimLingo) trians each trajectory against its GT. The cycle loss is the extra, inverse direction: given a trajectory, the model should be able to recover which instruction produced it). 
+
+How the inverse question is asked: 
+    - The model can pick from a list - it can only generate text and tell us how confident it was on each word. So for a given trajectory, we test each candidate instruction by forcing the model to write that instruction out conditioned on the trajectory (no image), and we record the average surprise per word. 
+        # force the model to write various intrusctions out conditoned on trajectory. 
+
+    # What M is 
+        # M i sjust the table of all those surprise scores for one group: We test every trajectory against every instruction - 4 trajectories x 4 instructions = 16 scores - and arrange them in a 4x4 grid: 
+
+        M[i][j] = how surprised the model was writing instruction j while looking at trajectory i. 
+
+        Row i = one trajectory tested against all 4 instructions. Column j = one instruction tested behind all 4 trajectories (what is the latter precisely).
+
+        # The diagonal (M[1][1], M[2][2], ...) holds the true pairings. That's all M is - no extra math, just the 16 raw measurements laid out in a square. 
+
+        # If the model understand how instrutctions relate to actions, each diagonal entry should be the smallest number in its row: every trajectory should make its own instruction the easiest one to write. 
+
+        # The bug: 
+
+        A tiny example with 2 instead of 4. Suppose the group is "turn left" and "make a gentle right onto the side street"
+
+        ┌──────────────────────┬──────────────────┬──────────────────────────────────────┐
+│                      │ j=1: "turn left" │ j=2: "gentle right onto side street" │
+├──────────────────────┼──────────────────┼──────────────────────────────────────┤
+│ i=1: left-turn traj  │ 2.0              │ 5.2                                  │
+├──────────────────────┼──────────────────┼──────────────────────────────────────┤
+│ i=2: right-turn traj │ 2.3              │ 4.9                                  │
+└──────────────────────┴──────────────────┴──────────────────────────────────────┘
+
+(bold = the true pairs, which the loss wants to win their rows)
+
+The old loss compared numbers across each row, as-is. 
+# Row 2 is 4.9 < 2.3? No, "turn left" wins even for th eright turn trajectory. It wins because it's a short, common phrase that's cheap to write behind anything (but why does cheapness here enable a lower score? how are we measuring this precise faithfulness or score embeddings in this table, this is the core of our calculations).
+
+# Column 1 hovers around ~2 for every trajectory; column 2 hovers around ~5 for every trajectory. Those baselines are properties of the sentence, not of the trajectories - and they're so much bigger than the trajectory's influence (a few tenths) that the same instruction wins every row.
+# The result with this bug is that accuracy is stuck at exactly 1/K, and the gradient taught the model "make cheap sentences cheaper" - nothing about action-reasoning alignment. That's what 29ukt0/pfoty4 trained on. 
+
+# The fix: 
+
+
+Before comparing, subtract each column's average from that column. Column 1's average is 2.15, column 2's is 5.05:
+
+
+┌─────────────────┬─────────────┬─────────────────┐
+│                 │ "turn left" │ "gentle right…" │
+├─────────────────┼─────────────┼─────────────────┤
+│ left-turn traj  │ −0.15       │ +0.15           │
+├─────────────────┼─────────────┼─────────────────┤
+│ right-turn traj │ +0.15       │ −0.15           │
+└─────────────────┴─────────────┴─────────────────┘
+
+The sentence beaselines vanish, they were identical down each column. 
+    # So subtracting the column mean removes them exactly, without us ever needing to knwo what they were. 
+    # What's left is only "did this trajectory make this sentence easier or harder than usual." 
+    # Now the diagonal wins both rows: each trajectory picks its own instruction. The loss then scores this cleaned table in both directions (each row: which instruction fits this trajectory; each column: which trajectory fits this instruction) and that's what girvw1/sucszd are training on. 
+
+    # M is the KxK table of "how easily does the model write instruction j while conditioned on trajectory i." Each entry mixes a big sentence-specific baseline (how easy the text is in general) with a small trajectory-specific shift (the alignment signal). The buggy loss ranked the raw entries, so the baselines decided everything and every trajectory chose the same cheapest sentence. 
+    # The fixed loss subtracts each column's mean first, which cancels the baseline exactly and lets the trajectory-specific shift - the thing we actually want to train on decide the ranking. 
+
+    # generation and read both ways 
+    # or dual generation?
+
+    # issue was before was that cheapest sentences were being chosen?
+
+
+
+ so there is both the instruction-level and trajectory-level shift? i.e., condition on instruction, which trajectoyy produyced it and condition on trajectory, which instruction produced it are both understandable now?
+
+Yes, you've got it — with one clarification worth making precise: both directions are read off the same single measurement. We never run a second kind of pass that "predicts a trajectory from an instruction" inside the cycle loss (that's the job of the main forward loss). The cycle pass produces exactly one thing per group — the K×K matrix M, where every entry is "text scored behind a trajectory" — and the two questions are just two ways of slicing that same matrix:
+
+- Read along a row (fix trajectory i, compare the K instructions): "conditioned on this trajectory, which instruction produced it?"
+- Read along a column (fix instruction j, compare the K trajectories): "for this instruction, which trajectory did it produce?" — i.e., which trajectory made this text easiest to say.
+
+And there's a nice symmetry in why the bug hit one direction and not the other. There are two possible kinds of baseline contamination:
+
+- A per-instruction baseline p(j) — some texts are cheap for everyone. It's constant down a column, varies across a row. The row comparison is corrupted by it (that was the bug); the column comparison is automatically immune, because within one column all K entries share the same text and the baseline is identical everywhere you're comparing.
+- A per-trajectory baseline q(i) — a trajectory whose encoding happens to make all text a bit easier or harder. It's constant along a row, varies down a column. Mirror image: the row comparison is automatically immune to it, and the column comparison is the one exposed.
+
+The column-centering fix removes p(j) exactly, which repairs the row direction — and p(j) was the empirically huge one (several nats, since sentences differ wildly in length and commonness). To be fully honest about the residual: q(i) is not explicitly removed, so the column term is in principle exposed to it. It's expected to be small — the trajectories within a group are the same kind of object (same encoder, same token budget, same scene), unlike the instructions, which differ in wording and length — but it hasn't been measured the way p(j)'s dominance was. If the live runs show column-side accuracy lagging row-side, centering rows as well would be the one-line follow-up.
+
+So the corrected picture: one matrix, two readouts, each readout naturally immune to one kind of baseline and vulnerable to the other; the fix removed the baseline that was actually dominating (the instruction prior), which is why the symmetric loss is now expected to train genuine trajectory↔instruction alignment in both directions.
