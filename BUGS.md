@@ -6,6 +6,35 @@ now, not routine typos.
 
 ---
 
+## 2026-08-17 — cycle probe: pair-less ranks desync the gradient allreduce (NCCL watchdog SIGABRT on step 1)
+
+**Symptom:** `simlingo-cycle-probe-smoke-6ju593` (cycle_probe mode: frozen
+trunk, only wp_encoder+LoRA train, ranking is the ONLY loss) passed the
+sanity-check val, then hung on its first training step; NCCL watchdog
+killed it after 600s. Diagnostic gold in the watchdog dump: one rank was
+allreducing 592,000 gradient elements — exactly wp_encoder's parameter
+count (512+256+131072+512+458752+896) — while another reduced 18.2M.
+
+**Root cause:** dreamer singleton groups are common, so some ranks have no
+valid K-group in a step. The pair-less fallback keeps only wp_encoder in
+the graph (`traj_tokens.sum() * 0.0`). In the co-training arms this was
+fine: the main-task loss gives every rank trunk/LoRA grads, so gradient
+buckets match. The probe removes the main loss, so pair-less ranks emit
+wp_encoder-only grads while ranks with groups emit wp_encoder+LoRA →
+mismatched allreduce participation → deadlock. Same bug class as the
+2026-08-06 rank-conditional `sync_dist` hang: any rank-conditional
+difference in what backward touches is a latent DDP hang.
+
+**Fix (`f70a658`):** in probe mode, pair-less ranks add
+`sum(p.sum() for p in trainable) * 0.0` to the loss so every rank emits
+(zero) grads for the identical param set every step.
+
+**Lesson:** when removing a loss term from a multi-task model, re-audit
+every "keep X in the graph" fallback — their sufficiency depends on which
+OTHER losses cover the remaining params on every rank.
+
+---
+
 ## 2026-08-16 — remaining 12-samples/forward SimLingo arms (K=2, K=4 w0.1/w0.3/baseline) never got the 2026-08-14 OOM fix
 
 **Symptom:** the 2026-08-14 fix (below) only patched the 3 arms that had
