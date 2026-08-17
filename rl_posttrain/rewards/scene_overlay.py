@@ -189,6 +189,44 @@ def render_scene_overlay(
     return buf.getvalue()
 
 
+def render_group_overlay(
+    frame: bytes | np.ndarray,
+    trajectories: list[tuple[np.ndarray, tuple[int, int, int], int]],
+    cam_intr: dict[str, float],
+    cam_extr: dict[str, float],
+    max_dim: int = _MAX_IMAGE_DIM,
+    jpeg_quality: int = 85,
+) -> bytes:
+    """A whole rollout group's trajectories on ONE frame, each entry an
+    (xyz waypoints, RGB color, line width) triple. Draw order is list order
+    -- callers put the trajectory they most want visible last. Projection,
+    calibration scaling, and partial-visibility rules match
+    render_scene_overlay."""
+    if isinstance(frame, (bytes, bytearray)):
+        img = Image.open(io.BytesIO(frame)).convert("RGB")
+    else:
+        img = Image.fromarray(frame)
+    draw = ImageDraw.Draw(img)
+    sx = img.width / float(cam_intr["width"])
+    sy = img.height / float(cam_intr["height"])
+    for xyz, color, width in trajectories:
+        pixels, valid = project_waypoints_ftheta(
+            np.asarray(xyz, dtype=np.float64), cam_intr, cam_extr
+        )
+        pts = [(float(u) * sx, float(v) * sy) for (u, v), ok in zip(pixels, valid) if ok]
+        if len(pts) > 1:
+            draw.line(pts, fill=color, width=width, joint="curve")
+        r = max(3, width - 1)
+        for u, v in pts[::4]:
+            draw.ellipse([u - r, v - r, u + r, v + r], fill=color, outline=_OVERLAY_OUTLINE)
+    if max(img.size) > max_dim:
+        ratio = max_dim / max(img.size)
+        img = img.resize((round(img.width * ratio), round(img.height * ratio)), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=jpeg_quality)
+    return buf.getvalue()
+
+
 def build_scene_reference(sample: dict[str, Any]) -> dict[str, Any]:
     """Extracts the judge's scene payload from one PAI dataset sample:
     {scene_frame_jpeg, scene_cam_intr, scene_cam_extr}.
