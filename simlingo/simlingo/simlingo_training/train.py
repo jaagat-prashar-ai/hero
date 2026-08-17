@@ -55,7 +55,15 @@ def main(cfg: TrainConfig):
             state_dict = get_fp32_state_dict_from_zero_checkpoint(cfg.checkpoint)
         else:
             state_dict = torch.load(cfg.checkpoint, map_location="cpu")
-        model.load_state_dict(state_dict)
+        result = model.load_state_dict(state_dict, strict=cfg.checkpoint_strict)
+        if not cfg.checkpoint_strict:
+            # loud, greppable audit of what a non-strict load skipped
+            print(f"checkpoint non-strict load: {len(result.missing_keys)} missing "
+                  f"(kept at init), {len(result.unexpected_keys)} unexpected (ignored)")
+            for k in result.missing_keys:
+                print(f"  missing: {k}")
+            for k in result.unexpected_keys:
+                print(f"  unexpected: {k}")
 
         
     # print config
