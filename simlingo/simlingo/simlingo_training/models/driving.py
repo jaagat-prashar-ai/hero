@@ -17,7 +17,7 @@ from hydra.utils import get_original_cwd
 
 
 from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, AdaptorList
-from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss
+from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss, group_delta_spans
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
                                                 TrainingOutput)
@@ -123,12 +123,20 @@ class DrivingModel(pl.LightningModule):
         self.cycle_detach = getattr(self, 'cycle_detach', True)
         self.cycle_temperature = getattr(self, 'cycle_temperature', 1.0)
         self.cycle_warmup_steps = getattr(self, 'cycle_warmup_steps', 0)
+        self.cycle_probe = getattr(self, 'cycle_probe', False)
+        self.cycle_use_gt_traj = getattr(self, 'cycle_use_gt_traj', False)
+        self.cycle_delta_token_ce = getattr(self, 'cycle_delta_token_ce', False)
         if self.cycle_loss_weight > 0:
             template_ids = self.tokenizer(
                 "\nWhich instruction produced this trajectory?\n",
                 add_special_tokens=False, return_tensors="pt",
             ).input_ids.squeeze(0)
             self.register_buffer("cycle_template_ids", template_ids, persistent=False)
+        if self.cycle_probe:
+            # learnability probe: only wp_encoder + the LoRA adapters train;
+            # the base trunk, vision encoder, and task heads stay frozen
+            for pname, p in self.named_parameters():
+                p.requires_grad = ('wp_encoder' in pname) or ('lora_' in pname)
 
 
     def forward(self,
@@ -274,6 +282,18 @@ class DrivingModel(pl.LightningModule):
             text_mask: Text mask tensor of shape [B, T].
         """
 
+        if self.cycle_probe:
+            # probe mode: no vision pass, no task losses - only the cycle
+            # ranking objective on GT trajectories through the frozen trunk
+            assert example.group_ids is not None, "cycle_probe needs dreamer groups (dreamer_contrastive=true)"
+            adaptor_dict = self.adaptors(example)
+            loss_dict = self.cycle_consistency_loss(
+                adaptor_dict, {}, example.group_ids, driving_label=example.driving_label
+            )
+            if per_sample:
+                return loss_dict, {}
+            return summarise_losses(loss_dict), {}
+
         adaptor_dict = self.adaptors(example)
         adaptor_embeds = adaptor_dict["inputs"]
         adaptor_mask = adaptor_dict['inputs_mask']
@@ -341,7 +361,7 @@ class DrivingModel(pl.LightningModule):
             self.log(f"{phase}_losses/contrastive_retrieval_acc", acc_value, sync_dist=True)
         return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
 
-    def cycle_consistency_loss(self, adaptor_dict, loss_dict, group_ids):
+    def cycle_consistency_loss(self, adaptor_dict, loss_dict, group_ids, driving_label=None):
         """
         Grouped inverse-cycle consistency: the model's own predicted trajectory,
         re-entered through wp_encoder WITHOUT the camera image, must make the
@@ -356,18 +376,27 @@ class DrivingModel(pl.LightningModule):
         """
         B = group_ids.size(0)
 
-        # trajectory side: predicted speed waypoints (+ route if present)
-        traj = loss_dict['speed_wps_prediction']
-        if traj.size(-1) == 1:  # 1d mode: distances along x, y=0
-            traj = torch.cat([traj, torch.zeros_like(traj)], dim=-1)
-        traj_parts = [traj]
-        if 'route_prediction' in loss_dict:
-            traj_parts.append(loss_dict['route_prediction'])
-        traj_pts = torch.cat(traj_parts, dim=1)
-        if self.cycle_detach:
-            # explainer-only arm: train the trunk to read trajectories without
-            # letting the ranking gradient reshape the trajectory itself
-            traj_pts = traj_pts.detach()
+        if self.cycle_use_gt_traj:
+            # GT trajectory: an untrained head's predictions are noise, making
+            # the ranking task unlearnable exactly when its gradients do the
+            # most damage. Path may contain NaN padding; inherently detached.
+            traj_parts = [driving_label.waypoints]
+            if driving_label.path is not None:
+                traj_parts.append(torch.nan_to_num(driving_label.path, nan=0.0))
+            traj_pts = torch.cat(traj_parts, dim=1).detach()
+        else:
+            # trajectory side: predicted speed waypoints (+ route if present)
+            traj = loss_dict['speed_wps_prediction']
+            if traj.size(-1) == 1:  # 1d mode: distances along x, y=0
+                traj = torch.cat([traj, torch.zeros_like(traj)], dim=-1)
+            traj_parts = [traj]
+            if 'route_prediction' in loss_dict:
+                traj_parts.append(loss_dict['route_prediction'])
+            traj_pts = torch.cat(traj_parts, dim=1)
+            if self.cycle_detach:
+                # explainer-only arm: train the trunk to read trajectories without
+                # letting the ranking gradient reshape the trajectory itself
+                traj_pts = traj_pts.detach()
         traj_tokens = self.wp_encoder(traj_pts.to(self.wp_encoder.mlp[0].weight.dtype))
 
         # candidate side: plain-text prompt tokens (speed prefix + instruction).
@@ -389,10 +418,15 @@ class DrivingModel(pl.LightningModule):
 
         # all ordered within-group pairs (i: trajectory, j: candidate)
         pair_row, pair_col = [], []
+        delta_spans = {}  # batch idx -> (start, end) scored within its candidate span
         for group_id in group_ids.unique():
             idx = (group_ids == group_id).nonzero(as_tuple=True)[0]
             if idx.numel() < 2 or (cand_lengths[idx] < 1).any():
                 continue
+            if self.cycle_delta_token_ce:
+                group_cands = [ids[j][cand_mask[j]] for j in idx.tolist()]
+                for j, span in zip(idx.tolist(), group_delta_spans(group_cands)):
+                    delta_spans[j] = span
             for i in idx.tolist():
                 pair_row.extend([i] * idx.numel())
                 pair_col.extend(idx.tolist())
@@ -436,7 +470,11 @@ class DrivingModel(pl.LightningModule):
                 # logits at position t predict token t+1: slice starts one before
                 # the candidate span
                 logit_slice = logits[p, cand_start - 1 : cand_start + length - 1].float()
-                ce.append(F.cross_entropy(logit_slice, cand_ids.clamp(min=0), reduction="mean"))
+                # the model still sees the full candidate as input; only the
+                # scored span is restricted to the group's discriminative tokens
+                start, end = delta_spans.get(pair_col[p], (0, length))
+                ce.append(F.cross_entropy(
+                    logit_slice[start:end], cand_ids[start:end].clamp(min=0), reduction="mean"))
             ce = torch.stack(ce)
 
             loss, count, accuracy = grouped_rank_cycle_loss(
@@ -916,7 +954,9 @@ class DrivingModel(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(
-            self.parameters(),
+            # LoRA runs (and the cycle probe) freeze most parameters; only hand
+            # the optimizer what actually trains
+            [p for p in self.parameters() if p.requires_grad],
             lr=self.lr,
             weight_decay=self.weight_decay,
             betas=self.betas,
