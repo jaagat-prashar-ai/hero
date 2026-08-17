@@ -54,6 +54,17 @@ class DrivingModelConfig:
     # linear ramp of the cycle weight over the first N optimizer steps
     # (0 = no warmup); protects early waypoint regression
     cycle_warmup_steps: int = 0
+    # Stage-0 learnability probe: freeze everything except wp_encoder + the
+    # LoRA adapters, skip the vision/main-task forward entirely, and train
+    # only the cycle ranking objective on a loaded (frozen) driving checkpoint.
+    cycle_probe: bool = False
+    # condition the cycle pass on GT waypoints/path instead of the model's own
+    # predictions (an untrained trajectory head makes the task unlearnable
+    # exactly when its gradients do the most damage)
+    cycle_use_gt_traj: bool = False
+    # score each candidate's CE only over the tokens that differ across its
+    # group (common prefix/suffix trimmed) instead of the full-sequence mean
+    cycle_delta_token_ce: bool = False
 
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 
@@ -176,6 +187,10 @@ class TrainConfig:
     val_every_n_epochs: int = 1
 
     checkpoint: Optional[str] = None
+    # strict state_dict load; set false when loading an upstream checkpoint
+    # that predates modules added in this repo (wp_encoder ships in the
+    # upstream release, text_proj/traj_proj/cycle additions do not)
+    checkpoint_strict: bool = True
 
 
 def register_configs():
