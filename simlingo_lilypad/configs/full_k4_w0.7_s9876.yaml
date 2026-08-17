@@ -19,6 +19,11 @@ workload_variant_config:
     workdir: "/mnt/work/simlingo_full"
     # ~650GB download+extract runs for hours; ranks 1..7 wait this long
     extract_timeout_s: 21600
+    # skip the 2026-08-14 validation-backfill sensor chunks (12 objects,
+    # +341GB compressed): extracting them blows past the ~85% disk eviction
+    # threshold (killed all 8 arms on 2026-08-16). Restores the exact
+    # pre-backfill extract set proven to fit (s5mq9b/f21sox, 58h+ healthy).
+    s3_exclude_regex: "data_simlingo_validation_(1_scenario|parking_lane)_"
     hydra_overrides:
       - experiment=simlingo_seed1
       - data_module=carla_no_buckets
