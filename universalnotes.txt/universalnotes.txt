@@ -1828,3 +1828,84 @@ One thing to know: killing and relaunching would have cost you the ~35 min of no
 # Instructions are decodable from trajectories at K=4, the inverse mapping exists and is learnable. What it does not yet show is that this works as a co-training signal on the model's own predicted trajectories, or that it improves reasoning-action alignment without damaging the main task (that's what killede gens 1-3).
 # Per the pre-registered decision rule, the pass green-lights Stage-1: co-training with separate params, a GT->predicted-trajectory curriculum, and a grad-norm-balanced weight instead of the fixed w=0.2 that wrecked the main task before. Also worth folding in the delta-token CE, since the probe suggests full-span scoring was one reason the earlier arms saw nothing. 
 
+# Other creative experiments to do: 
+    # 1. The probe as a ruler: alignment tomogrpahy across the sweep. We just validated a cheap instrument - frozen model + LoRA probe, 1.5h. Retrain that identical probe on every checkpoint in the K/weight sweep (and on epoch-0 vs final checkpoints of the same arm).
+    #  Probe accuracy becomes a measurement of how instruction-decodable each model's trajectories are, the way linear probes are used in interprability. 
+        # how instruction decodable is somethin? but hwo do we meausre or quanitfy this? What is the right way of doing this? Alignment. 
+        # You'd get curves like "decodability vs contrastive weight" and "decodability vs training time" that no loss metric gives you, and it directly tests whether contrastive pretraining actually restructures representations or just adds a throaway head. ~10 probes x 1.5h = one afternoon of GPU. 
+    # 2. Same probe, but truncate the trajectory input to the first N waypoints. At what point does the instruction become decodable - 2 waypoints? 6? Does contrastive training make intent legible earlier? This is a genuinely novel metric ("How many meters of driving before the plan is readable") and it's nearly free once idea 1 exists. 
+
+# Stage-0 probe we just ran is a small test we bolted onto a frozen model: we hand it a driving trajectory and ask "out of these 3 candidate instructions, which one just produced this?" 
+    # We train only a tiny adaper (wp_encoder + LoRA) to answer while the model itself stays untouched. 
+        # It scored 55% on validation, where random guessing gets 25%. 
+    
+    # "Instruction-decodable" just means: can you tell what the driver was told, just by watching how the car drove? If trajectories for "overtake the truck" and "stay behind the truck"  
+        # If the trajectories for "ovetake the truck" and "stay behind the truck" look meaningfully different, the probe can tell them apart and accuracy is high. 
+            # If the model drives basically the same way regardless of instruction, the trajectories carry no trace of the instruction, and the probe can't beat 25% no matter how hard it trains. 
+        # So probe accuracy is a direct measurement of how much the instruction actually shows up in the actions - which is exactly the reasoning-action alignemnt property this whole project is about. 
+
+        # Idea 1 - "probe as a ruler." Right now we've measured exactly one model with this probe (the upstream release checkpoint: 55%). // Find this checkpoint and put this in sim for results. 
+        # A ruler is only useful when we measure many things with it. Tomorrow, we have multiple checkpoints and contrastive weights 0.1 through 0.9, a baseline with no contrastive loss, two seeds. Idea 1 is simply: run the identical probe on every one of them and line up the numbers. Each probe run is ~1.5h. 
+
+        # results table format: 
+
+        ┌───────────────────┬────────────────┐
+        │       model       │ probe accuracy │
+        ├───────────────────┼────────────────┤
+        │ baseline (w=0)    │ e.g. 48%       │
+        ├───────────────────┼────────────────┤
+        │ contrastive w=0.1 │ 56%            │
+        ├───────────────────┼────────────────┤
+        │ contrastive w=0.5 │ 63%            │
+        ├───────────────────┼────────────────┤
+        │ …                 │ …              │
+        └───────────────────┴────────────────┘
+
+    # Why this is worth doing: your current metrics (val loss, retrieval accuracy) tell you whether the auxiliary head learned its game. The probe tells you whether the contrastie training changed something you actually care about - whether instructions leave a stronger imprint on the model's driving. 
+    # If w =0.5 has a much higher probe accuracy than baseline, the pretraining genuinely reshaped behavior. 
+
+
+    # aux head. 
+
+    3 probe tells is whether the contrastive training changed something actually care about (whether instructions leave a stronger imprint on the model's driving).
+    # If w=0.5 has a much higher probe accuracy than baseline, the pretraining genuinely reshaped behavior. If they're all the same, contrastive loss was decorative and only its disposable head learned anything. 
+    # That's a question none of the existing metrics can answer. 
+
+    # Probe tells us whether the contrastive training changed something we actually care about - whether instructions leave a stronger imprint on the model's driving.
+
+    # Idea 2 - hwo early can we tell? Same probe, one twist: instead of showing it the whole trajectory (say 10 waypoints), show it only the first 2, then 4, then 6, and see where accuracy lands each time. This asks: how far into the maneuever does the car have to get before its intent is readable?
+
+        # If accuracy is already high at 2 waypoints, the instruction shapes the driving immediately - the plan is commited from the first meter. 
+        # If accuracy only rises near the full trajectory, the instruction's effect shows up late (e.g., only at th emoment of the lane change itself)
+
+    # Then the interesting comparison: does contrastive training move that curve left - does contrastive training move that curve left - does it make models whose intent is legible earlier?
+    # If accuracy only rises near the full trajectory, the instruction's offset shows up late (e.g., only at the moment of the lane change itself).
+
+    Idea 1 = use the probe's accuracy as a score, and score every checkpoint in the sweep to see which training recipe makes instructions actually influence driving. 
+    Idea 2 = clip the trajectory shorter and shorter to find out how early the influence becomes visible. 
+
+# 55% comes from the Stage-0 probe run (ftv4uw, finished this morning), and the frozen model underneath it is the publicly released SimLingo checkpoint from the original authors. 
+
+# Probe: simlingo-cycle-probe-smoke-ftv4uw, ~1.5h on 8 GPUs
+    # Why it exists: Cycle-consistency hypothesis - condition on a trajectory, figure out which instruction caused it (had been tried as a co-training loss). 
+    # The ranking accuracy sat at chance and th extra loss wrecked the main driving task. 
+    # After fixing two real bugs (a token-mask bug, then a prior-domination bug in the softmax) and still seeing chance-level results, there were two possible explanations left: either (a) the task itself is impossible - trajectories at K=4 just don't contain enough information to identify the instruction - or (b) the task is fine, but the co-training setup (training everything at once, on th emodel's own untrained predictions, with a diluted loss) was drowning the signal. Those imply opposite next steps: shelve the idea or fix the setup. 
+
+    # What was the exact bug with token-mask bug and the prior-domination bug?
+
+    # Take the question and remove every confounder:
+        # Frozen model: Instead half-trained models, use the authors' full-trained public SimLingo checkpoint, completely frozen. No main-task training happening at the same time, nothing to wreck. 
+
+        # Train only the reader: the only trainable parts are the small trajectory encoder (wp_encoder) and LoRA adapters - a thin "reader" learning to decode instructions, not a whole model learning to drive. 
+        # Ground-truth trajectories: score against the dataset's real trajectories, not the model's own predictions (which early in training are garbage).
+        # The task: for each dreamer group - same camera frame, K=4 sibling instructions, 4 corresponding trajectories - feed in one trajectory and score the 4 candidate instructions; the true one should win. 
+            # Delta-token scoring: sibling instructions share ~90% of their words ("continue along the road and ..."); only a few tokens differ. 
+                # Scoring the whole sentence lets the shared boiler plate drown the signal (we showed this numerically), so the probe scores only the tokens that actually differ between siblings. 
+
+    # The pre-registered bet: if validation accuracy reaches >= 40% (chance is 25%), the task is learnable and the co-training failures were a setup problem -> proceed to Stage-1. If it stays ~25%, the task is impossible at K=4 -> shelve co-training. 
+
+    # Result: 55% on validation (65% on train). The task is learnable - a frozen driving model's trajectories do carry enough information to identify which instruction produced them, if you read them the right way. So explanation (b) won: the earlier failures were about how the training was set up, not about the hypothesis being wrong. That's what green-lights Stage-1 (careful co-training) and what makes the probe reusable as the measuring instrument in ideas 1 and 2. 
+
+
+
+        
