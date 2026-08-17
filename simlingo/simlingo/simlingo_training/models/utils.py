@@ -122,6 +122,53 @@ def grouped_rank_cycle_loss(
     accuracy = torch.cat(correct).mean() if correct else None
     return loss, count, accuracy
 
+
+def group_delta_spans(cand_id_list: list) -> list:
+    """
+    Per-candidate token spans that actually discriminate within a group.
+
+    Sibling instructions in a dreamer group share a template (common prefix,
+    often a common suffix); only a short middle clause differs. Scoring the
+    mean-token CE over the whole candidate buries that clause under tokens
+    every sibling shares. This trims the longest common prefix and suffix
+    across all K candidates and returns the remaining [start, end) span per
+    candidate, falling back to the full span whenever the trim would leave
+    nothing (identical candidates, singletons).
+
+    Args:
+        cand_id_list: list of K 1-D int tensors, the group's candidate token
+            sequences (variable length).
+
+    Returns:
+        list of K (start, end) tuples, end > start guaranteed.
+    """
+    K = len(cand_id_list)
+    lens = [c.size(0) for c in cand_id_list]
+    if K < 2:
+        return [(0, lens[0])] if K else []
+    min_len = min(lens)
+    lcp = 0
+    while lcp < min_len and all(
+        int(c[lcp]) == int(cand_id_list[0][lcp]) for c in cand_id_list[1:]
+    ):
+        lcp += 1
+    # bounded so the suffix can never overlap the prefix on the shortest candidate
+    max_lcs = min_len - lcp
+    lcs = 0
+    while lcs < max_lcs and all(
+        int(c[c.size(0) - 1 - lcs]) == int(cand_id_list[0][cand_id_list[0].size(0) - 1 - lcs])
+        for c in cand_id_list[1:]
+    ):
+        lcs += 1
+    spans = []
+    for c in cand_id_list:
+        start, end = lcp, c.size(0) - lcs
+        if end <= start:
+            start, end = 0, c.size(0)
+        spans.append((start, end))
+    return spans
+
+
 def summarise_losses(
     loss_dict: Dict[str, Tuple[Tensor, Tensor]], weights: Optional[Dict[str, float]] = None
 ) -> TrainingOutput:
