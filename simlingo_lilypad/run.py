@@ -112,6 +112,24 @@ def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = No
         # default would kill ranks 1..7 before rank 0 finishes
         _wait_for_marker(workdir, timeout_s=int(cfg.get("extract_timeout_s", 3600)))
 
+    # frozen driving checkpoint for the cycle learnability probe; the yaml's
+    # hydra_overrides point train.py's `checkpoint=` at this local path
+    ckpt_key = cfg.get("probe_ckpt_s3_key")
+    if ckpt_key:
+        ckpt_local = workdir / "probe_ckpt.pt"
+        ckpt_marker = workdir / ".ckpt_done"
+        if rank == 0:
+            if not ckpt_marker.exists():
+                print(f"[simlingo] downloading probe checkpoint s3://{cfg['s3_bucket']}/{ckpt_key}", flush=True)
+                _s3_client().download_file(cfg["s3_bucket"], ckpt_key, str(ckpt_local))
+                ckpt_marker.touch()
+        else:
+            deadline = time.time() + 1800
+            while not ckpt_marker.exists():
+                if time.time() > deadline:
+                    raise RuntimeError(f"timed out waiting for rank 0 to download {ckpt_local}")
+                time.sleep(10)
+
     repo_root = Path(__file__).resolve().parents[1]
     sim_root = repo_root / "simlingo" / "simlingo"
     # train.py resolves data_path relative to its cwd: database/simlingo -> node-local dir
