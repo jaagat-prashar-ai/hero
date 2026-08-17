@@ -188,22 +188,56 @@ def _timed(fn):
 # scalar-only (aggregate_report_data np.mean's every key), so images cannot
 # ride the reward_dicts. Instead the rank-0 reward worker lazily opens its
 # own SIBLING W&B run in the same project, named
-# "<experiment_name>/images-<stamp>", and logs a sampled group's scene
-# overlays there: the ground-truth future trajectory plus up to
-# _OVERLAY_MAX_ROLLOUTS rollout trajectories, each drawn on the shared t0
-# front-wide frame by scene_overlay.render_scene_overlay (the judge's
-# renderer, PIL-only so it is safe inside cosmos-rl reward workers).
+# "<experiment_name>/images-<stamp>", and logs a sampled group there
+# (2026-08-17, user request -- previously one image per rollout, capped at 4):
+#   - "overlays": ONE composite image -- every rollout in the group drawn on
+#     the shared t0 front-wide frame, colored red (group's lowest reward) ->
+#     yellow -> green (highest), GT future in blue on top, via
+#     scene_overlay.render_group_overlay (PIL-only, safe in reward workers).
+#   - "trace_groups": a table of every sampled rollout's reward components +
+#     full CoC text, accumulated across the run (scrub to the latest step
+#     for the complete history).
+#   - "reward_fns": one row per distinct clipgen fn that scored a sampled
+#     group -- clip_id, source sha, full source. Fns are frozen per clip for
+#     a whole run, so the trace table's fn_sha column is the join key.
 #
 # Volume control: one group in every _overlay_every() is logged (default 8;
-# at 4 groups/step that is ~every 2 steps, ~5 JPEGs a time). Everything is
+# at 4 groups/step that is ~every 2 steps). Everything is
 # best-effort behind a broad except -- visualization must never take down
 # or slow the reward. CODE_REWARD_WANDB_IMAGES=0 disables it entirely.
 # ---------------------------------------------------------------------------
 
-_OVERLAY_MAX_ROLLOUTS = 4
 _overlay_lock = threading.Lock()
 _overlay_group_counter = 0
 _overlay_run = None  # lazily-created sibling wandb run (rank 0 only)
+
+_GT_COLOR = (80, 150, 255)  # blue -- outside the red->green reward colormap
+
+_TRACE_COLS = [
+    "group",
+    "scene_id",
+    "clip_id",
+    "rollout_id",
+    "reward",
+    "code_reward_raw",
+    "traj_L2",
+    "comfort",
+    "coc_text",
+    "fn_sha",
+]
+_trace_rows: list[list] = []
+_FN_COLS = ["clip_id", "fn_sha", "source"]
+_fn_rows: list[list] = []
+_fn_sha_by_path: dict[str, str] = {}
+
+
+def _reward_color(reward: float, lo: float, hi: float) -> tuple[int, int, int]:
+    """Lowest reward in the group -> red, midpoint -> yellow, highest ->
+    green. Normalized within the group (GRPO's advantage is within-group
+    relative, so within-group extremes are what the colors should show); a
+    zero-spread group renders uniformly yellow."""
+    t = 0.5 if hi - lo < 1e-9 else (reward - lo) / (hi - lo)
+    return (round(255 * min(1.0, 2 * (1 - t))), round(255 * min(1.0, 2 * t)), 40)
 
 
 def _overlay_every() -> int:
@@ -241,16 +275,20 @@ def _get_overlay_run(config: object | None):
     return _overlay_run
 
 
-def _maybe_log_overlays(
+def _maybe_log_group(
     reference: dict[str, Any],
     scene_id: str,
+    clip_id: str,
     gt_xyz_np: Any,
-    rollouts: list[tuple[int, Any, float, float]],  # (rollout_id, pred_xyz_np, reward, l2)
+    rollouts: list[dict[str, Any]],  # dump_rollouts records: rollout_id/coc_text/waypoints + metrics
+    fn_path: str | None,
     config: object | None,
 ) -> None:
-    """Log this group's overlays to the sibling W&B run (sampled; rank 0)."""
+    """Log this group's composite overlay + trace/fn tables to the sibling
+    W&B run (sampled; rank 0). Runs even when the reference has no frame
+    (scene-less degraded sample): the tables never skip a sampled group."""
     global _overlay_group_counter
-    if not _overlay_enabled():
+    if not _overlay_enabled() or not rollouts:
         return
     with _overlay_lock:
         _overlay_group_counter += 1
@@ -258,31 +296,65 @@ def _maybe_log_overlays(
     if n % _overlay_every() != 0:
         return
     try:
-        frame = reference.get("scene_frame_jpeg")
-        intr = reference.get("scene_cam_intr")
-        extr = reference.get("scene_cam_extr")
-        if not (frame is not None and intr and extr):
-            return  # dataset degraded to the scene-less reference for this sample
+        import hashlib
+
         import wandb
         from PIL import Image
 
-        from rl_posttrain.rewards.scene_overlay import render_scene_overlay
+        from rl_posttrain.rewards.scene_overlay import render_group_overlay
 
-        def _img(xyz, caption):
-            jpeg = render_scene_overlay(frame, xyz, intr, extr)
-            return wandb.Image(Image.open(io.BytesIO(jpeg)), caption=caption)
+        payload: dict[str, Any] = {"overlay_group": n}
 
-        images = [_img(gt_xyz_np, f"{scene_id} GT future")]
-        # Best and worst rollouts first -- the pair a human actually compares.
-        for rollout_id, xyz, reward, l2 in sorted(rollouts, key=lambda r: -r[2])[
-            :_OVERLAY_MAX_ROLLOUTS
-        ]:
-            images.append(
-                _img(xyz, f"{scene_id} rollout {rollout_id} r={reward:.3f} l2={l2:.2f}")
+        frame = reference.get("scene_frame_jpeg")
+        intr = reference.get("scene_cam_intr")
+        extr = reference.get("scene_cam_extr")
+        if frame is not None and intr and extr:
+            lo = min(r["reward"] for r in rollouts)
+            hi = max(r["reward"] for r in rollouts)
+            # Ascending by reward: the best rollout draws over the worst,
+            # GT over everything.
+            trajs: list[tuple[Any, tuple[int, int, int], int]] = [
+                (r["waypoints"], _reward_color(r["reward"], lo, hi), 5)
+                for r in sorted(rollouts, key=lambda r: r["reward"])
+            ]
+            trajs.append((gt_xyz_np, _GT_COLOR, 7))
+            jpeg = render_group_overlay(frame, trajs, intr, extr)
+            payload["overlays"] = wandb.Image(
+                Image.open(io.BytesIO(jpeg)),
+                caption=(
+                    f"{scene_id} n={len(rollouts)} reward [{lo:.3f}, {hi:.3f}] "
+                    "red=lowest -> green=highest, blue=GT"
+                ),
             )
-        _get_overlay_run(config).log({"overlays": images, "overlay_group": n})
+
+        fn_sha = ""
+        if fn_path:
+            fn_sha = _fn_sha_by_path.get(fn_path, "")
+            if not fn_sha:
+                src = Path(fn_path).read_text()
+                fn_sha = hashlib.sha1(src.encode()).hexdigest()[:10]
+                _fn_sha_by_path[fn_path] = fn_sha
+                _fn_rows.append([Path(fn_path).stem, fn_sha, src])
+        for r in rollouts:
+            _trace_rows.append(
+                [
+                    n,
+                    scene_id,
+                    clip_id,
+                    r["rollout_id"],
+                    r["reward"],
+                    r.get("code_reward_raw"),
+                    r["traj_L2"],
+                    r["comfort_reward"],
+                    r["coc_text"],
+                    fn_sha,
+                ]
+            )
+        payload["trace_groups"] = wandb.Table(columns=_TRACE_COLS, data=_trace_rows)
+        payload["reward_fns"] = wandb.Table(columns=_FN_COLS, data=_fn_rows)
+        _get_overlay_run(config).log(payload)
     except Exception:
-        logger.exception("[code_reward] W&B overlay logging failed (continuing)")
+        logger.exception("[code_reward] W&B group logging failed (continuing)")
 
 
 # ---------------------------------------------------------------------------
@@ -826,7 +898,6 @@ def compute_reward_batch(
 
     rewards: list[float] = []
     reward_dicts: list[dict[str, float]] = []
-    overlay_rollouts: list[tuple[int, Any, float, float]] = []
     dump_rollouts: list[dict[str, Any]] = []
     for rollout_id, to_be_evaluated in enumerate(to_be_evaluated_list):
         predicted_fut_xyz, predicted_fut_rot = decode_rollout_trajectory(
@@ -923,7 +994,6 @@ def compute_reward_batch(
             f"final={final_reward:.4f} aux={aux}"
         )
         rewards.append(float(final_reward))
-        overlay_rollouts.append((rollout_id, pred_xyz_np, float(final_reward), l2_dist))
         reward_dicts.append(
             {
                 "traj_L2": l2_dist,
@@ -962,7 +1032,7 @@ def compute_reward_batch(
     # (same shape contract as predicted_fut_xyz); tolerate ndarray for tests.
     gt0 = gt_fut_xyz[0]
     gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
-    _maybe_log_overlays(reference, scene_id, gt_np, overlay_rollouts, config)
+    _maybe_log_group(reference, scene_id, clip_id, gt_np, dump_rollouts, clipgen_fn_path, config)
     _maybe_dump_rollouts(clip_id, scene_id, hz, dump_rollouts)
 
     return rewards, reward_dicts
