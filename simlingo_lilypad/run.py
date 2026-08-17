@@ -8,6 +8,7 @@ execs simlingo_training/train.py as one member of a Lightning DDP/DeepSpeed
 group (devices=1, num_nodes=N) rendezvousing on localhost.
 """
 import os
+import re
 import subprocess
 import sys
 import tarfile
@@ -25,7 +26,7 @@ def _s3_client():
     return boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
 
 
-def _download_and_extract(bucket: str, prefix: str, workdir: Path) -> None:
+def _download_and_extract(bucket: str, prefix: str, workdir: Path, exclude_regex: str = None) -> None:
     dest = workdir / "database" / "simlingo"
     marker = workdir / ".extract_done"
     if marker.exists():
@@ -46,6 +47,18 @@ def _download_and_extract(bucket: str, prefix: str, workdir: Path) -> None:
             raise RuntimeError(f"mirror incomplete: {len(keys)}/{expected} objects under s3://{bucket}/{prefix}")
         print(f"[simlingo] mirror still filling ({len(keys)}/{expected}), waiting 60s", flush=True)
         time.sleep(60)
+
+    # applied AFTER the completeness check so SIMLINGO_EXPECTED_OBJECTS keeps
+    # counting the whole mirror. The 2026-08-14 validation backfill (+341GB
+    # compressed) pushed the extract-everything footprint past the ~85% disk
+    # eviction threshold and killed all 8 full-data arms mid-extract on
+    # 2026-08-16; excluding the backfill sensor chunks restores the exact
+    # pre-backfill extract set that is proven to fit.
+    if exclude_regex:
+        pat = re.compile(exclude_regex)
+        skipped = [k for k in keys if pat.search(k)]
+        keys = [k for k in keys if not pat.search(k)]
+        print(f"[simlingo] excluding {len(skipped)} objects matching {exclude_regex!r}", flush=True)
 
     tars = [k for k in keys if k.endswith(".tar.gz")]
     others = [k for k in keys if not k.endswith(".tar.gz")]
@@ -106,7 +119,8 @@ def smoke_train(training_fn_config: dict[str, Any], experiment_tracker: Any = No
     os.environ.setdefault("HF_HOME", str(workdir / "hf_cache"))
 
     if rank == 0:
-        _download_and_extract(cfg["s3_bucket"], cfg["s3_prefix"].rstrip("/") + "/", workdir)
+        _download_and_extract(cfg["s3_bucket"], cfg["s3_prefix"].rstrip("/") + "/", workdir,
+                              exclude_regex=cfg.get("s3_exclude_regex"))
     else:
         # full-dataset extract (~650GB compressed) runs for hours; the 1h
         # default would kill ranks 1..7 before rank 0 finishes
