@@ -434,7 +434,15 @@ class DrivingModel(pl.LightningModule):
         if not pair_row:
             # keep wp_encoder in the graph so backward sees the same param set on
             # every rank regardless of this rank's group composition
-            loss = (traj_tokens.sum() * 0.0).expand(B).clone()
+            zero = traj_tokens.sum() * 0.0
+            if self.cycle_probe:
+                # in probe mode no main-task loss covers the trunk, so a
+                # pair-less rank must emit (zero) grads for EVERY trainable
+                # param or the gradient allreduce desyncs across ranks
+                # (observed: pair-less rank reducing 592,000 numel = exactly
+                # wp_encoder vs 18.2M on ranks with pairs -> NCCL watchdog)
+                zero = zero + sum(p.sum() for p in self.parameters() if p.requires_grad) * 0.0
+            loss = zero.expand(B).clone()
             count = torch.zeros(B, dtype=torch.long, device=ids.device)
             accuracy = None
         else:
