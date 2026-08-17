@@ -1810,6 +1810,21 @@ Details:
   - det: research-interns/simlingo-contrastive/runs/20260816221828_smoke_cycle_det_w0.2
   - undet: research-interns/simlingo-contrastive/runs/20260816221133_smoke_cycle_undet_w0.2
 
-One thing to know: killing and relaunching would have cost you the ~35 min of non-preemptible progress for no gain, so I deliberately didn't touch the jobs.
+One thing to know: killing and relaunching would have cost you the ~35 min of non-preemptible progress for no gain, so I deliberately didn't touch the jobs. 
+    # 
 
+# Three runs: 
+    # alpamayo-rl-code-reward-clipgen-v2-axjz48 (main treatment)
+    # alpamayo-rl-code-reward-clipgen-shufctl-v2-hutvyr (generic-style channel: each clip scored by the next clip's fn (deterministic rotate-by-one over the sorted 156 fns, CODE_REWAR_SHUFFLE_CLIPGEN=1))
+    # alpamayo-rl-code-reward-clipgen-trace152-v2-pnflvk (global deterministic heuristic on the same corpus)
+
+# git! 
+# Cycle-free idea thing: 
+    # Probe does another second, vision-free pass through the trunk: it encodes a trajectory with wp_encoder, asks "which instruction produced this trajectory?", scores each of the K sibling instructions in the dreamer group by cross-entropy, and trains a ranking loss so the true instruction wins. 
+    # That's the stated intuition - condition on the trajectory, decode the instruction that caused it. 
+
+# Important nuance is what this specific probe did and didn't test: The three co-training attempts (gens 1-3 of the cycle smokes) all failed - at-chance ranking plus a wrcked main task - so the Stage-0 probe deliberately stripped the question down to pure learnability: frozen fully-trained upstream model, training only wp_encoder + LoRA, ground-truth trajectories rather than the model's own predictions, and CE scored only on each instruction's delta tokens (the few tokens that actually differ between siblings, since full-span mena CE provably disputes the signal below the softmax noise floor). Under those conditions: val cycle_rank_acc 0.548 vs 0.25 chance, clearing the pre-registered 0.40 gate. 
+
+# Instructions are decodable from trajectories at K=4, the inverse mapping exists and is learnable. What it does not yet show is that this works as a co-training signal on the model's own predicted trajectories, or that it improves reasoning-action alignment without damaging the main task (that's what killede gens 1-3).
+# Per the pre-registered decision rule, the pass green-lights Stage-1: co-training with separate params, a GT->predicted-trajectory curriculum, and a grad-norm-balanced weight instead of the fixed w=0.2 that wrecked the main task before. Also worth folding in the delta-token CE, since the probe suggests full-span scoring was one reason the earlier arms saw nothing. 
 
