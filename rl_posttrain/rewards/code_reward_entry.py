@@ -629,17 +629,20 @@ _CLIPGEN_REWARD_FNS_DIR = _REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_
 
 @functools.lru_cache(maxsize=512)
 def _load_clipgen_fn(clip_id: str):
-    """The clip's own gate-passed generated reward function, compiled once
-    per process (sandboxed AST-checked exec, thread-safe timeout runner --
-    see clipgen/sandbox.py), or None when the clip has none or the source
-    no longer compiles (logged loudly; caller falls back to TraceReward).
+    """(fn, source_path): the clip's own gate-passed generated reward
+    function, compiled once per process (sandboxed AST-checked exec,
+    thread-safe timeout runner -- see clipgen/sandbox.py), plus the path of
+    the source that produced it (the SHUFFLED clip's path under the shuffle
+    control, so the group tracker records the fn that actually scored).
+    (None, None) when the clip has none or the source no longer compiles
+    (logged loudly; caller falls back to TraceReward).
 
-    CODE_REWARD_DISABLE_CLIPGEN=1 forces None for every clip: the ablation
-    control arm that scores the SAME clipgen-filtered corpus with
+    CODE_REWARD_DISABLE_CLIPGEN=1 forces (None, None) for every clip: the
+    ablation control arm that scores the SAME clipgen-filtered corpus with
     TraceReward, isolating the reasoning-signal source from the corpus
     restriction (code_clipgen_used stays 0.0 so W&B shows the arm)."""
     if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0") == "1":
-        return None
+        return None, None
     if os.environ.get("CODE_REWARD_SHUFFLE_CLIPGEN", "0") == "1":
         # Shuffled-reward CONTROL arm: score every clip with a DIFFERENT
         # clip's gate-passed function (deterministic rotate-by-one over the
@@ -656,18 +659,18 @@ def _load_clipgen_fn(clip_id: str):
             clip_id = shuffled
     path = _CLIPGEN_REWARD_FNS_DIR / f"{clip_id}.py"
     if not path.exists():
-        return None
+        return None, None
     from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_module
 
     try:
         fn, _components = compile_reward_module(path.read_text())
-        return fn
+        return fn, str(path)
     except RewardFnError:
         logger.exception(
             f"[code_reward] clip {clip_id}: clipgen reward_fn failed to compile "
             "-- falling back to TraceReward for this clip"
         )
-        return None
+        return None, None
 
 
 def _score_cot(
@@ -816,7 +819,7 @@ def compute_reward_batch(
     hz = float(reference.get("future_hz") or 10.0)
     clip_id, _t0_us = split_scene_id(scene_id)
     scene = _load_scene(clip_id)
-    clipgen_fn = _load_clipgen_fn(clip_id)
+    clipgen_fn, clipgen_fn_path = _load_clipgen_fn(clip_id)
 
     ade_threshold = 3.0
     reasoning_threshold = -0.4
