@@ -1,0 +1,64 @@
+# Manifest-staging job for the full-corpus clipgen scale-up (2026-08-18):
+# builds obstacle.offline/egomotion.offline/gt_coc manifests for the ~1050
+# clips beyond the existing 156-clip gate-passed corpus (full train-split OOD
+# pool minus what's already covered), sharded into ~43-clip shards matching
+# the proven clipgen_corpus352v3 curation throughput, uploaded to S3 for
+# run_real_rollout_gen.py's manifest_data_s3_prefix restore. See
+# code_as_a_reward/clipgen/build_manifest_full.py's module docstring.
+#
+# Submit (from repo root):
+#   HF_TOKEN=... python lilypad/launch.py code_as_a_reward/clipgen/configs/build_manifest_full1050.yaml
+name: clipgen-build-manifest-full1050
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: code_as_a_reward.clipgen.build_manifest_full.run_from_lilypad_config
+  entrypoint_fn_config:
+    pool_s3: "s3://research-datasets-chicago/code_as_a_reward/clipgen/manifest_full1050_pool.json"
+    work_dir: "/mnt/work/tmp/clipgen_manifest_build"
+    shard_size: 43
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix_root: "code_as_a_reward/clipgen/manifest_full1050"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements_manifest_builder.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/convos/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"
+      - "^/simlingo/"

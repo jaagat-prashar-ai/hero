@@ -1,0 +1,11 @@
+# Deps for build_manifest_full.py's lilypad job: downloads obstacle/egomotion
+# label zips via the vendored scripts/download_pai.py (needs huggingface_hub
+# + pandas), extracts per-clip parquet, uploads shards to S3 via boto3.
+# torch==2.7.1 is dead weight (never imported here) but REQUIRED by
+# lilypad/launch.py's preflight validator for any pip_requirements_path
+# workload -- same situation as code_as_a_reward/clipgen/requirements.txt.
+torch==2.7.1
+huggingface_hub
+pandas
+pyarrow
+boto3
