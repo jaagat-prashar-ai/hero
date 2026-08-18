@@ -96,4 +96,13 @@ runtime_environment:
       - "^/research-core/"
       - "^/docker/"
       - "^/lockfiles/"
+      # Unrelated project dirs: perplexity holds an 8G+ in-repo venv
+      # (ar1_venv) and jspace holds 7.4G of artifacts — both ENOSPC'd the
+      # run11 r3 packaging on 2026-08-18. None of these are imported by
+      # masking.training.run.
+      - "^/perplexity/"
+      - "^/jspace/"
+      - "^/simlingo/"
+      - "^/bench2drive/"
+      - "^/autovla/"
 
