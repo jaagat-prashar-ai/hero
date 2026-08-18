@@ -141,7 +141,8 @@ def build(
     for r in pool:
         by_chunk.setdefault(r["chunk"], []).append(r)
     chunks = sorted(by_chunk)
-    logger.info("pool: %d clips across %d chunks", len(pool), len(chunks))
+    total_chunks = len(chunks)
+    logger.info("pool: %d clips across %d chunks", len(pool), total_chunks)
 
     # Shard assignment is decided UP FRONT, deterministically, from the pool
     # order alone -- so each clip's data can be uploaded straight to its
@@ -150,9 +151,6 @@ def build(
     # its shard; nothing needs re-numbering.
     n_shards = max(1, (len(pool) + shard_size - 1) // shard_size)
     shard_of_clip = {r["clip_id"]: i % n_shards for i, r in enumerate(pool)}
-    manifest_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
-    targets_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
-    dirty_shards: set[int] = set()
 
     def flush_shard_metadata(shard_ids) -> None:
         for i in shard_ids:
@@ -160,6 +158,52 @@ def build(
             s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/manifest.json", Body=json.dumps(manifest_by_shard[i]).encode())
             s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/targets.json", Body=json.dumps(targets_by_shard[i]).encode())
 
+    # Resume support: a clip already has ALL THREE of its files in S3 (this
+    # relies on this exact loop always writing coc.txt last -- see below) is
+    # treated as done and skipped entirely, both the HF re-download AND the
+    # re-upload. This is what makes a second relaunch after a partial
+    # failure cheap instead of a full redo -- see BUGS.md-style incident:
+    # the first full-scale attempt died at 760/770 chunks with EVERYTHING
+    # lost because nothing was durable until a final end-of-run batch step;
+    # this per-clip S3 presence check is the other half of that fix.
+    already_done: set[str] = set()
+    manifest_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
+    targets_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
+    paginator = s3.get_paginator("list_objects_v2")
+    for i in range(n_shards):
+        prefix = f"{s3_prefix_root}/shard_{i}/"
+        seen_coc: set[str] = set()
+        seen_obs: set[str] = set()
+        seen_ego: set[str] = set()
+        for page in paginator.paginate(Bucket=s3_bucket, Prefix=prefix):
+            for obj in page.get("Contents", []):
+                name = obj["Key"].rsplit("/", 1)[-1]
+                if name.endswith(".coc.txt"):
+                    seen_coc.add(name[: -len(".coc.txt")])
+                elif name.endswith(".obstacle.offline.parquet"):
+                    seen_obs.add(name[: -len(".obstacle.offline.parquet")])
+                elif name.endswith(".egomotion.offline.parquet"):
+                    seen_ego.add(name[: -len(".egomotion.offline.parquet")])
+        complete = seen_coc & seen_obs & seen_ego
+        already_done |= complete
+        # Re-seed in-memory shard metadata from what's already on S3 (if a
+        # prior attempt got partway before dying) so this run's flushes
+        # APPEND to it rather than clobber it with only this run's clips.
+        try:
+            existing_manifest = json.loads(s3.get_object(Bucket=s3_bucket, Key=f"{prefix}manifest.json")["Body"].read())
+            existing_targets = json.loads(s3.get_object(Bucket=s3_bucket, Key=f"{prefix}targets.json")["Body"].read())
+            manifest_by_shard[i] = [e for e in existing_manifest if e["clip_id"] in complete]
+            targets_by_shard[i] = [e for e in existing_targets if e["clip_id"] in complete]
+        except s3.exceptions.NoSuchKey:
+            pass
+    if already_done:
+        logger.info("resume: %d/%d clips already complete in S3, skipping their re-download/re-upload", len(already_done), len(pool))
+        by_chunk = {c: [r for r in rs if r["clip_id"] not in already_done] for c, rs in by_chunk.items()}
+        by_chunk = {c: rs for c, rs in by_chunk.items() if rs}
+        chunks = sorted(by_chunk)
+        logger.info("resume: %d/%d chunks still have remaining clips to process (rest fully done)", len(chunks), total_chunks)
+
+    dirty_shards: set[int] = set()
     n_staged = 0
     skipped: list[str] = []
 
@@ -223,7 +267,10 @@ def build(
             dirty_shards.clear()
 
         if (i + 1) % 20 == 0:
-            logger.info("processed %d/%d chunks, %d clips staged, %d skipped", i + 1, len(chunks), n_staged, len(skipped))
+            logger.info(
+                "processed %d/%d remaining chunks (%d/%d total), %d clips staged this run, %d skipped",
+                i + 1, len(chunks), total_chunks - len(chunks) + i + 1, total_chunks, n_staged, len(skipped),
+            )
 
     logger.info("staged %d/%d clips (%d skipped: missing chunk/clip data)", n_staged, len(pool), len(skipped))
     return {"n_clips_staged": n_staged, "n_skipped": len(skipped), "n_shards": n_shards, "skipped_clip_ids": skipped}
