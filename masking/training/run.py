@@ -138,6 +138,27 @@ def _load_done_rows(path: Path) -> set[tuple[str, int]]:
     return done
 
 
+def _seed_results_from_s3(results_path: Path, bucket: str, s3_prefix: str) -> None:
+    """Restore the durable S3 copy of this rank's results JSONL onto a fresh
+    node before resume reads it. Without this, a preempted+requeued pod starts
+    with an empty done-set and _upload_results overwrites the S3 object with
+    only the new run's rows (run11 lost 518+448 finished rows, 2026-08-18)."""
+    import boto3
+
+    if results_path.exists():
+        return
+    s3 = boto3.client("s3")
+    key = f"{s3_prefix.rstrip('/')}/{results_path.name}"
+    try:
+        body = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+    except s3.exceptions.NoSuchKey:
+        return
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+    results_path.write_bytes(body)
+    logger.info("Seeded %s from s3://%s/%s (%d bytes)",
+                results_path.name, bucket, key, len(body))
+
+
 def _upload_results(local_path: Path, bucket: str, s3_prefix: str) -> None:
     """Upload the results JSONL to S3. outdir is node-local storage -- it is
     NOT shared across nodes and does not survive the pod being torn down
@@ -587,6 +608,11 @@ def masking_loop(
     # ── 2. Load already-done rows if resuming ────────────────────────────────
     done: set[tuple[str, int]] = set()
     if cfg["resume"]:
+        if cfg.get("results_s3_prefix"):
+            try:
+                _seed_results_from_s3(results_path, cfg["s3_bucket"], cfg["results_s3_prefix"])
+            except Exception as exc:
+                logger.warning("Could not seed results from S3: %s", exc)
         done = _load_done_rows(results_path)
         logger.info("Resuming: %d events already done on rank %d", len(done), rank)
 
