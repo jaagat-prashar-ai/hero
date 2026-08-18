@@ -2017,7 +2017,6 @@ Row 1's minimum is the diagonal (−0.4) ✓; row 2's minimum is column 4 (−0.
 
             # prefix / suffix swap (i.e., clause reversal to understand effect of reversing the clause on the outputs of the action trajectory)
 
-
 │                             │ a1 (R1) │  a15  │ a2 (Super) │
 ├─────────────────────────────┼─────────┼───────┼────────────┤
 │ A mask-all                  │ 0.537   │ 0.170 │ 0.292      │
@@ -2032,3 +2031,49 @@ Row 1's minimum is the diagonal (−0.4) ✓; row 2's minimum is column 4 (−0.
 └─────────────────────────────┴─────────┴───────┴────────────┘
 
 # prefix / suffix experiment 
+
+# The setup:
+    # The goal is to teset whether the "faithfulness grader" actually reads the trajectory, rather than just pickign up on text artifacts. 
+
+# claude credits 
+    # implemenent idea of blending simlingo and alpamayo ideas
+        # counterfactual pre-training
+
+
+# Updated Alpamayo experiment, corpus is 616 clips, and should yield roughly ~700-730 reasoning traces per experiment arm - the exact number is determined at runtime. 
+    # The exact number is determined at runtime, because traces come from events sampled within each clip, not from clips directly. 
+    # In run10 the 52-clip manifest produced 61 events (~1.2 per clip), so 616 clips extrapolates to ~720. 
+    # Each event is one Alpamayo 1.5 rollout, i.e., one chain-of-causation trace that gets masked/ablated/reversed. 
+
+# The classes are the 9 OOD event-cluster types from ood_reasoning.parquet:
+
+┌───────────────────────────────────────┬───────┐
+│             Event cluster             │ Clips │
+├───────────────────────────────────────┼───────┤
+│ PEDESTRIAN_DENSITY_OR_CLOSE_PROXIMITY │ 150   │
+├───────────────────────────────────────┼───────┤
+│ WORK_ZONES_TEMP_TRAFFIC_CONTROL       │ 150   │
+├───────────────────────────────────────┼───────┤
+│ SPECIAL_OR_UNCOMMON_VEHICLE_BEHAVIOR  │ 149   │
+├───────────────────────────────────────┼───────┤
+│ CYCLISTS_AND_MICROMOBILITY_COMPLEX    │ 56    │
+├───────────────────────────────────────┼───────┤
+│ COMPLEX_INTERSECTION_INTERACTION      │ 32    │
+├───────────────────────────────────────┼───────┤
+│ EMERGENCY_INCIDENT_SCENE              │ 27    │
+├───────────────────────────────────────┼───────┤
+│ OTHER_LONGTAIL                        │ 20    │
+├───────────────────────────────────────┼───────┤
+│ ANIMALS_BIRDS_ROADKILL                │ 18    │
+├───────────────────────────────────────┼───────┤
+│ ROAD_DEBRIS_OR_SAFETY_TRACES          │ 14    │
+└───────────────────────────────────────┴───────┘
+
+The three head classes are sampled at ~150 each, while the six tail classes are essentially the full population available (the source parquet has ~1, 740 clips total across 9 types)
+
+# Two nuances: trace counts per class will scale with clip counts above (so ~175 traces for the head classes down to ~16 for road-debris)
+    # The tail classes will still have wide error bars 
+    # Expeirment d uses fewer traces than a/b/c, since only reversal-eligible tracwes quantify (run10: 51 of 61 for 15) - epxect roughly ~600 there. Once the first arm finishes I can give an exact per-class trace counts from JSONl rows. 
+
+
+
