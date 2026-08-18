@@ -91,6 +91,11 @@ runtime_environment:
       # workloads STOPPED with zero progress). The env comes from
       # pip_requirements_path; the local venv must never ship.
       - "^/\\.venv/"
+      # ar1_venv (8.1G py3.12) lives under perplexity/ — it filled /tmp with
+      # 4GB launch zips and ENOSPC-killed the run11 r3 submits (2026-08-18).
+      - "^/perplexity/"
+      # 7.4G of J-lens artifacts, not needed by masking workloads.
+      - "^/jspace/"
       - "^/build_wds/"
       - "^/mnist/"
       - "^/research-core/"
