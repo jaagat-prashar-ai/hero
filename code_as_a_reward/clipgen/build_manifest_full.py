@@ -3,14 +3,20 @@
 {clip_id, t0_us, gt_coc, chunk} (see build_manifest_full.pool_from_ood_reasoning),
 downloads each touched chunk's obstacle.offline + egomotion.offline label
 zips via the vendored scripts/download_pai.py, extracts each pool clip's own
-parquet + writes its GT coc text, shards round-robin into --shard-size-sized
-groups, and uploads each shard's manifest.json/targets.json/parquet/coc.txt
-to S3 (the same layout run_real_rollout_gen.py's manifest_data_s3_prefix
-restore expects).
+parquet + writes its GT coc text, and uploads each clip's data to S3
+IMMEDIATELY (shard index assigned up front, deterministically, so no
+end-of-run accumulation step is needed) -- the same layout
+run_real_rollout_gen.py's manifest_data_s3_prefix restore expects.
 
 Run on a cluster node (not a local dev box): the label zips for ~700+
 chunks run tens of GB, far more than this repo's usual dev-box headroom.
 Chunks are processed and deleted one at a time to keep local disk bounded.
+
+Crash safety: every clip's parquet/coc data is durable in S3 within
+seconds of extraction -- nothing is held in memory or local disk waiting
+for a final batch step. Each shard's manifest.json/targets.json is
+re-uploaded (small, cheap) after every chunk, so a crash loses at most the
+one in-flight chunk's shard-metadata updates, never any clip's actual data.
 """
 from __future__ import annotations
 
@@ -137,7 +143,24 @@ def build(
     chunks = sorted(by_chunk)
     logger.info("pool: %d clips across %d chunks", len(pool), len(chunks))
 
-    staged: list[dict] = []  # {clip_id, t0_us, gt_coc, obstacle_bytes, egomotion_bytes}
+    # Shard assignment is decided UP FRONT, deterministically, from the pool
+    # order alone -- so each clip's data can be uploaded straight to its
+    # final shard_N/ prefix the moment it's extracted, with no later
+    # accumulate-then-shard pass. A skipped clip just leaves a small gap in
+    # its shard; nothing needs re-numbering.
+    n_shards = max(1, (len(pool) + shard_size - 1) // shard_size)
+    shard_of_clip = {r["clip_id"]: i % n_shards for i, r in enumerate(pool)}
+    manifest_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
+    targets_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
+    dirty_shards: set[int] = set()
+
+    def flush_shard_metadata(shard_ids) -> None:
+        for i in shard_ids:
+            prefix = f"{s3_prefix_root}/shard_{i}"
+            s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/manifest.json", Body=json.dumps(manifest_by_shard[i]).encode())
+            s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/targets.json", Body=json.dumps(targets_by_shard[i]).encode())
+
+    n_staged = 0
     skipped: list[str] = []
 
     for i, chunk in enumerate(chunks):
@@ -164,55 +187,46 @@ def build(
                     except KeyError:
                         skipped.append(clip_id)
                         continue
-                    staged.append({**r, "_obstacle_bytes": obs_bytes, "_egomotion_bytes": ego_bytes})
+
+                    shard_i = shard_of_clip[clip_id]
+                    prefix = f"{s3_prefix_root}/shard_{shard_i}"
+                    # Uploaded straight from the read bytes -- never touches
+                    # local disk, never held in memory past this iteration.
+                    s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{obs_name}", Body=obs_bytes)
+                    s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{ego_name}", Body=ego_bytes)
+                    s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{clip_id}.coc.txt", Body=r["gt_coc"].encode())
+
+                    manifest_by_shard[shard_i].append(
+                        {
+                            "clip_id": clip_id,
+                            "obstacle_parquet": obs_name,
+                            "egomotion_parquet": ego_name,
+                            "gt_coc": f"{clip_id}.coc.txt",
+                            "hz": 10.0,
+                        }
+                    )
+                    targets_by_shard[shard_i].append({"clip_id": clip_id, "t0_us": r["t0_us"]})
+                    dirty_shards.add(shard_i)
+                    n_staged += 1
         except (zipfile.BadZipFile, FileNotFoundError) as e:
             logger.warning("chunk %d zip read failed (%s), skipping its %d clips", chunk, e, len(by_chunk[chunk]))
             skipped.extend(r["clip_id"] for r in by_chunk[chunk])
 
         shutil.rmtree(chunk_dir, ignore_errors=True)
+
+        # Re-upload manifest.json/targets.json for every shard touched by
+        # this chunk -- small (KB-scale) so doing it every chunk is cheap,
+        # and it's what makes a crash lose at most one chunk's worth of
+        # shard-metadata bookkeeping, never any clip's actual parquet/coc.
+        if dirty_shards:
+            flush_shard_metadata(dirty_shards)
+            dirty_shards.clear()
+
         if (i + 1) % 20 == 0:
-            logger.info("processed %d/%d chunks, %d clips staged, %d skipped", i + 1, len(chunks), len(staged), len(skipped))
+            logger.info("processed %d/%d chunks, %d clips staged, %d skipped", i + 1, len(chunks), n_staged, len(skipped))
 
-    logger.info("staged %d/%d clips (%d skipped: missing chunk/clip data)", len(staged), len(pool), len(skipped))
-
-    n_shards = max(1, (len(staged) + shard_size - 1) // shard_size)
-    shard_dir = work / "shards"
-    shard_dir.mkdir(exist_ok=True)
-    for idx, r in enumerate(staged):
-        shard_i = idx % n_shards
-        d = shard_dir / str(shard_i)
-        d.mkdir(exist_ok=True)
-        clip_id = r["clip_id"]
-        (d / f"{clip_id}.obstacle.offline.parquet").write_bytes(r.pop("_obstacle_bytes"))
-        (d / f"{clip_id}.egomotion.offline.parquet").write_bytes(r.pop("_egomotion_bytes"))
-        (d / f"{clip_id}.coc.txt").write_text(r["gt_coc"])
-
-    manifest_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
-    targets_by_shard: dict[int, list[dict]] = {i: [] for i in range(n_shards)}
-    for idx, r in enumerate(staged):
-        shard_i = idx % n_shards
-        clip_id = r["clip_id"]
-        manifest_by_shard[shard_i].append(
-            {
-                "clip_id": clip_id,
-                "obstacle_parquet": f"{clip_id}.obstacle.offline.parquet",
-                "egomotion_parquet": f"{clip_id}.egomotion.offline.parquet",
-                "gt_coc": f"{clip_id}.coc.txt",
-                "hz": 10.0,
-            }
-        )
-        targets_by_shard[shard_i].append({"clip_id": clip_id, "t0_us": r["t0_us"]})
-
-    for i in range(n_shards):
-        d = shard_dir / str(i)
-        (d / "manifest.json").write_text(json.dumps(manifest_by_shard[i]))
-        (d / "targets.json").write_text(json.dumps(targets_by_shard[i]))
-        prefix = f"{s3_prefix_root}/shard_{i}"
-        for f in d.iterdir():
-            s3.upload_file(str(f), s3_bucket, f"{prefix}/{f.name}")
-        logger.info("shard %d/%d: %d clips uploaded to s3://%s/%s", i + 1, n_shards, len(manifest_by_shard[i]), s3_bucket, prefix)
-
-    return {"n_clips_staged": len(staged), "n_skipped": len(skipped), "n_shards": n_shards, "skipped_clip_ids": skipped}
+    logger.info("staged %d/%d clips (%d skipped: missing chunk/clip data)", n_staged, len(pool), len(skipped))
+    return {"n_clips_staged": n_staged, "n_skipped": len(skipped), "n_shards": n_shards, "skipped_clip_ids": skipped}
 
 
 def run_from_lilypad_config(training_fn_config: dict, experiment_tracker=None) -> None:
