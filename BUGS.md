@@ -6,6 +6,35 @@ now, not routine typos.
 
 ---
 
+## 2026-08-18 — masking resume clobbers S3 results after preemption (run11 lost 518+448 finished rows)
+
+**Symptom:** run11 arms a/b were preempted (SIGINT, `preemptible: always`)
+after writing 518/448 rows to S3. Lilypad auto-requeued them (new workload
+ID, same name, ~35 min later); the requeued runs recomputed from event 0
+and the S3 JSONLs *shrank* (b_rank00: 3.7MB → 372KB) — prior rows gone
+from S3, ~20-25 GPU-h of finished compute silently redone.
+
+**Root cause:** `_load_done_rows` reads only the node-local JSONL. A
+requeued job lands on a fresh pod where that file doesn't exist, so the
+done-set is empty; the run then reprocesses everything and every
+`_upload_results` put_object overwrites the S3 object with only the new
+run's rows. `resume: true` had never actually been exercised across a pod
+boundary before (run9/run10 finished between preemptions), so this never
+surfaced.
+
+**Fix:** `_seed_results_from_s3` — on resume, if the local JSONL is
+missing and `results_s3_prefix` is set, download the S3 copy to the local
+path before loading the done-set. Requeues then genuinely skip finished
+events and appends preserve history.
+
+**Lesson:** "durable upload after every write" + "resume from local state"
+is a contradiction on preemptible infra — resume must seed from the same
+durable store the uploads write to. Also: Lilypad auto-requeue reuses the
+code zip from submit time, so a patched resume only takes effect on runs
+(re)submitted after the fix.
+
+---
+
 ## 2026-08-17 — cycle probe: pair-less ranks desync the gradient allreduce (NCCL watchdog SIGABRT on step 1)
 
 **Symptom:** `simlingo-cycle-probe-smoke-6ju593` (cycle_probe mode: frozen
