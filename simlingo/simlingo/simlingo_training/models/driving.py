@@ -17,7 +17,7 @@ from hydra.utils import get_original_cwd
 
 
 from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, AdaptorList
-from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss, group_delta_spans
+from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss, group_delta_spans, apply_traj_controls
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
                                                 TrainingOutput)
@@ -126,6 +126,8 @@ class DrivingModel(pl.LightningModule):
         self.cycle_probe = getattr(self, 'cycle_probe', False)
         self.cycle_use_gt_traj = getattr(self, 'cycle_use_gt_traj', False)
         self.cycle_delta_token_ce = getattr(self, 'cycle_delta_token_ce', False)
+        self.cycle_shuffle_traj = getattr(self, 'cycle_shuffle_traj', False)
+        self.cycle_traj_noise_m = getattr(self, 'cycle_traj_noise_m', 0.0)
         if self.cycle_loss_weight > 0:
             template_ids = self.tokenizer(
                 "\nWhich instruction produced this trajectory?\n",
@@ -397,6 +399,12 @@ class DrivingModel(pl.LightningModule):
                 # explainer-only arm: train the trunk to read trajectories without
                 # letting the ranking gradient reshape the trajectory itself
                 traj_pts = traj_pts.detach()
+        if self.cycle_traj_noise_m > 0 or self.cycle_shuffle_traj:
+            # probe rigor controls: noise ablation and/or the shuffled-pairing
+            # leakage control (per-step re-randomized, so no learnable pairing)
+            traj_pts = apply_traj_controls(
+                traj_pts, noise_m=self.cycle_traj_noise_m, shuffle=self.cycle_shuffle_traj
+            )
         traj_tokens = self.wp_encoder(traj_pts.to(self.wp_encoder.mlp[0].weight.dtype))
 
         # candidate side: plain-text prompt tokens (speed prefix + instruction).
