@@ -1,0 +1,122 @@
+# NOISE ABLATION at sigma=0.3m (the pre-registered steganography
+# tripwire magnitude) on GT trajectories. Signal mostly surviving =
+# coarse/semantic geometry; collapse to chance = the ranker reads
+# sub-30cm detail (steganography-adjacent at Stage-1).
+# (cloned from smoke_cycle_probe.yaml)
+# Stage-0 cycle learnability probe: can "which sibling instruction produced
+# this trajectory?" be learned AT ALL, with the driving model out of the blast
+# radius? Loads the upstream fully-trained SimLingo release checkpoint
+# (epoch=013, mirrored to S3), freezes everything except wp_encoder + the LoRA
+# adapters, skips the vision/main-task forward entirely, conditions the cycle
+# pass on GT waypoints/path (not untrained predictions), and scores each
+# candidate's CE only over its group's discriminative token span.
+# Pre-registered gate on VAL cycle_rank_acc (chance 0.25 at K=4):
+#   >= ~0.40 -> task learnable, design Stage-1 co-training (separate params,
+#               GT->pred curriculum, grad-norm-balanced weight);
+#   ~  0.25 -> instructions not decodable from trajectories at K=4; shelve
+#              co-training, pivot to eval-panel / frozen-critic routes.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/smoke_cycle_probe.yaml
+name: simlingo-cycle-probe-noise03
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo"
+    # upstream epoch=013 consolidated fp32 state dict (2.57GB); keys verified
+    # against this model: wp_encoder + LoRA present, only text_proj/traj_proj
+    # missing (they stay at init and are unused here)
+    probe_ckpt_s3_key: "hf-datasets/RenzKa/simlingo-ckpt/epoch013_pytorch_model.pt"
+    workdir: "/mnt/work/simlingo_smoke"
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      # subset has no bucket index files; sample uniformly instead
+      - data_module=carla_no_buckets
+      - max_epochs=2
+      - val_every_n_epochs=1
+      # no vision pass and no main-task forward in probe mode, so the OOM
+      # ceiling that forced bs=1 on the cycle smoke arms does not apply;
+      # bs=2 doubles groups/step (2 groups x K=4 -> 32 short cycle seqs)
+      - data_module.batch_size=2
+      - data_module.num_workers=8
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      - model.language_model.gradient_checkpointing=true
+      # frozen upstream checkpoint; non-strict because this repo adds modules
+      # the release predates (every skipped key is printed at load time)
+      - checkpoint=/mnt/work/simlingo_smoke/probe_ckpt.pt
+      - checkpoint_strict=false
+      - model.cycle_probe=true
+      - model.cycle_use_gt_traj=true
+      - model.cycle_delta_token_ce=true
+      - model.cycle_traj_noise_m=0.3
+      # the ranking objective is the ONLY loss; no warmup needed since there
+      # is no main task to protect
+      - model.cycle_loss_weight=1.0
+      - model.cycle_detach=true
+      - model.cycle_warmup_steps=0
+      # adapter-scale learning rate (only wp_encoder + LoRA train)
+      - model.lr=1e-4
+      - wandb_project=simlingo-contrastive
+      - name=smoke_cycle_probe_noise0.3
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # no checkpoint persistence: an eviction is a total restart (see the cycle
+  # smoke history); the probe is short, keep it deterministic
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch pip install ~3 GB + 54 GB dataset extract before first GPU step
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    SIMLINGO_EXPECTED_OBJECTS: "121"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/bench2drive/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
