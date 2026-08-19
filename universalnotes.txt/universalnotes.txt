@@ -2278,5 +2278,42 @@ Where the runs landed:
     # Baseline: simlingo-cycle-base-smoke-nfso8q (w=0, 2 epochs) - EXPEIRMENT_RUNNING since 13:52 PDT 
     # Phase A GT-warmup: simlingo-cycle-gtwarmup-smoke-bkd83j (GT trajectoriws, w=0.2, 1 epoch) - EXPERIMENT_RUNNIGN since 13:52 PDT
 
+# Smoke run for CARLA is alive: 
+    # the three eval files (dfb6b01c), plus a one-line follow-up commit adding the required experiment_tracker block that the workload schema demanded (diff showna bove). 
 
-# 
+    # Launched the smoke eval: workload simlingo-b2d-smoke-k2-s1234-rdphko - k2 s1234 epoch=002, first 8 Bench2Drive routes, one per GPU on an 100.8, with visuslaization uploads so we can we eyeball the driving. 
+    # montioring th earmed/. 
+
+# Steps for clipgen GRPO 
+    # Step 2 - curation (25 shards, ~31 clips/shard):
+        # The last full-corpus curation run (341 clips/8 shards, ~43 clips/shard) took ~30 min GPU rollout sampling + 32-35 min cpu generation. 
+
+# wave-1 jobs are healthy at ~30 minutes in . 
+    # GT-warm
+
+# All Probes: 
+    # They all share the same skeleton. Take SimLingo fully trained (the epoch-13 checkpoint) and freeze it - its weights never change, so nothing we do can hurt the driving model. 
+        # The data provides, for each camera frame, 4 siblign instructions ("turn left", "turn right", "slow down", ...) each paired with the trajectory it produces. 
+        # We train only two tiny added pieces - the wp_encoder (which turns the trajectory points into tokens the LLM can consume) and LoRA adapters - on one quiz: given a trajectory (no image1), which of the 4 instructions produced it? Random guessing scores 25%. Each probe changes exactly one thing about this quiz. 
+
+    1. Original probe: "Is this quiz possible at all?
+        # The plain version: real ground-truth trajectories, correct pairings. Result: 54.8% vs 25% chance. Meaning: trajectories genuinely contain enough information to identify the instruction behind them. This mattered because earlier co-training attempts had failed, and we need to know whethe the teask was impossible or just the training setup was broken. Th estup didnt' seem good, so we fixed it. 
+
+    2. Seed replication (s7) - "Was that a fluke?"
+            # Identical in every way, except the random seed (which controls weight initialization and data shuffling order). If the original result dependended on a lucky seed, this run would come out very diffeerent. It didn't - the resutl reproduced. One-word purpose: reproducibility. 
+
+    3. Shuffled-pairing control (shufctl) - "Is this quiz rigged?" 
+            # Same setup, but every trainign step, trajectories get randomly swapped between examples - so the trajectory shown alongside an instruction is essentially never the one that actually goes with it. There is now nothing real to learn. 
+                # If the model still scored above 25%, it woudl mean it was passing the quiz using some accidental side-channel (e.g., differences in instruction text lengths or token positions) rather than reading trajectories - which would invalidate the original result. It scored exactly at chance. One-word purpose: no cheating is possible; the original result is trustworthy. 
+
+    4. Predicted-trajectory probe (pred) - "Does it work on the model's own output?"
+        # Instead of the datast's real trajectories, feed the quiz the trajectories the frozen model itself predicts for each scene. This matters because the eventual goal (Stage-1) is to make the model's own behavior explainable by its instruction - so the signal must exist in model outputs, not just in ground-truth labels. It does, comfortably. One-word purpose: the Stage-1 curriculum has a viable endpoint. 
+
+    5. Noise tripwire (noise03) and the new curve (noise01/noise06/noise10) - "Where does the signal live?"
+        # Same as the original probe, but every trajectory point gets random jitter added - σ = 0.1m, 0.3, 0.6m, 1.0m across the four runs. The logic: a real "turn left vs. turn right" difference is meters in size and survives small jitter; a hidden steganographic code would live in millimeter-to-centimeter detail and be desroyed by it. The 0.3m point already showed the signal survives (so it's coarse, honest geometry). The three new runs fill int he curve: 0.1m should barely hurt; 1.0m - bigger than a lane offset - should hurt a lot. The shape of accuracy-vs-noise tells us the physical scale of the informatoin the ranker actually uses, and gives us a calibrated tripwire for Stage-1; if a co-trained model someday beats this curve at high noise, it must be smuggling information some other way. 
+
+    # In one sentence each: original = the task is learnable; s7 = and it replicates; shufctl = and it's not an artifact; pred = and it works on model outputs; noise curve = and here's the physical scale of the signal, so we can detect cheating later. 
+
+    # Current fleet after teh relaunch: 2 baselines + 3 GT-warmup arms + 3 noise probes running (64 GPUs). Next milestone is unchanged. 
+
+#
