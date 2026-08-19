@@ -24,6 +24,10 @@ workload_variant_config:
     route_timeout_s: 10800
     setup_timeout_s: 5400
     upload_viz: true  # smoke only: eyeball the overlays; off for the sweep
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-b2d-eval
 
 cluster_resources:
   gpu_machine_type: a100.8
