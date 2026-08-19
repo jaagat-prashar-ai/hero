@@ -2213,3 +2213,10 @@ Where the runs landed:
 #cycle_use_gt_traj=false (pred), the cycle pass instead feeds the model's own rpedicte dtrajectory - the frozn checkpoint's speed-wwaypoint and route predictions, computed under no_grad. 
     # The question beconmes: "is the isntructin recoverable from waht the model actually outputs?"
 
+# Stage-1 co-training plan uses a GT-predicted curriculum: start training the cycle loss on ground-truth trajectorioes, then ramp over to the model's own predictions, because at the end of the day you want the model's outputs to be explainable by the instruction, not just the labels. 
+    # The risky question was whether that curriculum has a viable endpoint: maybe the instruction signal exists in GT trajectories but the forzen model's predictions are too degenerate or too instruction-insensitive to carry it. 
+    # The config's own comment states the pre-registered read: >= 0.40 rank accuracy = strong Stage-1 green light; ~chance = the signal only exists in GT and the curriculum ramp is the dangerous part. 
+
+# The result - preda t val cycle_loss is 0.482, actually better than s7's GT-based 0.574 (the frozen checkpoint's predicted trajectories aerlady vary with instruction enough to identify it).
+
+# hwo do we make reasoning converage?
