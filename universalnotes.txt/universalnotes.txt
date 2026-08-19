@@ -2240,3 +2240,11 @@ Where the runs landed:
 
 
         # cycle's loss can be flowed into the writer or action decoder 
+            # If the cycle loss's gradients are allowed to flow into the writer, there's a shorcut available. Reader and writer are inside the same network, trained together, so they can develop a private code: the writer adds tiny, humanly-invisible wiggles?
+
+# SimLingo architecture review: 
+    # SimLingo is basically a vision encoder + LLM + a trajectory/waypoint decoder head. "Reader" and "writer" aren't extra modules; they're roles that the existing modules play in two different passes through the network. 
+        # 
+
+# arguemnt, driving is inherently multimodal and you learn by "what not to do" more than "what you should do"
+    # waht "not to do" forms your own mental maximal semantic perturbation or decision point.s. 
