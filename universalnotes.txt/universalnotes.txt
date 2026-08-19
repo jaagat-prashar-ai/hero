@@ -2180,4 +2180,18 @@ Noise (cycle_traj_noise_m=0.3): isotropic Gaussian noise, traj_pts + torch.randn
         # When both flags are on, noise is applied first, then shuffle - but these two runs each used only one flag. 
         # The shufle result was as clean as it gets: val cycle_loss came out at 1.386 = ln(4) exactly (the uniform-over-4 floor). The 0.161 train rank acc being below 0.25 is just last-batch noise (16 samples), not a real below-chance effect. 
 
-    
+# In the noise run, the 0.3m is added durign the test (validation) too, not just during training. 
+    # So when we measure the score, the model is being graded on corrupted inputs. 
+
+# Imagine two trajectories in the same scene that differ only slightly (say one veers 20cm further left than the other. After adding random 30cm jitter to every point, those two trajectories become genuinely indistinguishable. No mode no matter how good, could tell them apart anymore, because the information that separated them has been destroyed by the noise itself.)
+
+# We want to measure hwo robust the model si to the noise. It mixes two things together - (a) the model's ability degrading, and (b) the test istself getting harder. For the question "does the signal survive losing sub-30cm detail?" that's fine, because the point was exactly to destroy teh fine detail and see if anything remains - and it clearly does, since 0.699 is above the 1.386 chance floor. 
+
+# The model has to identify which of 4 candidate instructions produced it (metric here is cross-entropy loss on that choice).
+    # The task is 4-way: given a trajectory, the model has to identify which of 4 candidate instructions produced it. The metric here is cross-entropy loss on that choice. 
+
+    # The task is 4-way: given a trajectory, the model has to identify whihc of the 4 candidate instructions produced it. The metric here is cross-entropy loss on that choie. 
+        # If a model knows nothing and just guesses uniformly, the probability is 1/4 to the correct answer, and the loss is -ln(1/4) = ln(4) = 1.386.
+        # "Chance" value - the loss we get from pure guessing. 
+        
+    # why is k=4 a good inflection point? review the results. 
