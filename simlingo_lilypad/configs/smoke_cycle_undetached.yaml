@@ -53,10 +53,10 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  # These smokes have no checkpoint persistence, so an eviction is a total
-  # restart, not a resume: gen-1 burned 31h of wall-clock on a 7h job and
-  # gen-3 lost ~45% of epoch 0 the same way. Preemption cost > spot savings
-  # at this point, same reasoning as the full_k* runs.
+  # Ckpts persist to S3 (CHECKPOINT_S3_PREFIX) but resume isn't auto-wired,
+  # so an eviction is still a total restart: gen-1 burned 31h of wall-clock on
+  # a 7h job and gen-3 lost ~45% of epoch 0 the same way. Preemption cost >
+  # spot savings at this point, same reasoning as the full_k* runs.
   preemptible: never
   allowed_regions:
     - us-chicago-1
@@ -77,6 +77,7 @@ runtime_environment:
     # reduce fragmentation headroom pressure (suggested by the OOM error itself)
     PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
     SIMLINGO_EXPECTED_OBJECTS: "121"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
 
   code_assets:
     root_directory: .

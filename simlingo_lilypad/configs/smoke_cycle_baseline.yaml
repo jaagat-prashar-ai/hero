@@ -50,7 +50,9 @@ cluster_resources:
   gpu_machine_type: a100.8
   num_gpus: 8
   customer_resource: research
-  preemptible: always
+  # ckpts now persist to S3 but resume isn't auto-wired; eviction is still a
+  # total restart. Same reasoning as the cycle arms / full_k* runs.
+  preemptible: never
   allowed_regions:
     - us-chicago-1
   requeue_if_preempted: true
@@ -70,6 +72,7 @@ runtime_environment:
     # reduce fragmentation headroom pressure (suggested by the OOM error itself)
     PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
     SIMLINGO_EXPECTED_OBJECTS: "121"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
 
   code_assets:
     root_directory: .
