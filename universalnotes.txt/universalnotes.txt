@@ -2195,3 +2195,21 @@ Noise (cycle_traj_noise_m=0.3): isotropic Gaussian noise, traj_pts + torch.randn
         # "Chance" value - the loss we get from pure guessing. 
         
     # why is k=4 a good inflection point? review the results. 
+
+# So the scale is from 1.386 (guessing) to 0 (perfect) and "performing above chance" means having a loss below 1.386.
+
+Where the runs landed:
+    # Shuffled control: 1.386 - exactly the guessing value, as it should be, since the pairing was destroyed. 
+    # Noise run: 0.699 - roughly halfway down the scale toward perfect (As a rough intuition, 0.699 = ln(2), the loss we would get if the noise typically eliminated two of the four candidates and the model reliabily chose between the remaining two.)
+    # Clean seed-7 run: 0.574 - better still. 
+
+# The noise run's 0.699 means the model is still doing substantailly better than guessing even with 30cm jitter - the signal survives, which is the answer the tripwire was designed to get. 
+
+# pre-trained vlm has internet-based knowledge, using discrete tokens is nice 
+
+# s7 (nztjhz): mode.cycle_use_gt_traj=true, the cycle pass feeds the ground truht trajectory from the dataset labels (the actualr ecorded waypoints and path - into the wp_encoder). So teh qusestion being tested is: "is the instrution recoverable from teh true trajectory?"
+    #This is the sam esetup as the original gat-eapssing probe: s7's only jobw as to show that the 0.548 result wasn't a seed flukle. 
+
+#cycle_use_gt_traj=false (pred), the cycle pass instead feeds the model's own rpedicte dtrajectory - the frozn checkpoint's speed-wwaypoint and route predictions, computed under no_grad. 
+    # The question beconmes: "is the isntructin recoverable from waht the model actually outputs?"
+
