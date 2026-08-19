@@ -167,6 +167,9 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     env["CARLA_ROOT"] = str(workdir / "carla0915")
     env["SCENARIO_RUNNER_ROOT"] = str(sim_root / "Bench2Drive" / "scenario_runner")
     env["PYTHONPATH"] = ":".join([
+        # pip `carla` provides the client lib but NOT the PythonAPI `agents.*`
+        # package that scenario_runner imports (SLURM script exported this too)
+        str(workdir / "carla0915" / "PythonAPI" / "carla"),
         str(sim_root),
         str(sim_root / "Bench2Drive" / "leaderboard"),
         str(sim_root / "Bench2Drive" / "scenario_runner"),
