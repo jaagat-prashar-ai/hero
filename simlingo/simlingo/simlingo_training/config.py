@@ -65,6 +65,13 @@ class DrivingModelConfig:
     # score each candidate's CE only over the tokens that differ across its
     # group (common prefix/suffix trimmed) instead of the full-sequence mean
     cycle_delta_token_ce: bool = False
+    # rigor controls for the Stage-0 probe family:
+    # re-randomize the trajectory<->group pairing every step; a genuine
+    # trajectory->instruction signal cannot survive this (expect chance acc)
+    cycle_shuffle_traj: bool = False
+    # additive Gaussian noise (meters) on the cycle trajectory input; probes
+    # whether the ranking signal is coarse-geometry or sub-noise-scale detail
+    cycle_traj_noise_m: float = 0.0
 
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 
