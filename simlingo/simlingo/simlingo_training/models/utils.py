@@ -169,6 +169,27 @@ def group_delta_spans(cand_id_list: list) -> list:
     return spans
 
 
+def apply_traj_controls(traj_pts: Tensor, noise_m: float = 0.0, shuffle: bool = False) -> Tensor:
+    """
+    Probe-family rigor controls applied to the cycle pass's trajectory input.
+
+    noise_m > 0 adds isotropic Gaussian noise (meters, matching the waypoint
+    units) to every point — probes whether the ranking signal survives losing
+    sub-noise-scale geometry. shuffle=True re-draws a batch-level permutation
+    of the trajectories EVERY call, so no consistent trajectory<->instruction
+    pairing exists for the loss to learn: a genuine signal must collapse to
+    chance under it, and anything above chance is leakage through a
+    trajectory-independent channel (span positions, lengths, group sizes).
+
+    Order matters only in that shuffle is applied last; both default to no-op.
+    """
+    if noise_m > 0:
+        traj_pts = traj_pts + torch.randn_like(traj_pts) * noise_m
+    if shuffle:
+        traj_pts = traj_pts[torch.randperm(traj_pts.size(0), device=traj_pts.device)]
+    return traj_pts
+
+
 def summarise_losses(
     loss_dict: Dict[str, Tuple[Tensor, Tensor]], weights: Optional[Dict[str, float]] = None
 ) -> TrainingOutput:
