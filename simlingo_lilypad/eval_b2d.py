@@ -21,6 +21,7 @@ from typing import Any
 
 import boto3
 import ujson
+from botocore.config import Config
 
 FAIL_STATUSES = (
     "Failed - Agent couldn't be set up",
@@ -31,7 +32,28 @@ FAIL_STATUSES = (
 
 
 def _s3_client():
-    return boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
+    # OCI's S3-compat endpoint rejects s3transfer's chunked encoding
+    # ("NotImplemented") -- same bug/fix as s3_checkpoint.py (BUGS.md 2026-07-01).
+    # Callers must use put_object, never upload_file.
+    return boto3.client(
+        "s3",
+        endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"),
+        config=Config(
+            signature_version="s3v4",
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+            s3={"payload_signing_enabled": True},
+            retries={"max_attempts": 5, "mode": "adaptive"},
+        ),
+    )
+
+
+def _put_file(s3, bucket: str, key: str, path: Path) -> None:
+    try:
+        with open(path, "rb") as fh:
+            s3.put_object(Bucket=bucket, Key=key, Body=fh.read())
+    except Exception as e:  # an upload hiccup must not kill the rank's route loop
+        print(f"[b2d-eval] WARN upload failed {key}: {e}", flush=True)
 
 
 def _fetch_and_extract(s3, bucket: str, key: str, dest: Path, workdir: Path) -> None:
@@ -210,13 +232,16 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
 
         ok = _route_done(result_file)
         n_ok += ok
+        if not ok and log_file.exists():
+            tail = log_file.read_bytes()[-3000:].decode("utf-8", "replace")
+            print(f"[b2d-eval] rank {rank} route {route_id} log tail:\n{tail}", flush=True)
         for local, sub in ((result_file, "res"), (log_file, "out")):
             if local.exists():
-                s3.upload_file(str(local), bucket, f"{results_prefix}/{sub}/{local.name}")
+                _put_file(s3, bucket, f"{results_prefix}/{sub}/{local.name}", local)
         if cfg.get("upload_viz"):
             for p in sorted((viz_root / route_id).rglob("*")):
                 if p.is_file():
-                    s3.upload_file(str(p), bucket, f"{results_prefix}/viz/{route_id}/{p.relative_to(viz_root / route_id)}")
+                    _put_file(s3, bucket, f"{results_prefix}/viz/{route_id}/{p.relative_to(viz_root / route_id)}", p)
         print(f"[b2d-eval] rank {rank} route {route_id}: {'OK' if ok else 'FAILED'}", flush=True)
 
     print(f"[b2d-eval] rank {rank} finished: {n_ok}/{len(my_routes)} routes ok", flush=True)
