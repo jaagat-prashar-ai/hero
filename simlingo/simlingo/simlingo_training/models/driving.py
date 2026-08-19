@@ -319,7 +319,9 @@ class DrivingModel(pl.LightningModule):
             loss_dict.update(self.contrastive_alignment_loss(adaptor_dict, adaptor_features, loss_dict, example.group_ids))
 
         if self.cycle_loss_weight > 0 and example.group_ids is not None:
-            loss_dict.update(self.cycle_consistency_loss(adaptor_dict, loss_dict, example.group_ids))
+            loss_dict.update(self.cycle_consistency_loss(
+                adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
+            ))
 
         loss_dict_only_losses = {k:v for k, v in loss_dict.items() if k.endswith("loss")}
         loss_logs = {k:v for k, v in loss_dict.items() if k.endswith("log")}

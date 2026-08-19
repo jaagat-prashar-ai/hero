@@ -1571,6 +1571,28 @@ against the main pass's K=4), not the objective.
 
 ---
 
+## 2026-08-19 — GT-trajectory cycle loss crashes in co-training mode: driving_label never passed
+
+**Symptom:** `AttributeError: 'NoneType' object has no attribute 'waypoints'`
+at `driving.py cycle_consistency_loss` (`traj_parts = [driving_label.waypoints]`)
+on the first validation sanity-check batch of
+`simlingo-cycle-gtwarmup-smoke-bkd83j` (Stage-1 Phase-A GT warmup),
+EXPERIMENT_FAILED 34m after launch.
+**Root cause:** `cycle_consistency_loss(..., driving_label=None)` has the
+label as an optional kwarg. The probe path (`cycle_probe=true`) passes
+`driving_label=example.driving_label`; the normal co-training path called
+it without the kwarg. Every prior co-training arm ran
+`cycle_use_gt_traj=false`, so the GT branch never executed and the missing
+argument was latent. The gtwarmup config is the first to combine
+`cycle_use_gt_traj=true` with the co-training path.
+**Fix:** pass `driving_label=example.driving_label` at the co-training
+call site (driving.py forward_loss).
+**How this was found:** worker-log traceback after the workload failed;
+the probes' clean GT-path validations localized the difference to the
+call-site arguments rather than the GT branch itself.
+
+---
+
 ## Format for new entries
 
 ```
