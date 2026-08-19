@@ -2316,4 +2316,39 @@ Where the runs landed:
 
     # Current fleet after teh relaunch: 2 baselines + 3 GT-warmup arms + 3 noise probes running (64 GPUs). Next milestone is unchanged. 
 
-#
+# In normal training, yes, the model produces predictions every step. But in the cycle quiz, the trajectory isn't the thing being predicted - it's the input to the quiz. And that input can come from two different sources: 
+
+    # Normal driving training;
+        # Input: camera image + instruction 
+        # Model predicts: a trajectory 
+        # The prediction is comapred against the ground-truth trajectory to compute the loss. The GT is the target.
+
+    
+    # The cycle quiz (what the probes do):
+        # Input: a trajectory (no image)
+        # Model predicts: which of 4 instructions produced it 
+
+    # Someone has to supply that input trajectory, and there are two choices:  
+        # 1. Ground truth - the expert-driven trajectory stored in the dataset. This is what the original probe, s7, shufctl, and the noise probes all fed in. The model's own trajectory head is compeltely uninvolved - it never even runs. The quiz is "can you read real driving?"
+        # 2. The model's predictions - run the frozen model's forward pass first (image + instruction -> predicted trajectory), then feed that trajectory into the quiz. Only the pred probe did this. The quiz becomes "can you read what the model actually outputs?" 
+            # So no - four of the five probes never touched model predictions at all. 
+
+
+    # cyclic thingy. 
+        # GT trajectories are guaranteed to differ meaningfully between "turn left" and "turn right" - a human actually drove them differently. 
+        # But there was no guarantee the model's outputs differ meaningfully across instructions. 
+        # A plausible failure mode: the model mostly ignores the instruction and predicts roughly the same "continue straight" trajectory regardless - in which case its outputs would carry no instruction signal, the quiz on predictions would sit at chance, and the whole Stage-1 plan (making the model's own behavior explainable by its instructions) would be built on sand. 
+        # The pred probe ruled that out: the frozen model's predictions do vary with the instruction, enouogh to identify it at well above chance. 
+
+# I am not feeding in all four instructions at once. 
+    # Concretely:   
+        # 1. Take the trajectory, convert its x, y points into token embeddings via wp_encoder. 
+        # 2. Build one input sequence: [trajectory tokens] + [short template] + [candidate instruction #1's text] - feed it to the LLM (no image), and read off the LLM's ordinary next-token probabilities over the instruction's tokens. That gives a score: "how plausible is instruction #1's wording, given this trajectory came first?" (technically the cross-entropy of those tokens). 
+        # 3. Repeat with candidate #2, #3, #4 - four independent forward passes, pairing the same trajectory with a different candidate. 
+        # 4. Comapre the four scores. If the true instruction got the best (lowest cross-entropy) score, that counts as correct. cycle_rank_acc is the fraction of times the true one wins; the training los spushes the true pairing's score to beat its sibligns'. 
+
+    # The "multiple choice" structure exists only in our comparison of the four scores - from the model's point of view, each forward pass is just ordinary language modeling: "given these trajectory tokens, how surprising is this text?"
+
+    # Two refinements worth knowing: 
+        # It's actually all KxK pairings per group (every trajectory against every sibling instructions), not just one trajectory vs 4. - every trajectory in the group runs its own 4-way contest, which getes more training signal out of each batch. 
+    # The scoring doesn't use each instruction's full text. The 4 siblings share most of their wording (same scene, same phrasing template), so the cross-entropy is computed only over the tokens where the candidates actually differ - the discriminative span (cycle_delta_token_ce=true). This was a hard-won fix: scoring the full text let the LLM's gneric language prior ("which sentence is more common English") dominate, and accuracy pinned at chance. 
