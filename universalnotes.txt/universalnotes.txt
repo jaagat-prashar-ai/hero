@@ -2244,7 +2244,39 @@ Where the runs landed:
 
 # SimLingo architecture review: 
     # SimLingo is basically a vision encoder + LLM + a trajectory/waypoint decoder head. "Reader" and "writer" aren't extra modules; they're roles that the existing modules play in two different passes through the network. 
-        # 
 
 # arguemnt, driving is inherently multimodal and you learn by "what not to do" more than "what you should do"
-    # waht "not to do" forms your own mental maximal semantic perturbation or decision point.s. 
+    # waht "not to do" forms your own mental maximal semantic perturbation or decision points. 
+
+# Completed (all verified on S3)
+# CARLA: 
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                Asset                                                │                                                      Location                                                       │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Consolidated k2 checkpoints (both seeds, epoch=002, 2.4 GB each) + reconstructed .hydra/config.yaml │ s3://research-datasets-chicago/simlingo-checkpoints-consolidated/20260817090017_full_k2_w0.5_{s1234,s9876}/         │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ CARLA 0.9.15 (7.8 GiB) + AdditionalMaps (3.8 GiB), streamed straight to S3                          │ s3://research-datasets-chicago/simlingo-b2d-eval/                                                                   │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Eval code tarball (Bench2Drive + leaderboard + scenario_runner + team_code, 91 MiB)                 │ same prefix — verified it contains agent_simlingo.py, leaderboard_evaluator.py, and the 220-route bench2drive_split │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+# Stage-dict keys of the converted checkpoints match DrivingModel's moduel layout exactly (including the LoRA structure), so the agent's load_state_dict should work as-is. Note the first eval-code tarball upload was silently corrupt (tar ran from the wrong dir); it's been replaced and integrity-checked. 
+
+# Proposed repo changes (drafts ready, not yet written)
+    Three new files, drafted in the scratchpad for your review: 
+
+    1. simlingo_lilypad/eval_b2d.py (draft: scratchpad/draft_eval_b2d.py) - eval entrypoint mirroring run.py's worker model: rank 0 pulls CARLA + eval code + checkpoint from S3 to /mnt/work, others wait on a marker; each of the 8 ranks evaluates routes[rank::8] sequentially with per-route entry (ported from the paper's filter _completed logic), per-route wall timeout, stray-CARL cleanup, and immediate per-route result upload to s3://.../simlingo-b2d-results/<eval_name>/. 
+    GPU pinning follows run.py's scheme, with --gpu-rank steering CARLAs's Vulkan adapter to the same phsyical GPU. 
+
+
+    2. simlingo_lilypad/configs/eval_b2d_smoke_k2_s1234.yaml (draft: scratchpad/draft_eval_b2d_smoke_k2_s1234.yaml) - smopke config: k2_s1234_epoch=002, first 8 routes only (one per GPU), a100.8 non-preemtible, viz uploads on. 
+
+    3. simlingo_lilypad/requirements_eval.txt (draft: scratchpad/draft_requirements_eval.txt) - the training pip overlay plus the leaderboard/agent runtime deps (filterpy, py-trees==0.8.3, dictor, ephem, transform3d, ...)
+
+    
+# Wave-1 jobs are launched and running: 
+    # Baseline: simlingo-cycle-base-smoke-nfso8q (w=0, 2 epochs) - EXPEIRMENT_RUNNING since 13:52 PDT 
+    # Phase A GT-warmup: simlingo-cycle-gtwarmup-smoke-bkd83j (GT trajectoriws, w=0.2, 1 epoch) - EXPERIMENT_RUNNIGN since 13:52 PDT
+
+
+# 
