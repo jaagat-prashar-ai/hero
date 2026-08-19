@@ -2075,5 +2075,109 @@ The three head classes are sampled at ~150 each, while the six tail classes are 
     # The tail classes will still have wide error bars 
     # Expeirment d uses fewer traces than a/b/c, since only reversal-eligible tracwes quantify (run10: 51 of 61 for 15) - epxect roughly ~600 there. Once the first arm finishes I can give an exact per-class trace counts from JSONl rows. 
 
+    # Keep thinking creatively and experimenting more. 
+
+    # The manifest-builder job never touches W&B.  // manifest builder. 
+    # What's running right now (81% done): just data staging. Pull obstacle tracks + egomotion + GT reasoning text from HF, upload to S3. No LLM calls, no reward function generation, no Alpamayo inference - just moving raw input files, just moving raw input files into place. 
+    # What hasn't started yet: the actual "clipgen" step - for each clip, that means (1) sampling real Alpamayo driving rollouts on a GPU, then (2) calling gpt-4o write a candidate Python reward function, then (3) running that function through a verification gate against the real rollout data, keepint it only if it passes. 
+    # That's the step that produces an actual reward_fns/<clip_id>.py file - and it hasn't been launched yet, because it needs th emanifest data th ecurrent job is still building. 
+
+    # So there's nothing to view - not because of missing dashboard, but because the thing you'd want to look at (generated reward function source, pass/fail per clip) hasn't been created for any of these ~1050 clips. What is the pass rate on these clips?
+    # That all happens in the curation stage right after this one finishes, and that's also when the W&B links and visualizations become real (per-clip generation attempts, gate scores, rollout overlays).
+    
+    # To be concrete abotu timing: once the manifest build finishes (~2.5-3h from now), I'll launch ~25 curation shard jobs, and reward functions will start appearing incrementally as each shard processes ~43 clips. 
+
+    # Alpamayo experiments progress:
+        ┌───────────────────┬─────────────────────────────────┬───────────────────────────────────────────┬─────────────────────────────────────────────┐
+        │        Arm        │ Rows written (of ~720 expected) │               What happened               │                Current state                │
+        ├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+        │ a (mask-all)      │ 518 (~72%)                      │ ran ~1h, then externally stopped at 11:13 │ relaunched as masking-run11-a15-a-r2-ahajei │
+        ├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+        │ b (concepts)      │ 448 (~62%)                      │ same, stopped ~11:28                      │ relaunched as masking-run11-a15-b-r2-74v0gd │
+        ├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+        │ c (prefix/suffix) │ 175 (~24%)                      │ ran ~10:15–10:58, preempted               │ requeued automatically, waiting for nodes   │
+        ├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+        │ d (reversal)      │ 105                             │ same as c                                 │ requeued, waiting for nodes                 │
+        └───────────────────┴─────────────────────────────────┴───────────────────────────────────────────┴─────────────────────────────────────────────┘
+
+# 
+┌───────────────────┬─────────────────────────────────┬───────────────────────────────────────────┬─────────────────────────────────────────────┐
+│        Arm        │ Rows written (of ~720 expected) │               What happened               │                Current state                │
+├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+│ a (mask-all)      │ 518 (~72%)                      │ ran ~1h, then externally stopped at 11:13 │ relaunched as masking-run11-a15-a-r2-ahajei │
+├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+│ b (concepts)      │ 448 (~62%)                      │ same, stopped ~11:28                      │ relaunched as masking-run11-a15-b-r2-74v0gd │
+├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+│ c (prefix/suffix) │ 175 (~24%)                      │ ran ~10:15–10:58, preempted               │ requeued automatically, waiting for nodes   │
+├───────────────────┼─────────────────────────────────┼───────────────────────────────────────────┼─────────────────────────────────────────────┤
+│ d (reversal)      │ 105                             │ same as c                                 │ requeued, waiting for nodes                 │
+└───────────────────┴─────────────────────────────────┴───────────────────────────────────────────┴─────────────────────────────────────────────┘
+
+# Goals:
+    # Run more complete alpamayo runs make plots   
+        # further test the prefix/suffix and cause reversal idea. 
+    # Creative experiments with pulling loss both ways (i.e., contrastive loss idea but also tugging it the other way where we condition on a trajectory, and ask how instruction-decodable it is)
+    # generator/discriminator approach 
+    # counterfactual rewards
+    # order in which we train (can we transfer skills over, distill them), learn with fewer training steps 
+    # make reasoning more efficient? what is a strong vocabulary. hold fixeid buckets and make the various models converge. 
+    # new autolabeling pipeline, mixture of vlms. 
+
+# SIGINT thing: 
+    # normal preemption (the jobs run preemptible), and the auto-requeue works. That part is fine by design. 
+
+# But resume is broken across preemptions. _load_done_rows (masking/training/run.py:127) only reads the node-local JSONL. A requeued job lands on a fresh pod where that file doesn't exist, so it thinks zero events are done and recomputes everything from scratch. 
+    # _upload_results then overwrites the S3 file with only the new run's rows - which is exactly what I just observed: arm b's rank00 file went from 3.7MB (448 rows total) to 372KB. The 518 a-rows and 448 b-rows are gone from 
+
+# pre-training recipes 
+    # Yes, exactly - the first run got to 760/770 chunks, the didn't write the final batch of shard files to S3, because it used s3.upload_file(), which triggers AWS chunked encoding that OCI's S3 endpoint flatly rejects. 
+        # fix: wrote the script to use s3.put_object() (raw_upload, no chunked encoding) instead of upload_file(), and to upload each clip's data immediately after extraction rather than batchiing everything until the end. 
+
+# Relaunched as clipgen-build-manifest-full1050-soowy (currently 60/770 chunks, 8%). 
+    # verified fix works: checked S3 directly after only 20 chunks and confirmed clip data was already landing there, well before the run finishes. 
+
+# "760" was chunks, not clips - the previous run processed 760 of 770 chunks (batches of clips). 
+
+# Progress with Alpamayo RL code reward clipgen runs comparison 
+    # 100/770 chunks (!3%), 154 clips staged, 0 skipped 
 
 
+# Probe Ablations 
+    # The headline: the shuffled control sits at exact chance, and the predicted-trajectory probe is the strongest run of the four. 
+        # Nice! 
+
+    # From the W&B end-of-run summaries in the worker logs (chance floor for val cycle_loss is ln(4) = 1.386); original ftv4uw probe for reference: vall loss 0.621:
+    
+
+┌───────────────────────────────┬───────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│             Probe             │ Train rank acc (last  │     Val       │                                                            Read                                                            │
+│                               │        batch)         │  cycle_loss   │                                                                                                                            │
+├───────────────────────────────┼───────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ s7 replication (nztjhz)       │ 0.781                 │ 0.574         │ Replicates — slightly better than the original's 0.621                                                                     │
+├───────────────────────────────┼───────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ shuffled-pairing control      │ 0.161                 │ 1.386         │ Exactly ln(4), i.e. textbook chance → no leakage, the probe claim stands                                                   │
+│ (j77egl)                      │                       │               │                                                                                                                            │
+├───────────────────────────────┼───────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ predicted-trajectory (pu2159) │ 0.665                 │ 0.482         │ Lowest loss of all four — instructions are decodable even from frozen-model predicted trajectories, which was the          │
+│                               │                       │               │ strong-green-light condition for Stage-1                                                                                   │
+├───────────────────────────────┼───────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ noise σ=0.3m tripwire         │ 0.509                 │ 0.699         │ Degraded vs. s7 but far above the chance floor → the signal is coarse trajectory geometry, not sub-30cm                    │
+│ (icklc5)                      │                       │               │ steganography-adjacent detail                                                                                              │
+└───────────────────────────────┴───────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+# Stage 0 - probe (done, gate passed). Is the task learnable? Freeze the entire SimLingo trunk (the epoch-13 checkpoint), train only a small probe (wp_encoder + LoRA), and test whether the driving instruction can be decoded from the trajectory - a 4-way ranking task (chance 0.25). 
+# The pre-registered rule was: val cycle_rank_acc >= 0.40 means the task is learnable and the earlier gen-1 through gen-3 co-training failures were problems with the training setup (gradient interference, loss scale, untrained trajectories), not evidence that the task itself iss impossible. 
+
+# apply_traj_controls (simlingo/simlingo/siumlingo_training/models/utils.py:172), applied in the cycle pass right after the trajectory tensor is assembled and just before it goes into the wp_encoder (models/driving.py:414-419). So both controls perturb the trajectory input to the probe, in meters, before any encoding  - the rest of the pipeline is untouched. 
+
+Noise (cycle_traj_noise_m=0.3): isotropic Gaussian noise, traj_pts + torch.randn_like(traj_pts) * 0.3. Each coordinate of every trajectory point (the GT waypoints plus the path, since this run used cycle_use_gt_traj=True) independently gets N(0, 0.3^2) meters added. The noise is re-drawn on every forward call (training and validation) - so the model can never memorize a fixed pertuirbed trajectory: it has to rank correctly from geometry that's onyl reliuable above the ~30cm scale. 
+# That's the tripwire logic: if the probe's signal lived in sub-30cm coordinate detail (a steganography-adjacent channel), accuracy would collapse to chance; surviivng mean sit reads coarse maneuever geometry . 
+
+# Shuffle (cycle_shuffle_traj=True): a batch-level random permutation - traj_pts[torch.randperm(batch_size)] - re-drawn on every call. Each sample's trajectory is swapped for a random other sample's trajectory from that rank's batch (which usually isn't even from the same K-group/scene). Because the permutation is fresh each step, there's no consistent trajectory<-> instruction pairing at all for the loss to learn. 
+    # That's what makes it a leakage control: a genuine trajectory-based signal must collapse to chance undeer it, so anything above chance would have to be flowing through a trajectory-independent side channel - things like candidate span positions, token lengths, or group sizes. 
+
+    # Details: 
+        # When both flags are on, noise is applied first, then shuffle - but these two runs each used only one flag. 
+        # The shufle result was as clean as it gets: val cycle_loss came out at 1.386 = ln(4) exactly (the uniform-over-4 floor). The 0.161 train rank acc being below 0.25 is just last-batch noise (16 samples), not a real below-chance effect. 
+
+    
