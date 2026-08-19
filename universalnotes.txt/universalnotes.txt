@@ -2220,3 +2220,23 @@ Where the runs landed:
 # The result - preda t val cycle_loss is 0.482, actually better than s7's GT-based 0.574 (the frozen checkpoint's predicted trajectories aerlady vary with instruction enough to identify it).
 
 # hwo do we make reasoning converage?
+
+# Main fix with GT-warmup! 
+    # The cycle loss has a "reader" in it - the part of the model (wp_encoder + trunk pathway) whose job is: look at a trajectory, figure out which instruction produced it. 
+    # Early in training, the model's predicted trajectories are close to garbage; trajectory head hasn't learned to drive yet. 
+        # If we ask the reader to identify instructions from garabage, there's nothing there to read. 
+        # Two trajectories for "turn left" and "turn right" both look like random squiggles, so the task is literally unsolvable. The reader gets no useful learning signal - just noise - and that noise arrives as gradients precisely when the model is at its most fragile. That's suspected to be part of why the earlier co-training attempts (gen-3) failed. 
+            # look into G3 attempts. 
+        # GT trajectories fix this: they're real expert driving from the dataset, meanignful from step one. 
+            # Warmup is: let the reader learn to read on clean, real trajectories first; switch to the model's own trajectories once those are good enough to be readable. Like teaching someone to read using printed text before handing them a toddler's scribbles. 
+
+        # But why would the model even write gameable trajectories?
+        "Learn to read" vs. "learn to write gameable trajectories":
+            # Two roles in the cycle loss:
+                # The reader: trajectory in -> which instruction was this?
+                # The writer: the trajectory head that produces the trajectory in the first place. 
+
+            # What you want is for the loss to train the reader, and for the writer to be pushed toward genuinely instruction-appropraite driving - turning left when told to turn left. 
+
+
+        # cycle's loss can be flowed into the writer or action decoder 
