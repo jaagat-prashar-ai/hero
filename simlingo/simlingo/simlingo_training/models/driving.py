@@ -285,12 +285,24 @@ class DrivingModel(pl.LightningModule):
         """
 
         if self.cycle_probe:
-            # probe mode: no vision pass, no task losses - only the cycle
-            # ranking objective on GT trajectories through the frozen trunk
+            # probe mode: no task losses - only the cycle ranking objective
+            # through the frozen trunk. With cycle_use_gt_traj the vision/main
+            # forward is skipped entirely; without it (pred-traj probe) the
+            # frozen model's own predictions are computed under no_grad - the
+            # loaded checkpoint is fully trained, so they carry real signal.
             assert example.group_ids is not None, "cycle_probe needs dreamer groups (dreamer_contrastive=true)"
             adaptor_dict = self.adaptors(example)
+            probe_loss_dict = {}
+            if not self.cycle_use_gt_traj:
+                with torch.no_grad():
+                    probe_features, probe_logits = self.forward_model(
+                        example.driving_input, adaptor_dict, driving_labels=example.driving_label
+                    )
+                    probe_loss_dict = self.adaptors.compute_loss(
+                        probe_features, probe_logits, adaptor_dict, example
+                    )
             loss_dict = self.cycle_consistency_loss(
-                adaptor_dict, {}, example.group_ids, driving_label=example.driving_label
+                adaptor_dict, probe_loss_dict, example.group_ids, driving_label=example.driving_label
             )
             if per_sample:
                 return loss_dict, {}
