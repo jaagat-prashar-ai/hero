@@ -1,0 +1,121 @@
+# SEED-7 REPLICATION (second seed, pre-registered >=2-seed requirement).
+# (cloned from smoke_cycle_gtwarmup.yaml)
+# SimLingo Stage-1 Phase A: GT-trajectory warmup for the GT->pred curriculum.
+# One epoch of reader training (wp_encoder + trunk learn to rank sibling
+# instructions from GT trajectories) before Phase-B arms switch to the model's
+# own predictions. On the GT path the trajectory is inherently detached
+# (labels, not model outputs), so det/undet arms are IDENTICAL in this phase:
+# this single run is the shared warmup checkpoint for BOTH Phase-B arms
+# (smoke_cycle_detached/undetached resumed from its S3 ckpt).
+# Kept short deliberately: the pred probe (pu2159, val cycle_loss 0.482)
+# showed the curriculum endpoint is easily learnable, so a long GT phase buys
+# little. Contrastive loss OFF to isolate the cycle effect; dreamer grouping
+# stays ON since it supplies the K-groups.
+# Baseline comparison arm: smoke_cycle_baseline.yaml.
+# Data: 5 lb1_split training chunks + 1 validation chunk (S3 mirror, ~57 GB).
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/smoke_cycle_gtwarmup_s7.yaml
+name: simlingo-cycle-gtwarmup-smoke-s7
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo"
+    workdir: "/mnt/work/simlingo_smoke"
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      # subset has no bucket index files; sample uniformly instead
+      - data_module=carla_no_buckets
+      # Phase A only: Phase-B arms continue training from this ckpt
+      - max_epochs=1
+      - val_every_n_epochs=1
+      # batch_size counts dataset items; dreamer items expand to K=4 samples,
+      # so the forward batch is up to 4x this on dreamer-heavy batches.
+      # bs=2 + the cycle pass (32 extra full-vocab-logit sequences) OOMed at
+      # 75.5GB on the first training step (y35tq3/a1flqu, 2026-08-14); bs=1
+      # halves both passes (4 samples + 16 cycle seqs), same fix as K=7 (6d986b8).
+      # CAVEAT: bs=1 doubles optimizer steps/epoch vs the bs=2 baseline arm -
+      # compare epoch-indexed val metrics; det-vs-undet comparison is unaffected.
+      - data_module.batch_size=1
+      - data_module.num_workers=8
+      # keep the safety objective out of the alignment experiments
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      # cycle pass adds a second (short-sequence) trunk forward+backward with a
+      # full vocab-logits tensor; grad checkpointing for memory headroom
+      # (proven at K=7, commit 802c3da)
+      - model.language_model.gradient_checkpointing=true
+      # GT trajectories: cycle_detach is a no-op on this path (GT is inherently
+      # detached) but set true to state the intent
+      - model.cycle_use_gt_traj=true
+      - model.cycle_loss_weight=0.2
+      - model.cycle_detach=true
+      - model.cycle_warmup_steps=1000
+      - seed=7
+      - wandb_project=simlingo-contrastive
+      - name=smoke_cycle_gtwarmup_w0.2_s7
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # Ckpts persist to S3 (CHECKPOINT_S3_PREFIX) but resume isn't auto-wired,
+  # so an eviction is still a total restart: gen-1 burned 31h of wall-clock on
+  # a 7h job and gen-3 lost ~45% of epoch 0 the same way. Preemption cost >
+  # spot savings at this point, same reasoning as the full_k* runs.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch pip install ~3 GB + 54 GB dataset extract before first GPU step
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    # reduce fragmentation headroom pressure (suggested by the OOM error itself)
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    SIMLINGO_EXPECTED_OBJECTS: "121"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/bench2drive/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
