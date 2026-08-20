@@ -2148,6 +2148,8 @@ The three head classes are sampled at ~150 each, while the six tail classes are 
 
     # From the W&B end-of-run summaries in the worker logs (chance floor for val cycle_loss is ln(4) = 1.386); original ftv4uw probe for reference: vall loss 0.621:
     
+# check on batch size, get a larger matrix 
+
 
 ┌───────────────────────────────┬───────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │             Probe             │ Train rank acc (last  │     Val       │                                                            Read                                                            │
@@ -2352,3 +2354,79 @@ Where the runs landed:
     # Two refinements worth knowing: 
         # It's actually all KxK pairings per group (every trajectory against every sibling instructions), not just one trajectory vs 4. - every trajectory in the group runs its own 4-way contest, which getes more training signal out of each batch. 
     # The scoring doesn't use each instruction's full text. The 4 siblings share most of their wording (same scene, same phrasing template), so the cross-entropy is computed only over the tokens where the candidates actually differ - the discriminative span (cycle_delta_token_ce=true). This was a hard-won fix: scoring the full text let the LLM's gneric language prior ("which sentence is more common English") dominate, and accuracy pinned at chance. 
+
+Clipgen discriminative margin check (minimizing the data):  
+    # This is a sanity check on whether a per-clip reward function is actually specific to its own clip, using real trained-policy rolloust rather than synthetic GT perturbations. 
+
+    # The setup: each of the 156 commited reward fns (reward_fns<clip_id>.py) was originally validated only against its own clip's GT-based perturbation gate - it was never checked against other clips' real rollouts. So A fn could pass its own gate by accident (e.g., by keying on some incidental trajectory pattern) while actually rewarding almost any clip similarly, meaning it isn't teaching the policy anything clip-specific during GRPO. 
+
+    What I computed: using the real trained rollouts dumped during the v2 main-arm BRPO run (149 clips, each with 12 sampled rollout from the actual trained policy, not synthetic data), I built a 149x156 matrix: for every reward fn, score every clip's real rollout group with it, taking the best (argmax) rollout's sscore. That gives, for fn X, one score for "how much credit does fn X give its own target clip's real behavior" and 148 more scores for "how much credit does fn X give every other clip's real behavior"
+    
+    the margin: own_score - p90(scores on the other 148 clips). If fn x's own clip doesn't beat the top 10% of unrelated clips scored by the same fn, that fn isn't discriminating anyuthing - it's just generically generous (or its own clip happens to underperform on it), and training against it can't be teaching the policy anything specific to that scene. 
+
+    # 37/14 judged fns cam eback negative 
+
+    # 149 = clips that had real trained-policy rollout dumps from the v2 main-arm GRPO run (rows - whose rollouts got scored)
+    # 156 = reward fns commited reward_fns/ from the old 341-clip corpus (columns - the scoring functions applied)
+
+
+# updates: 
+    # probes and more probes
+    # autovla, and bench2drive (running now)
+    # alpamayo more extensive runs 
+    # clipgen, GRPO code as a reward 
+    # checking reward function against other examples to see if this is good 
+        # almost the same perturber checker, but not quite (we are just shuffling this in some sense)
+    
+
+
+# Previous GRPO links:
+    - main (clipgen): https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260817200928
+    - shufctl (bogus-target control): https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260817203248
+    - trace156 (TraceReward/global-heuristic control): https://appliedintuition.wandb.io/research/alpamayo-rl/runs/20260817203238
+
+ # Was the learning signal meaninful? Modest, real, and only partly clip-specific. 
+    # Statistically real results: main beats shufctl on the same reward fun, clip-by-clip, p = 0.016/0.07 
+    # Practically strong signal, the effect size is small 
+
+# Probability metrics: 
+
+main vs shufctl's paired per-clip scores (n=149 clips, each scored by the same reward fn).
+    #On the p-values: these come from comparing main vs shufctl's paired per-clip scores (n=149 clips, each scored by the same reward fn).
+
+- p=0.016 is from a paired t-test: it assumes the differences (main−shufctl per clip) are roughly normal and asks "if there were truly no difference between arms, what's the chance we'd see a gap this large (or larger) by chance alone?" 1.6% chance.
+- p=0.007 is from a Wilcoxon signed-rank test: same question, but rank-based instead of assuming normality — more robust to outliers/skew. 0.7% chance under the no-difference assumption.
+
+Both being small (well under the usual 0.05 cutoff) and roughly agreeing is why I called the difference "statistically real" — two different tests, different assumptions, same conclusion. It does not mean the effect is large — p-value tells you about confidence that a nonzero difference exists, not its size. That's exactly the "real but weak" split I flagged: confident the effect isn't zero (p=0.016/0.007), but the actual size is small (+0.039, ~9.5% relative).
+
+# Comparison table for prior GRPO run (weak, but ok signal)
+    # Here's the comparison between both fleets:  
+
+
+┌───────────────────────────────────┬──────────────────────────┬────────────────────────────────┬──────────────────────────────────────────────────────────┐
+│                                   │      main (clipgen)      │ shufctl (bogus-target control) │        trace156 (global heuristic / TraceReward)         │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ Run ID                            │ 20260817200928           │ 20260817203248                 │ 20260817203238                                           │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ code_clipgen_used                 │ 1.0 (clipgen path fired) │ 1.0                            │ 0.0 (confirms it's on the global heuristic, not clipgen) │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ code_reward_raw: first20 → last20 │ 0.357 → 0.443 (+0.087)   │ 0.142 → 0.179 (+0.037)         │ 0.502 → 0.580 (+0.078)                                   │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ traj_L2: first20 → last20         │ 2.572 → 2.192 (−0.38)    │ 2.505 → 2.148 (−0.36)          │ 2.589 → 2.093 (−0.50, biggest improvement)               │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ train/entropy drop                │ 6.80 → 6.35 (−0.45)      │ 6.80 → 6.55 (−0.25)            │ 6.80 → 5.68 (−1.12, much sharper)                        │
+├───────────────────────────────────┼──────────────────────────┼────────────────────────────────┼──────────────────────────────────────────────────────────┤
+│ KL loss (avg, final)              │ 0.033                    │ 0.031                          │ 0.086 (highest)                                          │
+└───────────────────────────────────┴──────────────────────────┴────────────────────────────────┴──────────────────────────────────────────────────────────┘
+
+The actual statistical claim (p=0.016 paired-t, p=0.007 Wilcoxon) comes from a separate, more careful analysis that this table doesn't capture:
+
+1. Take main and shufctl's real final-checkpoint rollouts (149 clips each, from the S3 dumps, not the W&B training curve).
+2. Score both arms' rollouts with the SAME reward fn (the true clip-specific fn, not each arm's own training signal) — this is what makes it apples-to-apples, since main and shufctl were trained against different targets, so their own code_reward_raw numbers (what's in this table) aren't comparable at all.
+3. That gives 149 paired observations (one pair per clip: main's score vs shufctl's score, same fn, same clip) — a real n, with each pair sharing the clip's difficulty/scene as a natural control.
+4. Run a paired t-test and Wilcoxon signed-rank on those 149 pairs — that's where p=0.016/0.007 come from.
+
+# actual training loss isn't raw CEs - it's a softmax over the 4 CE scores with a cross-entropy on that (grouped_rank_cycle_loss). In other words: turn the four "how surprising is this text" numbers into a probability distribution over candidates, then demand the true candidate get the mass. So it's cross-entropy at both levels - token-level CE as the scoring rule, group-level CE as the ranking objective. That's also exactly why the chance floor is ln(4): a model with no information produces four equal scores -> uniform distribution -> loss = ln(4). That clean, intepretable floor (which the shuffled control landed on exactly) is itself a nice diagnostic property of this choice - with an ad-hoc scoring rule, you wouldn't know what "knows nothing" looks like numerically. 
+
+# VLM as a faithfulness checker 
+# SDPO (read on this and implement it), is this effectively simialr to code as a reward?
