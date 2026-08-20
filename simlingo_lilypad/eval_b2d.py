@@ -84,6 +84,7 @@ def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
         _fetch_and_extract(s3, bucket, f"{assets}/CARLA_0.9.15.tar.gz", carla_root, workdir)
         _fetch_and_extract(s3, bucket, f"{assets}/AdditionalMaps_0.9.15.tar.gz", carla_root, workdir)
         (workdir / ".carla_done").touch()
+    _make_carla_nonroot_shim(carla_root)
 
     # eval code lands inside the code-asset copy of simlingo/simlingo so all
     # relative imports/paths match the upstream repo layout
@@ -99,6 +100,31 @@ def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
             print(f"[b2d-eval] fetching {obj['Key']}", flush=True)
             s3.download_file(bucket, obj["Key"], str(local))
     marker.touch()
+
+
+def _make_carla_nonroot_shim(carla_root: Path) -> None:
+    """UE4 refuses to start as root ("Refusing to run with the root
+    privileges.", exit 1) and lilypad containers run as root. Rename the real
+    launcher and drop a same-named wrapper that re-execs it as user `carla`,
+    so leaderboard_evaluator's unmodified CarlaUE4.sh invocation keeps
+    working without rebuilding the eval_code tarball."""
+    real = carla_root / "CarlaUE4_real.sh"
+    shim = carla_root / "CarlaUE4.sh"
+    subprocess.run("id -u carla >/dev/null 2>&1 || useradd -m -u 7777 -s /bin/bash carla",
+                   shell=True, check=True)
+    if not real.exists():
+        shim.rename(real)
+        subprocess.run(f"chown -R carla:carla {carla_root}", shell=True, check=True)
+    shim.write_text(
+        "#!/bin/bash\n"
+        f'REAL="{real}"\n'
+        'if [ "$(id -u)" != 0 ]; then exec "$REAL" "$@"; fi\n'
+        "if command -v setpriv >/dev/null 2>&1; then\n"
+        '  exec setpriv --reuid carla --regid carla --init-groups env HOME=/home/carla "$REAL" "$@"\n'
+        "fi\n"
+        'exec su carla -s /bin/bash -c "HOME=/home/carla exec $REAL $*"\n'
+    )
+    shim.chmod(0o755)
 
 
 def _wait_for_marker(marker: Path, timeout_s: int) -> None:
