@@ -262,7 +262,10 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     s3 = _s3_client()
     bucket = cfg["s3_bucket"]
     results_prefix = f"{cfg.get('results_prefix', 'simlingo-b2d-results').rstrip('/')}/{eval_name}"
-    port = 10000 + int(phys_gpu) * 500
+    # CARLA binds rpc-port AND rpc-port+1/+2 (streaming/secondary); base 10000
+    # collided with Ray's client server on 10001 (bind fail -> UE4 segfault),
+    # and Ray reserves worker ports up to 19999 -- stay above that range
+    port = 20100 + int(phys_gpu) * 500
     tm_port = 30000 + int(phys_gpu) * 500
 
     _preflight_carla(workdir / "carla0915", phys_gpu, port, workdir, env)
