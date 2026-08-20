@@ -12,6 +12,8 @@ sequentially: leaderboard_evaluator.py boots its own CARLA server per route
 """
 import os
 import shutil
+import signal
+import socket
 import subprocess
 import sys
 import tarfile
@@ -131,6 +133,43 @@ def _kill_stray_carla(gpu: str) -> None:
     )
 
 
+def _preflight_carla(carla_root: Path, gpu: str, port: int, workdir: Path, env: dict) -> None:
+    """Boot CarlaUE4 once and verify its RPC port opens. Without this, a
+    headless startup failure (e.g. missing Vulkan/driver GL libs on the worker
+    image) leaves leaderboard_evaluator blindly retrying 600s client timeouts
+    ~20 times -- every route burns route_timeout_s with zero diagnostics."""
+    log_path = workdir / f"carla_preflight_gpu{gpu}.log"
+    cmd = (f"{carla_root / 'CarlaUE4.sh'} -RenderOffScreen -nosound "
+           f"-carla-rpc-port={port} -graphicsadapter={gpu}")
+    with open(log_path, "wb") as log:
+        proc = subprocess.Popen(cmd, shell=True, preexec_fn=os.setsid, env=env,
+                                stdout=log, stderr=log)
+    try:
+        deadline = time.time() + 300
+        while time.time() < deadline and proc.poll() is None:
+            try:
+                with socket.create_connection(("127.0.0.1", port), timeout=5):
+                    print(f"[b2d-eval] preflight OK: CARLA RPC up (gpu {gpu} port {port})", flush=True)
+                    return
+            except OSError:
+                time.sleep(5)
+        tail = log_path.read_bytes()[-4000:].decode("utf-8", "replace") if log_path.exists() else "<no log>"
+        diag = subprocess.run(
+            "nvidia-smi -L; echo ---; ls -la /usr/share/vulkan/icd.d /etc/vulkan/icd.d 2>&1; "
+            "echo ---; ldconfig -p | grep -iE 'vulkan|nvidia-gl|GLX_nvidia'",
+            shell=True, capture_output=True, text=True)
+        raise RuntimeError(
+            f"CARLA preflight failed (gpu {gpu}, server exit={proc.poll()}).\n"
+            f"--- CarlaUE4 log tail ---\n{tail}\n"
+            f"--- gpu/vulkan diag ---\n{diag.stdout}{diag.stderr}")
+    finally:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        _kill_stray_carla(gpu)
+
+
 def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None) -> None:
     cfg = training_fn_config
     rank = int(os.environ.get("RANK", "0"))
@@ -199,6 +238,8 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     results_prefix = f"{cfg.get('results_prefix', 'simlingo-b2d-results').rstrip('/')}/{eval_name}"
     port = 10000 + int(phys_gpu) * 500
     tm_port = 30000 + int(phys_gpu) * 500
+
+    _preflight_carla(workdir / "carla0915", phys_gpu, port, workdir, env)
 
     n_ok = 0
     for route_xml in my_routes:
