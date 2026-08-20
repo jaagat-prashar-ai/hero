@@ -273,12 +273,16 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
                 except subprocess.TimeoutExpired:
                     print(f"[b2d-eval] rank {rank} route {route_id} timed out", flush=True)
             _kill_stray_carla(phys_gpu)
+            if not _route_done(result_file):
+                # surface + persist diagnostics NOW, not after the retry also
+                # burns route_timeout_s (bit us on the first smoke: 6h blind)
+                if log_file.exists():
+                    tail = log_file.read_bytes()[-3000:].decode("utf-8", "replace")
+                    print(f"[b2d-eval] rank {rank} route {route_id} attempt {attempt + 1} failed, log tail:\n{tail}", flush=True)
+                    _put_file(s3, bucket, f"{results_prefix}/out/{log_file.name}", log_file)
 
         ok = _route_done(result_file)
         n_ok += ok
-        if not ok and log_file.exists():
-            tail = log_file.read_bytes()[-3000:].decode("utf-8", "replace")
-            print(f"[b2d-eval] rank {rank} route {route_id} log tail:\n{tail}", flush=True)
         for local, sub in ((result_file, "res"), (log_file, "out")):
             if local.exists():
                 _put_file(s3, bucket, f"{results_prefix}/{sub}/{local.name}", local)
