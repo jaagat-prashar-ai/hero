@@ -69,13 +69,23 @@ def _fetch_and_extract(s3, bucket: str, key: str, dest: Path, workdir: Path) -> 
 
 
 def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
-    marker = workdir / ".setup_done"
-    if marker.exists():
-        print("[b2d-eval] setup marker exists, skipping", flush=True)
-        return
     s3 = _s3_client()
     bucket = cfg["s3_bucket"]
     assets = cfg.get("assets_prefix", "simlingo-b2d-eval").rstrip("/")
+
+    # eval code lands inside the code-asset copy of simlingo/simlingo so all
+    # relative imports/paths match the upstream repo layout. This must run
+    # even when a reused node carries the setup marker: sim_root lives in the
+    # per-job Ray working dir, so the marker-skip path would otherwise leave
+    # it empty (zero routes found -> job "succeeds" doing nothing) and would
+    # also pin whatever eval-code version the node saw first
+    _fetch_and_extract(s3, bucket, f"{assets}/eval_code.tar.gz", sim_root, workdir)
+
+    marker = workdir / ".setup_done"
+    if marker.exists():
+        print("[b2d-eval] setup marker exists, skipping carla/ckpt fetch", flush=True)
+        _make_carla_nonroot_shim(workdir / "carla0915")
+        return
 
     carla_root = workdir / "carla0915"
     if not (workdir / ".carla_done").exists():
@@ -85,10 +95,6 @@ def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
         _fetch_and_extract(s3, bucket, f"{assets}/AdditionalMaps_0.9.15.tar.gz", carla_root, workdir)
         (workdir / ".carla_done").touch()
     _make_carla_nonroot_shim(carla_root)
-
-    # eval code lands inside the code-asset copy of simlingo/simlingo so all
-    # relative imports/paths match the upstream repo layout
-    _fetch_and_extract(s3, bucket, f"{assets}/eval_code.tar.gz", sim_root, workdir)
 
     session = cfg["checkpoint_session"]
     ckpt_prefix = cfg.get("checkpoint_prefix", "simlingo-checkpoints-consolidated").rstrip("/")
@@ -250,6 +256,8 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
         routes = [r for r in routes if r.stem.split("_")[-1] in wanted]
     if cfg.get("max_routes"):
         routes = routes[: int(cfg["max_routes"])]
+    if not routes:
+        raise RuntimeError(f"no route XMLs under {route_dir} -- eval code missing?")
     my_routes = routes[rank::world_size]
     print(f"[b2d-eval] rank {rank}/{world_size} gpu {phys_gpu}: {len(my_routes)}/{len(routes)} routes", flush=True)
 
