@@ -806,7 +806,9 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
         """
         assert route_waypoints.size(0) == 1
         route_waypoints = route_waypoints[0].data.cpu().numpy()
-        speed = velocity[0].data.cpu().numpy()
+        # scalar, not (1,) array: the PID window mixes it with scalar zeros
+        # and numpy >= 1.24 refuses np.mean over the inhomogeneous window
+        speed = velocity[0].data.cpu().numpy().item()
         speed_waypoints = speed_waypoints[0].data.cpu().numpy()
 
         # m / s required to drive
@@ -864,7 +866,7 @@ class LingoAgent(autonomous_agent.AutonomousAgent):
 
         del self.model
         del self.config
-        if self.cfg.data_module.encoder == 'llavanext':
+        if self.cfg.data_module.get('encoder', None) == 'llavanext':
             del self.processor
 
 
