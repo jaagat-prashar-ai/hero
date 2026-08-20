@@ -1,0 +1,73 @@
+# Full-corpus scale-up clipgen curation, shard 14/25: new 1050-clip pool
+# (excludes the 149/156 clips already curated in corpus352v3), staged via
+# build_manifest_full.py to manifest_full1050/shard_14. Same already-validated
+# single-GPU pipeline as corpus352v3, just a disjoint clip list.
+#
+# Submit (from repo root):
+#   HF_TOKEN=... OPENAI_API_KEY=$(cat ~/.creds/openai.key) \
+#     python lilypad/launch.py code_as_a_reward/clipgen/configs/clipgen_full1050_shard14.yaml
+name: clipgen-full1050-shard14
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_real_rollout_loop
+  training_fn_config:
+    manifest_data_s3_prefix: "code_as_a_reward/clipgen/manifest_full1050/shard_14"
+    group_size: 12
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+    rollouts_local: "/mnt/work/tmp/clipgen_rollouts_full1050_shard14"
+    out_dir: "/mnt/work/tmp/clipgen_out_full1050_shard14"
+    s3_bucket: "research-datasets-chicago"
+    rollouts_s3_prefix: "code_as_a_reward/clipgen/real_rollouts/full1050-shard14"
+    s3_prefix: "code_as_a_reward/clipgen/runs/full1050-shard14"
+    backend: "openai"
+    wandb_project: "code-as-reward-clipgen"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+    - OPENAI_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/rl_posttrain/"
+      - "^/counterfactual/"
+      - "^/perplexity/alpamayo/ar1_venv/"
+      - "^/perplexity/clip_cache/"
+      - "^/convos/"
+      - "^/judge_dataset/"
+      - "^/dpo_pairs/"
+      - "^/dpo_mechanical/"
+      - "^/prefs/"
+      - "^/simlingo/"

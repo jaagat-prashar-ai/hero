@@ -48,7 +48,7 @@ class FocalLoss(nn.Module):
         super(FocalLoss, self).__init__()
         self.gamma = gamma
         self.size_average = size_average
-
+can you
     def forward(self, input, target):
         logpt = F.log_softmax(input, dim=-1)
         logpt = logpt.gather(1, target.view(-1, 1)).view(-1)
@@ -376,3 +376,15 @@ def _gather_from_dict(d: Dict[str, Tensor], prefix: str):
         if k.startswith(prefix):
             out[k[len(prefix) :]] = v
     return out
+
+
+# first forward pass 
+    # matrix 1 across diagonal 
+    # 0 on others 
+    # check this
+
+# better way of computing faithfulness and a strong baseline 
+
+# original way of measuring faithfulness 
+
+# can we have multiple vlm agents as a faithfullness checker? 
