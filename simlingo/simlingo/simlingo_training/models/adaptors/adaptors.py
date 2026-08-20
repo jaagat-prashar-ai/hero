@@ -388,3 +388,4 @@ def _gather_from_dict(d: Dict[str, Tensor], prefix: str):
 # original way of measuring faithfulness 
 
 # can we have multiple vlm agents as a faithfullness checker? 
+# SDPO 
