@@ -6,6 +6,33 @@ now, not routine typos.
 
 ---
 
+## 2026-08-21 — stray editor text in adaptors.py broke every simlingo model import; killed all 16 ablation-fleet arms
+
+**Symptom:** all 16 arms of the 2026-08-21 ablation fleet died within ~30 min
+of launch, right after dataset extract, every rank exiting with Hydra's
+`Error locating target 'simlingo_training.models.driving.DrivingModel'` and
+no further detail (HYDRA_FULL_ERROR unset).
+
+**Root cause:** commits e981502/dd7df67 (2026-08-20) accidentally dropped
+scratch notes into `simlingo_training/models/adaptors/adaptors.py`, replacing
+a blank line inside `FocalLoss.__init__` with the literal text `can you` — a
+SyntaxError. `driving.py` imports adaptors, so *every* model import failed.
+Hydra masks ImportError chains as "Error locating target", which looks like a
+config/packaging problem rather than a code one. The fleet launched from HEAD
+carrying the broken file.
+
+**Fix:** 7cfd0c8 (concurrent session) removed the stray text + EOF note-junk;
+same session stopped/relaunched all 16 arms on fixed code.
+
+**Lessons:** (1) "Error locating target X" from Hydra = X's module failed to
+IMPORT — reproduce with `python -c "import <module>"` locally before blaming
+configs; set HYDRA_FULL_ERROR=1 in launch configs to unmask it. (2) Notes
+belong in notes files; a stray paste into a .py file is invisible until the
+next cold import, and CI/no-op-import coverage would have caught it —
+`py_compile` over changed .py files pre-launch is cheap insurance.
+
+---
+
 ## 2026-08-18 — masking resume clobbers S3 results after preemption (run11 lost 518+448 finished rows)
 
 **Symptom:** run11 arms a/b were preempted (SIGINT, `preemptible: always`)
