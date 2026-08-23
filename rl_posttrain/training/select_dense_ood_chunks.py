@@ -126,6 +126,15 @@ def main() -> None:
         "'all' reproduces the pre-2026-08-03 behavior (used by the first dense-100 "
         "runs, which unknowingly mixed 237 val clips into training).",
     )
+    parser.add_argument(
+        "--clip-filter-dir",
+        type=Path,
+        default=None,
+        help="If set, keep only clips whose id matches a <clip_id>.py stem in this "
+        "directory (the clipgen reward_fns dir) BEFORE ranking chunks by density. "
+        "With clipgen_only_clips training, chunks whose OOD clips all lack a reward "
+        "function are pure download waste; this prunes them at selection time.",
+    )
     args = parser.parse_args()
     if args.num_chunks <= 0:
         parser.error("--num-chunks must be a positive integer")
@@ -159,6 +168,18 @@ def main() -> None:
         )
 
     ood_ids = set(ood.index.astype(str))
+    if args.clip_filter_dir is not None:
+        passing = {p.stem for p in args.clip_filter_dir.glob("*.py")}
+        if not passing:
+            raise SystemExit(f"--clip-filter-dir {args.clip_filter_dir} contains no *.py files")
+        n_before_filter = len(ood_ids)
+        ood_ids &= passing
+        if not ood_ids:
+            raise SystemExit("No overlap between --clip-filter-dir stems and OOD clip ids.")
+        print(
+            f"[select_dense_ood_chunks] clip-filter-dir kept {len(ood_ids)}/{n_before_filter} "
+            f"OOD clips with a reward_fn ({len(passing)} fns in {args.clip_filter_dir})"
+        )
     # Positional bool mask so .loc preserves clip_index's original index
     # dtype -- same convention as download_pai's mini-index writer.
     in_ood = clip_index.index.astype(str).isin(ood_ids)

@@ -132,6 +132,13 @@ _DEFAULTS: dict[str, Any] = {
     # 394 of the 1740 OOD clips (~570 GB of cameras) vs 1085 chunks / 6.1 TB
     # for all of them.
     "reasoning_dense_chunks": None,
+    # With clipgen_only_clips, chunks whose OOD clips all lack a gate-passed
+    # reward_fn are pure camera-download waste (the index filter would drop
+    # every clip they contribute). When true, the dense selector is passed
+    # --clip-filter-dir <reward_fns> so dense_chunks.txt only lists chunks
+    # bearing at least one reward_fn clip. Set reasoning_dense_chunks to a
+    # value >= the number of fn-bearing chunks (e.g. 2000) to take them all.
+    "clipgen_chunks_only": False,
     # When set (str), the reasoning dataset dir is restored from / uploaded to
     # s3://research-datasets-chicago/<prefix> as a warm cache, so a
     # preemption/requeue re-pulls in-region instead of re-downloading from
@@ -559,7 +566,9 @@ def _download_lingo_judge(python_bin: str, model_dir: Path) -> None:
     )
 
 
-def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: int) -> Path:
+def _download_pai_reasoning_dense(
+    python_bin: str, pai_dir: Path, num_chunks: int, clip_filter_dir: Path | None = None
+) -> Path:
     """Download ALL OOD-reasoning clips within the num_chunks OOD-densest PAI
     chunks (see select_dense_ood_chunks.py for why density beats the vendored
     random sampler).
@@ -584,6 +593,11 @@ def _download_pai_reasoning_dense(python_bin: str, pai_dir: Path, num_chunks: in
             str(pai_dir),
             "--num-chunks",
             str(num_chunks),
+            *(
+                ["--clip-filter-dir", str(clip_filter_dir)]
+                if clip_filter_dir is not None
+                else []
+            ),
         ],
         cwd=RECIPE_ROOT,
     )
@@ -1039,7 +1053,13 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     # dir name let a 16-clip canary index silently satisfy a full run's
     # download step (and vice versa).
     dense_chunks = cfg.get("reasoning_dense_chunks")
-    if dense_chunks is not None:
+    clipgen_chunks_only = bool(cfg.get("clipgen_chunks_only"))
+    clipgen_fns_dir = REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+    if dense_chunks is not None and clipgen_chunks_only:
+        # Own dir name: the chunk set differs from the plain dense{N} selection,
+        # so sharing its dir would let a warm node's marker/index mislead.
+        pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_clipgen{int(dense_chunks)}"
+    elif dense_chunks is not None:
         pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_dense{int(dense_chunks)}"
     else:
         pai_reasoning_dir = workspace_dir / f"PAI_Reasoning_mini{int(cfg['num_reasoning_clips'])}"
@@ -1058,7 +1078,12 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             except Exception:
                 logger.exception("PAI warm cache: restore failed, falling back to HF download")
         if dense_chunks is not None:
-            _download_pai_reasoning_dense(python_bin, pai_reasoning_dir, int(dense_chunks))
+            _download_pai_reasoning_dense(
+                python_bin,
+                pai_reasoning_dir,
+                int(dense_chunks),
+                clip_filter_dir=clipgen_fns_dir if clipgen_chunks_only else None,
+            )
         else:
             _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
         # Upload only when this node did the fresh bulk download itself --
