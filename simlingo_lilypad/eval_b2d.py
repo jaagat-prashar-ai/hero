@@ -262,8 +262,13 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     route_dir = sim_root / "leaderboard" / "data" / "bench2drive_split"
     routes = sorted(route_dir.glob("*.xml"))
     if cfg.get("route_ids"):
-        wanted = {str(r) for r in cfg["route_ids"]}
-        routes = [r for r in routes if r.stem.split("_")[-1] in wanted]
+        # stems are zero-padded to 2 digits (bench2drive_06.xml), so compare
+        # both sides zfill(3)ed: route_ids may be ints, "6", "06", or "006"
+        wanted = {str(r).zfill(3) for r in cfg["route_ids"]}
+        routes = [r for r in routes if r.stem.split("_")[-1].zfill(3) in wanted]
+        if len(routes) != len(wanted):
+            got = {r.stem.split("_")[-1].zfill(3) for r in routes}
+            raise RuntimeError(f"route_ids not found on disk: {sorted(wanted - got)}")
     if cfg.get("max_routes"):
         routes = routes[: int(cfg["max_routes"])]
     if not routes:
@@ -309,7 +314,10 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
                 f"--checkpoint={result_file}", "--timeout=600",
                 f"--agent={sim_root / 'team_code' / 'agent_simlingo.py'}",
                 f"--agent-config={ckpt_path}",
-                f"--traffic-manager-seed={cfg.get('tm_seed', 1)}",
+                # bump the TM seed on retries: route 130 (RouteScenario_23670,
+                # Town13) segfaults UE4 deterministically at game-time ~69s
+                # under the same traffic stream, in both 08-20 sweeps
+                f"--traffic-manager-seed={int(cfg.get('tm_seed', 1)) + attempt}",
                 f"--port={port}", f"--traffic-manager-port={tm_port}",
                 f"--gpu-rank={phys_gpu}",
             ]
