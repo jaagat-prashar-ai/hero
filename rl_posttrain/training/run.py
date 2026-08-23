@@ -602,27 +602,85 @@ def _download_pai_reasoning_dense(
         cwd=RECIPE_ROOT,
     )
     chunk_ids = (pai_dir / "dense_chunks.txt").read_text().strip()
-    _run_streamed(
-        [
-            python_bin,
-            "scripts/download_pai.py",
-            "--chunk-ids",
-            chunk_ids,
-            "--camera",
-            *_CAMERA_SUBPARTS,
-            "--calibration",
-            *_CALIBRATION_SUBPARTS,
-            "--labels",
-            "egomotion",
-            "egomotion.offline",
-            "obstacle.offline",
-            "--reasoning",
-            "ood_reasoning.parquet",
-            "--output-dir",
-            str(pai_dir),
-        ],
-        cwd=RECIPE_ROOT,
-    )
+
+    def _download(chunk_id_str: str) -> None:
+        _run_streamed(
+            [
+                python_bin,
+                "scripts/download_pai.py",
+                "--chunk-ids",
+                chunk_id_str,
+                "--camera",
+                *_CAMERA_SUBPARTS,
+                "--calibration",
+                *_CALIBRATION_SUBPARTS,
+                "--labels",
+                "egomotion",
+                "egomotion.offline",
+                "obstacle.offline",
+                "--reasoning",
+                "ood_reasoning.parquet",
+                "--output-dir",
+                str(pai_dir),
+            ],
+            cwd=RECIPE_ROOT,
+        )
+
+    if clip_filter_dir is None:
+        _download(chunk_ids)
+    else:
+        # Clip-filtered mode: the full fn-bearing chunk set (~400 chunks of
+        # camera zips, ~5.7 GB each) cannot fit the node's 992 GB root fs
+        # (BUGS.md 2026-08-15 disk-arithmetic eviction). But the loader reads
+        # per-clip members out of each chunk zip by metadata-templated name
+        # (physical_ai_av Features.get_clip_files_in_zip), so a zip repacked
+        # with only the mini-index clips' members is transparent to training.
+        # Download one chunk at a time and immediately prune its camera zips
+        # to the kept clips (~1-2 per chunk), bounding steady-state disk at
+        # roughly the kept clips' videos plus one in-flight chunk.
+        import pandas as pd
+
+        mini = pd.read_parquet(mini_path)
+        by_chunk: dict[int, set[str]] = {
+            int(c): set(g.index.astype(str)) for c, g in mini.groupby("chunk")
+        }
+        for c in (int(x) for x in chunk_ids.split()):
+            prune_marker = pai_dir / f".camera_pruned.chunk_{c:04d}"
+            if prune_marker.exists():
+                continue
+            _download(str(c))
+            keep = by_chunk.get(c, set())
+            kept_total = dropped_total = 0
+            for sub in _CAMERA_SUBPARTS:
+                zpath = pai_dir / "camera" / sub / f"{sub}.chunk_{c:04d}.zip"
+                if not zpath.exists():
+                    logger.warning("camera prune: %s missing upstream, skipping", zpath)
+                    continue
+                tmp = zpath.with_name(zpath.name + ".pruned_tmp")
+                with zipfile.ZipFile(zpath) as zin, zipfile.ZipFile(
+                    tmp, "w", zipfile.ZIP_STORED
+                ) as zout:
+                    for member in zin.namelist():
+                        if any(cid in member for cid in keep):
+                            zout.writestr(member, zin.read(member))
+                            kept_total += 1
+                        else:
+                            dropped_total += 1
+                tmp.replace(zpath)
+            if kept_total == 0:
+                raise RuntimeError(
+                    f"camera prune: chunk {c} kept 0 members for clips {sorted(keep)} "
+                    "-- clip ids not found in zip member names; refusing to continue "
+                    "(training would crash on every clip of this chunk)"
+                )
+            prune_marker.write_text(f"kept {kept_total} dropped {dropped_total}\n")
+            logger.info(
+                "camera prune: chunk %04d kept %d / dropped %d members (%d clips)",
+                c,
+                kept_total,
+                dropped_total,
+                len(keep),
+            )
     marker.write_text("ok\n")
     return mini_path
 
