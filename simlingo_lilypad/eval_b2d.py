@@ -80,12 +80,10 @@ def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
     # it empty (zero routes found -> job "succeeds" doing nothing) and would
     # also pin whatever eval-code version the node saw first
     _fetch_and_extract(s3, bucket, f"{assets}/eval_code.tar.gz", sim_root, workdir)
-
-    marker = workdir / ".setup_done"
-    if marker.exists():
-        print("[b2d-eval] setup marker exists, skipping carla/ckpt fetch", flush=True)
-        _make_carla_nonroot_shim(workdir / "carla0915")
-        return
+    # per-job marker (sim_root lives in the per-job Ray working dir): on a
+    # reused node the persistent workdir markers pre-exist, so without this
+    # gate non-zero ranks would race ahead and glob a half-extracted route dir
+    (sim_root / ".eval_code_ready").touch()
 
     carla_root = workdir / "carla0915"
     if not (workdir / ".carla_done").exists():
@@ -97,15 +95,23 @@ def _rank0_setup(cfg: dict, workdir: Path, sim_root: Path) -> None:
     _make_carla_nonroot_shim(carla_root)
 
     session = cfg["checkpoint_session"]
-    ckpt_prefix = cfg.get("checkpoint_prefix", "simlingo-checkpoints-consolidated").rstrip("/")
-    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=f"{ckpt_prefix}/{session}/"):
-        for obj in page.get("Contents", []):
-            rel = obj["Key"][len(ckpt_prefix) + 1:]
-            local = workdir / "ckpts" / rel
-            local.parent.mkdir(parents=True, exist_ok=True)
-            print(f"[b2d-eval] fetching {obj['Key']}", flush=True)
-            s3.download_file(bucket, obj["Key"], str(local))
-    marker.touch()
+    # session-scoped: the old global .setup_done skipped the ckpt fetch for a
+    # DIFFERENT session on a reused node (every rank then died "checkpoint
+    # missing")
+    ckpt_marker = workdir / f".ckpt_done_{session}"
+    if not ckpt_marker.exists():
+        ckpt_prefix = cfg.get("checkpoint_prefix", "simlingo-checkpoints-consolidated").rstrip("/")
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=f"{ckpt_prefix}/{session}/"):
+            for obj in page.get("Contents", []):
+                rel = obj["Key"][len(ckpt_prefix) + 1:]
+                local = workdir / "ckpts" / rel
+                local.parent.mkdir(parents=True, exist_ok=True)
+                print(f"[b2d-eval] fetching {obj['Key']}", flush=True)
+                s3.download_file(bucket, obj["Key"], str(local))
+        ckpt_marker.touch()
+    else:
+        print(f"[b2d-eval] ckpt marker exists for {session}, skipping fetch", flush=True)
+    (workdir / f".setup_done_{session}").touch()
 
 
 def _make_carla_nonroot_shim(carla_root: Path) -> None:
@@ -217,7 +223,11 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     if rank == 0:
         _rank0_setup(cfg, workdir, sim_root)
     else:
-        _wait_for_marker(workdir / ".setup_done", timeout_s=int(cfg.get("setup_timeout_s", 5400)))
+        setup_timeout = int(cfg.get("setup_timeout_s", 5400))
+        # per-job gate first: workdir markers survive across jobs on a reused
+        # node, but eval_code lands in the fresh per-job dir every launch
+        _wait_for_marker(sim_root / ".eval_code_ready", timeout_s=setup_timeout)
+        _wait_for_marker(workdir / f".setup_done_{cfg['checkpoint_session']}", timeout_s=setup_timeout)
         # stagger model init so 8 ranks don't race the shared HF cache
         time.sleep(rank * 20)
 
