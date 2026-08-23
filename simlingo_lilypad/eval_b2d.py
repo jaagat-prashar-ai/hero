@@ -279,6 +279,7 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
     _preflight_carla(workdir / "carla0915", phys_gpu, port, workdir, env)
 
     n_ok = 0
+    failed_ids = []
     for route_xml in my_routes:
         route_id = route_xml.stem.split("_")[-1].zfill(3)
         result_file = res_dir / f"{route_id}_res.json"
@@ -320,6 +321,8 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
 
         ok = _route_done(result_file)
         n_ok += ok
+        if not ok:
+            failed_ids.append(route_id)
         for local, sub in ((result_file, "res"), (log_file, "out")):
             if local.exists():
                 _put_file(s3, bucket, f"{results_prefix}/{sub}/{local.name}", local)
@@ -331,4 +334,8 @@ def eval_b2d(training_fn_config: dict[str, Any], experiment_tracker: Any = None)
 
     print(f"[b2d-eval] rank {rank} finished: {n_ok}/{len(my_routes)} routes ok", flush=True)
     if n_ok < len(my_routes):
-        raise RuntimeError(f"rank {rank}: {len(my_routes) - n_ok} routes failed after retries")
+        # Do NOT raise: a raising rank fails the Ray job and kills the other
+        # ranks mid-shard (lost ~36 unreached routes across the 08-20 full
+        # sweeps). Failed routes are visible in S3 (res missing / fail status).
+        print(f"[b2d-eval] rank {rank} WARNING: {len(my_routes) - n_ok} routes "
+              f"failed after retries: {sorted(failed_ids)}", flush=True)
