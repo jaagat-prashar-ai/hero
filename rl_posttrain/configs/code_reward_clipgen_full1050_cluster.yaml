@@ -1,0 +1,95 @@
+# FULL-CORPUS clipgen GRPO run (2026-08-23): trains on EVERY clip with a
+# gate-passed reward_fn after the full1050 curation sweep (25 shards over
+# the 1050-clip pool disjoint from corpus352v3) -- ~480 fns expected:
+# 119 surviving corpus352v3 fns + the full1050 passing set (~35% pass
+# rate observed on shards 0-10). Clone of code_reward_clipgen_v2_cluster
+# with three deltas:
+#   * clipgen_chunks_only: the dense selector only picks chunks bearing a
+#     reward_fn clip (--clip-filter-dir), and run.py downloads them ONE AT A
+#     TIME, pruning each camera chunk zip to just the kept clips' members
+#     before fetching the next (the loader resolves members by
+#     metadata-templated name, so pruned zips are transparent). Steady-state
+#     disk is ~the kept clips' videos (~150-250 GB for ~480 clips) instead
+#     of ~400 full chunks (~2.3 TB) that the 992 GB node can't hold
+#     (BUGS.md 2026-08-15 disk-arithmetic eviction).
+#   * reasoning_dense_chunks: 2000 -- an over-cap so head(N) takes ALL
+#     fn-bearing chunks; the filter does the real selection.
+#   * own warm-cache prefix / ckpt prefix / W&B experiment / dump run id.
+# train_epoch stays 12 to match v2's per-clip exposure (the comparison
+# baseline); at ~3x the corpus that is ~1400 GRPO steps, ~19 h at the
+# measured ~48 s/step. The first run must still PULL ~2.3 TB through the
+# node transiently (chunk-by-chunk, pruned on arrival), so expect several
+# hours of dataset setup before step 0; the pruned result is warm-cached.
+name: alpamayo-rl-code-reward-clipgen-full1050
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    reward_mode: "code"
+    clipgen_only_clips: true
+    clipgen_chunks_only: true
+
+    reasoning_dense_chunks: 2000
+
+    # NEW cache prefix: this chunk set is a superset of ood_dense_100chunks
+    # keyed by the shipped fn corpus; first run uploads it for future warms.
+    pai_s3_cache_prefix: "pai_warm_cache/ood_clipgen_full1050"
+
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/code_reward_clipgen_full1050"
+
+    dp_shard_size: 4
+    train_epoch: 12
+
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_code_reward_clipgen_full1050"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # First run must download ~2-2.5 TB of cameras from HF before training;
+  # allow well beyond the dense-100 runs' 2 h setup.
+  setup_timeout_seconds: 28800
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    CODE_REWARD_DEBUG_DUMP_ROLLOUTS: "1"
+    CODE_REWARD_DEBUG_DUMP_RUN_ID: "clipgen-full1050-main"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
