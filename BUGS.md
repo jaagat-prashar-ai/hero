@@ -1620,6 +1620,56 @@ call-site arguments rather than the GT branch itself.
 
 ---
 
+## 2026-08-23 — b2d full sweeps truncated: first rank to finish killed the other 7 mid-shard
+
+**Symptom:** both 08-20 full 220-route sweeps (tgppf4/59igwt) ended W&B
+state=failed at 19.1h/17.1h with 15/21 routes having neither res JSON nor
+log on S3; missing ids formed per-rank stride patterns (shard tails).
+**Root cause:** eval_b2d.py raised RuntimeError when a rank finished its
+shard with ≥1 failed route. Ray fails the whole training job on one
+raising worker, killing the other ranks wherever they were. Rank 4
+finished first (26/27, route 006 failed) and took the fleet down.
+**Fix:** [cad0c1c](../../commit/cad0c1c) — log a warning with the failed
+route ids instead of raising; every rank drains its full shard.
+**How this was found:** last-upload S3 timestamps matched the W&B
+`_runtime` exactly; W&B output_rank-4.log carried the traceback.
+
+---
+
+## 2026-08-23 — route_timeout_s=10800 silently censors long Bench2Drive routes
+
+**Symptom:** routes 006 (s1234) and 172 (s9876) "failed after retries"
+with empty res JSONs; logs show no crash — the agent was still driving
+(game-time 295s/338s) when the log stops.
+**Root cause:** the sim runs at ~0.033x realtime (healthy routes too), so
+a route needing >~355s of game time cannot finish inside the 3h
+subprocess timeout; eval_b2d SIGKILLed it on both attempts, burning 6h
+per route per rank. Completed routes reached 10071s — 93% of the ceiling.
+**Fix:** [59ba371](../../commit/59ba371) — route_timeout_s 10800 → 21600
+in the full-eval + mop-up configs.
+**How this was found:** comparing wall/game-time ratios of the failed
+logs against a healthy route's log; duration_system distribution over all
+400 completed results.
+
+---
+
+## 2026-08-23 — reused-node marker race: ranks can shard a half-extracted route dir
+
+**Symptom:** (latent — not yet observed in a run)
+**Root cause:** `.setup_done` persists in the shared /mnt/work workdir
+across jobs, but eval_code.tar.gz extracts into the per-job Ray dir every
+launch (6b8f9b4). On a reused node, non-zero ranks see the stale marker,
+skip the wait, and can glob a partially extracted route dir →
+inconsistent shards / silently unrun routes. Same marker also skipped the
+ckpt fetch for a *different* checkpoint_session on a reused node.
+**Fix:** [d4483d8](../../commit/d4483d8) — per-job `.eval_code_ready`
+marker inside sim_root gates all ranks; setup/ckpt markers are now
+session-scoped.
+**How this was found:** line-by-line audit of the setup handshake after
+the fleet-kill bug.
+
+---
+
 ## Format for new entries
 
 ```
