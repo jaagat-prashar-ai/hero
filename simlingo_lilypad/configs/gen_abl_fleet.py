@@ -137,6 +137,7 @@ ARMS = [
     ("cyc_undet_delta_w0.2",  "gen-3 undetached rerun + delta-token CE (vs sucszd)",                        cyc(0.2, False)),
     ("cyc_det_delta_w0.05",   "detached, delta CE, low weight",                                             cyc(0.05, True)),
     ("cyc_undet_delta_w0.05", "undetached, delta CE, low weight (central arm)",                             cyc(0.05, False)),
+    ("cyc_undet_delta_w1e-6", "collapse diagnostic: central undetached arm at negligible weight — if the collapse persists, the cycle pass itself (not its gradient) is the mechanism", cyc(1e-6, False)),
     ("cyc_det_delta_w0.01",   "detached, delta CE, minimal weight",                                         cyc(0.01, True)),
     ("cyc_undet_delta_w0.01", "undetached, delta CE, minimal weight",                                       cyc(0.01, False)),
     ("cyc_gtreader_w0.05",    "GT-trajectory reader with delta CE (Phase-A redo done right, low weight)",   cyc(0.05, True, gt=True)),
