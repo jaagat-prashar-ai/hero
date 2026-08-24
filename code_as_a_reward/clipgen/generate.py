@@ -328,7 +328,7 @@ lead_vehicle, stopped_vehicle, cutin_vehicle, vehicle_generic,
 cross_traffic, oncoming_traffic, construction_cones, barricades,
 work_zone, signal, crosswalk, intersection, roundabout, gate,
 ramp_or_freeway, curve, shoulder_or_median, lane, speed_hump,
-speed_limit_sign, weather_or_surface. There is no "automobile",
+speed_limit_sign, weather_or_surface, animal. There is no "automobile",
 "heavy_truck", "motorcycle", or "bicycle": plain cars/trucks parse to
 vehicle_generic (or lead_vehicle/stopped_vehicle/cutin_vehicle when so
 qualified); rider words (cyclist, bicyclist, biker, scooter) parse to

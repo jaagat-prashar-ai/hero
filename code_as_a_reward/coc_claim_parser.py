@@ -171,7 +171,7 @@ def _normalize_punctuation(text: str) -> str:
 MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] = [
     ("lane_change", ManeuverAxis.LATERAL, None, re.compile(r"\bchang(?:e|es|ed|ing)\b", re.I)),
     ("keep_lane", ManeuverAxis.LATERAL, None, re.compile(r"\bkeep(?:s|ing)?\s+lane\b", re.I)),
-    ("nudge", ManeuverAxis.LATERAL, None, re.compile(r"\bnudg(?:e|es|ed|ing)\b", re.I)),
+    ("nudge", ManeuverAxis.LATERAL, None, re.compile(r"\bnudg(?:e|es|ed|ing)\b|\bbypass(?:es|ing)?\b", re.I)),
     ("merge", ManeuverAxis.LATERAL, None, re.compile(r"\bmerg(?:e|es|ed|ing)\b", re.I)),
     (
         "turn",
@@ -185,19 +185,29 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         "adapt_speed",
         ManeuverAxis.LONGITUDINAL,
         "adapt",
-        re.compile(r"\b(?:adapt|adjust)(?:s|ing|ed)?\s+speed\b", re.I),
+        re.compile(r"\b(?:adapt|adjust)(?:s|ing|ed)?\s+speed\b|\bmatch(?:es|ing)?\s+speed\b", re.I),
     ),
     (
         "accelerate",
         ManeuverAxis.LONGITUDINAL,
         "accelerate",
-        re.compile(r"\baccelerat\w*\b", re.I),
+        re.compile(r"\baccelerat\w*\b|\bresume(?:s|d)?\s+speed\b|\bspeed(?:s|ing)?\s+up\b", re.I),
     ),
     (
         "decelerate",
         ManeuverAxis.LONGITUDINAL,
         "decelerate",
-        re.compile(r"\bdecelerat\w*\b|\bslow(?:s|ing)?\s+down\b|\bbrak\w*\b", re.I),
+        # Bare "slow" counts ("I slow for the pedestrian" is the corpus's
+        # dominant slowing phrasing), but only as an ego verb: guarded
+        # against descriptions of OTHER things -- "is/are slowing", "slow
+        # traffic", "slow-moving", "slowly" -- which are perception, not a
+        # commitment (validated against the full1050 cached rollouts).
+        re.compile(
+            r"\bdecelerat\w*\b|\bbrak\w*\b"
+            r"|(?<!is )(?<!are )(?<!was )(?<!were )\bslow(?:s|ed|ing)?\b"
+            r"(?!ly)(?!-)(?!\s+(?:traffic|vehicle|car|truck|van|lead|zone|speed))",
+            re.I,
+        ),
     ),
     (
         # "Keep distance"/"maintain a safe gap"/"maintain following distance" --
@@ -219,10 +229,24 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         None,
         re.compile(r"\bcreat(?:e|es|ing)\s+(?:a\s+|an\s+)?(?:usable\s+)?gap\b", re.I),
     ),
-    ("stop", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bstop(?:s|ping)?\b", re.I)),
+    # (?!\s+sign): "stop sign" is a perceived object (signal entity), not a
+    # commitment -- without the lookahead a mere mention of a stop sign
+    # manufactured a decelerate-family claim.
+    ("stop", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bstop(?:s|ping)?\b(?!\s+sign)", re.I)),
     ("yield", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\byield(?:s|ing)?\b", re.I)),
     ("wait", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bwait(?:s|ing)?\b", re.I)),
-    ("proceed", ManeuverAxis.LONGITUDINAL, None, re.compile(r"\bproceed(?:s|ing)?\b", re.I)),
+    (
+        "proceed",
+        ManeuverAxis.LONGITUDINAL,
+        None,
+        # "maintain/keep/hold speed" = continue as-is, the proceed family
+        # (keep_distance already claimed "maintain ... distance/gap" above);
+        # "creep" = proceed slowly (flagger/work-zone scenes).
+        re.compile(
+            r"\bproceed(?:s|ing)?\b|\b(?:maintain|keep|hold)(?:s|ing)?\s+speed\b|\bcreep(?:s|ing)?\b",
+            re.I,
+        ),
+    ),
 ]
 
 # Searched in a window immediately after (never before -- see
@@ -296,14 +320,23 @@ ENTITY_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         "oncoming_traffic",
         re.compile(r"\boncoming\b|\bopposing\s+(?:lane|traffic|van)\b", re.I),
     ),
-    ("signal", re.compile(r"\btraffic\s+light\b|\bsignals?\b", re.I)),
+    ("signal", re.compile(r"\btraffic\s+light\b|\bsignals?\b|\bstop\s+sign\b", re.I)),
     (
         "work_zone",
-        re.compile(r"\bwork-zone\b|\bwork\s+zone\b|\bconstruction\s+zone\b|\broadwork\b", re.I),
+        re.compile(
+            r"\bwork-zone\b|\bwork\s+zone\b|\bconstruction\s+zone\b|\broadwork\b"
+            r"|\bclosures?\b|\bmaintenance\b|\butility\s+(?:work|crew|truck)\b",
+            re.I,
+        ),
     ),
     ("roundabout", re.compile(r"\broundabouts?\b", re.I)),
     ("gate", re.compile(r"\bgates?\b|\bdriveways?\b", re.I)),
-    ("workers", re.compile(r"\bworkers?\b", re.I)),
+    (
+        "workers",
+        re.compile(
+            r"\bworkers?\b|\bflagg?ers?\b|\bflag\s+person\b|\bdirecting\s+traffic\b", re.I
+        ),
+    ),
     (
         "ramp_or_freeway",
         re.compile(r"\bfreeways?\b|\bon-ramps?\b|\boff-ramps?\b|\bramps?\b", re.I),
@@ -339,10 +372,11 @@ ENTITY_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         "vehicle_generic",
         re.compile(
             r"\b(?:parked\s+|police\s+|construction\s+)?(?:vehicles?|cars?|trucks?|suvs?|"
-            r"equipment)\b",
+            r"equipment)\b|\btrailers?\b|\btractors?\b",
             re.I,
         ),
     ),
+    ("animal", re.compile(r"\banimals?\b|\bdeer\b|\bdogs?\b|\bcoyotes?\b", re.I)),
     ("lane", re.compile(r"\blanes?\b", re.I)),
 ]
 
@@ -361,7 +395,8 @@ STATE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         re.compile(r"\bclear(?:s|ed|ing|ance)?\b|\bhas\s+cleared\b", re.I),
     ),
     ("stopped", re.compile(r"\bstopped\b|\bstalled\b", re.I)),
-    ("crossing", re.compile(r"\bcrossing\b", re.I)),
+    ("crossing", re.compile(r"\bcrossing\b|\bwalking\s+(?:across|into|in|through)\b", re.I)),
+    ("slowing", re.compile(r"\bmoving\s+slowly\b|\bslowing\b", re.I)),
     ("ahead", re.compile(r"\bahead\b", re.I)),
     ("closed", re.compile(r"\bclosed\b", re.I)),
     ("open", re.compile(r"\bopen\b", re.I)),

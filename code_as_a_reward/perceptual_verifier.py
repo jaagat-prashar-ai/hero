@@ -74,6 +74,7 @@ def split_scene_id(scene_id: str) -> tuple[str, int]:
 #     enough to hang verdicts on; candidate for a later data audit.
 ENTITY_TO_CLASSES: dict[str, frozenset[str] | None] = {
     "pedestrian": frozenset({"person"}),
+    "animal": frozenset({"animal"}),
     "cyclist": frozenset({"rider"}),
     "workers": frozenset({"person"}),
     "lead_vehicle": frozenset({"automobile", "other_vehicle", "trailer", "bus", "heavy_truck"}),
