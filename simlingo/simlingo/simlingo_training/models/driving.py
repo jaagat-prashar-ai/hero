@@ -463,14 +463,17 @@ class DrivingModel(pl.LightningModule):
         if not pair_row:
             # keep wp_encoder in the graph so backward sees the same param set on
             # every rank regardless of this rank's group composition
-            zero = traj_tokens.sum() * 0.0
+            # multiply by 0 BEFORE summing: in fp16 the raw .sum() over ~600k
+            # elements overflows to inf, and inf * 0.0 = NaN - a NaN loss on one
+            # pair-less rank poisons every rank through the gradient allreduce
+            zero = (traj_tokens * 0.0).sum()
             if self.cycle_probe:
                 # in probe mode no main-task loss covers the trunk, so a
                 # pair-less rank must emit (zero) grads for EVERY trainable
                 # param or the gradient allreduce desyncs across ranks
                 # (observed: pair-less rank reducing 592,000 numel = exactly
                 # wp_encoder vs 18.2M on ranks with pairs -> NCCL watchdog)
-                zero = zero + sum(p.sum() for p in self.parameters() if p.requires_grad) * 0.0
+                zero = zero + sum((p * 0.0).sum() for p in self.parameters() if p.requires_grad)
             loss = zero.expand(B).clone()
             count = torch.zeros(B, dtype=torch.long, device=ids.device)
             accuracy = None
