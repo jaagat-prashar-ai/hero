@@ -42,6 +42,7 @@ def main() -> None:
     ap.add_argument("--max-clips", type=int, default=500)
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--batch-size", type=int, default=4)
+    ap.add_argument("--mode", choices=["commentary", "dreamer"], default="commentary")
     args = ap.parse_args()
 
     torch.set_float32_matmul_precision("high")
@@ -59,20 +60,35 @@ def main() -> None:
     HydraConfig.instance().set_config(hydra_cfg)
 
     # dataset_base shuffles route_dirs with the GLOBAL random module before
-    # scanning; identical seeds across arms => identical scan order => the
-    # index subset below selects the same clips in every arm (paired eval)
+    # scanning, and Eval_Dreamer.__getitem__ draws the counterfactual option,
+    # instruction phrasing, and prompt template with the global RNG too;
+    # identical seeds across arms => identical scan order AND identical
+    # per-sample instruction draws (paired eval)
     random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
     cfg = OmegaConf.load(args.config)
 
-    # commentary predict mode, exactly as upstream eval.py's branch
     cfg.data_module.dreamer_dataset = None
     cfg.data_module.driving_dataset = None
-    cfg.data_module.insteval_dataset = None
-    cfg.data_module.base_dataset.use_commentary = True
-    cfg.data_module.base_dataset.use_qa = False
+    if args.mode == "dreamer":
+        # instruction-following eval: Eval_Dreamer feeds counterfactual dreamer
+        # instructions; datamodule's predict branch picks insteval_dataset when
+        # qa_dataset is None
+        cfg.data_module.qa_dataset = None
+        # no <SAFETY>/<INSTRUCTION_FOLLOWING> prefix tokens: the k4 arms were
+        # trained with use_safety_flag=false and have never seen them; with the
+        # flag off the GT is always the instructed trajectory
+        cfg.data_module.base_dataset.use_safety_flag = False
+        cfg.data_module.base_dataset.use_commentary = False
+        cfg.data_module.base_dataset.use_qa = False
+    else:
+        # commentary predict mode, exactly as upstream eval.py's branch
+        cfg.data_module.insteval_dataset = None
+        cfg.data_module.base_dataset.use_commentary = True
+        cfg.data_module.base_dataset.use_qa = False
     # keep all scanned routes: the eval mirror holds only the held-out split
-    # and the evalset intersection restricts frames (see dataset_base.py)
+    # (and in commentary mode the evalset intersection restricts frames)
     cfg.data_module.base_dataset.eval_use_all_routes = True
     cfg.data_module.base_dataset.img_augmentation = False
     cfg.data_module.base_dataset.img_shift_augmentation = False
@@ -81,7 +97,11 @@ def main() -> None:
     # data/evalset_commentary.json entries, which hardcode that prefix --
     # eval_faith.py extracts the mirror under exactly that directory name
     cfg.data_module.batch_size = args.batch_size
-    cfg.data_module.num_workers = 8
+    # dreamer mode MUST load single-process: worker processes each reseed the
+    # global RNG, which would decouple the per-sample instruction draws from
+    # the main-process seed and break cross-arm pairing
+    num_workers = 0 if args.mode == "dreamer" else 8
+    cfg.data_module.num_workers = num_workers
     cfg.gpus = 1
 
     if "2B" in cfg.model.language_model.variant:
@@ -119,11 +139,15 @@ def main() -> None:
     print(f"[worker] loaded {args.checkpoint}; skipped keys: {len(missing) + len(unexpected)}", flush=True)
 
     model = model.cuda().eval()
+    # model init consumed RNG (weight init of arm-specific heads differs);
+    # re-pin the python RNG so dreamer-mode __getitem__ draws are identical
+    # across arms from here on
+    random.seed(args.seed + 1)
     loader = DataLoader(
         Subset(dataset, indices),
         batch_size=args.batch_size,
         shuffle=False,
-        num_workers=8,
+        num_workers=num_workers,
         drop_last=False,
         collate_fn=data_module.dl_collate_fn,
         pin_memory=True,
@@ -139,8 +163,9 @@ def main() -> None:
                 speed_wps, route, language, speed_wps_gt, route_gt, language_gt = model.predict_step(batch, bi)
             prompts = batch.driving_input.prompt.language_string
             paths = decode_uint8(batch.run_id)
+            infos = batch.driving_label.eval_infos
             for j in range(len(language)):
-                f.write(json.dumps({
+                row = {
                     "path": paths[j],
                     "prompt": prompts[j],
                     "language_pred": language[j],
@@ -149,7 +174,14 @@ def main() -> None:
                     "route_pred": route[j].float().cpu().tolist(),
                     "waypoints_gt": speed_wps_gt[j].float().cpu().tolist(),
                     "route_gt": route_gt[j].float().cpu().tolist(),
-                }) + "\n")
+                }
+                if infos is not None and infos[j] is not None:
+                    # dreamer mode: instructed (new) vs default (org) trajectories
+                    row["eval_infos"] = {
+                        k: (v.tolist() if hasattr(v, "tolist") else v)
+                        for k, v in infos[j].items()
+                    }
+                f.write(json.dumps(row) + "\n")
                 written += 1
             if bi % 10 == 0:
                 print(f"[worker] batch {bi}, rows {written}", flush=True)

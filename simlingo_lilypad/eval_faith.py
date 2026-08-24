@@ -125,6 +125,7 @@ def eval_faithfulness(training_fn_config: dict[str, Any], experiment_tracker: An
         "--max-clips", str(cfg.get("max_clips", 500)),
         "--seed", str(cfg.get("subset_seed", 1234)),
         "--batch-size", str(cfg.get("batch_size", 4)),
+        "--mode", cfg.get("mode", "commentary"),
     ]
     print(f"[faith:{arm['name']}] launching: {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=sim_root, env=env)

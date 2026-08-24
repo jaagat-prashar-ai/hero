@@ -200,7 +200,13 @@ class BaseDataset(Dataset):  # pylint: disable=locally-disabled, invalid-name
 
         random.shuffle(route_dirs)
         split_percentage = 0.99
-        if dreamer or not self.use_town13:
+        if getattr(self, 'eval_use_all_routes', False):
+            # eval-only mirrors contain just the held-out validation split, so
+            # the percentage route slices below (99/1 or dreamer's 2%) would
+            # only throw away eval coverage (and nondeterministically: the
+            # shuffle above is unseeded). Keep every scanned route.
+            pass
+        elif dreamer or not self.use_town13:
             # split the data into official training(Town12 and old Towns) and validation set (Town13)
             if self.split == "train":
                 print("Using Town12 for training")
@@ -209,13 +215,6 @@ class BaseDataset(Dataset):  # pylint: disable=locally-disabled, invalid-name
                 print("Using Town13 for validation")
                 route_dirs = [route_dir for route_dir in route_dirs if 'routes_validation' in route_dir]
                 route_dirs = route_dirs[:int(0.02 * len(route_dirs))]
-        elif getattr(self, 'eval_use_all_routes', False):
-            # eval-only mirrors contain just the held-out validation split and
-            # the predefined evalset (all_eval_samples) already restricts the
-            # frames, so the 99/1 route slice below would only throw away
-            # evalset coverage (and does so nondeterministically: the shuffle
-            # above is unseeded)
-            pass
         else:
             # use all towns
             if self.split == "train":

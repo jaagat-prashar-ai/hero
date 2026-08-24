@@ -1,0 +1,88 @@
+# 3-arm dreamer instruction-following eval: does the predicted trajectory
+# comply with a counterfactual dreamer instruction ("stop", "swerve left", ...)
+# rather than the scene's default behavior? Direct test of what the
+# counterfactual contrastive loss trains (instruction<->trajectory alignment).
+# 500 paired samples: identical clips AND identical instruction draws across
+# arms (global RNG seeded, single-process loading). use_safety_flag=false for
+# fairness (k4 arms never saw safety tokens); GT = the instructed trajectory,
+# with the scene's original trajectory saved alongside as the control.
+# Scoring is programmatic (ADE to instructed vs original) - no LLM judge.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/eval_dreamfollow_3arm.yaml
+name: simlingo-dreamfollow-3arm
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.eval_faith.eval_faithfulness
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo-full"
+    workdir: "/mnt/work/simlingo_dreamfollow"
+    # ~43GB compressed: all 3 validation_3_scenarios sensor chunks + dreamer labels
+    include_regex: "(data|dreamer)_simlingo_validation_3_scenarios_routes_validation_random_weather_seed_4_balanced_100_chunk_\\d+\\.tar\\.gz"
+    extract_timeout_s: 14400
+    base_config_s3_key: "simlingo-checkpoints-consolidated/hf_original_epoch013/simlingo/.hydra/config.yaml"
+    results_s3_prefix: "simlingo-dreamfollow"
+    mode: "dreamer"
+    max_clips: 500
+    subset_seed: 1234
+    batch_size: 4
+    arms:
+      - name: hf_original_epoch013
+        ckpt_s3_prefix: "simlingo-checkpoints-consolidated/hf_original_epoch013/simlingo/checkpoints/epoch=013.ckpt"
+        local_entry: "pytorch_model.pt"
+      - name: full_k4_w0.1_s9876
+        ckpt_s3_prefix: "simlingo-checkpoints/20260817090017_full_k4_w0.1_s9876/last.ckpt"
+        local_entry: "."
+      - name: full_k4_w0.5_s9876
+        ckpt_s3_prefix: "simlingo-checkpoints/20260817090017_full_k4_w0.5_s9876/last.ckpt"
+        local_entry: "."
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
