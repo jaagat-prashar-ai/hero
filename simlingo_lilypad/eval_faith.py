@@ -18,7 +18,9 @@ from simlingo_lilypad.run import _s3_client, _wait_for_marker
 
 
 def _download_and_extract_subset(bucket: str, prefix: str, include_regex: str, workdir: Path) -> None:
-    dest = workdir / "database" / "simlingo"
+    # dir name must match the evalset_commentary.json path prefix exactly --
+    # BaseDataset compares full path strings, not resolved files
+    dest = workdir / "database" / "simlingo_v2_2025_01_10"
     marker = workdir / ".extract_done"
     if marker.exists():
         print(f"[faith] {marker} exists, skipping download/extract", flush=True)

@@ -1,7 +1,9 @@
 # 3-arm open-loop faithfulness inference: HF original SimLingo vs full K=4
-# contrastive arms (w0.1, w0.5), 500 shared seeded clips from the held-out
-# validation_1_scenario split (its sensor chunks were excluded from every
-# training arm's extract set, so no arm ever saw these frames).
+# contrastive arms (w0.1, w0.5), 500 shared seeded clips drawn from the
+# upstream evalset_commentary.json samples in validation_3_scenarios (all 3
+# of its sensor chunks are extracted, so all 1406 evalset clips of that split
+# are available; validation routes are never trained on in any arm, and
+# last.ckpt is a fixed epoch -- no val-based checkpoint selection).
 # Ranks 0-2 run one arm each on their own GPU; ranks 3-7 exit after extract.
 # Outputs: s3://research-datasets-chicago/simlingo-faithfulness/<arm>/predictions.jsonl
 # Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/eval_faith_3arm.yaml
@@ -15,8 +17,8 @@ workload_variant_config:
     s3_bucket: "research-datasets-chicago"
     s3_prefix: "hf-datasets/RenzKa/simlingo-full"
     workdir: "/mnt/work/simlingo_faith"
-    # ~42GB compressed: 2 sensor chunks + their commentary labels
-    include_regex: "(commentary|data)_simlingo_validation_1_scenario_routes_validation_random_weather_seed_2_balanced_150_chunk_00[13]\\.tar\\.gz"
+    # ~42GB compressed: all 3 validation_3_scenarios sensor chunks + commentary
+    include_regex: "(commentary|data)_simlingo_validation_3_scenarios_routes_validation_random_weather_seed_4_balanced_100_chunk_\\d+\\.tar\\.gz"
     extract_timeout_s: 14400
     base_config_s3_key: "simlingo-checkpoints-consolidated/hf_original_epoch013/simlingo/.hydra/config.yaml"
     results_s3_prefix: "simlingo-faithfulness"

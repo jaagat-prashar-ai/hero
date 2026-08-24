@@ -45,6 +45,19 @@ def main() -> None:
     args = ap.parse_args()
 
     torch.set_float32_matmul_precision("high")
+
+    # dataset_base/driving call hydra's get_original_cwd(), which upstream
+    # eval.py satisfies via @hydra.main; we run bare, so initialize a minimal
+    # HydraConfig whose runtime.cwd is our cwd (= simlingo repo root)
+    from hydra.conf import HydraConf  # noqa: PLC0415
+    from hydra.core.hydra_config import HydraConfig  # noqa: PLC0415
+    from omegaconf import open_dict  # noqa: PLC0415
+    hydra_cfg = OmegaConf.create({"hydra": OmegaConf.structured(HydraConf)})
+    with open_dict(hydra_cfg.hydra):
+        hydra_cfg.hydra.runtime.cwd = str(Path.cwd())
+        hydra_cfg.hydra.job.name = "eval_faith_worker"
+    HydraConfig.instance().set_config(hydra_cfg)
+
     cfg = OmegaConf.load(args.config)
 
     # commentary predict mode, exactly as upstream eval.py's branch
@@ -55,9 +68,10 @@ def main() -> None:
     cfg.data_module.base_dataset.use_qa = False
     cfg.data_module.base_dataset.img_augmentation = False
     cfg.data_module.base_dataset.img_shift_augmentation = False
-    # the node-local mirror extracts to database/simlingo (symlinked into the
-    # repo by eval_faith.py); the HF config's v2 path doesn't exist here
-    cfg.data_module.base_dataset.data_path = "database/simlingo"
+    # data_path stays database/simlingo_v2_2025_01_10 (the HF config value):
+    # BaseDataset string-matches scanned measurement paths against
+    # data/evalset_commentary.json entries, which hardcode that prefix --
+    # eval_faith.py extracts the mirror under exactly that directory name
     cfg.data_module.batch_size = args.batch_size
     cfg.data_module.num_workers = 8
     cfg.gpus = 1
