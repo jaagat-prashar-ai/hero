@@ -150,8 +150,8 @@ def main() -> None:
             if v["judge"]["score"] is not None:
                 per_clip.setdefault(v["path"], {})[arm] = v["judge"]["score"]
 
-    # paired deltas vs the first arm, over clips scored in both
-    ref = arms[0]
+    # paired deltas vs the baseline arm, over clips scored in both
+    ref = next((a for a in arms if "original" in a), arms[0])
     for arm in arms[1:]:
         deltas = [c[arm] - c[ref] for c in per_clip.values() if ref in c and arm in c]
         if deltas:
