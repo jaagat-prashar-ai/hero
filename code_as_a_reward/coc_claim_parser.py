@@ -170,8 +170,34 @@ def _normalize_punctuation(text: str) -> str:
 # insurance against a commitment-clause instance we haven't seen).
 MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] = [
     ("lane_change", ManeuverAxis.LATERAL, None, re.compile(r"\bchang(?:e|es|ed|ing)\b", re.I)),
-    ("keep_lane", ManeuverAxis.LATERAL, None, re.compile(r"\bkeep(?:s|ing)?\s+lane\b", re.I)),
-    ("nudge", ManeuverAxis.LATERAL, None, re.compile(r"\bnudg(?:e|es|ed|ing)\b|\bbypass(?:es|ing)?\b", re.I)),
+    (
+        # GT command vocabulary for lane-keeping guidance ("Go straight
+        # following the temporary lane...") -- 36% of full1050 GT CoCs
+        # parsed to ZERO commitments without these, briefing the generator
+        # with "commitments: (none)" on exactly the work-zone scenes.
+        "keep_lane",
+        ManeuverAxis.LATERAL,
+        None,
+        re.compile(
+            r"\bkeep(?:s|ing)?\s+lane\b|\bgo(?:es|ing)?\s+straight\b"
+            r"|\bcontinue(?:s|d)?\s+straight\b|\bstraight\s+ahead\b"
+            r"|\bfollow(?:s|ing)?\s+(?:the\s+)?(?:temporary\s+)?"
+            r"(?:lanes?|cones?|delineators?|markings?|detour)\b",
+            re.I,
+        ),
+    ),
+    (
+        # "steer left"/"slightly shift to the right" = small lateral
+        # adjustment (same GT command vocabulary as keep_lane above).
+        "nudge",
+        ManeuverAxis.LATERAL,
+        None,
+        re.compile(
+            r"\bnudg(?:e|es|ed|ing)\b|\bbypass(?:es|ing)?\b"
+            r"|\bsteer(?:s|ing|ed)?\b|\bshift(?:s|ing|ed)?\b",
+            re.I,
+        ),
+    ),
     ("merge", ManeuverAxis.LATERAL, None, re.compile(r"\bmerg(?:e|es|ed|ing)\b", re.I)),
     (
         "turn",
@@ -243,7 +269,8 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         # (keep_distance already claimed "maintain ... distance/gap" above);
         # "creep" = proceed slowly (flagger/work-zone scenes).
         re.compile(
-            r"\bproceed(?:s|ing)?\b|\b(?:maintain|keep|hold)(?:s|ing)?\s+speed\b|\bcreep(?:s|ing)?\b",
+            r"\bproceed(?:s|ing)?\b|\b(?:maintain|keep|hold)(?:s|ing)?\s+speed\b"
+            r"|\bcreep(?:s|ing)?\b|\bnavigat(?:e|es|ing)\b",
             re.I,
         ),
     ),
