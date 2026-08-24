@@ -6,6 +6,36 @@ now, not routine typos.
 
 ---
 
+## 2026-08-24 — summarise_losses zero-count division: torch.where backprops NaN through the untaken branch; poisoned every cycle co-training arm
+
+**Symptom:** every cycle-loss co-training arm ever launched (gen-1 through the
+08-21 16-arm fleet) trained at chance on the ranking task AND wrecked the main
+task, at ANY weight (even 1e-6) and with shuffled-placebo pairing; the
+nograd control was healthy; fair-ddp arms logged loss=NaN from step ~4.
+**Root cause:** `summarise_losses` computed
+`torch.where(n.sum() > 0, v.sum() / n.sum(), 0.0)`. On a rank whose batch has
+no dreamer pairs (singleton groups — common), the count is 0: the forward
+correctly returns the 0.0 branch (losses logged finite), but torch.where
+backprops through BOTH branches, and the backward of `v.sum()/0` is NaN.
+The cycle loss is the only loss whose zero-count vector is graph-tied (the
+pair-less-rank wp_encoder tie-in), so the NaN reached shared parameters and
+every rank via the gradient allreduce — silently killing essentially every
+optimizer step under DeepSpeed fp16 (overflow-skip) and corrupting weights
+outright under ddp. Contrastive arms were immune only because their
+zero-count loss vector has no graph attachment.
+**Fix:** [131fecc](../../commit/131fecc) — clamp the denominator
+(`n.sum().clamp(min=1)`) and keep the else branch graph-tied via
+`v.sum() * 0.0`; regression test asserts finite grads for a graph-tied
+zero-count loss.
+**How this was found:** `detect_anomaly=true` debug run
+(dbg-cyc-nan-fp16-fnesbk, flag added in 01ae47a): `DivBackward0 returned nan`
+with the forward-call traceback pointing at summarise_losses:217.
+**Lesson:** `torch.where(cond, a/b, 0)` is NOT NaN-safe in backward — always
+clamp/guard the denominator itself. And a "safe" forward with finite logged
+losses says nothing about the gradients.
+
+---
+
 ## 2026-08-24 — bf16-mixed crashes replace_placeholder_tokens: fp32 vit_embeds index_put into bf16 embeddings
 
 **Symptom:** all three abl-fair bf16 arms (k54rip/ibgi15/noiaqh) died 33min in
