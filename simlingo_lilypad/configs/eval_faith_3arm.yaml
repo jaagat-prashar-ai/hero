@@ -1,0 +1,84 @@
+# 3-arm open-loop faithfulness inference: HF original SimLingo vs full K=4
+# contrastive arms (w0.1, w0.5), 500 shared seeded clips from the held-out
+# validation_1_scenario split (its sensor chunks were excluded from every
+# training arm's extract set, so no arm ever saw these frames).
+# Ranks 0-2 run one arm each on their own GPU; ranks 3-7 exit after extract.
+# Outputs: s3://research-datasets-chicago/simlingo-faithfulness/<arm>/predictions.jsonl
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/eval_faith_3arm.yaml
+name: simlingo-faith-3arm
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.eval_faith.eval_faithfulness
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo-full"
+    workdir: "/mnt/work/simlingo_faith"
+    # ~42GB compressed: 2 sensor chunks + their commentary labels
+    include_regex: "(commentary|data)_simlingo_validation_1_scenario_routes_validation_random_weather_seed_2_balanced_150_chunk_00[13]\\.tar\\.gz"
+    extract_timeout_s: 14400
+    base_config_s3_key: "simlingo-checkpoints-consolidated/hf_original_epoch013/simlingo/.hydra/config.yaml"
+    results_s3_prefix: "simlingo-faithfulness"
+    max_clips: 500
+    subset_seed: 1234
+    batch_size: 4
+    arms:
+      - name: hf_original_epoch013
+        ckpt_s3_prefix: "simlingo-checkpoints-consolidated/hf_original_epoch013/simlingo/checkpoints/epoch=013.ckpt"
+        local_entry: "pytorch_model.pt"
+      - name: full_k4_w0.1_s9876
+        ckpt_s3_prefix: "simlingo-checkpoints/20260817090017_full_k4_w0.1_s9876/last.ckpt"
+        local_entry: "."
+      - name: full_k4_w0.5_s9876
+        ckpt_s3_prefix: "simlingo-checkpoints/20260817090017_full_k4_w0.5_s9876/last.ckpt"
+        local_entry: "."
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
