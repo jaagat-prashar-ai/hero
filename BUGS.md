@@ -6,6 +6,45 @@ now, not routine typos.
 
 ---
 
+## 2026-08-24 — bf16-mixed crashes replace_placeholder_tokens: fp32 vit_embeds index_put into bf16 embeddings
+
+**Symptom:** all three abl-fair bf16 arms (k54rip/ibgi15/noiaqh) died 33min in
+(first real training step): `RuntimeError: Index put requires the source and
+destination dtypes match, got BFloat16 for the destination and Float for the
+source` at `internvl2_model.py:129` — and the in-function try/except retried
+the same dtype-mismatched index_put at line 135, so it raised anyway.
+**Root cause:** under `precision=bf16-mixed` the vision tower's
+`extract_feature` output stays fp32 while `inputs_embeds` are bf16; the
+`<IMG_CONTEXT>` substitution index_put requires matching dtypes. fp16 runs
+never hit it because the tower output was fp16 there.
+**Fix:** [9a561c8](../../commit/9a561c8) — cast `vit_embeds` to
+`inputs_embeds.dtype` before the substitution.
+**How this was found:** rank-worker traceback via `lilypad workload logs`
+with an explicit `--start-time` window.
+
+---
+
+## 2026-08-24 — fp16 sum-then-scale zero tie-in: `traj_tokens.sum() * 0.0` = NaN, poisons the whole fleet's gradients
+
+**Symptom:** (latent NaN generator, found while hunting the 08-21 fleet
+poisoning — every cycle co-training arm trained at chance with wrecked task
+losses at ANY weight incl. 1e-6 and with shuffled-placebo pairing, while the
+nograd control was healthy; fair-ddp arms logged loss=NaN from step ~4.)
+**Root cause:** the pair-less-rank graph tie-in in
+`cycle_consistency_loss` computed `zero = traj_tokens.sum() * 0.0`. In fp16
+the raw sum over ~600k elements overflows to inf, and `inf * 0.0 = NaN`; one
+pair-less rank's NaN loss then reaches every rank's gradients through the
+allreduce. Same pattern in the probe-mode all-param tie-in
+(`sum(p.sum() ...) * 0.0` over 18M fp16 params).
+**Fix:** [b5ce4fe](../../commit/b5ce4fe) — multiply by 0 elementwise BEFORE
+summing: identical graph coverage, exact 0 at any dtype. NOT yet confirmed as
+the (only) cause of the fleet poisoning — detect-anomaly debug runs
+(`dbg_cyc_nan_fp16/fp32`, commit 40c6169) launched to name the culprit op.
+**Lesson:** never build a graph tie-in as `big_tensor.sum() * 0.0` in mixed
+precision; always `(t * 0.0).sum()`.
+
+---
+
 ## 2026-08-24 — coc_claim_parser: "stop sign" manufactured a fake stop commitment; bare "slow" was invisible
 
 **Symptom:** found by mining unparsed spans across all 12,468 cached full1050
