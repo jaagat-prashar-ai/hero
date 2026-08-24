@@ -72,6 +72,11 @@ class DrivingModelConfig:
     # additive Gaussian noise (meters) on the cycle trajectory input; probes
     # whether the ranking signal is coarse-geometry or sub-noise-scale detail
     cycle_traj_noise_m: float = 0.0
+    # diagnostic: run the cycle pass under torch.no_grad() — keeps the extra
+    # K^2 trunk forward (RNG/state side effects) but removes its backward.
+    # Splits forward-side vs backward/graph-side causes of the co-training
+    # collapse (2026-08-23: collapse is weight-independent down to w=1e-6)
+    cycle_no_grad: bool = False
 
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 

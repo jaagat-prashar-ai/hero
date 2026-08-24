@@ -128,6 +128,7 @@ class DrivingModel(pl.LightningModule):
         self.cycle_delta_token_ce = getattr(self, 'cycle_delta_token_ce', False)
         self.cycle_shuffle_traj = getattr(self, 'cycle_shuffle_traj', False)
         self.cycle_traj_noise_m = getattr(self, 'cycle_traj_noise_m', 0.0)
+        self.cycle_no_grad = getattr(self, 'cycle_no_grad', False)
         if self.cycle_loss_weight > 0:
             template_ids = self.tokenizer(
                 "\nWhich instruction produced this trajectory?\n",
@@ -319,9 +320,15 @@ class DrivingModel(pl.LightningModule):
             loss_dict.update(self.contrastive_alignment_loss(adaptor_dict, adaptor_features, loss_dict, example.group_ids))
 
         if self.cycle_loss_weight > 0 and example.group_ids is not None:
-            loss_dict.update(self.cycle_consistency_loss(
-                adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
-            ))
+            if self.cycle_no_grad:
+                with torch.no_grad():
+                    loss_dict.update(self.cycle_consistency_loss(
+                        adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
+                    ))
+            else:
+                loss_dict.update(self.cycle_consistency_loss(
+                    adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
+                ))
 
         loss_dict_only_losses = {k:v for k, v in loss_dict.items() if k.endswith("loss")}
         loss_logs = {k:v for k, v in loss_dict.items() if k.endswith("log")}
