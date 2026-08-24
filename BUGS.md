@@ -6,6 +6,31 @@ now, not routine typos.
 
 ---
 
+## 2026-08-24 — coc_claim_parser: "stop sign" manufactured a fake stop commitment; bare "slow" was invisible
+
+**Symptom:** found by mining unparsed spans across all 12,468 cached full1050
+real rollouts (gate-calibration audit). (1) "controlled by a stop sign, so I
+stop and wait" parsed to THREE decelerate-family commitments — one from the
+words "stop sign" itself, so a rollout merely *mentioning* a stop sign earned
+commitment credit it never claimed. (2) "I slow for the pedestrian" — the
+corpus's dominant slowing phrasing — parsed to ZERO commitments: the
+decelerate regex only knew "slow down"/"brake"/"decelerat*", so faithful
+rollouts were denied the main conjunction credit purely for phrasing.
+
+**Root cause:** keyword tables. The stop pattern had no lookahead for the
+noun use; the slow pattern required the "down" particle, but the parser's
+connective splitting also strips "for/after" from the beat, so "slow for X"
+could never match a "slow for" pattern either — the fix has to accept bare
+"slow" with guards (is/are/was/were-slowing, slow traffic/vehicle/…, slowly,
+slow-moving) rather than particle variants.
+
+**Fix (0a4cc4b):** stop lookahead `(?!\s+sign)` + "stop sign" → signal
+entity; guarded bare-slow decelerate pattern; plus the audit's top synonym
+gaps (resume/match/maintain speed, bypass, closure, flagger, trailer/tractor,
+new `animal` entity mapped to the dataset's real animal class). Confirmed on
+the cached corpus: zero-commitment rollouts 1.2%→0.6%, mean unparsed text
+37.7%→31.8%; all 101 code_as_a_reward tests pass.
+
 ## 2026-08-24 — clipgen full-corpus GRPO died on an unretried HF 429 (real quota is 1000 req/5 min, not 5000)
 
 **Symptom:** `alpamayo-rl-code-reward-clipgen-full1050-04ey5y` failed after
