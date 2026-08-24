@@ -214,7 +214,15 @@ def summarise_losses(
 
     loss_values = {k: v for k, (v, _) in loss_dict.items()}
     loss_counts = {k: n for k, (_, n) in loss_dict.items()}
-    loss_averages = {k: torch.where(n.sum() > 0, v.sum() / n.sum(), 0.0) for k, (v, n) in loss_dict.items()}
+    # clamp the denominator: torch.where backprops through BOTH branches, so an
+    # unclamped v.sum()/0 emits NaN gradients even when the 0.0 branch is taken.
+    # Any loss vector tied into the model graph (e.g. the cycle loss's
+    # pair-less-rank wp_encoder tie-in) then floods the shared parameters -
+    # and every other rank via the gradient allreduce - with NaN.
+    loss_averages = {
+        k: torch.where(n.sum() > 0, v.sum() / n.sum().clamp(min=1), v.sum() * 0.0)
+        for k, (v, n) in loss_dict.items()
+    }
     if weights is None:
         loss = torch.stack(list(loss_averages.values())).sum()
     else:

@@ -108,6 +108,25 @@ def test_symmetric_both_directions_contribute():
     assert loss_broken.sum() > loss_sym.sum(), "column direction is not penalised"
 
 
+def test_summarise_losses_zero_count_backward_is_finite():
+    # regression: torch.where backprops through BOTH branches, so an unclamped
+    # v.sum()/0 emitted NaN grads whenever a rank had a zero-count aux loss
+    # tied into the graph (the 08-21 fleet poisoning; anomaly: DivBackward0
+    # at summarise_losses). The zero-count loss must yield exactly-zero grads.
+    from simlingo_training.models.utils import summarise_losses
+
+    param = torch.randn(4, requires_grad=True)
+    live_loss = (param * 2.0).abs()                      # count > 0
+    tied_zero = (param * 0.0)                            # graph-tied, count == 0
+    out = summarise_losses({
+        "task_loss": (live_loss, torch.ones(4, dtype=torch.long)),
+        "cycle_loss": (tied_zero, torch.zeros(4, dtype=torch.long)),
+    })
+    assert torch.isfinite(out.loss)
+    out.loss.backward()
+    assert torch.isfinite(param.grad).all(), "NaN leaked through the zero-count branch"
+
+
 def test_gradient_flows_to_ce():
     pair_row, pair_col = make_pairs([2])
     ce = torch.tensor([0.5, 1.0, 1.0, 0.5], requires_grad=True)
