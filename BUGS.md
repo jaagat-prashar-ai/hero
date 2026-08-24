@@ -6,6 +6,64 @@ now, not routine typos.
 
 ---
 
+## 2026-08-24 — clipgen full-corpus GRPO died on an unretried HF 429 (real quota is 1000 req/5 min, not 5000)
+
+**Symptom:** `alpamayo-rl-code-reward-clipgen-full1050-04ey5y` failed after
+1h14m, ~13 chunks into the 352-chunk per-chunk download loop, on chunk 656:
+`HfHubHTTPError: 429 ... xet-read-token/... We had to rate limit you, you hit
+the quota of 1000 api requests per 5 minutes period`. The whole 8-GPU job died
+before a single training step.
+
+**Root cause:** `_download_pai_reasoning_dense`'s clip-filtered branch
+(`rl_posttrain/training/run.py`) shells out to `download_pai.py` once per
+chunk — necessary to keep the node's 992 GB fs under the camera-zip footprint
+— and each invocation re-walks the whole dataset tree (paginated
+`tree/main?recursive=true&limit=1000`, many cursor pages) plus one
+xet-read-token call per file. Serially over hundreds of chunks that exceeds
+the account's HF API quota. `_download` had no retry, so one 429 propagated
+out of `subprocess.run(check=True)` and killed the run.
+
+**Fix:** retry `_download` with backoff `[90, 300, 300, 600, 600]`s (the quota
+is a 5-minute rolling window, so sleeping past it clears the 429). Relaunch is
+cheap on a warm node: the `.camera_pruned.chunk_*` markers make already-done
+chunks skip.
+
+**Lessons:** (1) The documented quota for this account is **1000 api requests
+per 5 minutes**, not the 5000/5min recorded from an earlier error message —
+tune HF-heavy concurrency to 1000. (2) Any per-item loop that shells out N
+hundred times to an external rate-limited API needs retry/backoff at the loop
+body, not just at the job level: without it, hour-scale progress is lost to a
+transient 429.
+
+---
+
+## 2026-08-23 — ddp fair-test baseline crashed at step 0: w0 leaves the cycle head grad-less
+
+**Symptom:** `simlingo-abl-fair-base-w0-ddp-bixfl8` died 32 min in at the first
+optimizer step, all 8 ranks: `RuntimeError: It looks like your LightningModule
+has parameters that were not used in producing the loss returned by
+training_step ... set strategy='ddp_find_unused_parameters_true'`. The two
+cycle arms of the same fleet (`fair_cyc_undet`/`fair_cyc_placebo`, plain `ddp`)
+ran 4h27m without hitting it.
+
+**Root cause:** the matched baseline sets `model.cycle_loss_weight=0.0`, so the
+cycle/contrastive head's parameters never enter the loss. Plain DDP asserts
+every parameter receives a gradient; the cycle arms are unaffected because
+their aux loss is live. The whole prior fleet ran on `deepspeed_stage_2`, which
+tolerates unused params — so switching the fair test to `strategy=ddp` exposed
+a latent incompatibility with the w0 arm specifically.
+
+**Fix:** `strategy=ddp_find_unused_parameters_true` for the `fair_base_w0_ddp`
+arm only (`gen_abl_fleet.py` + regenerated yaml). The two cycle arms keep
+`strategy=ddp` so their configs stay faithful to what actually ran.
+
+**Lessons:** a w0 / no-aux-loss "matched baseline" is not config-neutral under
+DDP — zeroing an aux loss weight changes which parameters get gradients, and
+any strategy switch has to be validated on the *baseline* arm, which is the
+one most likely to have dead parameters.
+
+---
+
 ## 2026-08-21 — stray editor text in adaptors.py broke every simlingo model import; killed all 16 ablation-fleet arms
 
 **Symptom:** all 16 arms of the 2026-08-21 ablation fleet died within ~30 min
