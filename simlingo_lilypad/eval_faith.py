@@ -132,5 +132,7 @@ def eval_faithfulness(training_fn_config: dict[str, Any], experiment_tracker: An
         raise RuntimeError(f"worker exited {result.returncode} for arm {arm['name']}")
 
     dest_key = f"{cfg['results_s3_prefix'].rstrip('/')}/{arm['name']}/predictions.jsonl"
-    _s3_client().upload_file(str(out_local), bucket, dest_key)
+    # put_object with in-memory bytes: upload_file's streaming path uses AWS
+    # chunked encoding, which the OCI S3 compat endpoint rejects (NotImplemented)
+    _s3_client().put_object(Bucket=bucket, Key=dest_key, Body=out_local.read_bytes())
     print(f"[faith:{arm['name']}] uploaded s3://{bucket}/{dest_key}", flush=True)

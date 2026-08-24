@@ -209,6 +209,13 @@ class BaseDataset(Dataset):  # pylint: disable=locally-disabled, invalid-name
                 print("Using Town13 for validation")
                 route_dirs = [route_dir for route_dir in route_dirs if 'routes_validation' in route_dir]
                 route_dirs = route_dirs[:int(0.02 * len(route_dirs))]
+        elif getattr(self, 'eval_use_all_routes', False):
+            # eval-only mirrors contain just the held-out validation split and
+            # the predefined evalset (all_eval_samples) already restricts the
+            # frames, so the 99/1 route slice below would only throw away
+            # evalset coverage (and does so nondeterministically: the shuffle
+            # above is unseeded)
+            pass
         else:
             # use all towns
             if self.split == "train":

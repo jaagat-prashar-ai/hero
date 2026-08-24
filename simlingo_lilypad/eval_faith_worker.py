@@ -58,6 +58,11 @@ def main() -> None:
         hydra_cfg.hydra.job.name = "eval_faith_worker"
     HydraConfig.instance().set_config(hydra_cfg)
 
+    # dataset_base shuffles route_dirs with the GLOBAL random module before
+    # scanning; identical seeds across arms => identical scan order => the
+    # index subset below selects the same clips in every arm (paired eval)
+    random.seed(args.seed)
+
     cfg = OmegaConf.load(args.config)
 
     # commentary predict mode, exactly as upstream eval.py's branch
@@ -66,6 +71,9 @@ def main() -> None:
     cfg.data_module.insteval_dataset = None
     cfg.data_module.base_dataset.use_commentary = True
     cfg.data_module.base_dataset.use_qa = False
+    # keep all scanned routes: the eval mirror holds only the held-out split
+    # and the evalset intersection restricts frames (see dataset_base.py)
+    cfg.data_module.base_dataset.eval_use_all_routes = True
     cfg.data_module.base_dataset.img_augmentation = False
     cfg.data_module.base_dataset.img_shift_augmentation = False
     # data_path stays database/simlingo_v2_2025_01_10 (the HF config value):
