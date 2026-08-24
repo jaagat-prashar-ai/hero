@@ -122,6 +122,9 @@ class LingoInternVLModel(nn.Module):
                     all_image_features.append(image_features)
 
                 vit_embeds = torch.cat(all_image_features, dim=0)
+                # index_put below requires matching dtypes; under bf16-mixed the
+                # vision tower returns fp32 while the embeddings are bf16
+                vit_embeds = vit_embeds.to(inputs_embeds.dtype)
                 inputs_embeds = inputs_embeds.reshape(BS * N_embed, C_embed)
                 input_ids = input_ids.reshape(BS * N_embed)
                 selected = (input_ids == self.img_context_token_id)
