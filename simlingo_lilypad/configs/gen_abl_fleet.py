@@ -146,6 +146,14 @@ ARMS = [
     ("fair_base_w0_ddp",        "fair-test matched baseline: no aux loss, strategy=ddp", ["model.cycle_loss_weight=0.0", "strategy=ddp"]),
     ("fair_cyc_undet_w0.05_ddp",  "fair test: central undetached delta-CE arm on ddp",   cyc(0.05, False) + ["strategy=ddp"]),
     ("fair_cyc_placebo_w0.05_ddp", "fair test: shuffled-pairing placebo on ddp",         cyc(0.05, False, shuffle=True) + ["strategy=ddp"]),
+    # 2026-08-24 round 2: DDP reproduced the collapse bit-for-bit (steps 49-199
+    # match ZeRO-2), then NaN'd at step 249 — strategy exonerated. Leading
+    # hypothesis: cycle backward overflows fp16 (inf grads make the global 0.3
+    # grad-norm clip nuke/corrupt ALL gradients, weight-independently). bf16 has
+    # fp32's dynamic range: healthy bf16 arms confirm fp16 overflow as root cause.
+    ("fair_base_w0_bf16",        "fair-test matched baseline: no aux loss, bf16",        ["model.cycle_loss_weight=0.0", "precision=bf16-mixed"]),
+    ("fair_cyc_undet_w0.05_bf16", "fair test: central undetached delta-CE arm on bf16",  cyc(0.05, False) + ["precision=bf16-mixed"]),
+    ("fair_cyc_placebo_w0.05_bf16", "fair test: shuffled-pairing placebo on bf16",       cyc(0.05, False, shuffle=True) + ["precision=bf16-mixed"]),
     ("cyc_det_delta_w0.01",   "detached, delta CE, minimal weight",                                         cyc(0.01, True)),
     ("cyc_undet_delta_w0.01", "undetached, delta CE, minimal weight",                                       cyc(0.01, False)),
     ("cyc_gtreader_w0.05",    "GT-trajectory reader with delta CE (Phase-A redo done right, low weight)",   cyc(0.05, True, gt=True)),
