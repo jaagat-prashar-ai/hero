@@ -143,7 +143,10 @@ ARMS = [
     # the cycle backward under deepspeed ZeRO-2 (no_grad forward = healthy, weight
     # irrelevant down to 1e-6). Rerun on plain DDP with a matched baseline and the
     # placebo control so a cycle-acc rise is attributable to real pairing signal.
-    ("fair_base_w0_ddp",        "fair-test matched baseline: no aux loss, strategy=ddp", ["model.cycle_loss_weight=0.0", "strategy=ddp"]),
+    # w0 leaves the cycle head grad-less, which plain ddp rejects (bixfl8);
+    # find_unused_parameters tolerates it. Baseline-only: the two cycle arms
+    # below ran 4h27m on plain ddp, so their configs stay as launched.
+    ("fair_base_w0_ddp",        "fair-test matched baseline: no aux loss, strategy=ddp", ["model.cycle_loss_weight=0.0", "strategy=ddp_find_unused_parameters_true"]),
     ("fair_cyc_undet_w0.05_ddp",  "fair test: central undetached delta-CE arm on ddp",   cyc(0.05, False) + ["strategy=ddp"]),
     ("fair_cyc_placebo_w0.05_ddp", "fair test: shuffled-pairing placebo on ddp",         cyc(0.05, False, shuffle=True) + ["strategy=ddp"]),
     # 2026-08-24 round 2: DDP reproduced the collapse bit-for-bit (steps 49-199

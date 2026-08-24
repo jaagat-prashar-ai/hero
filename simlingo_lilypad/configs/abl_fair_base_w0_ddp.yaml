@@ -24,7 +24,7 @@ workload_variant_config:
       - data_module.base_dataset.dreamer_contrastive_k=4
       - model.language_model.gradient_checkpointing=true
       - model.cycle_loss_weight=0.0
-      - strategy=ddp
+      - strategy=ddp_find_unused_parameters_true
       - wandb_project=simlingo-contrastive
       - name=smoke_abl_fair_base_w0_ddp
   experiment_tracker:
