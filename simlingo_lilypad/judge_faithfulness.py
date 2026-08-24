@@ -152,7 +152,7 @@ def main() -> None:
 
     # paired deltas vs the baseline arm, over clips scored in both
     ref = next((a for a in arms if "original" in a), arms[0])
-    for arm in arms[1:]:
+    for arm in (a for a in arms if a != ref):
         deltas = [c[arm] - c[ref] for c in per_clip.values() if ref in c and arm in c]
         if deltas:
             lo, hi = bootstrap_ci(deltas, seed=1)
