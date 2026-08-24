@@ -139,6 +139,13 @@ ARMS = [
     ("cyc_undet_delta_w0.05", "undetached, delta CE, low weight (central arm)",                             cyc(0.05, False)),
     ("cyc_undet_delta_w1e-6", "collapse diagnostic: central undetached arm at negligible weight — if the collapse persists, the cycle pass itself (not its gradient) is the mechanism", cyc(1e-6, False)),
     ("cyc_nograd_w0.05",      "collapse diagnostic: central undetached arm with the whole cycle pass under torch.no_grad() — recovery = backward/graph side effect, persistence = forward side effect", cyc(0.05, False) + ["model.cycle_no_grad=true"]),
+    # 2026-08-23 fair co-training test: the fleet's cycle collapse was isolated to
+    # the cycle backward under deepspeed ZeRO-2 (no_grad forward = healthy, weight
+    # irrelevant down to 1e-6). Rerun on plain DDP with a matched baseline and the
+    # placebo control so a cycle-acc rise is attributable to real pairing signal.
+    ("fair_base_w0_ddp",        "fair-test matched baseline: no aux loss, strategy=ddp", ["model.cycle_loss_weight=0.0", "strategy=ddp"]),
+    ("fair_cyc_undet_w0.05_ddp",  "fair test: central undetached delta-CE arm on ddp",   cyc(0.05, False) + ["strategy=ddp"]),
+    ("fair_cyc_placebo_w0.05_ddp", "fair test: shuffled-pairing placebo on ddp",         cyc(0.05, False, shuffle=True) + ["strategy=ddp"]),
     ("cyc_det_delta_w0.01",   "detached, delta CE, minimal weight",                                         cyc(0.01, True)),
     ("cyc_undet_delta_w0.01", "undetached, delta CE, minimal weight",                                       cyc(0.01, False)),
     ("cyc_gtreader_w0.05",    "GT-trajectory reader with delta CE (Phase-A redo done right, low weight)",   cyc(0.05, True, gt=True)),
