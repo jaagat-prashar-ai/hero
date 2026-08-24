@@ -65,6 +65,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -604,27 +605,48 @@ def _download_pai_reasoning_dense(
     chunk_ids = (pai_dir / "dense_chunks.txt").read_text().strip()
 
     def _download(chunk_id_str: str) -> None:
-        _run_streamed(
-            [
-                python_bin,
-                "scripts/download_pai.py",
-                "--chunk-ids",
-                chunk_id_str,
-                "--camera",
-                *_CAMERA_SUBPARTS,
-                "--calibration",
-                *_CALIBRATION_SUBPARTS,
-                "--labels",
-                "egomotion",
-                "egomotion.offline",
-                "obstacle.offline",
-                "--reasoning",
-                "ood_reasoning.parquet",
-                "--output-dir",
-                str(pai_dir),
-            ],
-            cwd=RECIPE_ROOT,
-        )
+        cmd = [
+            python_bin,
+            "scripts/download_pai.py",
+            "--chunk-ids",
+            chunk_id_str,
+            "--camera",
+            *_CAMERA_SUBPARTS,
+            "--calibration",
+            *_CALIBRATION_SUBPARTS,
+            "--labels",
+            "egomotion",
+            "egomotion.offline",
+            "obstacle.offline",
+            "--reasoning",
+            "ood_reasoning.parquet",
+            "--output-dir",
+            str(pai_dir),
+        ]
+        # Every download_pai.py invocation re-lists the full dataset tree
+        # (paginated tree?recursive=true) plus one xet-read-token call per
+        # file, so the per-chunk loop below burns HF API quota fast. Run
+        # 04ey5y (2026-08-23) died ~13 chunks into 352 on "429 ... quota of
+        # 1000 api requests per 5 minutes" with no retry, losing 1h14m of
+        # node time. The quota is a 5-minute rolling window, so sleep past
+        # it and retry instead of failing the whole run.
+        delays = [90, 300, 300, 600, 600]
+        for attempt in range(len(delays) + 1):
+            try:
+                _run_streamed(cmd, cwd=RECIPE_ROOT)
+                return
+            except subprocess.CalledProcessError:
+                if attempt == len(delays):
+                    raise
+                logger.warning(
+                    "download_pai failed for chunks %s (attempt %d/%d) -- retrying "
+                    "in %ds (usually HF 429: 1000 api requests / 5 min)",
+                    chunk_id_str,
+                    attempt + 1,
+                    len(delays) + 1,
+                    delays[attempt],
+                )
+                time.sleep(delays[attempt])
 
     if clip_filter_dir is None:
         _download(chunk_ids)
