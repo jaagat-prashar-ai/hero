@@ -195,6 +195,9 @@ class TrainConfig:
     accumulate_grad_batches: int = 1
     precision: str = "16-mixed"
     strategy: str = "deepspeed_stage_2" # deepspeed_stage_2 ddp
+    # debug: torch.autograd anomaly mode - names the backward op that produced
+    # a NaN/inf gradient at the cost of ~2x step time; for short debug runs only
+    detect_anomaly: bool = False
     # val_check_interval: int = 5000
     val_every_n_epochs: int = 1
 

@@ -167,6 +167,7 @@ def main(cfg: TrainConfig):
             overfit_batches=overfit,
             check_val_every_n_epoch=cfg.val_every_n_epochs,
             # val_check_interval=cfg.val_check_interval,
+            detect_anomaly=cfg.detect_anomaly,
         )
 
     trainer.fit(model, data_module, ckpt_path=resume_path)
