@@ -25,6 +25,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "simlingo" / "simli
 
 import torch
 from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
+from hydra import compose, initialize_config_dir
+from hydra.core.global_hydra import GlobalHydra
+from omegaconf import OmegaConf
+
+# same config tree simlingo_training/train.py composes via @hydra.main --
+# reused here (offline, CPU-only) to regenerate the .hydra/config.yaml that
+# agent_simlingo.py requires next to the consolidated checkpoint but that
+# train.py's own run only ever wrote into its (unsaved) local output dir
+_SIMLINGO_TRAINING_CONFIG_DIR = str(
+    Path(__file__).resolve().parents[1] / "simlingo" / "simlingo" / "simlingo_training" / "config"
+)
+
+
+def _build_hydra_config(overrides: list[str]):
+    GlobalHydra.instance().clear()
+    with initialize_config_dir(config_dir=_SIMLINGO_TRAINING_CONFIG_DIR, version_base="1.1"):
+        return compose(config_name="config", overrides=overrides)
 
 
 def _s3_client():
@@ -71,6 +88,7 @@ def consolidate_checkpoint(training_fn_config: dict[str, Any], experiment_tracke
     src_prefix_root = cfg.get("src_prefix", "simlingo-checkpoints").rstrip("/")
     dst_prefix_root = cfg.get("dst_prefix", "simlingo-checkpoints-consolidated").rstrip("/")
     root_workdir = Path(cfg.get("workdir", "/mnt/work/simlingo_consolidate"))
+    session_hydra_overrides = cfg.get("session_hydra_overrides", {})
     s3 = _s3_client()
 
     for session in cfg["sessions"]:
@@ -97,6 +115,21 @@ def consolidate_checkpoint(training_fn_config: dict[str, Any], experiment_tracke
         with open(out_local, "rb") as fh:
             s3.put_object(Bucket=bucket, Key=dest_key, Body=fh.read())
         print(f"[consolidate:{session}] done", flush=True)
+
+        # agent_simlingo.py's setup() hard-requires {session}/.hydra/config.yaml
+        # next to the checkpoint (BUGS.md: k3/k4 B2D eval FileNotFoundError) --
+        # regenerate it from the same overrides the original training launch
+        # config used, since train.py never persisted its own copy to S3
+        overrides = session_hydra_overrides.get(session)
+        if overrides:
+            print(f"[consolidate:{session}] composing .hydra/config.yaml from {len(overrides)} overrides", flush=True)
+            hydra_cfg = _build_hydra_config(overrides)
+            hydra_key = f"{dst_prefix_root}/{session}/.hydra/config.yaml"
+            print(f"[consolidate:{session}] uploading -> s3://{bucket}/{hydra_key}", flush=True)
+            s3.put_object(Bucket=bucket, Key=hydra_key, Body=OmegaConf.to_yaml(hydra_cfg).encode())
+        else:
+            print(f"[consolidate:{session}] WARNING: no session_hydra_overrides entry, "
+                  f".hydra/config.yaml will be missing and eval will fail", flush=True)
 
         # free disk before the next session's download
         shutil.rmtree(local_ckpt_dir, ignore_errors=True)

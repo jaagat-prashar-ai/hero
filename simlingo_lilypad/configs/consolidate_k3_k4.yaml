@@ -1,7 +1,13 @@
 # Consolidate DeepSpeed-sharded k3/k4 checkpoints into single-file
 # pytorch_model.pt under simlingo-checkpoints-consolidated/, matching the
 # k2 arms' existing layout so eval_b2d.py can load them unchanged.
-# k4_w0.5_s9876 is skipped: already consolidated.
+# Also regenerates each session's .hydra/config.yaml (BUGS.md 2026-08-25:
+# every k3/k4 B2D eval route was crashing with FileNotFoundError on this file
+# -- consolidate_checkpoint.py never wrote it, unlike the k2 arms' manual
+# step) by replaying the exact hydra_overrides each session's own
+# full_k{3,4}*.yaml training launch config used.
+# k4_w0.5_s9876's comment previously claimed "already consolidated" -- false,
+# verified via S3 listing 2026-08-25; it's included below like the rest.
 # Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/consolidate_k3_k4.yaml
 name: simlingo-consolidate-k3-k4
 model_identifier: other.training.alpamayo15.default.v1
@@ -20,7 +26,102 @@ workload_variant_config:
       - "20260817090017_full_k3_w0.5_s9876"
       - "20260817090017_full_k4_w0.1_s9876"
       - "20260817090017_full_k4_w0.3_s9876"
+      - "20260817090017_full_k4_w0.5_s9876"
       - "20260817090017_full_k4_w0.7_s9876"
+    # copied verbatim from each session's full_k{3,4}*.yaml training launch
+    # config's hydra_overrides, minus the runtime-only gpus/num_nodes/wandb_name
+    # overrides run.py appends per-rank (agent_simlingo.py never reads those)
+    session_hydra_overrides:
+      "20260817090020_full_k3_w0.5_s1234":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=3
+        - accumulate_grad_batches=2
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=3
+        - model.contrastive_loss_weight=0.5
+        - seed=1234
+        - wandb_project=simlingo-contrastive
+        - name=full_k3_w0.5_s1234
+      "20260817090017_full_k3_w0.5_s9876":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=3
+        - accumulate_grad_batches=2
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=3
+        - model.contrastive_loss_weight=0.5
+        - seed=9876
+        - wandb_project=simlingo-contrastive
+        - name=full_k3_w0.5_s9876
+      "20260817090017_full_k4_w0.1_s9876":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=2
+        - accumulate_grad_batches=3
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.contrastive_loss_weight=0.1
+        - seed=9876
+        - wandb_project=simlingo-contrastive
+        - name=full_k4_w0.1_s9876
+      "20260817090017_full_k4_w0.3_s9876":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=2
+        - accumulate_grad_batches=3
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.contrastive_loss_weight=0.3
+        - seed=9876
+        - wandb_project=simlingo-contrastive
+        - name=full_k4_w0.3_s9876
+      "20260817090017_full_k4_w0.5_s9876":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=2
+        - accumulate_grad_batches=3
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.contrastive_loss_weight=0.5
+        - seed=9876
+        - wandb_project=simlingo-contrastive
+        - name=full_k4_w0.5_s9876
+      "20260817090017_full_k4_w0.7_s9876":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=3
+        - val_every_n_epochs=1
+        - data_module.batch_size=2
+        - accumulate_grad_batches=3
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.contrastive_loss_weight=0.7
+        - seed=9876
+        - wandb_project=simlingo-contrastive
+        - name=full_k4_w0.7_s9876
   experiment_tracker:
     wandb:
       entity: research
