@@ -44,7 +44,10 @@ def _load_manifests(directories: list[str]) -> dict[str, dict[str, Any]]:
             entry = dict(original)
             clip_id = str(entry["clip_id"])
             if clip_id in entries:
-                raise ValueError(f"duplicate manifest clip {clip_id}")
+                # Manifest directories are ordered by precedence. This matters for
+                # historical corpora that reused a clip UUID at a new target time:
+                # the reward source on disk belongs to the first matching target.
+                continue
             if "t0_us" not in entry:
                 if clip_id not in targets:
                     raise ValueError(f"clip {clip_id}: missing t0_us")
