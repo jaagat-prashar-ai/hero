@@ -68,6 +68,45 @@ except ImportError:
     logger = logging.getLogger(__name__)
 
 
+def _import_coc_consistency():
+    """Import the recipe's coc_consistency_reward, surviving stale venvs.
+
+    The recipe venv on a warm node is validated by imports that predate this
+    module (bootstrap_venv skips `uv sync` when the marker validates), so a
+    persistent venv built before 2026-08-25 can lack
+    alpamayo1_x_rl.rewards.coc_consistency_reward even though the shipped
+    repo tree has it. Fall back to loading it straight from the tree this
+    entry shipped with -- the module only needs numpy + stdlib at import
+    time, and its lazy alpamayo_r1/torch imports resolve inside the venv."""
+    try:
+        from alpamayo1_x_rl.rewards import coc_consistency_reward
+
+        return coc_consistency_reward
+    except ImportError:
+        import importlib.util
+
+        path = (
+            _REPO_ROOT
+            / "third_party"
+            / "alpamayo-recipes"
+            / "recipes"
+            / "alpamayo1_x_rl"
+            / "rewards"
+            / "coc_consistency_reward.py"
+        )
+        spec = importlib.util.spec_from_file_location("_coc_consistency_reward", path)
+        module = importlib.util.module_from_spec(spec)
+        # Must be registered BEFORE exec: dataclass processing looks the
+        # module up in sys.modules by name while the body executes.
+        sys.modules["_coc_consistency_reward"] = module
+        spec.loader.exec_module(module)
+        logger.warning(
+            "[consistency_reward] alpamayo1_x_rl.rewards.coc_consistency_reward not in the "
+            f"recipe venv (stale editable install?); loaded from {path} instead"
+        )
+        return module
+
+
 # ---------------------------------------------------------------------------
 # Reward half
 # ---------------------------------------------------------------------------
@@ -152,9 +191,6 @@ def compute_reward(
 ) -> tuple[float, dict[str, float]]:
     """ADE + comfort + Lingo-Judge reasoning + consistency for one rollout."""
     from alpamayo_r1.models.token_utils import extract_between_special_tokens
-    from alpamayo1_x_rl.rewards.coc_consistency_reward import (
-        compute_consistency_from_completion,
-    )
     from alpamayo1_x_rl.rewards.comfort_reward import compute_comfort
     from alpamayo1_x_rl.rewards.traj_reward import calculate_ade
     from alpamayo1_x_rl.utils.light_weight_reasoning_grading_model import (
@@ -190,7 +226,8 @@ def compute_reward(
         grader = get_reasoning_grader_from_config(config)
         reasoning_score = float(grader.score(pred_cot, gt_cot).item()) - 1.0
 
-    consistency_score, consistency_diag = compute_consistency_from_completion(
+    coc_mod = _import_coc_consistency()
+    consistency_score, consistency_diag = coc_mod.compute_consistency_from_completion(
         to_be_evaluated,
         reference,
         tokenizer=tokenizer,
