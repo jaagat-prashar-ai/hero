@@ -10,6 +10,7 @@ POS_MIN/delta conditions and the stricter full gate result.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
 import math
@@ -61,6 +62,67 @@ def _load_manifests(directories: list[str]) -> dict[str, dict[str, Any]]:
 
 def _rate(numerator: int, denominator: int) -> float:
     return numerator / denominator if denominator else 0.0
+
+
+def stage_s3_overlap(
+    reward_fns_dir: str,
+    staging_dir: str,
+    *,
+    bucket: str,
+    prefix_format: str,
+    n_shards: int,
+    aws_profile: str | None,
+    endpoint_url: str | None,
+) -> list[str]:
+    """Download metadata plus GT files only for legacy/function overlap."""
+
+    import boto3
+
+    session = boto3.Session(profile_name=aws_profile) if aws_profile else boto3.Session()
+    s3 = session.client("s3", endpoint_url=endpoint_url)
+    source_ids = {path.stem for path in Path(reward_fns_dir).glob("*.py")}
+    root = Path(staging_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    directories: list[str] = []
+    downloads: list[tuple[str, Path]] = []
+    path_keys = (
+        "obstacle_parquet",
+        "egomotion_parquet",
+        "gt_coc",
+        "overlay_jpeg",
+        "waypoints_npy",
+    )
+    for shard in range(n_shards):
+        prefix = prefix_format.format(shard=shard).strip("/")
+        directory = root / f"shard_{shard}"
+        directory.mkdir(parents=True, exist_ok=True)
+        manifest = json.loads(
+            s3.get_object(Bucket=bucket, Key=f"{prefix}/manifest.json")["Body"].read()
+        )
+        targets = json.loads(
+            s3.get_object(Bucket=bucket, Key=f"{prefix}/targets.json")["Body"].read()
+        )
+        kept = [row for row in manifest if str(row["clip_id"]) in source_ids]
+        kept_ids = {str(row["clip_id"]) for row in kept}
+        kept_targets = [row for row in targets if str(row["clip_id"]) in kept_ids]
+        (directory / "manifest.json").write_text(json.dumps(kept))
+        (directory / "targets.json").write_text(json.dumps(kept_targets))
+        directories.append(str(directory))
+        for row in kept:
+            for field in path_keys:
+                value = row.get(field)
+                if not value:
+                    continue
+                name = Path(value).name
+                downloads.append((f"{prefix}/{name}", directory / name))
+
+    def download(item: tuple[str, Path]) -> None:
+        key, target = item
+        s3.download_file(bucket, key, str(target))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(download, downloads))
+    return directories
 
 
 def audit(
@@ -168,9 +230,34 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("reward_fns_dir")
     parser.add_argument("out_json")
-    parser.add_argument("manifest_dirs", nargs="+")
+    parser.add_argument("manifest_dirs", nargs="*")
+    parser.add_argument("--s3-bucket")
+    parser.add_argument("--s3-prefix-format")
+    parser.add_argument("--s3-shards", type=int, default=25)
+    parser.add_argument("--s3-staging-dir")
+    parser.add_argument("--aws-profile")
+    parser.add_argument("--endpoint-url")
     args = parser.parse_args()
-    report = audit(args.reward_fns_dir, args.manifest_dirs, args.out_json)
+    manifest_dirs = list(args.manifest_dirs)
+    if args.s3_bucket or args.s3_prefix_format or args.s3_staging_dir:
+        if not (args.s3_bucket and args.s3_prefix_format and args.s3_staging_dir):
+            parser.error(
+                "--s3-bucket, --s3-prefix-format, and --s3-staging-dir are required together"
+            )
+        if manifest_dirs:
+            parser.error("provide local manifest_dirs or S3 staging options, not both")
+        manifest_dirs = stage_s3_overlap(
+            args.reward_fns_dir,
+            args.s3_staging_dir,
+            bucket=args.s3_bucket,
+            prefix_format=args.s3_prefix_format,
+            n_shards=args.s3_shards,
+            aws_profile=args.aws_profile,
+            endpoint_url=args.endpoint_url,
+        )
+    if not manifest_dirs:
+        parser.error("no manifest directories provided")
+    report = audit(args.reward_fns_dir, manifest_dirs, args.out_json)
     print(json.dumps({key: value for key, value in report.items() if key != "records"}, indent=2))
 
 
