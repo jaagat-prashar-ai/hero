@@ -1,0 +1,89 @@
+# SimLingo full-data cycle-loss ablation, detached-delta arm (w=0.05).
+# Full-scale scale-up of abl_cyc_det_delta_w0.05_s7.yaml (which validated
+# the post-NaN-fix cycle loss at smoke scale, seed 7): same recipe, full
+# ~650GB mirror, 3 epochs, seed=1234 to match full_k3_s1234's primary seed
+# for direct comparability against the base/undet full arms.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/full_cyc_det_delta_w005_s1234.yaml
+name: simlingo-full-cyc-det-delta-w005-s1234
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo-full"
+    workdir: "/mnt/work/simlingo_full"
+    extract_timeout_s: 21600
+    s3_exclude_regex: "data_simlingo_validation_(1_scenario|parking_lane)_"
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      - data_module=carla_no_buckets
+      - max_epochs=3
+      - val_every_n_epochs=1
+      # bs=1: cycle pass OOMs at bs=2 (y35tq3/a1flqu); accumulate=6 x 8 GPUs
+      # = 48 global, matching full_k3/k4's target optimizer-step batch
+      - data_module.batch_size=1
+      - accumulate_grad_batches=6
+      - data_module.num_workers=8
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      - model.language_model.gradient_checkpointing=true
+      - model.cycle_loss_weight=0.05
+      - model.cycle_detach=true
+      - model.cycle_warmup_steps=1000
+      - model.cycle_delta_token_ce=true
+      - seed=1234
+      - wandb_project=simlingo-contrastive
+      - name=full_cyc_det_delta_w0.05_s1234
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
