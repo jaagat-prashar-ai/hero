@@ -188,8 +188,12 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
         )
         prior_clips = prior.get("clips") or {}
 
+        selection_mode = training_fn_config.get("selection_mode", "repair")
+
         def selected(entry: dict) -> bool:
             clip = prior_clips.get(entry["clip_id"])
+            if selection_mode == "missing_prior":
+                return not isinstance(clip, dict)
             if not isinstance(clip, dict) or clip.get("passed") is True:
                 return False
             gt_validation = clip.get("gt_target_validation") or {}
@@ -204,8 +208,9 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
         selected_ids = {entry["clip_id"] for entry in manifest_entries}
         targets = [target for target in targets if target["clip_id"] in selected_ids]
         logger.info(
-            "selected %d unpublished behavior/reward-repair clips using s3://%s/%s",
+            "selected %d clips in mode=%s using s3://%s/%s",
             len(manifest_entries),
+            selection_mode,
             s3_bucket,
             selection_key,
         )
