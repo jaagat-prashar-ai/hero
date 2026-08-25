@@ -10,12 +10,20 @@ parallel on one node risks an unbounded memory spike for no real benefit
 """
 import os
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
 import boto3
-import torch
 from botocore.config import Config
+
+# the DeepSpeed shard's mp_rank_00_model_states.pt unpickles references to
+# classes defined in simlingo_training (e.g. the LightningModule), so that
+# package must be importable before get_fp32_state_dict_from_zero_checkpoint
+# runs -- same PYTHONPATH setup eval_faith.py/run.py do for their subprocesses
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "simlingo" / "simlingo"))
+
+import torch
 from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
 
 
