@@ -794,7 +794,12 @@ def _load_clipgen_fn(clip_id: str):
     ablation control arm that scores the SAME clipgen-filtered corpus with
     TraceReward, isolating the reasoning-signal source from the corpus
     restriction (code_clipgen_used stays 0.0 so W&B shows the arm)."""
-    if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0") == "1":
+    if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "enabled",
+    }:
         return None, None
 
     if os.environ.get("CODE_REWARD_SHUFFLE_CLIPGEN", "0") == "1":
