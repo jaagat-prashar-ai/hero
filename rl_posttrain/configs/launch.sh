@@ -32,6 +32,14 @@ Commands:
   llm-judge-full       Extensive OOD run: all OOD clips in the 100 densest
                        chunks (~394 clips, ~570 GB), 3 epochs, S3 warm cache
                        (llm_judge_full_cluster.yaml; same key bridging)
+  consistency-smoke    16-clip, 2-epoch smoke test of the CoC-action
+                       consistency reward (Lingo-Judge reasoning +
+                       r_consistency; consistency_smoke_cluster.yaml; local
+                       reward, no API key)
+  consistency-full     Extensive OOD run with the joint reasoning +
+                       consistency reward on the dense-100 dataset
+                       (consistency_full_cluster.yaml; reuses the
+                       llm-judge-full S3 warm cache)
   code-reward          Launch GRPO with the deterministic code-as-a-reward
                        claim verifier (code_reward_cluster.yaml; no
                        Anthropic key needed -- reward computed on-node)
@@ -130,6 +138,14 @@ case "${cmd}" in
         else
             launch_py "${SCRIPT_DIR}/llm_judge_cluster.yaml" "$@"
         fi
+        ;;
+
+    consistency-smoke)
+        launch_py "${SCRIPT_DIR}/consistency_smoke_cluster.yaml" "$@"
+        ;;
+
+    consistency-full)
+        launch_py "${SCRIPT_DIR}/consistency_full_cluster.yaml" "$@"
         ;;
 
     code-reward)

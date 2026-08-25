@@ -50,7 +50,10 @@ Full config reference (all keys optional, defaults shown):
                                 # trajectory-grounded judge; needs
                                 # ANTHROPIC_API_KEY at submit time) | "code"
                                 # (deterministic code-as-a-reward claim
-                                # verifier; local CPU, no API key)
+                                # verifier; local CPU, no API key) |
+                                # "consistency" (Lingo-Judge reasoning +
+                                # CoC-action consistency r_consistency,
+                                # paper Sec. 5.3.2; local, no API key)
     num_reasoning_clips: 16     # reasoning/llm_judge modes: download_pai.py
                                 # --num-reasoning-clips (dataset size)
     num_gpus:           8       # GPUs to request for the ray.remote GPU-node task
@@ -834,15 +837,17 @@ def _dump_latest_cosmos_logs(log_dir: Path, tail_lines: int = 200) -> None:
 
 
 def _resolve_reward_mode(cfg: dict[str, Any]) -> str:
-    """Returns one of "motion" | "reasoning" | "llm_judge" | "code". The
-    explicit reward_mode key wins; when unset (None), falls back to the
-    legacy `reasoning` bool so pre-existing configs keep their exact
-    behavior."""
+    """Returns one of "motion" | "reasoning" | "llm_judge" | "code" |
+    "consistency". The explicit reward_mode key wins; when unset (None),
+    falls back to the legacy `reasoning` bool so pre-existing configs keep
+    their exact behavior."""
     mode = cfg.get("reward_mode")
     if mode is None:
         return "reasoning" if bool(cfg["reasoning"]) else "motion"
-    if mode not in ("motion", "reasoning", "llm_judge", "code"):
-        raise ValueError(f"reward_mode must be motion|reasoning|llm_judge|code, got {mode!r}")
+    if mode not in ("motion", "reasoning", "llm_judge", "code", "consistency"):
+        raise ValueError(
+            f"reward_mode must be motion|reasoning|llm_judge|code|consistency, got {mode!r}"
+        )
     return mode
 
 
@@ -1195,6 +1200,19 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         _extract_obstacles_by_clip(pai_reasoning_dir)
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_code_reward.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "code_reward_entry.py"
+    elif reward_mode == "consistency":
+        # Same reasoning-bearing dataset as reasoning/llm_judge/code (the
+        # reward grades the decoded CoC against reference["cot"] AND checks
+        # it against the decoded controls), plus the local Lingo-Judge
+        # grader. No obstacle extraction: the consistency check reads only
+        # the rollout itself. Everything is node-local -- no API key, and
+        # per-rollout reward latency is milliseconds, so no NCCL-timeout or
+        # keepalive extensions either.
+        _fetch_reasoning_dataset()
+        lingo_judge_dir = workspace_dir / "lingo_judge_model"
+        _download_lingo_judge(python_bin, lingo_judge_dir)
+        template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_consistency.toml"
+        entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "consistency_entry.py"
     elif reward_mode == "reasoning":
         _fetch_reasoning_dataset()
         lingo_judge_dir = workspace_dir / "lingo_judge_model"
@@ -1252,9 +1270,10 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         subprocess_env["HF_TOKEN"] = hf_token
     if wandb_key:
         subprocess_env["WANDB_API_KEY"] = wandb_key
-    if reward_mode in ("reasoning", "llm_judge", "code"):
-        # Read by the reasoning/llm_judge/code entry scripts (mutually
-        # exclusive with ALPAMAYO_PAI_LOCAL_DIR, which the motion entry reads).
+    if reward_mode in ("reasoning", "llm_judge", "code", "consistency"):
+        # Read by the reasoning/llm_judge/code/consistency entry scripts
+        # (mutually exclusive with ALPAMAYO_PAI_LOCAL_DIR, which the motion
+        # entry reads).
         subprocess_env["ALPAMAYO_PAI_REASONING_LOCAL_DIR"] = str(pai_reasoning_dir)
     if reward_mode == "llm_judge":
         judge_model = os.environ.get("LLM_JUDGE_MODEL", "claude-fable-5")
