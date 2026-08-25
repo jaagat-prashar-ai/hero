@@ -179,7 +179,7 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         ManeuverAxis.LATERAL,
         None,
         re.compile(
-            r"\bkeep(?:s|ing)?\s+lane\b|\bgo(?:es|ing)?\s+straight\b"
+            r"\b(?:keep|maintain)(?:s|ing)?\s+(?:the\s+)?lane\b|\bgo(?:es|ing)?\s+straight\b"
             r"|\bcontinue(?:s|d)?\s+straight\b|\bstraight\s+ahead\b"
             r"|\bfollow(?:s|ing)?\s+(?:the\s+)?(?:temporary\s+)?"
             r"(?:lanes?|cones?|delineators?|markings?|detour)\b",
@@ -208,6 +208,18 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
     ),
     ("enter", ManeuverAxis.LATERAL, None, re.compile(r"\benter(?:s|ing|ed)?\b", re.I)),
     ("exit", ManeuverAxis.LATERAL, None, re.compile(r"\bexit(?:s|ing|ed)?\b", re.I)),
+    (
+        "overtake",
+        ManeuverAxis.LATERAL,
+        None,
+        re.compile(r"\b(?:pass(?:es|ed|ing)?|overtak(?:e|es|ing|en))\b", re.I),
+    ),
+    (
+        "reverse",
+        ManeuverAxis.LONGITUDINAL,
+        None,
+        re.compile(r"\brevers(?:e|es|ed|ing)\b|\bback(?:s|ed|ing)?\s+up\b", re.I),
+    ),
     (
         "adapt_speed",
         ManeuverAxis.LONGITUDINAL,
@@ -244,7 +256,7 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         ManeuverAxis.LONGITUDINAL,
         "maintain",
         re.compile(
-            r"\bkeep(?:s|ing)?\s+distance\b"
+            r"\bkeep(?:s|ing)?\s+(?:a\s+|the\s+)?(?:safe\s+)?distance\b"
             r"|\bmaintain(?:s|ing)?\s+(?:a\s+|the\s+)?(?:safe\s+)?"
             r"(?:distance|gap|following\s+distance|progress)\b",
             re.I,
@@ -259,7 +271,15 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
     # (?!\s+sign): "stop sign" is a perceived object (signal entity), not a
     # commitment -- without the lookahead a mere mention of a stop sign
     # manufactured a decelerate-family claim.
-    ("stop", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bstop(?:s|ping)?\b(?!\s+sign)", re.I)),
+    (
+        "stop",
+        ManeuverAxis.LONGITUDINAL,
+        "decelerate",
+        re.compile(
+            r"\bstop(?:s|ping)?\b(?!\s+sign)|\b(?:stay|remain)(?:s|ed|ing)?\s+stopped\b",
+            re.I,
+        ),
+    ),
     ("yield", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\byield(?:s|ing)?\b", re.I)),
     ("wait", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bwait(?:s|ing)?\b", re.I)),
     (

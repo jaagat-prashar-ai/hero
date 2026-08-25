@@ -15,6 +15,7 @@ workload_variant_config:
     s3_bucket: "research-datasets-chicago"
     s3_prefix: "code_as_a_reward/clipgen/offline_rewards/full1050-v1-shard0"
     backend: "openai"
+    max_attempts: 3
 
   experiment_tracker:
     wandb:

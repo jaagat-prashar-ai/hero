@@ -223,3 +223,17 @@ def test_closed_beat_claims_are_stable_under_prefix_truncation():
             assert closed_beat_claims(partial, closed_limit) == closed_beat_claims(
                 trace, closed_limit
             ), f"closed-beat instability at cut={cut} of {text!r}"
+
+
+def test_full1050_behavior_phrasings_are_canonicalized():
+    cases = {
+        "Maintain lane and keep a safe distance from the lead vehicle ahead.": {
+            "keep_lane",
+            "keep_distance",
+        },
+        "Stay stopped and parked with a pedestrian approaching.": {"stop"},
+        "Pass/Overtake the lead vehicle ahead.": {"overtake"},
+        "Reverse due to the road closure ahead.": {"reverse"},
+    }
+    for text, expected in cases.items():
+        assert {c.maneuver for c in parse_coc_trace(text).commitments} == expected

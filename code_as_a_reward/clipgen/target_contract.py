@@ -24,7 +24,11 @@ import numpy as np
 from code_as_a_reward.clipgen.reward_spec import validate_reward_spec
 
 
-_LATERAL_MOVES = frozenset({"lane_change", "nudge", "merge", "turn", "enter", "exit"})
+_DIRECTIONAL_LATERAL_MOVES = frozenset(
+    {"lane_change", "nudge", "merge", "turn", "enter", "exit", "overtake"}
+)
+_LATERAL_MOVES = _DIRECTIONAL_LATERAL_MOVES | {"keep_lane"}
+_BEHAVIOR_MANEUVERS = frozenset({"keep_lane", "keep_distance", "proceed", "reverse"})
 _VEHICLE_FAMILY = frozenset(
     {"lead_vehicle", "stopped_vehicle", "cross_traffic", "vehicle_generic", "oncoming_vehicle"}
 )
@@ -41,6 +45,13 @@ class TargetContract:
     gt_speed_gain_mps: float
     gt_heading_change_deg: float
     gt_lateral_change_m: float
+    behavior_maneuvers: frozenset[str] = frozenset()
+    gt_reference_speed_mps: tuple[float, ...] = ()
+    gt_reference_lateral_m: tuple[float, ...] = ()
+    gt_reference_heading_deg: tuple[float, ...] = ()
+    gt_reference_speed_scalar_mps: float = 0.0
+    gt_speed_p90_deviation_mps: float = 0.0
+    gt_progress_m: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -53,6 +64,13 @@ class TargetContract:
             "gt_speed_gain_mps": self.gt_speed_gain_mps,
             "gt_heading_change_deg": self.gt_heading_change_deg,
             "gt_lateral_change_m": self.gt_lateral_change_m,
+            "behavior_maneuvers": sorted(self.behavior_maneuvers),
+            "gt_reference_speed_mps": list(self.gt_reference_speed_mps),
+            "gt_reference_lateral_m": list(self.gt_reference_lateral_m),
+            "gt_reference_heading_deg": list(self.gt_reference_heading_deg),
+            "gt_reference_speed_scalar_mps": self.gt_reference_speed_scalar_mps,
+            "gt_speed_p90_deviation_mps": self.gt_speed_p90_deviation_mps,
+            "gt_progress_m": self.gt_progress_m,
         }
 
 
@@ -77,6 +95,16 @@ def _speed_extrema(traj: Any) -> tuple[float, float]:
     )
 
 
+def _coarse_series(values: Any, n: int = 9) -> tuple[float, ...]:
+    arr = np.asarray(values, dtype=np.float64)
+    if not len(arr):
+        return tuple(0.0 for _ in range(n))
+    sampled = np.interp(
+        np.linspace(0.0, 1.0, n), np.linspace(0.0, 1.0, len(arr)), arr
+    )
+    return tuple(float(value) for value in sampled)
+
+
 def derive_target_contract(gt_claims: Any, gt_traj: Any) -> TargetContract:
     speed_profiles = frozenset(
         c.speed_profile for c in gt_claims.commitments if c.speed_profile is not None
@@ -84,13 +112,18 @@ def derive_target_contract(gt_claims: Any, gt_traj: Any) -> TargetContract:
     lateral = frozenset(
         c.maneuver for c in gt_claims.commitments if c.maneuver in _LATERAL_MOVES
     )
+    behaviors = frozenset(
+        c.maneuver for c in gt_claims.commitments if c.maneuver in _BEHAVIOR_MANEUVERS
+    )
     directions = frozenset(
         c.direction
         for c in gt_claims.commitments
-        if c.maneuver in _LATERAL_MOVES and c.direction in {"left", "right"}
+        if c.maneuver in _DIRECTIONAL_LATERAL_MOVES and c.direction in {"left", "right"}
     )
     requires_stop = any(c.maneuver in {"stop", "wait"} for c in gt_claims.commitments)
     drop, gain = _speed_extrema(gt_traj)
+    speed = np.asarray(gt_traj.speed_mps, dtype=np.float64)
+    speed_scalar = float(np.median(speed)) if len(speed) else 0.0
     return TargetContract(
         entities=frozenset(c.entity for c in gt_claims.perceptual),
         speed_profiles=speed_profiles,
@@ -101,6 +134,15 @@ def derive_target_contract(gt_claims: Any, gt_traj: Any) -> TargetContract:
         gt_speed_gain_mps=gain,
         gt_heading_change_deg=float(gt_traj.total_heading_change_deg),
         gt_lateral_change_m=float(gt_traj.final_lateral_offset_m),
+        behavior_maneuvers=behaviors,
+        gt_reference_speed_mps=_coarse_series(speed),
+        gt_reference_lateral_m=_coarse_series(gt_traj.lateral_offset_m),
+        gt_reference_heading_deg=_coarse_series(gt_traj.heading_deg),
+        gt_reference_speed_scalar_mps=speed_scalar,
+        gt_speed_p90_deviation_mps=(
+            float(np.percentile(np.abs(speed - speed_scalar), 90)) if len(speed) else 0.0
+        ),
+        gt_progress_m=float(np.sum(speed) * gt_traj.dt_s) if len(speed) else 0.0,
     )
 
 
@@ -116,6 +158,9 @@ def classify_rollout(contract: TargetContract, claims: Any, traj: Any) -> Eligib
     failures: list[str] = []
     observed_profiles = {c.speed_profile for c in claims.commitments if c.speed_profile}
     observed_lateral = {c.maneuver for c in claims.commitments if c.maneuver in _LATERAL_MOVES}
+    observed_behaviors = {
+        c.maneuver for c in claims.commitments if c.maneuver in _BEHAVIOR_MANEUVERS
+    }
     observed_directions = {
         c.direction
         for c in claims.commitments
@@ -130,6 +175,20 @@ def classify_rollout(contract: TargetContract, claims: Any, traj: Any) -> Eligib
     if contract.lateral_maneuvers and not contract.lateral_maneuvers & observed_lateral:
         failures.append(
             "missing target lateral commitment " + "/".join(sorted(contract.lateral_maneuvers))
+        )
+    behavior_alias = (
+        "proceed" in contract.behavior_maneuvers and "adapt" in observed_profiles
+    ) or (
+        "keep_distance" in contract.behavior_maneuvers and "maintain" in observed_profiles
+    )
+    if (
+        contract.behavior_maneuvers
+        and not contract.behavior_maneuvers & observed_behaviors
+        and not behavior_alias
+    ):
+        failures.append(
+            "missing target behavior commitment "
+            + "/".join(sorted(contract.behavior_maneuvers))
         )
     if contract.lateral_directions and not contract.lateral_directions & observed_directions:
         failures.append(
@@ -173,6 +232,14 @@ def classify_rollout(contract: TargetContract, claims: Any, traj: Any) -> Eligib
         lateral_ok = signed_lateral >= max(0.35, 0.25 * gt_lateral)
         if not (heading_ok or lateral_ok):
             failures.append("trajectory does not execute the target lateral direction")
+
+    if "maintain" in contract.speed_profiles and not (
+        contract.speed_profiles & {"accelerate", "decelerate"}
+    ):
+        tolerance = max(2.0, 2.0 * contract.gt_speed_p90_deviation_mps)
+        observed = float(np.median(speed)) if len(speed) else 0.0
+        if abs(observed - contract.gt_reference_speed_scalar_mps) > tolerance:
+            failures.append("trajectory lies outside the target stable-speed envelope")
 
     return EligibilityResult(eligible=not failures, failures=tuple(failures))
 
@@ -220,15 +287,20 @@ def validate_gt_target(contract: TargetContract, gt_traj: Any) -> list[str]:
             failures.append(
                 f"GT CoC commits {direction} but the expert action does not execute that direction"
             )
+    if "proceed" in contract.behavior_maneuvers and contract.gt_progress_m < 1.0:
+        failures.append(
+            "GT CoC commits to proceeding but the expert action makes less than 1 m progress"
+        )
     discriminative = (
-        bool(contract.speed_profiles & {"accelerate", "decelerate"})
+        bool(contract.speed_profiles & {"accelerate", "decelerate", "maintain", "adapt"})
         or contract.requires_stop
         or bool(contract.lateral_maneuvers)
+        or bool(contract.behavior_maneuvers)
     )
     if not discriminative:
         failures.append(
             "GT target has no currently verifiable discriminative action family "
-            "(accelerate, decelerate/stop, or lateral maneuver)"
+            "(speed envelope, stop, lane/path, following, or progress behavior)"
         )
     return failures
 
@@ -248,26 +320,21 @@ def calibrate_spec_against_target(
     out = validate_reward_spec(copy.deepcopy(spec))
     components = out["components"]
     perception = [c for c in components if c["claim"]["kind"] == "perceptual"]
-    commitments = [c for c in components if c["claim"]["kind"] == "commitment"]
 
+    # Keep the LLM's scene interpretation, but compile action semantics into
+    # one primary conjunction.  Splitting the 0.60 action budget across
+    # several weak/dead axes made it mathematically impossible for a single
+    # action corruption to achieve MIN_DROP=0.40.
     if contract.entities:
-        relevant = [
+        perception = [
             c
             for c in perception
-            if _entities_overlap(
-                contract.entities, frozenset(c["claim"].get("any_of", []))
-            )
+            if _entities_overlap(contract.entities, frozenset(c["claim"].get("any_of", [])))
         ]
-        if not relevant:
-            used = {c["name"] for c in components}
-            name = "target_scene_context"
-            suffix = 2
-            while name in used:
-                name = f"target_scene_context_{suffix}"
-                suffix += 1
-            relevant = [
+        if not perception:
+            perception = [
                 {
-                    "name": name,
+                    "name": "target_scene_context",
                     "weight": 0.40,
                     "claim": {
                         "kind": "perceptual",
@@ -277,110 +344,101 @@ def calibrate_spec_against_target(
                     "trajectory": None,
                 }
             ]
-        perception = relevant
-        perception_budget = 0.40
-        commitment_budget = 0.60
+        old = sum(float(c["weight"]) for c in perception)
+        for c in perception:
+            c["weight"] = 0.40 * float(c["weight"]) / old
+        perception[-1]["weight"] = 0.40 - sum(float(c["weight"]) for c in perception[:-1])
+        action_weight = 0.60
     else:
-        # With no GT-verifiable scene entity, mention-only credit cannot be
-        # independently anchored.  Spend the whole budget on executed intent.
         perception = []
-        perception_budget = 0.0
-        commitment_budget = 1.0
-
-    def rebudget(items: list[dict[str, Any]], budget: float) -> None:
-        if not items:
-            return
-        old = sum(float(item["weight"]) for item in items)
-        if old <= 0.0:
-            each = budget / len(items)
-            for item in items:
-                item["weight"] = each
-        else:
-            for item in items:
-                item["weight"] = budget * float(item["weight"]) / old
-        # Make the sum exact after floating-point proportional allocation.
-        items[-1]["weight"] = budget - sum(float(i["weight"]) for i in items[:-1])
-
-    rebudget(perception, perception_budget)
-    rebudget(commitments, commitment_budget)
+        action_weight = 1.0
 
     direction = next(iter(contract.lateral_directions), None)
-    lateral_feature = None
-    if direction is not None:
-        if abs(contract.gt_heading_change_deg) >= 3.0:
-            lateral_feature = f"heading_{direction}"
-        elif abs(contract.gt_lateral_change_m) >= 0.35:
-            lateral_feature = f"lateral_{direction}"
+    behavior = contract.behavior_maneuvers
+    profiles = contract.speed_profiles
+    if contract.requires_stop:
+        field, values, feature = "speed_profile", sorted(profiles or {"decelerate"}), "late_stationary_quality"
+    elif direction is not None and contract.lateral_maneuvers:
+        field, values, feature = "maneuver", sorted(contract.lateral_maneuvers), "path_corridor_quality"
+    elif "decelerate" in profiles:
+        field, values, feature = "speed_profile", sorted(profiles), "speed_drop"
+    elif "accelerate" in profiles:
+        field, values, feature = "speed_profile", sorted(profiles), "speed_gain"
+    elif "keep_lane" in behavior:
+        field, values, feature = "maneuver", ["keep_lane"], "path_corridor_quality"
+    elif "keep_distance" in behavior:
+        field, values, feature = "maneuver", ["keep_distance"], "cautious_progress_quality"
+    elif "adapt" in profiles:
+        field, values, feature = "speed_profile", sorted(profiles), "cautious_progress_quality"
+    elif "maintain" in profiles:
+        field, values, feature = "speed_profile", sorted(profiles), "speed_stability_quality"
+    elif "proceed" in behavior:
+        field, values, feature = "maneuver", ["proceed"], "cautious_progress_quality"
+    elif "reverse" in behavior:
+        field, values, feature = "maneuver", ["reverse"], "heading_corridor_quality"
+    else:
+        # validate_gt_target rejects this case before generation; retaining a
+        # defensive error here makes direct callers fail loudly.
+        raise ValueError("target contract has no compilable primary behavior")
 
-    longitudinal = [
-        c for c in commitments if c["claim"].get("field") == "speed_profile"
-    ]
-    lateral = [c for c in commitments if c["claim"].get("field") == "maneuver"]
-    for component in longitudinal:
-        if contract.speed_profiles:
-            component["claim"]["any_of"] = sorted(contract.speed_profiles)
-        component["claim"]["direction"] = "any"
-    for component in lateral:
-        if contract.lateral_maneuvers:
-            component["claim"]["any_of"] = sorted(contract.lateral_maneuvers)
-        if direction is not None:
-            component["claim"]["direction"] = direction
-            if lateral_feature is not None:
-                component["trajectory"]["feature"] = lateral_feature
-
-    # Guarantee the required longitudinal execution family even if the model
-    # chose a valid-but-wrong feature.  Stop targets retain a second speed-drop
-    # component when proposed, but always get a sustained late-stop component.
-    if longitudinal:
-        if contract.requires_stop:
-            if not any(
-                c["trajectory"]["feature"]
-                in {"stop_dwell_fraction", "late_stationary_quality"}
-                for c in longitudinal
-            ):
-                longitudinal[-1]["trajectory"]["feature"] = "late_stationary_quality"
-        elif "accelerate" in contract.speed_profiles and "decelerate" not in contract.speed_profiles:
-            for component in longitudinal:
-                component["trajectory"]["feature"] = "speed_gain"
-        elif "decelerate" in contract.speed_profiles:
-            for component in longitudinal:
-                component["trajectory"]["feature"] = "speed_drop"
-
-    magnitudes = {
-        "speed_drop": contract.gt_speed_drop_mps,
-        "speed_gain": contract.gt_speed_gain_mps,
-        "heading_left": abs(contract.gt_heading_change_deg),
-        "heading_right": abs(contract.gt_heading_change_deg),
-        "lateral_left": abs(contract.gt_lateral_change_m),
-        "lateral_right": abs(contract.gt_lateral_change_m),
+    used_names = {c["name"] for c in perception}
+    name = "primary_executed_behavior"
+    suffix = 2
+    while name in used_names:
+        name = f"primary_executed_behavior_{suffix}"
+        suffix += 1
+    claim = {
+        "kind": "commitment",
+        "field": field,
+        "any_of": values,
+        "direction": direction if field == "maneuver" and direction else "any",
     }
-    for component in commitments:
-        rule = component["trajectory"]
-        feature = rule["feature"]
-        if feature in {"stop_dwell_fraction", "late_stationary_quality"}:
-            rule.update(
-                {
-                    "window_s": [3.0, 6.4],
-                    "floor": 0.0,
-                    "full": 1.05,
-                    "reference_speed_mps": 1.0,
-                    "power": 0.30,
-                }
-            )
-            continue
-        magnitude = float(magnitudes.get(feature, 0.0))
-        if magnitude > 1e-9:
-            rule.update(
-                {
-                    "window_s": [0.0, 6.4],
-                    "floor": 0.05 * magnitude,
-                    "full": 1.20 * magnitude,
-                    "power": 0.30,
-                }
-            )
-            rule.pop("reference_speed_mps", None)
+    rule: dict[str, Any] = {
+        "feature": feature,
+        "window_s": [0.0, 6.4],
+        "floor": 0.0,
+        "full": 1.05,
+        "power": 0.30,
+    }
+    if feature == "late_stationary_quality":
+        rule.update(window_s=[3.0, 6.4], reference_speed_mps=1.0)
+    elif feature in {"speed_drop", "speed_gain"}:
+        magnitude = contract.gt_speed_drop_mps if feature == "speed_drop" else contract.gt_speed_gain_mps
+        rule.update(floor=0.05 * magnitude, full=1.20 * magnitude)
+    elif feature == "path_corridor_quality":
+        rule.update(
+            reference_lateral_m=list(contract.gt_reference_lateral_m),
+            corridor_half_width_m=1.75,
+        )
+    elif feature == "heading_corridor_quality":
+        rule.update(
+            reference_heading_deg=list(contract.gt_reference_heading_deg),
+            heading_tolerance_deg=45.0,
+        )
+    elif feature == "speed_stability_quality":
+        rule.update(
+            reference_speed_mps=contract.gt_reference_speed_scalar_mps,
+            speed_tolerance_mps=max(
+                1.5,
+                0.20 * contract.gt_reference_speed_scalar_mps,
+                2.0 * contract.gt_speed_p90_deviation_mps,
+            ),
+        )
+    elif feature == "cautious_progress_quality":
+        profile = np.asarray(contract.gt_reference_speed_mps, dtype=np.float64)
+        scalar = float(np.median(profile)) if len(profile) else 0.0
+        variation = float(np.percentile(np.abs(profile - scalar), 90)) if len(profile) else 0.0
+        rule.update(
+            reference_speed_profile_mps=list(contract.gt_reference_speed_mps),
+            speed_tolerance_mps=max(2.0, 2.0 * variation),
+            reference_progress_m=contract.gt_progress_m,
+            progress_tolerance_m=max(6.0, 0.35 * contract.gt_progress_m),
+        )
 
-    out["components"] = [*perception, *commitments]
+    out["components"] = [
+        *perception,
+        {"name": name, "weight": action_weight, "claim": claim, "trajectory": rule},
+    ]
     return validate_reward_spec(out)
 
 
@@ -406,6 +464,7 @@ def validate_spec_against_target(spec: dict[str, Any], contract: TargetContract)
         if component["claim"].get("field") == "maneuver"
         for value in component["claim"].get("any_of", [])
     }
+    claimed_lateral_maneuvers = claimed_maneuvers & _LATERAL_MOVES
     features = {
         component.get("trajectory", {}).get("feature")
         for component in commitment_components
@@ -434,19 +493,41 @@ def validate_spec_against_target(spec: dict[str, Any], contract: TargetContract)
             "reasoning trace drops by the required 0.40 while still needing execution "
             "credit to clear POS_MIN"
         )
-    missing_profiles = contract.speed_profiles - claimed_profiles
+    # keep_distance is a narrower and more faithful exact behavior than its
+    # parser alias speed_profile=maintain; do not require both predicates.
+    missing_profiles = (
+        frozenset()
+        if "keep_distance" in contract.behavior_maneuvers
+        and "keep_distance" in claimed_maneuvers
+        else contract.speed_profiles - claimed_profiles
+    )
     if missing_profiles:
         failures.append(
             "spec does not score every GT-supported speed-profile wording; "
             f"missing {sorted(missing_profiles)}"
         )
-    if contract.lateral_maneuvers and not contract.lateral_maneuvers & claimed_maneuvers:
+    if contract.lateral_maneuvers and not contract.lateral_maneuvers & claimed_lateral_maneuvers:
         failures.append("spec does not score the GT lateral maneuver family")
-    if not contract.lateral_maneuvers and claimed_maneuvers:
+    if not contract.lateral_maneuvers and claimed_lateral_maneuvers:
         failures.append(
             "spec adds a lateral scoring axis that is absent from the GT target; "
             "unrelated corruptions would preserve the primary score"
         )
+    behavior_alias = (
+        "proceed" in contract.behavior_maneuvers and "adapt" in claimed_profiles
+    ) or (
+        "keep_distance" in contract.behavior_maneuvers and "maintain" in claimed_profiles
+    )
+    if (
+        contract.behavior_maneuvers
+        and not contract.behavior_maneuvers & claimed_maneuvers
+        and not behavior_alias
+    ):
+        # maintain/adapt speed profiles are valid realizations for the
+        # corresponding longitudinal behavior; keep_lane/proceed are not.
+        unresolved = contract.behavior_maneuvers - {"keep_distance"}
+        if unresolved:
+            failures.append("spec does not score the GT path/progress behavior family")
     if contract.requires_stop and not features & {"stop_dwell_fraction", "late_stationary_quality"}:
         failures.append(
             "GT requires a sustained stop; speed_drop alone is insufficient. Use "
@@ -492,6 +573,23 @@ def validate_spec_against_target(spec: dict[str, Any], contract: TargetContract)
         and not features & {"speed_drop", "speed_reduction_fraction"}
     ):
         failures.append("GT deceleration requires speed_drop or speed_reduction_fraction")
+    if contract.lateral_maneuvers and "path_corridor_quality" not in features:
+        failures.append("GT lane/path behavior requires path_corridor_quality")
+    if "reverse" in contract.behavior_maneuvers and "heading_corridor_quality" not in features:
+        failures.append("GT reverse behavior requires heading_corridor_quality")
+    if (
+        "maintain" in contract.speed_profiles
+        and not contract.speed_profiles & {"accelerate", "decelerate"}
+        and "keep_distance" not in contract.behavior_maneuvers
+        and "speed_stability_quality" not in features
+    ):
+        failures.append("GT maintain-speed behavior requires speed_stability_quality")
+    if (
+        not contract.speed_profiles & {"accelerate", "decelerate"}
+        and ("adapt" in contract.speed_profiles or contract.behavior_maneuvers & {"keep_distance", "proceed"})
+        and "cautious_progress_quality" not in features
+    ):
+        failures.append("GT cautious/progress behavior requires cautious_progress_quality")
 
     # Keep the expert comfortably positive without making it the saturation
     # point. A `full` value below the measured GT magnitude caused unseen

@@ -21,12 +21,14 @@ one in-flight chunk's shard-metadata updates, never any clip's actual data.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import logging
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -34,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 REPO_ID = "nvidia/PhysicalAI-Autonomous-Vehicles"
 DOWNLOAD_PAI = "third_party/alpamayo-recipes/scripts/download_pai.py"
+CAMERA = "camera_front_wide_120fov"
 
 
 def pool_from_ood_reasoning(*, split: str = "train") -> list[dict]:
@@ -110,12 +113,59 @@ def _download_chunk_labels(repo_root: str, chunk: int, out_dir: Path) -> None:
         "--chunk-ids",
         str(chunk),
         "--labels",
+        "egomotion",
         "egomotion.offline",
         "obstacle.offline",
+        "--camera",
+        CAMERA,
         "--output-dir",
         str(out_dir),
     ]
     subprocess.run(cmd, check=True)
+
+
+def _extract_observation_jpeg(
+    camera_zip: zipfile.ZipFile,
+    clip_id: str,
+    t0_us: int,
+) -> bytes | None:
+    """Decode the front-wide frame nearest the training keyframe."""
+    import numpy as np
+    import pandas as pd
+
+    try:
+        video = camera_zip.read(f"{clip_id}.{CAMERA}.mp4")
+        timestamps = pd.read_parquet(
+            io.BytesIO(camera_zip.read(f"{clip_id}.{CAMERA}.timestamps.parquet"))
+        ).to_numpy(dtype=np.float64).reshape(-1)
+    except KeyError:
+        return None
+    relative = timestamps - timestamps[0]
+    target = float(t0_us)
+    if len(relative) and float(np.nanmax(relative)) < 1e5:
+        target /= 1e6
+    frame_index = int(np.argmin(np.abs(relative - target)))
+    with tempfile.TemporaryDirectory() as tmp:
+        mp4_path = Path(tmp) / "clip.mp4"
+        jpg_path = Path(tmp) / "observation.jpg"
+        mp4_path.write_bytes(video)
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-loglevel",
+                "error",
+                "-y",
+                "-i",
+                str(mp4_path),
+                "-vf",
+                f"select=eq(n\\,{frame_index}),scale='min(1024,iw)':-2",
+                "-frames:v",
+                "1",
+                str(jpg_path),
+            ],
+            check=True,
+        )
+        return jpg_path.read_bytes()
 
 
 def build(
@@ -178,6 +228,7 @@ def build(
         seen_coc: set[str] = set()
         seen_obs: set[str] = set()
         seen_ego: set[str] = set()
+        ego_name_by_clip: dict[str, str] = {}
         for page in paginator.paginate(Bucket=s3_bucket, Prefix=prefix):
             for obj in page.get("Contents", []):
                 name = obj["Key"].rsplit("/", 1)[-1]
@@ -186,8 +237,17 @@ def build(
                 elif name.endswith(".obstacle.offline.parquet"):
                     seen_obs.add(name[: -len(".obstacle.offline.parquet")])
                 elif name.endswith(".egomotion.offline.parquet"):
-                    seen_ego.add(name[: -len(".egomotion.offline.parquet")])
-        complete = seen_coc & seen_obs & seen_ego
+                    clip_id = name[: -len(".egomotion.offline.parquet")]
+                    seen_ego.add(clip_id)
+                    ego_name_by_clip[clip_id] = name
+                elif name.endswith(".egomotion.parquet"):
+                    clip_id = name[: -len(".egomotion.parquet")]
+                    seen_ego.add(clip_id)
+                    ego_name_by_clip[clip_id] = name
+        # obstacle.offline is optional for the 11 known feature-inventory
+        # gaps. Completeness is CoC + either expert egomotion source; the
+        # manifest records whether actor labels are genuinely available.
+        complete = seen_coc & seen_ego
         # Re-seed in-memory shard metadata from what's already on S3 (if a
         # prior attempt got partway before dying) so this run's flushes
         # APPEND to it rather than clobber it with only this run's clips.
@@ -219,12 +279,13 @@ def build(
             manifest_row = existing_manifest_by_id.get(clip_id)
             expected_manifest = {
                 "clip_id": clip_id,
-                "obstacle_parquet": f"{clip_id}.obstacle.offline.parquet",
-                "egomotion_parquet": f"{clip_id}.egomotion.offline.parquet",
+                "egomotion_parquet": ego_name_by_clip[clip_id],
                 "gt_coc": f"{clip_id}.coc.txt",
                 "hz": 10.0,
                 "t0_us": int(pool_row["t0_us"]),
             }
+            if clip_id in seen_obs:
+                expected_manifest["obstacle_parquet"] = f"{clip_id}.obstacle.offline.parquet"
             if manifest_row is None:
                 manifest_row = expected_manifest
                 repaired = True
@@ -268,16 +329,39 @@ def build(
 
         obs_zip = chunk_dir / "labels" / "obstacle.offline" / f"obstacle.offline.chunk_{chunk:04d}.zip"
         ego_zip = chunk_dir / "labels" / "egomotion.offline" / f"egomotion.offline.chunk_{chunk:04d}.zip"
+        raw_ego_zip = chunk_dir / "labels" / "egomotion" / f"egomotion.chunk_{chunk:04d}.zip"
+        camera_zip = chunk_dir / "camera" / CAMERA / f"{CAMERA}.chunk_{chunk:04d}.zip"
         try:
-            with zipfile.ZipFile(obs_zip) as zf_obs, zipfile.ZipFile(ego_zip) as zf_ego:
+            with (
+                zipfile.ZipFile(obs_zip) as zf_obs,
+                zipfile.ZipFile(ego_zip) as zf_ego,
+                zipfile.ZipFile(raw_ego_zip) as zf_raw_ego,
+                zipfile.ZipFile(camera_zip) as zf_camera,
+            ):
                 for r in by_chunk[chunk]:
                     clip_id = r["clip_id"]
                     obs_name = f"{clip_id}.obstacle.offline.parquet"
                     ego_name = f"{clip_id}.egomotion.offline.parquet"
                     try:
                         obs_bytes = zf_obs.read(obs_name)
+                    except KeyError:
+                        obs_bytes = None
+                    try:
                         ego_bytes = zf_ego.read(ego_name)
                     except KeyError:
+                        ego_name = f"{clip_id}.egomotion.parquet"
+                        try:
+                            ego_bytes = zf_raw_ego.read(ego_name)
+                        except KeyError:
+                            skipped.append(clip_id)
+                            continue
+                    observation_bytes = _extract_observation_jpeg(
+                        zf_camera, clip_id, int(r["t0_us"])
+                    )
+                    # Clips without obstacle labels must still carry a real
+                    # scene observation; otherwise scene-entity reward
+                    # generation would be ungrounded.
+                    if obs_bytes is None and observation_bytes is None:
                         skipped.append(clip_id)
                         continue
 
@@ -285,14 +369,20 @@ def build(
                     prefix = f"{s3_prefix_root}/shard_{shard_i}"
                     # Uploaded straight from the read bytes -- never touches
                     # local disk, never held in memory past this iteration.
-                    s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{obs_name}", Body=obs_bytes)
+                    if obs_bytes is not None:
+                        s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{obs_name}", Body=obs_bytes)
                     s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{ego_name}", Body=ego_bytes)
+                    if observation_bytes is not None:
+                        s3.put_object(
+                            Bucket=s3_bucket,
+                            Key=f"{prefix}/{clip_id}.observation.jpg",
+                            Body=observation_bytes,
+                            ContentType="image/jpeg",
+                        )
                     s3.put_object(Bucket=s3_bucket, Key=f"{prefix}/{clip_id}.coc.txt", Body=r["gt_coc"].encode())
 
-                    manifest_by_shard[shard_i].append(
-                        {
+                    manifest_row = {
                             "clip_id": clip_id,
-                            "obstacle_parquet": obs_name,
                             "egomotion_parquet": ego_name,
                             "gt_coc": f"{clip_id}.coc.txt",
                             "hz": 10.0,
@@ -302,7 +392,13 @@ def build(
                             # the GPU worker, but is no longer the only copy.
                             "t0_us": int(r["t0_us"]),
                         }
-                    )
+                    if obs_bytes is not None:
+                        manifest_row["obstacle_parquet"] = obs_name
+                    else:
+                        manifest_row["obstacle_labels_available"] = False
+                    if observation_bytes is not None:
+                        manifest_row["overlay_jpeg"] = f"{clip_id}.observation.jpg"
+                    manifest_by_shard[shard_i].append(manifest_row)
                     targets_by_shard[shard_i].append(
                         {"clip_id": clip_id, "t0_us": int(r["t0_us"])}
                     )

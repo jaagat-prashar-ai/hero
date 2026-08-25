@@ -406,6 +406,12 @@ def build_dossier(
         "",
         "OBSTACLE TRACKS (ego-relative, nearest first, within the window only):",
     ]
+    if scene.availability_note:
+        parts.append(
+            "- UNAVAILABLE: official obstacle.offline labels are absent for this clip; "
+            "use the attached camera observation and GT CoC for scene identity. "
+            + scene.availability_note
+        )
     # Add one line per obstacle track (nearest-first, cut at the window end).
     tracks = summarize_tracks(
         scene,

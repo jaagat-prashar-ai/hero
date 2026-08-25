@@ -32,8 +32,9 @@ _ENTITIES = frozenset(key for key, _ in ENTITY_PATTERNS)
 _MANEUVERS = frozenset(key for key, *_ in MANEUVER_PATTERNS)
 _SPEED_PROFILES = frozenset({"accelerate", "decelerate", "maintain", "adapt"})
 _LATERAL_MANEUVERS = frozenset(
-    {"lane_change", "nudge", "merge", "turn", "enter", "exit", "keep_lane"}
+    {"lane_change", "nudge", "merge", "turn", "enter", "exit", "overtake", "keep_lane"}
 )
+_MEASURABLE_MANEUVERS = _LATERAL_MANEUVERS | {"keep_distance", "proceed", "reverse"}
 _FEATURES = frozenset(
     {
         "speed_drop",
@@ -46,6 +47,13 @@ _FEATURES = frozenset(
         "stationary_quality",
         "stop_dwell_fraction",
         "late_stationary_quality",
+        # Broad GT-relative contracts for behaviors that are meaningful but
+        # are not an acceleration, stop, or lane-change magnitude.  These
+        # compare coarse envelopes, never exact waypoint traces.
+        "speed_stability_quality",
+        "cautious_progress_quality",
+        "path_corridor_quality",
+        "heading_corridor_quality",
     }
 )
 
@@ -99,10 +107,10 @@ def _validate_claim(raw: Any, label: str) -> dict[str, Any]:
         if direction not in {"any", "left", "right"}:
             raise RewardSpecError(f"{label}.direction must be any, left, or right")
         out["direction"] = direction
-        if field == "maneuver" and not set(values) <= _LATERAL_MANEUVERS:
+        if field == "maneuver" and not set(values) <= _MEASURABLE_MANEUVERS:
             raise RewardSpecError(
-                f"{label}: exact maneuver matching is restricted to lateral families; "
-                "use speed_profile for longitudinal behavior"
+                f"{label}: exact maneuver matching is restricted to measurable path, "
+                "following, and progress behaviors; use speed_profile otherwise"
             )
     return out
 
@@ -144,6 +152,72 @@ def _validate_trajectory(raw: Any, label: str) -> dict[str, Any]:
         if reference <= 0.0:
             raise RewardSpecError(f"{label}.reference_speed_mps must be > 0")
         out["reference_speed_mps"] = reference
+    elif feature == "speed_stability_quality":
+        reference = _finite_number(raw.get("reference_speed_mps"), f"{label}.reference_speed_mps")
+        tolerance = _finite_number(raw.get("speed_tolerance_mps"), f"{label}.speed_tolerance_mps")
+        if reference < 0.0 or tolerance <= 0.0:
+            raise RewardSpecError(
+                f"{label} requires reference_speed_mps >= 0 and speed_tolerance_mps > 0"
+            )
+        out.update(reference_speed_mps=reference, speed_tolerance_mps=tolerance)
+    elif feature == "cautious_progress_quality":
+        profile = raw.get("reference_speed_profile_mps")
+        if not isinstance(profile, list) or len(profile) < 3:
+            raise RewardSpecError(
+                f"{label}.reference_speed_profile_mps must contain at least 3 samples"
+            )
+        normalized_profile = [
+            _finite_number(value, f"{label}.reference_speed_profile_mps[{i}]")
+            for i, value in enumerate(profile)
+        ]
+        if min(normalized_profile) < 0.0:
+            raise RewardSpecError(f"{label}.reference_speed_profile_mps must be non-negative")
+        speed_tolerance = _finite_number(
+            raw.get("speed_tolerance_mps"), f"{label}.speed_tolerance_mps"
+        )
+        reference_progress = _finite_number(
+            raw.get("reference_progress_m"), f"{label}.reference_progress_m"
+        )
+        progress_tolerance = _finite_number(
+            raw.get("progress_tolerance_m"), f"{label}.progress_tolerance_m"
+        )
+        if speed_tolerance <= 0.0 or reference_progress < 0.0 or progress_tolerance <= 0.0:
+            raise RewardSpecError(
+                f"{label} requires positive speed/progress tolerances and non-negative reference progress"
+            )
+        out.update(
+            reference_speed_profile_mps=normalized_profile,
+            speed_tolerance_mps=speed_tolerance,
+            reference_progress_m=reference_progress,
+            progress_tolerance_m=progress_tolerance,
+        )
+    elif feature in {"path_corridor_quality", "heading_corridor_quality"}:
+        reference_key = (
+            "reference_lateral_m"
+            if feature == "path_corridor_quality"
+            else "reference_heading_deg"
+        )
+        tolerance_key = (
+            "corridor_half_width_m"
+            if feature == "path_corridor_quality"
+            else "heading_tolerance_deg"
+        )
+        reference = raw.get(reference_key)
+        if not isinstance(reference, list) or len(reference) < 3:
+            raise RewardSpecError(
+                f"{label}.{reference_key} must contain at least 3 coarse anchors"
+            )
+        normalized_reference = [
+            _finite_number(value, f"{label}.{reference_key}[{i}]")
+            for i, value in enumerate(reference)
+        ]
+        corridor = _finite_number(
+            raw.get(tolerance_key), f"{label}.{tolerance_key}"
+        )
+        if corridor <= 0.0:
+            raise RewardSpecError(f"{label}.{tolerance_key} must be > 0")
+        out[reference_key] = normalized_reference
+        out[tolerance_key] = corridor
     return out
 
 
@@ -252,10 +326,33 @@ def _trajectory_measure(rule: dict[str, Any], traj: Any) -> float:
     speed = _series_window(traj.speed_mps, traj.dt_s, start, end)
     heading = _series_window(traj.heading_deg, traj.dt_s, start, end)
     lateral = _series_window(traj.lateral_offset_m, traj.dt_s, start, end)
+    if feature == "path_corridor_quality":
+        if len(lateral) < 2:
+            return 0.0
+        reference = np.asarray(rule["reference_lateral_m"], dtype=np.float64)
+        candidate_x = np.linspace(0.0, 1.0, len(lateral))
+        reference_x = np.linspace(0.0, 1.0, len(reference))
+        expected = np.interp(candidate_x, reference_x, reference)
+        p90_error = float(np.percentile(np.abs(lateral - expected), 90))
+        return max(0.0, 1.0 - p90_error / rule["corridor_half_width_m"])
+    if feature == "heading_corridor_quality":
+        if len(heading) < 2:
+            return 0.0
+        reference = np.asarray(rule["reference_heading_deg"], dtype=np.float64)
+        expected = np.interp(
+            np.linspace(0.0, 1.0, len(heading)),
+            np.linspace(0.0, 1.0, len(reference)),
+            np.rad2deg(np.unwrap(np.deg2rad(reference))),
+        )
+        actual = np.rad2deg(np.unwrap(np.deg2rad(heading)))
+        error = (actual - expected + 180.0) % 360.0 - 180.0
+        p90_error = float(np.percentile(np.abs(error), 90))
+        return max(0.0, 1.0 - p90_error / rule["heading_tolerance_deg"])
     if feature.startswith("speed_") or feature in {
         "stationary_quality",
         "stop_dwell_fraction",
         "late_stationary_quality",
+        "cautious_progress_quality",
     }:
         if len(speed) < 2:
             return 0.0
@@ -274,6 +371,26 @@ def _trajectory_measure(rule: dict[str, Any], traj: Any) -> float:
             if initial <= 0.25 or len(speed) <= early_n:
                 return 0.0
             return max(0.0, min(1.0, (initial - float(np.min(speed[early_n:]))) / initial))
+        if feature == "speed_stability_quality":
+            deviation = float(np.percentile(np.abs(speed - rule["reference_speed_mps"]), 90))
+            return max(0.0, 1.0 - deviation / rule["speed_tolerance_mps"])
+        if feature == "cautious_progress_quality":
+            reference = np.asarray(rule["reference_speed_profile_mps"], dtype=np.float64)
+            expected = np.interp(
+                np.linspace(0.0, 1.0, len(speed)),
+                np.linspace(0.0, 1.0, len(reference)),
+                reference,
+            )
+            speed_error = float(np.percentile(np.abs(speed - expected), 90))
+            speed_quality = max(0.0, 1.0 - speed_error / rule["speed_tolerance_mps"])
+            progress = float(np.sum(speed) * traj.dt_s)
+            progress_quality = max(
+                0.0,
+                1.0
+                - abs(progress - rule["reference_progress_m"])
+                / rule["progress_tolerance_m"],
+            )
+            return min(speed_quality, progress_quality)
         reference = rule["reference_speed_mps"]
         if feature == "stop_dwell_fraction":
             return float(np.mean(speed <= reference))

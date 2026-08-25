@@ -181,6 +181,34 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
         targets = training_fn_config["targets"]
 
     manifest_entries = merge_manifest_targets(manifest_entries, targets)
+    selection_key = training_fn_config.get("selection_report_s3_key")
+    if selection_key:
+        prior = json.loads(
+            s3.get_object(Bucket=s3_bucket, Key=selection_key)["Body"].read()
+        )
+        prior_clips = prior.get("clips") or {}
+
+        def selected(entry: dict) -> bool:
+            clip = prior_clips.get(entry["clip_id"])
+            if not isinstance(clip, dict) or clip.get("passed") is True:
+                return False
+            gt_validation = clip.get("gt_target_validation") or {}
+            unsupported = any(
+                "no currently verifiable discriminative action family" in str(reason)
+                for reason in gt_validation.get("failures", [])
+            )
+            reward_generation_failure = gt_validation.get("passed") is True
+            return unsupported or reward_generation_failure
+
+        manifest_entries = [entry for entry in manifest_entries if selected(entry)]
+        selected_ids = {entry["clip_id"] for entry in manifest_entries}
+        targets = [target for target in targets if target["clip_id"] in selected_ids]
+        logger.info(
+            "selected %d unpublished behavior/reward-repair clips using s3://%s/%s",
+            len(manifest_entries),
+            s3_bucket,
+            selection_key,
+        )
     with tempfile.NamedTemporaryFile("w", suffix=".offline.manifest.json", delete=False) as f:
         json.dump(manifest_entries, f)
         runtime_manifest = f.name
@@ -194,6 +222,7 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
                 "out_dir", "/mnt/work/tmp/clipgen_offline_out"
             ),
             "backend": training_fn_config.get("backend", "openai"),
+            "max_attempts": int(training_fn_config.get("max_attempts", 3)),
             "s3_bucket": s3_bucket,
             "s3_prefix": training_fn_config["s3_prefix"],
         }

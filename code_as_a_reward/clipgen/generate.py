@@ -45,7 +45,7 @@ from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_modul
 GENERATOR_MODEL = "claude-opus-5"
 FALLBACK_MODEL = "claude-opus-4-8"
 OPENAI_MODEL = "gpt-4o"
-PROMPT_VERSION = "clipgen-spec-v2-gt-anchored"
+PROMPT_VERSION = "clipgen-spec-v3-behavior-contracts"
 MAX_TOKENS = 8000
 
 # Hard spend ceiling across ALL calls in a run -- checked before every
@@ -291,9 +291,10 @@ _API_REFERENCE = """\
 - claims.commitments: list of CommitmentClaim -- .maneuver (canonical key,
   EXACTLY one of: stop, yield, wait, decelerate, accelerate, adapt_speed,
   keep_distance, create_gap, proceed, lane_change, keep_lane, nudge, merge,
-  turn, enter, exit; anything else is rejected at compile time, so
-  "maintain_speed" or "lane_change_left" matches nothing -- direction is a
-  SEPARATE field, never part of the maneuver key), .speed_profile
+  turn, enter, exit, overtake, reverse; anything else is rejected at compile time, so
+  "lane_change_left" matches nothing -- direction is a SEPARATE field,
+  never part of the maneuver key. For maintain_speed use its broader
+  speed_profile="maintain" family), .speed_profile
   ("accelerate" | "decelerate" | "maintain" | "adapt" | None), .direction
   ("left" | "right" | None), .text.
   FAMILIES -- the .speed_profile the parser assigns: stop/yield/wait/
@@ -408,9 +409,8 @@ any-of set of related canonical .entity keys per event -- not one exact
 entity, and no .state requirement),
 (b) which commitment FAMILY should reasonably be present (a
 speed_profile value like 'decelerate' = stop/yield/wait/decelerate, or
-the lateral maneuver set lane_change/nudge/merge/turn/enter/exit --
-never keep_lane -- plus a direction to EXCLUDE; name an exact maneuver
-key only if you can state why the family won't do),
+the path maneuver set lane_change/nudge/merge/turn/enter/exit/overtake/keep_lane;
+or, for the common non-directional cases, exact keep_distance/proceed),
 (c) what the trajectory should approximately do, as ONE-SIDED graded
 factors floored at roughly 0-10% of this scene's magnitudes, reaching full
 credit around 115-125%, and anchored on
@@ -490,13 +490,17 @@ Rules enforced mechanically:
 - every commitment component has a trajectory rule;
 - longitudinal commitment families use field=speed_profile with canonical
   values accelerate/decelerate/maintain/adapt;
-- field=maneuver is reserved for lateral values lane_change/nudge/merge/
-  turn/enter/exit/keep_lane, with direction any/left/right;
+- field=maneuver is reserved for measurable path/following/progress values
+  lane_change/nudge/merge/turn/enter/exit/overtake/keep_lane/keep_distance/
+  proceed/reverse,
+  with direction any/left/right;
 - all GT-supported speed-profile wordings appear together in the relevant
   commitment claim's `any_of` list, so equivalent reasoning wordings score;
 - the complete set of required commitment components plus perception credit
   can reach >= 0.70; multi-axis targets may split action weight across the
-  required axes because the positive rollout must execute all of them;
+  required axes. The deterministic compiler will select one primary 0.60
+  execution contract so each reasoning/action corruption can produce the
+  required score drop;
 - windows satisfy 0 <= start < end <= 6.5 seconds and 0 <= floor < full.
 
 Choose floors near 0-10% of the measured GT magnitude and full values near

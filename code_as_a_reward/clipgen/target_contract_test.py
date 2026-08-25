@@ -13,6 +13,7 @@ from code_as_a_reward.clipgen.target_contract import (
     validate_gt_target,
     validate_spec_against_target,
 )
+from code_as_a_reward.clipgen.reward_spec import compile_reward_spec_to_source
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from pref_pairs.trajectory_features import extract_features
 
@@ -326,6 +327,111 @@ def test_compiler_calibrates_weights_aliases_and_thresholds_from_gt():
     assert execution["trajectory"]["full"] == 1.20 * target.gt_speed_drop_mps
     assert execution["trajectory"]["power"] == 0.30
     assert not validate_spec_against_target(calibrated, target)
+
+
+def _semantic_stub(entity: str, field: str, value: str) -> dict:
+    return {
+        "schema_version": "clipgen.reward.v1",
+        "scene_summary": "A broad scene-grounded behavior contract.",
+        "components": [
+            {
+                "name": "scene_context",
+                "weight": 0.4,
+                "claim": {
+                    "kind": "perceptual",
+                    "field": "entity",
+                    "any_of": [entity],
+                },
+                "trajectory": None,
+            },
+            {
+                "name": "behavior_execution",
+                "weight": 0.6,
+                "claim": {
+                    "kind": "commitment",
+                    "field": field,
+                    "any_of": [value],
+                    "direction": "any",
+                },
+                "trajectory": {
+                    "feature": "speed_gain",
+                    "window_s": [0.0, 6.4],
+                    "floor": 0.1,
+                    "full": 1.0,
+                },
+            },
+        ],
+    }
+
+
+def _calibrate_and_gate(coc: str, waypoints: np.ndarray, stub: dict):
+    claims = parse_coc_trace(coc)
+    traj = _features(waypoints, "behavior_gt")
+    target = derive_target_contract(claims, traj)
+    assert not validate_gt_target(target, traj)
+    calibrated = calibrate_spec_against_target(stub, target)
+    assert not validate_spec_against_target(calibrated, target)
+    cases = gate.build_perturbations(
+        "behavior", claims, waypoints, HZ, reward_spec=calibrated
+    )
+    result = gate.run_gate(compile_reward_spec_to_source(calibrated), cases)
+    return target, calibrated, result
+
+
+def test_keep_lane_is_a_measurable_curved_path_contract():
+    x = np.linspace(0.0, 35.0, 64)
+    y = 4.0 * (x / x[-1]) ** 2
+    target, calibrated, result = _calibrate_and_gate(
+        "Go straight following the temporary construction cones",
+        np.column_stack([x, y]),
+        _semantic_stub("construction_cones", "maneuver", "keep_lane"),
+    )
+    assert "keep_lane" in target.behavior_maneuvers
+    assert calibrated["components"][-1]["trajectory"]["feature"] == "path_corridor_quality"
+    assert result.passed, result.feedback()
+    assert result.scores["perturb:lane_departure_traj"] <= result.pos_score - 0.4
+
+
+def test_maintain_speed_uses_stability_and_oscillation_negative():
+    waypoints = np.column_stack([np.arange(64) * 0.8, np.zeros(64)])
+    _, calibrated, result = _calibrate_and_gate(
+        "Maintain speed past the construction cones",
+        waypoints,
+        _semantic_stub("construction_cones", "speed_profile", "maintain"),
+    )
+    assert calibrated["components"][-1]["trajectory"]["feature"] == "speed_stability_quality"
+    assert result.passed, result.feedback()
+    assert result.scores["perturb:unstable_speed_traj"] <= result.pos_score - 0.4
+
+
+def test_cautious_proceed_uses_under_and_over_progress_negatives():
+    increments = np.linspace(0.35, 0.65, 64)
+    waypoints = np.column_stack([np.cumsum(increments), np.zeros(64)])
+    _, calibrated, result = _calibrate_and_gate(
+        "Proceed cautiously and adapt speed through the work zone",
+        waypoints,
+        _semantic_stub("work_zone", "speed_profile", "adapt"),
+    )
+    assert calibrated["components"][-1]["trajectory"]["feature"] == "cautious_progress_quality"
+    assert result.passed, result.feedback()
+    assert result.scores["perturb:no_progress_traj"] <= result.pos_score - 0.4
+    assert result.scores["perturb:unsafe_surge_traj"] <= result.pos_score - 0.4
+
+
+def test_reverse_uses_heading_corridor_and_forward_negative():
+    waypoints = np.column_stack([-np.linspace(0.0, 10.0, 64), np.zeros(64)])
+    target, calibrated, result = _calibrate_and_gate(
+        "Reverse due to the road closure in the work zone ahead",
+        waypoints,
+        _semantic_stub("work_zone", "maneuver", "reverse"),
+    )
+    assert "reverse" in target.behavior_maneuvers
+    assert calibrated["components"][-1]["trajectory"]["feature"] == "heading_corridor_quality"
+    assert result.passed, result.feedback()
+    assert (
+        result.scores["perturb:forward_instead_of_reverse_traj"]
+        <= result.pos_score - 0.4
+    )
 
 
 def test_left_motion_is_positive_in_alpamayo_keyframe_coordinates():

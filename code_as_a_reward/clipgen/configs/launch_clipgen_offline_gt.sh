@@ -31,8 +31,26 @@ case "${1:-}" in
         "$@"
     done
     ;;
+  repair)
+    shift
+    for shard in $(seq "${START_SHARD}" "${END_SHARD}"); do
+      python3 "${REPO_ROOT}/lilypad/launch.py" "${TEMPLATE}" \
+        -n "clipgen-offline-${RUN_TAG}-shard${shard}" \
+        -o workload_variant_config.training_fn_config.manifest_data_s3_prefix \
+          "code_as_a_reward/clipgen/manifest_full1050/shard_${shard}" \
+        -o workload_variant_config.training_fn_config.selection_report_s3_key \
+          "code_as_a_reward/clipgen/offline_rewards/full1050-v1-shard${shard}/report.json" \
+        -o workload_variant_config.training_fn_config.manifest_local_dir \
+          "/mnt/work/tmp/clipgen_offline_manifest_${RUN_TAG}_shard${shard}" \
+        -o workload_variant_config.training_fn_config.out_dir \
+          "/mnt/work/tmp/clipgen_offline_out_${RUN_TAG}_shard${shard}" \
+        -o workload_variant_config.training_fn_config.s3_prefix \
+          "code_as_a_reward/clipgen/offline_rewards/${RUN_TAG}-shard${shard}" \
+        "$@"
+    done
+    ;;
   *)
-    echo "usage: $0 {shard0|full} [launch.py flags]" >&2
+    echo "usage: $0 {shard0|full|repair} [launch.py flags]" >&2
     exit 2
     ;;
 esac

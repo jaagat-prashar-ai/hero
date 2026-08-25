@@ -73,7 +73,7 @@ from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.obstacle_tracks import SceneObstacles
 
 MAX_ATTEMPTS = 7
-PIPELINE_VERSION = "clipgen-v2"
+PIPELINE_VERSION = "clipgen-v3-behavior-contracts"
 # Bumped from 3 (2026-08-10): the corpus352 run's real-corpus cost was
 # only ~$0.07/clip (~5.4 calls/clip avg) -- real budget headroom to give
 # the self-correction loop more room, especially now that gate.py's
@@ -287,7 +287,18 @@ def _load_clip(entry: dict, rollout_doc: dict[str, Any] | None = None) -> dict:
             f"clip {clip_id}: manifest is missing required t0_us; refusing to "
             "build a dossier at clip start while rollouts use an event keyframe"
         )
-    scene = SceneObstacles.from_dataframe(pd.read_parquet(entry["obstacle_parquet"]), clip_id)
+    obstacle_path = entry.get("obstacle_parquet")
+    if obstacle_path:
+        scene = SceneObstacles.from_dataframe(pd.read_parquet(obstacle_path), clip_id)
+    else:
+        scene = SceneObstacles(
+            clip_id=clip_id,
+            tracks=[],
+            availability_note=(
+                "The NVIDIA feature inventory reports obstacle.offline=False; "
+                "no actor-distance claims are inferred from missing labels."
+            ),
+        )
     hz = float(entry.get("hz", 10.0))
     if "waypoints_npy" in entry:
         waypoints = np.load(entry["waypoints_npy"])
@@ -450,6 +461,7 @@ def run(
     holdout_min_unique_scores: int = 3,
     holdout_max_saturation_fraction: float = 0.25,
     offline_gt_only: bool = False,
+    max_attempts: int = MAX_ATTEMPTS,
 ) -> dict:
     """Build reward artifacts in GT-only or legacy rollout-gated mode.
 
@@ -459,6 +471,8 @@ def run(
     The rollout-gated path remains available for diagnostics and ablations.
     """
     out = Path(out_dir)
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be >= 1")
     (out / "reward_fns").mkdir(parents=True, exist_ok=True)
     (out / "reward_specs").mkdir(parents=True, exist_ok=True)
     (out / "transcripts").mkdir(exist_ok=True)
@@ -593,6 +607,7 @@ def run(
             "gt_trajectory_source": clip["gt_trajectory_source"],
             "rollout_provenance": (rollout_doc or {}).get("provenance"),
             "has_overlay": clip["overlay_jpeg"] is not None,
+            "obstacle_labels_available": clip["scene"].availability_note is None,
             "attempts": [],
             "passed": False,
         }
@@ -629,7 +644,7 @@ def run(
             continue
 
         transcript, feedback = None, None
-        for attempt in range(1, MAX_ATTEMPTS + 1):
+        for attempt in range(1, max_attempts + 1):
             try:
                 result = generate_reward_fn(
                     client,
@@ -753,7 +768,7 @@ def run(
                     continue
 
                 header = (
-                    f"# {PIPELINE_VERSION}; clip {clip_id}; attempt {attempt}/{MAX_ATTEMPTS}; "
+                    f"# {PIPELINE_VERSION}; clip {clip_id}; attempt {attempt}/{max_attempts}; "
                     f"offline GT-only PASS; pos {gt_gate.pos_score:.2f}; "
                     f"max_pert {gt_gate.max_pert:.2f}\n"
                 )
@@ -1066,7 +1081,7 @@ def run(
                     entry["error"] = "candidate failed sealed cross-scene specificity check"
                     break
                 header = (
-                    f"# {PIPELINE_VERSION}; clip {clip_id}; attempt {attempt}/{MAX_ATTEMPTS}; "
+                    f"# {PIPELINE_VERSION}; clip {clip_id}; attempt {attempt}/{max_attempts}; "
                     "generation+holdout PASS; "
                     f"pos {pos_score:.2f}; max_pert {max_pert:.2f}; "
                     f"generation_argmax {select.argmax_rollout_id}\n"
@@ -1247,6 +1262,7 @@ def clipgen_offline_entrypoint(config: dict) -> None:
         dry_run=bool(config.get("dry_run", False)),
         backend=config.get("backend", "openai"),
         offline_gt_only=True,
+        max_attempts=int(config.get("max_attempts", 3)),
     )
     print("CLIPGEN_REPORT_JSON_BEGIN")
     print(json.dumps(result, default=str))

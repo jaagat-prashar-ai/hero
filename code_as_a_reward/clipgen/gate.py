@@ -112,7 +112,9 @@ _DIRECTION_FLIP = {"left": "right", "right": "left"}
 # Lateral claims without a direction are flipped between "committed lateral
 # movement" and "committed to staying in lane" -- the other real
 # contradiction available when there's no left/right to flip.
-_LATERAL_MOVE_MANEUVERS = {"lane_change", "nudge", "merge", "turn", "enter", "exit"}
+_LATERAL_MOVE_MANEUVERS = {
+    "lane_change", "nudge", "merge", "turn", "enter", "exit", "overtake"
+}
 
 
 def _corrupt_identity(claims):
@@ -134,6 +136,10 @@ def _corrupt_identity(claims):
     if "accelerate" in profiles:
         opposite_profile = "decelerate"
     elif "decelerate" in profiles:
+        opposite_profile = "accelerate"
+    elif profiles & {"maintain", "adapt"}:
+        # A stable/adaptive-speed trace must not retain credit when its
+        # reasoning instead promises acceleration.
         opposite_profile = "accelerate"
     else:
         opposite_profile = None
@@ -164,6 +170,16 @@ def _corrupt_identity(claims):
             continue
         if c.maneuver == "keep_lane":
             new_commitments.append(dataclasses.replace(c, maneuver="lane_change"))
+            changed = True
+            continue
+        if c.maneuver in {"keep_distance", "proceed"}:
+            new_commitments.append(
+                dataclasses.replace(c, maneuver="stop", speed_profile="decelerate")
+            )
+            changed = True
+            continue
+        if c.maneuver == "reverse":
+            new_commitments.append(dataclasses.replace(c, maneuver="proceed"))
             changed = True
             continue
         new_commitments.append(c)
@@ -221,6 +237,52 @@ def mirrored_lateral_waypoints(waypoints: np.ndarray) -> np.ndarray:
     return w
 
 
+def forced_lane_departure_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Leave the GT-relative path corridor smoothly by roughly one lane."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) < 2:
+        return w
+    u = np.linspace(0.0, 1.0, len(w))
+    smooth = u * u * (3.0 - 2.0 * u)
+    sign = -1.0 if float(w[-1, 1] - w[0, 1]) >= 0.0 else 1.0
+    w[:, 1] += sign * 4.0 * smooth
+    return w
+
+
+def oscillatory_speed_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Preserve path direction while making speed conspicuously non-cautious."""
+    w = np.asarray(waypoints, dtype=np.float64)
+    if len(w) < 3:
+        return w.copy()
+    delta = np.diff(w[:, :2], axis=0)
+    lengths = np.linalg.norm(delta, axis=1)
+    unit = np.divide(delta, lengths[:, None], out=np.zeros_like(delta), where=lengths[:, None] > 1e-8)
+    factors = np.where((np.arange(len(delta)) // 4) % 2 == 0, 0.05, 2.50)
+    out = np.empty_like(w)
+    out[0] = w[0]
+    out[1:, :2] = w[0, :2] + np.cumsum(unit * (lengths * factors)[:, None], axis=0)
+    if w.shape[1] > 2:
+        out[1:, 2:] = w[1:, 2:]
+    return out
+
+
+def surged_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """An unsafe over-progress counterfactual along the same coarse path."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) > 1:
+        w[:, :2] = w[0, :2] + 2.5 * (w[:, :2] - w[0, :2])
+    return w
+
+
+def forced_forward_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Replace a reversing action with decisive straight-ahead progress."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) > 1:
+        w[:, 0] = w[0, 0] + np.linspace(0.0, 10.0, len(w))
+        w[:, 1] = w[0, 1]
+    return w
+
+
 def build_perturbations(
     scene_id: str,
     claims,
@@ -242,7 +304,23 @@ def build_perturbations(
     # GT-gate failures in the fresh canary had this label error).  Use only
     # action-specific corruptions whose motion contradicts the scored intent.
     flat_wp = flattened_waypoints(waypoints)
-    if not _too_similar(waypoints, flat_wp):
+    spec_features = {
+        component.get("trajectory", {}).get("feature")
+        for component in (reward_spec or {}).get("components", [])
+        if isinstance(component.get("trajectory"), dict)
+    }
+    generic_no_reaction_is_negative = reward_spec is None or bool(
+        spec_features
+        & {
+            "speed_drop",
+            "speed_gain",
+            "speed_reduction_fraction",
+            "stationary_quality",
+            "stop_dwell_fraction",
+            "late_stationary_quality",
+        }
+    )
+    if generic_no_reaction_is_negative and not _too_similar(waypoints, flat_wp):
         cases.append(
             GateCase(
                 "perturb:no_reaction_traj",
@@ -297,13 +375,66 @@ def build_perturbations(
                     "negative",
                 )
             )
-    if lateral_commitment:
+    if "path_corridor_quality" in spec_features:
+        depart_wp = forced_lane_departure_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:lane_departure_traj",
+                claims,
+                _refeature(depart_wp, hz, scene_id, "lanedepart"),
+                "negative",
+            )
+        )
+    elif lateral_commitment:
         mirror_wp = mirrored_lateral_waypoints(waypoints)
         cases.append(
             GateCase(
                 "perturb:opposite_lateral_traj",
                 claims,
                 _refeature(mirror_wp, hz, scene_id, "latmirror"),
+                "negative",
+            )
+        )
+    if "speed_stability_quality" in spec_features:
+        oscillatory_wp = oscillatory_speed_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:unstable_speed_traj",
+                claims,
+                _refeature(oscillatory_wp, hz, scene_id, "unstable"),
+                "negative",
+            )
+        )
+    if "cautious_progress_quality" in spec_features:
+        stop_wp = forced_stop_waypoints(waypoints)
+        if _too_similar(waypoints, stop_wp, min_dev_m=0.5):
+            stop_wp = np.repeat(np.asarray(waypoints, dtype=np.float64)[:1], len(waypoints), axis=0)
+        cases.append(
+            GateCase(
+                "perturb:no_progress_traj",
+                claims,
+                _refeature(stop_wp, hz, scene_id, "noprogress"),
+                "negative",
+            )
+        )
+        surge_wp = surged_waypoints(waypoints)
+        if _too_similar(waypoints, surge_wp, min_dev_m=0.5):
+            surge_wp = forced_departure_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:unsafe_surge_traj",
+                claims,
+                _refeature(surge_wp, hz, scene_id, "surge"),
+                "negative",
+            )
+        )
+    if "heading_corridor_quality" in spec_features:
+        forward_wp = forced_forward_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:forward_instead_of_reverse_traj",
+                claims,
+                _refeature(forward_wp, hz, scene_id, "forward"),
                 "negative",
             )
         )
