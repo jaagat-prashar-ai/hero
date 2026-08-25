@@ -363,7 +363,13 @@ def compute_reward_batch(
 
     rewards: list[float] = []
     reward_dicts: list[dict[str, float]] = []
-    for (l2_dist, comfort_score, pred_cot, _, _), judge_raw in zip(per_rollout, judge_raws):
+    gt0 = gt_fut_xyz[0]
+    gt_xyz_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
+    scene_id = str(reference.get("scene_id") or "validation_scene")
+    hz = float(reference.get("future_hz") or 10.0)
+    for rollout_id, ((l2_dist, comfort_score, pred_cot, pred_xyz_np, _), judge_raw) in enumerate(
+        zip(per_rollout, judge_raws)
+    ):
         reasoning_score = -1.0 if judge_raw is None else normalize_score(judge_raw)
         pred_cot_decoded = bool(pred_cot and len(pred_cot.strip()) > 0)
 
@@ -394,14 +400,27 @@ def compute_reward_batch(
             f"cot_decoded={pred_cot_decoded} final={final_reward:.4f}"
         )
         rewards.append(float(final_reward))
-        reward_dicts.append(
-            {
+        reward_dict = {
                 "traj_L2": float(l2_dist),
                 "comfort_reward": float(comfort_score),
                 "reasoning_score": float(reasoning_score),
                 "reward": float(final_reward),
             }
+        from rl_posttrain.rewards.faithfulness_metrics import compute_faithfulness_metrics
+
+        reward_dict.update(
+            compute_faithfulness_metrics(
+                pred_cot=pred_cot,
+                pred_xyz=pred_xyz_np,
+                gt_cot=reference.get("cot", ""),
+                gt_xyz=gt_xyz_np,
+                scene_id=scene_id,
+                rollout_id=rollout_id,
+                hz=hz,
+                ade_m=l2_dist,
+            )
         )
+        reward_dicts.append(reward_dict)
 
     _log_overlays_to_wandb(config, per_rollout, judge_raws, rewards)
     return rewards, reward_dicts

@@ -1038,6 +1038,8 @@ def compute_reward_batch(
 
     w = _get_reward_cfg(config)
     gt_fut_xyz = reference["ego_future_xyz"]
+    gt0 = gt_fut_xyz[0]
+    gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
     scene_id = reference.get("scene_id")
     # Fail loud, not neutral: without a scene_id every trace would silently
     # take the undecided fallback and the "code" reward would train on ADE
@@ -1173,6 +1175,20 @@ def compute_reward_batch(
                 **aux,
             }
         )
+        from rl_posttrain.rewards.faithfulness_metrics import compute_faithfulness_metrics
+
+        reward_dicts[-1].update(
+            compute_faithfulness_metrics(
+                pred_cot=pred_cot,
+                pred_xyz=pred_xyz_np,
+                gt_cot=reference.get("cot", ""),
+                gt_xyz=gt_np,
+                scene_id=scene_id,
+                rollout_id=rollout_id,
+                hz=hz,
+                ade_m=l2_dist,
+            )
+        )
         dump_rollouts.append(
             {
                 "rollout_id": rollout_id,
@@ -1253,8 +1269,6 @@ def compute_reward_batch(
 
     # gt_fut_xyz is (1, T, 3), torch on the worker's device in production
     # (same shape contract as predicted_fut_xyz); tolerate ndarray for tests.
-    gt0 = gt_fut_xyz[0]
-    gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
     _maybe_log_group(reference, scene_id, clip_id, gt_np, dump_rollouts, clipgen_fn_path, config)
     _maybe_dump_rollouts(clip_id, scene_id, hz, dump_rollouts)
 
@@ -1511,16 +1525,12 @@ def main() -> None:
                 ref = AlpamayoCosmosDataset.get_reference_answer(self, idx)
             if not ref:
                 return ref
-            ds = self.dataset
             try:
-                clip_id = str(ds.clip_ids[idx])
-                t0_us = int(
-                    ds.DEFAULT_T0_US
-                    if ds.use_default_keyframe
-                    else ds.avdi.get_clip_key_frame(clip_id)
-                )
+                from rl_posttrain.rewards.heldout_validation import sample_identity
+
+                clip_id, t0_us, future_hz = sample_identity(self.dataset, idx)
                 ref["scene_id"] = f"{clip_id}_{t0_us}"
-                ref["future_hz"] = 1.0 / float(ds.time_step)
+                ref["future_hz"] = future_hz
             except Exception:
                 # Leave scene_id unset and let the reward's assert fail the
                 # run with a message naming this dataset, rather than
@@ -1545,6 +1555,10 @@ def main() -> None:
             "data.train.dataset.reasoning_metadata=reasoning/ood_reasoning.parquet",
         ],
     )
+    from rl_posttrain.rewards.heldout_validation import install_heldout_validation_split
+
+    train_n, val_n = install_heldout_validation_split(alp_state.get_dataloaders())
+    logger.warning("[code_reward] deterministic dataset split: train=%d val=%d", train_n, val_n)
 
     ModelRegistry.register_model(
         ReasoningVLACosmos,

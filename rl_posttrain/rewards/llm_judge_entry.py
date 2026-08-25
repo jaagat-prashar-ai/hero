@@ -166,6 +166,10 @@ def _launch_with_scene_reference(spec: ModelSpec) -> None:
         hydra_config_name=spec.hydra_config_name,
         overrides=spec.hydra_overrides,
     )
+    from rl_posttrain.rewards.heldout_validation import install_heldout_validation_split
+
+    train_n, val_n = install_heldout_validation_split(alp_state.get_dataloaders())
+    logger.warning("[llm_judge] deterministic dataset split: train=%d val=%d", train_n, val_n)
 
     ModelRegistry.register_model(
         spec.cosmos_wrapper,

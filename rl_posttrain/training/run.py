@@ -859,6 +859,9 @@ def _patch_toml(
     reasoning_weight: float | None = None,
     optm_lr: float | None = None,
     kl_beta: float | None = None,
+    validation_enable: bool | None = None,
+    validation_freq: int | None = None,
+    validation_n_generation: int | None = None,
 ) -> None:
     import tomlkit
 
@@ -877,6 +880,13 @@ def _patch_toml(
         doc["train"]["optm_lr"] = float(optm_lr)
     if kl_beta is not None:
         doc["train"]["train_policy"]["kl_beta"] = float(kl_beta)
+    if validation_enable is not None:
+        doc["validation"]["enable"] = bool(validation_enable)
+    if validation_freq is not None:
+        doc["validation"]["freq"] = int(validation_freq)
+        doc["train"]["validation_step"] = int(validation_freq)
+    if validation_n_generation is not None:
+        doc["validation"]["n_generation"] = int(validation_n_generation)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(tomlkit.dumps(doc))
@@ -1169,7 +1179,10 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     workspace_dir.mkdir(parents=True, exist_ok=True)
     hf_home.mkdir(parents=True, exist_ok=True)
 
-    if _resolve_reward_mode(cfg) == "code":
+    # All matched comparison arms consume the same sealed clip manifest,
+    # including LLM-judge.  The corpus is a dataset selector in that arm,
+    # not its training reward.
+    if cfg.get("clipgen_run_s3_prefixes"):
         _prepare_clipgen_corpus_from_s3(cfg, workspace_dir)
 
     logger.info("rl_posttrain: workspace_dir=%s", workspace_dir)
@@ -1245,6 +1258,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     lingo_judge_dir: Path | None = None
     if reward_mode == "llm_judge":
         _fetch_reasoning_dataset()
+        if cfg.get("clipgen_only_clips"):
+            _filter_index_to_clipgen_clips(pai_reasoning_dir)
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "llm_judge_entry.py"
     elif reward_mode == "code":
@@ -1281,6 +1296,11 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_entry.py"
         )
 
+    configured_template = cfg.get("toml_template")
+    if configured_template:
+        configured_path = Path(str(configured_template))
+        template_path = configured_path if configured_path.is_absolute() else REPO_ROOT / configured_path
+
     _patch_toml(
         template_path,
         toml_out,
@@ -1294,6 +1314,9 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         reasoning_weight=cfg.get("reasoning_weight"),
         optm_lr=cfg.get("optm_lr"),
         kl_beta=cfg.get("kl_beta"),
+        validation_enable=cfg.get("validation_enable"),
+        validation_freq=cfg.get("validation_freq"),
+        validation_n_generation=cfg.get("validation_n_generation"),
     )
 
     _ensure_redis_server()
