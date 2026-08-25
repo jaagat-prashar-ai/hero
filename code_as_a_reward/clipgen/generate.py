@@ -34,11 +34,18 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+from code_as_a_reward.clipgen.reward_spec import (
+    RewardSpecError,
+    SCHEMA_VERSION as REWARD_SPEC_SCHEMA_VERSION,
+    compile_reward_spec_to_source,
+    validate_reward_spec,
+)
 from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_module
 
 GENERATOR_MODEL = "claude-opus-5"
 FALLBACK_MODEL = "claude-opus-4-8"
 OPENAI_MODEL = "gpt-4o"
+PROMPT_VERSION = "clipgen-spec-v2-gt-anchored"
 MAX_TOKENS = 8000
 
 # Hard spend ceiling across ALL calls in a run -- checked before every
@@ -222,10 +229,11 @@ Hard rules for the final function:
   disagrees with reward(), and shows you the per-case breakdown when a case
   fails -- use that to reallocate credit rather than trying to hit an exact
   budget from the start.
-- Trajectory thresholds: one-sided, generous, and GRADED. Demand roughly
-  HALF of this scene's magnitude as the floor, not most of it -- a rollout
+- Trajectory thresholds: one-sided, generous, and GRADED. Use roughly
+  0-10% of this scene's magnitude as the floor and 115-125% as full -- a rollout
   that slowed 5 m/s where GT slowed 9 is still faithfully slowing
-  (`drop >= 4.5`, never `drop >= 9.0`, and never a NARROW two-sided band
+  (`floor ~= 0.7`, `full ~= 10.5`, never `drop >= 9.0` as a hard pass/fail step,
+  and never a NARROW two-sided band
   copied from GT like `8.5 <= drop <= 9.5`, which real rollouts just
   miss). Scores are used to RANK 12 rollouts, so let the trajectory factor
   vary continuously above the floor (e.g. `0.5 * min(1.0, drop / 6.0)`
@@ -238,7 +246,7 @@ Hard rules for the final function:
   speed minus the minimum AFTERWARD, and SIGNED heading change, never
   max-minus-min over the whole series or abs(), which a time-reversed
   trajectory preserves exactly. Never set a floor below the trajectory's
-  noise: if half the scene's magnitude is within the jitter shown in the
+  noise: if 10% of the scene's magnitude is within the jitter shown in the
   measured facts, that quantity is too small to verify -- pick a different
   one or shrink the component. Dossier DISTANCES to obstacles are scene
   geometry, not trajectory quantities -- never reuse one as a
@@ -257,6 +265,22 @@ Hard rules for the final function:
   all()-over-raw-series conditions -- they fail on the ground truth itself.
   Compare windowed aggregates (means, extrema over a time window) against
   thresholds with tolerance.
+"""
+
+# The scene-analysis guidance above is retained, but executable-code output
+# is deliberately superseded. The LLM now proposes data; a deterministic
+# compiler owns executable reward behavior.
+_SYSTEM += f"""
+
+OVERRIDING FINAL OUTPUT CONTRACT (ClipGen v2):
+- Do NOT write Python or any other executable code.
+- Your final answer is one fenced JSON object using schema
+  {REWARD_SPEC_SCHEMA_VERSION}.
+- The validator rejects negative/over-budget weights, non-canonical claim
+  values, perception gated by trajectory, commitment credit without a
+  trajectory check, non-monotonic curves, and weights not summing to 1.0.
+- You choose semantic components and calibrated numeric thresholds only;
+  the deterministic compiler produces components() and reward().
 """
 
 _API_REFERENCE = """\
@@ -388,7 +412,8 @@ the lateral maneuver set lane_change/nudge/merge/turn/enter/exit --
 never keep_lane -- plus a direction to EXCLUDE; name an exact maneuver
 key only if you can state why the family won't do),
 (c) what the trajectory should approximately do, as ONE-SIDED graded
-factors floored at roughly half this scene's magnitudes and anchored on
+factors floored at roughly 0-10% of this scene's magnitudes, reaching full
+credit around 115-125%, and anchored on
 WHEN the maneuver happens -- a real rollout will differ from GT in its
 exact values and timing, and its parsed reasoning typically contains
 FEWER claims than the expert's, so plan for the case where only the
@@ -398,10 +423,17 @@ component rather than requiring it.
 Also define what an UNFAITHFUL rollout looks like (mentions without
 execution, execution without mention, wrong direction) -- this is what your
 function actually needs to separate.
+
+Treat STOP/WAIT as sustained-state actions, not merely deceleration. If the
+GT starts slowly or is already stopped, speed_drop is meaningless: use
+stop_dwell_fraction and/or late_stationary_quality so a trajectory that
+briefly touches zero and then departs does not pass. Preserve a distinct
+GT-relevant entity component on every retry; do not "fix" a ranking tie by
+dropping scene semantics and scoring only motion.
 """
 
 _STEP3 = """\
-Step 3: emit the reward function.
+Step 3: emit a constrained reward specification, not Python.
 
 {api_reference}
 
@@ -409,42 +441,89 @@ Step 3: emit the reward function.
 
 {gt_traj_facts}
 
-Write ONE python code block containing `def components(claims, traj):`
-(the named component contributions) and `def reward(claims, traj):`
-(exactly the clamped sum of components -- typically
-`return min(1.0, max(0.0, sum(components(claims, traj).values())))`).
-Compose the score however best fits this scene -- you decide the component
-structure and weighting. Include a short docstring naming the decisive
-events and the scene-derived thresholds. Remember the hard rules from the
-system prompt. Then pre-flight your own code before emitting:
-- commitment credit matched at the FAMILY level (speed_profile, or the
-  lateral set excluding the contradicting direction) per the API
-  reference idioms; any exact .maneuver equality needs a one-line
-  justification in the docstring;
-- perceptual credit as an any-of entity set, no .state conjunct, small
-  additive weight, never mixed into a commitment/trajectory conjunction;
-- trajectory factors one-sided and GRADED above a generous
-  (~half-magnitude) floor, with at least one commitment-conjunction
-  component varying continuously with the trajectory -- 12 competent
-  rollouts must not tie; identical scores in a group train nothing;
-  absolute event times computed as t0 + argmin(window(...)) * traj.dt_s;
-- component maxima sum to exactly 1.0, AND the components a typical
-  sparse rollout will actually fire (ONE commitment-family conjunction
-  plus mention credit) can reach 0.7 by themselves with the graded
-  factors at ~70% execution quality;
-- every key in the components() dict is assigned a possibly-positive
-  value on some code path (a zero-initialized key nothing writes to can
-  never score), and no component reads another component's score or
-  flag.
+Return ONE fenced `json` object with exactly this shape:
+
+```json
+{{
+  "schema_version": "clipgen.reward.v1",
+  "scene_summary": "short description of the decisive response",
+  "components": [
+    {{
+      "name": "noticed_relevant_entity",
+      "weight": 0.40,
+      "claim": {{"kind": "perceptual", "field": "entity", "any_of": ["lead_vehicle", "stopped_vehicle"]}},
+      "trajectory": null
+    }},
+    {{
+      "name": "slowing_execution",
+      "weight": 0.60,
+      "claim": {{"kind": "commitment", "field": "speed_profile", "any_of": ["decelerate"], "direction": "any"}},
+      "trajectory": {{"feature": "speed_drop", "window_s": [0.0, 6.4], "floor": 1.0, "full": 5.0}}
+    }}
+  ]
+}}
+```
+
+Allowed trajectory features are: speed_drop, speed_gain,
+speed_reduction_fraction, heading_left, heading_right, lateral_left,
+lateral_right, stationary_quality, stop_dwell_fraction,
+late_stationary_quality. Every feature is converted through a deterministic
+monotonic curve: 0 at/below `floor`, 1 at/above `full`, graded between. The
+compiler calibrates its concavity so a tolerant target-following rollout can
+still contribute the required 0.40 execution credit without saturating at GT.
+stationary_quality, stop_dwell_fraction, and
+late_stationary_quality additionally require `reference_speed_mps`.
+stop_dwell_fraction measures the fraction of the window at or below that
+speed. late_stationary_quality is 1 minus the final-second p90 speed divided
+by that reference, clamped at zero.
+speed_gain is directional: mean speed in the final 0.5 seconds minus mean
+speed in the initial 0.5 seconds. It intentionally does not use the maximum,
+because extrema are unchanged by time reversal.
+
+Rules enforced mechanically:
+- non-negative component weights sum exactly to 1.0;
+- total perceptual mention-only weight is <= 0.40;
+- when the GT has a relevant entity family, assign 0.40 total weight to
+  GT-relevant entity-family mentions and 0.60 to executed commitments. This
+  makes wrong-scene reasoning drop by 0.40 while neither reasoning nor motion
+  alone can clear the 0.70 positive threshold;
+- every commitment component has a trajectory rule;
+- longitudinal commitment families use field=speed_profile with canonical
+  values accelerate/decelerate/maintain/adapt;
+- field=maneuver is reserved for lateral values lane_change/nudge/merge/
+  turn/enter/exit/keep_lane, with direction any/left/right;
+- all GT-supported speed-profile wordings appear together in the relevant
+  commitment claim's `any_of` list, so equivalent reasoning wordings score;
+- the complete set of required commitment components plus perception credit
+  can reach >= 0.70; multi-axis targets may split action weight across the
+  required axes because the positive rollout must execute all of them;
+- windows satisfy 0 <= start < end <= 6.5 seconds and 0 <= floor < full.
+
+Choose floors near 0-10% of the measured GT magnitude and full values near
+115-125% of it. The expert should score strongly without saturating, preserving
+resolution among 12 competent rollouts for GRPO. Use direction-sensitive
+heading/lateral features for lateral actions and time-directed speed
+features for longitudinal actions. Output JSON only; no prose after it.
+
+For a GT STOP/WAIT target, at least one commitment component MUST use
+stop_dwell_fraction or late_stationary_quality; a speed_drop-only stop rubric
+will be rejected before rollout scoring. Prefer late_stationary_quality. If
+using stop_dwell_fraction, its window MUST start at or after 3.0 seconds so a
+time-reversed stop cannot retain early dwell credit. Use reference_speed_mps
+in [0.25, 1.0], floor <= 0.25, and full >= 1.05 for these normalized [0, 1] features.
+The deliberately unreachable full value prevents a batch of good stops from
+all saturating at exactly 1.0 while retaining a strong positive score. Also
+keep 0.40 total weight on GT-relevant entity-family components; motion-only
+repairs are rejected because they cannot distinguish why the vehicle stopped.
 """
 
 _RETRY = """\
-The function you wrote failed the empirical verification gate:
+The reward specification you wrote failed the empirical verification gate:
 
 {feedback}
 
-Before writing any code, answer these in one or two sentences each:
-1. For each failing case: WHICH check in your function let it through
+Before revising the JSON, answer these in one or two sentences each:
+1. For each failing case: WHICH component let it through
    (or blocked the positive)?
 2. WHAT measured fact from the facts block above separates that case from
    the positive (e.g. the TIME at which minimum speed occurs, not its
@@ -463,7 +542,7 @@ Before writing any code, answer these in one or two sentences each:
    checks ONLY traj (no claims.commitments reference anywhere in it) will
    survive no_commitments and gutted_claims with IDENTICAL credit every
    time, regardless of threshold -- if a failing corruption's surviving
-   component has no claims.commitments check in its code at all, that is
+   component has no commitment claim at all, that is
    the bug. Per the system prompt: if the trajectory is executing a commitment
    the model would plausibly state, gate on its FAMILY (speed_profile,
    or the lateral set excluding the contradicting direction). Only use
@@ -474,27 +553,28 @@ Before writing any code, answer these in one or two sentences each:
    is dead. The fix is typed, not open-ended:
    - dead COMMITMENT predicate: do NOT swap one exact .maneuver key for
      another (retries that do this die again on the same component) --
-     rewrite it at the family level (`any(c.speed_profile == 'decelerate'
-     for c in claims.commitments)`, or the lateral set excluding the
-     contradicting direction);
+     rewrite its claim `any_of` at the family level (all GT-supported speed
+     profiles, or the lateral set excluding the contradicting direction);
    - dead PERCEPTUAL predicate: delete any .state requirement and widen
      the entity to an any-of family set; if it was ALREADY family-level,
      the rollout never mentioned that family -- remove the component;
    - dead TRAJECTORY condition: rebuild it as a ONE-SIDED threshold at
-     about half the measured magnitude in the facts above, and re-check
+     about 0-10% of the measured magnitude in the facts above, set `full`
+     near 115-125%, and re-check
      the event TIME against those facts -- never tighten on retry; if the
      measured motion contradicts the check outright, remove the component.
-   When you REMOVE a component, delete its dict key and helper code
-   entirely (a zero-initialized key nothing assigns, or a computed flag
-   never added to the score, permanently caps the positive) and RE-SPEND
-   its weight: after the rewrite, the components a sparse real rollout
-   will actually fire must still be able to reach 0.7, or this attempt
-   fails by construction no matter how correct each check is.
-Then rewrite the offending check AROUND that separating fact. Do NOT just
-nudge thresholds -- if a case scored identically to the positive, your
-current checks cannot see the difference and one of them must be replaced.
-Emit the corrected function in one python code block. Same contract and
-hard rules.
+   When you REMOVE a component, remove the complete component object and
+   RE-SPEND its weight. The required components a target-faithful rollout
+   will fire together must still be able to reach 0.7.
+   If corruptions retain exactly the 0.40 reasoning credit and a positive is
+   only 0.70-0.79, do NOT cut relevant-entity weight: make the execution curve
+   award at least 0.40 on both top rollouts by lowering `floor` toward zero and
+   keeping `full` in the mechanically allowed 1.15-1.25x GT band.
+Then rewrite the offending component AROUND that separating fact. Do NOT
+just nudge thresholds -- if a case scored identically to the positive, the
+current feature cannot see the difference and must be replaced. Emit one
+complete corrected `clipgen.reward.v1` JSON specification. Do not emit
+Python; the deterministic compiler owns executable code.
 """
 
 
@@ -503,6 +583,7 @@ class GenerationResult:
     source: str
     transcript: list[dict]  # the full message history, for eyeball review
     model: str
+    spec: dict | None = None
 
 
 class GenerationRefused(Exception):
@@ -692,6 +773,18 @@ def extract_code(text: str) -> str:
     return blocks[-1].strip() + "\n"
 
 
+def extract_reward_spec(text: str) -> dict:
+    """Parse and validate the last fenced JSON object in a model reply."""
+    blocks = re.findall(r"```(?:json)?\s*\n(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
+    if not blocks:
+        raise RewardFnError("no fenced JSON reward specification in model reply")
+    try:
+        raw = json.loads(blocks[-1])
+        return validate_reward_spec(raw)
+    except (json.JSONDecodeError, RewardSpecError) as exc:
+        raise RewardFnError(f"invalid reward specification: {exc}") from exc
+
+
 def _call(client, messages: list[dict], tracker: CostTracker | None = None) -> "object":
     if tracker is not None:
         tracker.check()
@@ -776,20 +869,19 @@ def generate_reward_fn(
         response = _call(client, messages, tracker)
         messages.append({"role": "assistant", "content": _text(response)})
 
-    source = extract_code(_text(response))
     try:
-        # Raises RewardFnError on contract violations, including a missing
-        # components() -- run_prototype's invalid-reply path feeds that
-        # message back as a retry, so the model self-corrects instead of
-        # the clip dying. Attach the transcript built above so that retry
-        # can happen in-conversation even when THIS is the first attempt
-        # (no earlier successful transcript exists yet) -- without it,
-        # run_prototype had no transcript to retry against and silently
-        # discarded the error, letting the same mistake repeat for the
-        # whole attempt budget (confirmed: ba207fc6 repeated an identical
-        # non-canonical maneuver value on attempts 1-4).
+        # The model emits declarative JSON. Only the deterministic compiler
+        # writes executable source, eliminating arbitrary generated Python
+        # and enforcing the theoretical component budget before gating.
+        spec = extract_reward_spec(_text(response))
+        source = compile_reward_spec_to_source(spec)
         compile_reward_module(source, require_components=True)
     except RewardFnError as e:
         e.transcript = messages
         raise
-    return GenerationResult(source=source, transcript=messages, model=_model(response))
+    return GenerationResult(
+        source=source,
+        transcript=messages,
+        model=_model(response),
+        spec=spec,
+    )

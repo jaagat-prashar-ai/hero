@@ -1,0 +1,53 @@
+# GT-only ClipGen corpus construction. This workload never loads Alpamayo,
+# samples policy rollouts, or reads a rollout cache. The shard override in
+# launch_clipgen_offline_gt.sh expands this template across Full1050.
+name: clipgen-offline-gt-shard0
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: code_as_a_reward.clipgen.run_real_rollout_gen.clipgen_offline_gt_loop
+  training_fn_config:
+    manifest_data_s3_prefix: "code_as_a_reward/clipgen/manifest_full1050/shard_0"
+    manifest_local_dir: "/mnt/work/tmp/clipgen_offline_manifest_shard0"
+    out_dir: "/mnt/work/tmp/clipgen_offline_out_shard0"
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "code_as_a_reward/clipgen/offline_rewards/full1050-v1-shard0"
+    backend: "openai"
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables: [OPENAI_API_KEY]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - '^/\.git/'
+      - '^/third_party/alpamayo1\.5/\.git/'
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/counterfactual/"
+      - "^/perplexity/"
+      - "^/simlingo/"

@@ -140,6 +140,9 @@ def build(
     by_chunk: dict[int, list[dict]] = {}
     for r in pool:
         by_chunk.setdefault(r["chunk"], []).append(r)
+    pool_by_clip = {r["clip_id"]: r for r in pool}
+    if len(pool_by_clip) != len(pool):
+        raise ValueError("pool contains duplicate clip_id rows")
     chunks = sorted(by_chunk)
     total_chunks = len(chunks)
     logger.info("pool: %d clips across %d chunks", len(pool), total_chunks)
@@ -185,7 +188,6 @@ def build(
                 elif name.endswith(".egomotion.offline.parquet"):
                     seen_ego.add(name[: -len(".egomotion.offline.parquet")])
         complete = seen_coc & seen_obs & seen_ego
-        already_done |= complete
         # Re-seed in-memory shard metadata from what's already on S3 (if a
         # prior attempt got partway before dying) so this run's flushes
         # APPEND to it rather than clobber it with only this run's clips.
@@ -196,6 +198,53 @@ def build(
             targets_by_shard[i] = [e for e in existing_targets if e["clip_id"] in complete]
         except s3.exceptions.NoSuchKey:
             pass
+
+        # Metadata is part of clip completeness. A prior run could upload
+        # all three data objects and die before its next manifest flush; the
+        # old resume path then skipped that clip forever. Reconstruct the
+        # authoritative manifest/target rows from the input pool before
+        # declaring any data-complete clip resumable. This also upgrades old
+        # manifests that kept t0_us only in targets.json.
+        existing_manifest_by_id = {
+            e["clip_id"]: e for e in manifest_by_shard[i]
+        }
+        existing_target_by_id = {
+            e["clip_id"]: e for e in targets_by_shard[i]
+        }
+        repaired_manifest: list[dict] = []
+        repaired_targets: list[dict] = []
+        repaired = False
+        for clip_id in sorted(complete):
+            pool_row = pool_by_clip[clip_id]
+            manifest_row = existing_manifest_by_id.get(clip_id)
+            expected_manifest = {
+                "clip_id": clip_id,
+                "obstacle_parquet": f"{clip_id}.obstacle.offline.parquet",
+                "egomotion_parquet": f"{clip_id}.egomotion.offline.parquet",
+                "gt_coc": f"{clip_id}.coc.txt",
+                "hz": 10.0,
+                "t0_us": int(pool_row["t0_us"]),
+            }
+            if manifest_row is None:
+                manifest_row = expected_manifest
+                repaired = True
+            else:
+                manifest_row = {**manifest_row, "t0_us": int(pool_row["t0_us"])}
+                if manifest_row != existing_manifest_by_id[clip_id]:
+                    repaired = True
+            target_row = existing_target_by_id.get(clip_id)
+            expected_target = {"clip_id": clip_id, "t0_us": int(pool_row["t0_us"])}
+            if target_row != expected_target:
+                target_row = expected_target
+                repaired = True
+            repaired_manifest.append(manifest_row)
+            repaired_targets.append(target_row)
+        manifest_by_shard[i] = repaired_manifest
+        targets_by_shard[i] = repaired_targets
+        if repaired:
+            flush_shard_metadata([i])
+            logger.info("resume: repaired metadata for shard %d before skipping data objects", i)
+        already_done |= complete
     if already_done:
         logger.info("resume: %d/%d clips already complete in S3, skipping their re-download/re-upload", len(already_done), len(pool))
         by_chunk = {c: [r for r in rs if r["clip_id"] not in already_done] for c, rs in by_chunk.items()}
@@ -247,9 +296,16 @@ def build(
                             "egomotion_parquet": ego_name,
                             "gt_coc": f"{clip_id}.coc.txt",
                             "hz": 10.0,
+                            # One authoritative keyframe contract: dossier
+                            # construction and rollout sampling must read the
+                            # same timestamp. targets.json is retained for
+                            # the GPU worker, but is no longer the only copy.
+                            "t0_us": int(r["t0_us"]),
                         }
                     )
-                    targets_by_shard[shard_i].append({"clip_id": clip_id, "t0_us": r["t0_us"]})
+                    targets_by_shard[shard_i].append(
+                        {"clip_id": clip_id, "t0_us": int(r["t0_us"])}
+                    )
                     dirty_shards.add(shard_i)
                     n_staged += 1
         except (zipfile.BadZipFile, FileNotFoundError) as e:

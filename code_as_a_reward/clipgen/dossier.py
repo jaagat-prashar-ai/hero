@@ -73,7 +73,10 @@ def _bearing(x: float, y: float) -> str:
 # Take a full scene's worth of obstacle tracks and reduce it to a short ranked list of the most relevant ones (closest approach first).
 
 def summarize_tracks(
-    scene: SceneObstacles, t0_offset_s: float = 0.0, t1_cutoff_s: float | None = None
+    scene: SceneObstacles,
+    t0_offset_s: float = 0.0,
+    t1_cutoff_s: float | None = None,
+    history_s: float = 0.0,
 ) -> list[TrackSummary]:
     """Rank tracks by the closest approach and keep the MAX_TRACKS nearest.
 
@@ -87,11 +90,12 @@ def summarize_tracks(
     still useful context (e.g. "this vehicle was already alongside us").
 
     t1_cutoff_s: drop every track timestep AFTER this time (on the shifted
-    clock) and omit tracks that only appear after it. The dossier must
-    describe ONLY what the prediction window contains -- a closest approach
-    that happens after the window ends is future the model cannot predict
-    over and the ground truth doesn't cover, so reporting it teaches the
-    generator to check for events no in-window trajectory can show.
+    clock) and omit tracks that only appear after it.
+
+    history_s: optionally retain this many seconds immediately before the
+    prediction keyframe. The default is zero: a dossier labelled
+    "within the window only" must not rank an obstacle by a closest
+    approach from arbitrary pre-keyframe history.
     """
     # This list will collect one TrackSummary per obstacle track.
     out: list[TrackSummary] = []
@@ -102,9 +106,11 @@ def summarize_tracks(
         ts = tr.timestamps_us.astype(np.float64) / 1e6 - t0_offset_s
         centers = tr.centers_m
         if t1_cutoff_s is not None:
-            # Keep only the timesteps inside the window; a track with no
-            # in-window presence is invisible to this dossier on purpose.
-            mask = ts <= t1_cutoff_s
+            # Keep only the explicitly declared context + prediction
+            # window. The old upper-bound-only mask retained the entire
+            # pre-keyframe clip and could make a past encounter look like
+            # the decisive in-window obstacle.
+            mask = (ts >= -float(history_s)) & (ts <= t1_cutoff_s)
             if not mask.any():
                 continue
             ts, centers = ts[mask], centers[mask]
@@ -170,6 +176,54 @@ def waypoints_from_egomotion(df, hz: float = 10.0) -> np.ndarray:
     y = np.interp(grid, ts, df[cy].to_numpy(dtype=np.float64))
     # Combine x and y into a single (N, 2) array of waypoints and return it.
     return np.stack([x, y], axis=1)
+
+
+def reframe_waypoints_at_keyframe(waypoints: np.ndarray, keyframe_index: int) -> np.ndarray:
+    """Translate and rotate clip-frame XY into the keyframe ego frame.
+
+    This is the fallback for offline/dry-run manifests. Production ClipGen
+    uses the official ``ego_future_xyz`` persisted by the rollout worker,
+    which is already in this convention. Merely slicing clip-frame XY at
+    ``keyframe_index`` is incorrect: lateral offset and signed heading then
+    remain relative to the clip start rather than the policy keyframe.
+    """
+    w = np.asarray(waypoints, dtype=np.float64)
+    if w.ndim != 2 or w.shape[1] < 2:
+        raise ValueError(f"waypoints must have shape (N, >=2), got {w.shape}")
+    if not 0 <= keyframe_index < len(w):
+        raise ValueError(
+            f"keyframe index {keyframe_index} outside waypoint range [0, {len(w)})"
+        )
+
+    xy = w[:, :2] - w[keyframe_index, :2]
+    # Estimate heading over a modest baseline to suppress stopped-vehicle
+    # jitter. Prefer future motion; fall back to recent history. If neither
+    # moves, rotation is immaterial and zero is the least surprising frame.
+    heading_vec = None
+    for step in (5, 10, 2, 1):
+        j = min(len(w) - 1, keyframe_index + step)
+        candidate = w[j, :2] - w[keyframe_index, :2]
+        if np.linalg.norm(candidate) >= 0.10:
+            heading_vec = candidate
+            break
+    if heading_vec is None:
+        for step in (5, 10, 2, 1):
+            j = max(0, keyframe_index - step)
+            candidate = w[keyframe_index, :2] - w[j, :2]
+            if np.linalg.norm(candidate) >= 0.10:
+                heading_vec = candidate
+                break
+    heading = 0.0 if heading_vec is None else math.atan2(heading_vec[1], heading_vec[0])
+    c, s = math.cos(heading), math.sin(heading)
+    # Row-vector form of rotation by -heading.
+    rotation = np.array([[c, -s], [s, c]], dtype=np.float64)
+    reframed_xy = xy @ rotation
+    if w.shape[1] == 2:
+        return reframed_xy
+    out = w.copy()
+    out[:, :2] = reframed_xy
+    out[:, 2:] -= w[keyframe_index, 2:]
+    return out
 
 
 def find_rollout_anchor_s(
@@ -353,7 +407,12 @@ def build_dossier(
         "OBSTACLE TRACKS (ego-relative, nearest first, within the window only):",
     ]
     # Add one line per obstacle track (nearest-first, cut at the window end).
-    tracks = summarize_tracks(scene, t0_offset_s=rollout_anchor_s, t1_cutoff_s=window_s)
+    tracks = summarize_tracks(
+        scene,
+        t0_offset_s=rollout_anchor_s,
+        t1_cutoff_s=window_s,
+        history_s=0.0,
+    )
     for t in tracks:
         parts.append(
             # Describe the track: its ID, class, when it was visible, and its closest approach.

@@ -70,6 +70,37 @@ def test_score_scene_trusts_a_genuinely_good_argmax():
     json.dumps(record, default=str)
 
 
+def test_group_validation_requires_rank_resolution_and_sensitive_winner():
+    reactive = _reactive_waypoints()
+    rollouts = [
+        {"rollout_id": 0, "coc_text": GT_COC, "waypoints": _wp3(reactive)},
+        {"rollout_id": 1, "coc_text": GT_COC, "waypoints": _wp3(reactive[::-1].copy())},
+        {"rollout_id": 2, "coc_text": GT_COC, "waypoints": _wp3(flattened_waypoints(reactive))},
+        {
+            "rollout_id": 3,
+            "coc_text": "I will proceed straight ahead, nothing notable in view.",
+            "waypoints": _wp3(flattened_waypoints(reactive)),
+        },
+    ]
+    result = agr.validate_rollout_group(
+        CLIP_ID, f"{CLIP_ID}_holdout", HZ, rollouts, GOOD_FN, top_k=1
+    )
+    assert result.passed, result.failures
+    assert result.unique_scores >= 3
+    assert result.score_range >= 0.15
+
+    flat = agr.validate_rollout_group(
+        CLIP_ID,
+        f"{CLIP_ID}_flat",
+        HZ,
+        rollouts,
+        LENIENT_FN,
+        top_k=1,
+    )
+    assert not flat.passed
+    assert any("std" in failure or "distinct" in failure for failure in flat.failures)
+
+
 def test_score_scene_catches_untrustworthy_argmax():
     """A reward function that can't discriminate (LENIENT_FN, flat 0.9)
     "wins" some rollout by tie-break, but that argmax must FAIL its own

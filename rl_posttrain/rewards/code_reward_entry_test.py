@@ -321,3 +321,43 @@ class TestDumpRollouts:
 
         monkeypatch.setattr(cre, "_dump_client", lambda: FailingClient())
         cre._maybe_dump_rollouts("clip_a", "clip_a_123", 10.0, [{"rollout_id": 0}])  # must not raise
+
+
+class TestLiveClipgenGateConfig:
+    def test_top_k_is_explicit_ablation(self, monkeypatch):
+        monkeypatch.setenv("CODE_REWARD_VERIFY_TOP_K", "1")
+        assert cre._clipgen_verify_top_k() == 1
+        monkeypatch.setenv("CODE_REWARD_VERIFY_TOP_K", "3")
+        assert cre._clipgen_verify_top_k() == 3
+        monkeypatch.setenv("CODE_REWARD_VERIFY_TOP_K", "2")
+        with pytest.raises(ValueError):
+            cre._clipgen_verify_top_k()
+
+    def test_failed_group_evidence_is_append_only(self, tmp_path, monkeypatch):
+        queue = tmp_path / "repair.jsonl"
+        monkeypatch.setenv("CODE_REWARD_REPAIR_QUEUE", str(queue))
+        payload = {
+            "schema_version": "clipgen.repair.v1",
+            "clip_id": "clip-a",
+            "scene_id": "clip-a_1",
+            "reward_source_sha256": "abc",
+        }
+        cre._enqueue_reward_repair(payload)
+        cre._enqueue_reward_repair({**payload, "scene_id": "clip-a_2"})
+        rows = [json.loads(line) for line in queue.read_text().splitlines()]
+        assert [row["scene_id"] for row in rows] == ["clip-a_1", "clip-a_2"]
+        assert all("queued_at_unix_s" in row for row in rows)
+
+    def test_production_queue_writes_one_immutable_file_per_record(self, tmp_path, monkeypatch):
+        queue_dir = tmp_path / "repair_records"
+        monkeypatch.setenv("CODE_REWARD_REPAIR_QUEUE", str(queue_dir))
+        payload = {
+            "schema_version": "clipgen.repair.v1",
+            "clip_id": "clip-a",
+            "scene_id": "clip-a_1",
+            "reward_source_sha256": "abc",
+        }
+        cre._enqueue_reward_repair(payload)
+        cre._enqueue_reward_repair({**payload, "scene_id": "clip-a_2"})
+        rows = [json.loads(path.read_text()) for path in queue_dir.glob("*.json")]
+        assert {row["scene_id"] for row in rows} == {"clip-a_1", "clip-a_2"}

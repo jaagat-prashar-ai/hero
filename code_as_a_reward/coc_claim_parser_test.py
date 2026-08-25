@@ -113,6 +113,21 @@ def test_direction_is_not_shared_across_two_different_maneuvers_in_one_clause():
     assert enter.maneuver == "enter" and enter.direction is None
 
 
+def test_split_and_adjective_first_direction_are_parsed_from_real_rollout_wording():
+    split = parse_coc_trace("Split to the right because barricades block the lane")
+    assert [(c.maneuver, c.direction) for c in split.commitments] == [("nudge", "right")]
+    adjective = parse_coc_trace("Make a right nudge to clear the cones")
+    assert [(c.maneuver, c.direction) for c in adjective.commitments] == [
+        ("nudge", "right")
+    ]
+
+
+def test_maintain_speed_has_a_typed_speed_profile():
+    parsed = parse_coc_trace("Maintain speed while following the temporary lane")
+    maintain = next(c for c in parsed.commitments if c.maneuver == "maintain_speed")
+    assert maintain.speed_profile == "maintain"
+
+
 def test_no_connective_beat_still_extracts_a_chained_commitment_only_claim():
     # "Stop to yield ... wait ... before proceeding." has no
     # because/since/due to/for/after connective at all in this corpus's
