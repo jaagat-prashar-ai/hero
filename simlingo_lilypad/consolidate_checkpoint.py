@@ -69,7 +69,9 @@ def consolidate_checkpoint(training_fn_config: dict[str, Any], experiment_tracke
         workdir = root_workdir / session
         workdir.mkdir(parents=True, exist_ok=True)
 
-        src_prefix = f"{src_prefix_root}/{session}/checkpoints/{epoch}.ckpt"
+        # raw (sharded) layout has no "checkpoints/" subdir before the epoch
+        # dir, unlike the consolidated destination layout below
+        src_prefix = f"{src_prefix_root}/{session}/{epoch}.ckpt"
         local_ckpt_dir = workdir / "ckpt"
         print(f"[consolidate:{session}] mirroring s3://{bucket}/{src_prefix} -> {local_ckpt_dir}", flush=True)
         _download_ckpt_dir(s3, bucket, src_prefix, local_ckpt_dir)
