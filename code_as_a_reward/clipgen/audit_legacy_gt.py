@@ -18,9 +18,11 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import pandas as pd
 
 from code_as_a_reward.clipgen import gate as gate_mod
-from code_as_a_reward.clipgen.run_prototype import _load_clip
+from code_as_a_reward.clipgen import dossier as dossier_mod
+from code_as_a_reward.coc_claim_parser import parse_coc_trace
 from code_as_a_reward.clipgen.target_contract import (
     derive_target_contract,
     validate_gt_target,
@@ -85,13 +87,10 @@ def stage_s3_overlap(
     root.mkdir(parents=True, exist_ok=True)
     directories: list[str] = []
     downloads: list[tuple[str, Path]] = []
-    path_keys = (
-        "obstacle_parquet",
-        "egomotion_parquet",
-        "gt_coc",
-        "overlay_jpeg",
-        "waypoints_npy",
-    )
+    # This audit scores claims plus ego trajectory only. Obstacle tracks and
+    # camera overlays are generator inputs, not reward-runtime inputs, so do
+    # not download hundreds of GB of irrelevant scene data.
+    path_keys = ("egomotion_parquet", "gt_coc", "waypoints_npy")
     for shard in range(n_shards):
         prefix = prefix_format.format(shard=shard).strip("/")
         directory = root / f"shard_{shard}"
@@ -125,6 +124,33 @@ def stage_s3_overlap(
     return directories
 
 
+def _load_gt_pair(entry: dict[str, Any]) -> dict[str, Any]:
+    """Load the exact 6.4-second GT window without scene-generation inputs."""
+
+    clip_id = str(entry["clip_id"])
+    if "t0_us" not in entry:
+        raise ValueError(f"clip {clip_id}: missing t0_us")
+    hz = float(entry.get("hz", 10.0))
+    if entry.get("waypoints_npy"):
+        waypoints = np.load(entry["waypoints_npy"])
+    else:
+        waypoints = dossier_mod.waypoints_from_egomotion(
+            pd.read_parquet(entry["egomotion_parquet"]), hz=hz
+        )
+    i0 = int(round(float(entry["t0_us"]) / 1e6 * hz))
+    reframed = dossier_mod.reframe_waypoints_at_keyframe(waypoints, i0)
+    window = reframed[i0 : i0 + 64]
+    if len(window) < 2:
+        raise ValueError(f"clip {clip_id}: prediction window has {len(window)} waypoints")
+    gt_coc = Path(entry["gt_coc"]).read_text().strip()
+    return {
+        "gt_claims": parse_coc_trace(gt_coc, scene_id=clip_id),
+        "gt_traj": dossier_mod.features_from_waypoints(window, hz, clip_id),
+        "gt_waypoints": window,
+        "hz": hz,
+    }
+
+
 def audit(
     reward_fns_dir: str,
     manifest_dirs: list[str],
@@ -154,7 +180,7 @@ def audit(
             "full_gate_passed": False,
         }
         try:
-            clip = _load_clip(entry, None)
+            clip = _load_gt_pair(entry)
             contract = derive_target_contract(clip["gt_claims"], clip["gt_traj"])
             target_failures = validate_gt_target(contract, clip["gt_traj"])
             cases = gate_mod.build_perturbations(
