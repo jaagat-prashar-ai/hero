@@ -76,6 +76,11 @@ def main() -> None:
         # instructions; datamodule's predict branch picks insteval_dataset when
         # qa_dataset is None
         cfg.data_module.qa_dataset = None
+        # the HF original's 2025 config predates this fork's file split; the
+        # class now lives in dataset_eval_dreamer (see config.py:140)
+        cfg.data_module.insteval_dataset._target_ = (
+            "simlingo_training.dataloader.dataset_eval_dreamer.Eval_Dreamer"
+        )
         # no <SAFETY>/<INSTRUCTION_FOLLOWING> prefix tokens: the k4 arms were
         # trained with use_safety_flag=false and have never seen them; with the
         # flag off the GT is always the instructed trajectory
