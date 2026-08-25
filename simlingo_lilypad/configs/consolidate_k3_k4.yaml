@@ -1,0 +1,69 @@
+# Consolidate DeepSpeed-sharded k3/k4 checkpoints into single-file
+# pytorch_model.pt under simlingo-checkpoints-consolidated/, matching the
+# k2 arms' existing layout so eval_b2d.py can load them unchanged.
+# k4_w0.5_s9876 is skipped: already consolidated.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/consolidate_k3_k4.yaml
+name: simlingo-consolidate-k3-k4
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.consolidate_checkpoint.consolidate_checkpoint
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    src_prefix: "simlingo-checkpoints"
+    dst_prefix: "simlingo-checkpoints-consolidated"
+    checkpoint_epoch: "epoch=002"
+    workdir: "/mnt/work/simlingo_consolidate"
+    sessions:
+      - "20260817090020_full_k3_w0.5_s1234"
+      - "20260817090017_full_k3_w0.5_s9876"
+      - "20260817090017_full_k4_w0.1_s9876"
+      - "20260817090017_full_k4_w0.3_s9876"
+      - "20260817090017_full_k4_w0.7_s9876"
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-checkpoint-consolidate
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
