@@ -184,6 +184,40 @@ def test_build_heatmaps_writes_file(tmp_path):
     assert out.exists() and out.stat().st_size > 0
 
 
+def test_rollout_audit_rows_keep_reasoning_trajectory_and_independent_scores():
+    records = [
+        {
+            "scene_id": "scene-a",
+            "clip_id": "clip-a",
+            "argmax_rollout_id": 7,
+            "reward_fn_sha256": "fn-sha",
+            "rollouts": [
+                {
+                    "rollout_id": 7,
+                    "target_eligible": True,
+                    "clipgen_score": 0.8,
+                    "reward": 0.2,
+                    "code_reward_raw": 0.75,
+                    "traj_L2": 1.5,
+                    "comfort_reward": 0.4,
+                    "code_atomic_precision": 1.0,
+                    "clipgen_components": {"reasoning": 0.3, "execution": 0.5},
+                    "coc_text": "yield for the pedestrian",
+                    "waypoints": [[0.0, 0.0, 0.0], [1.0, 0.2, 0.0]],
+                    "target_eligibility_failures": [],
+                }
+            ],
+        }
+    ]
+    row = agr.rollout_audit_rows(records)[0]
+    by_name = dict(zip(agr._ROLLOUT_AUDIT_COLUMNS, row))
+    assert by_name["reasoning_coc"] == "yield for the pedestrian"
+    assert json.loads(by_name["trajectory_waypoints_json"])[1][1] == 0.2
+    assert json.loads(by_name["component_scores_json"])["execution"] == 0.5
+    assert by_name["clipgen_score"] == 0.8
+    assert by_name["is_argmax"] is True
+
+
 def test_analyze_end_to_end_local_no_overlays(tmp_path):
     """The full analyze() path against local dirs, overlays disabled (no
     S3/warm-cache dependency) -- exercises dump discovery, reward-source

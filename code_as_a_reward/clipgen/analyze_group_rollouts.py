@@ -45,7 +45,9 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -385,6 +387,8 @@ def score_scene(dump: dict[str, Any], source: str) -> dict[str, Any]:
         "scene_id": scene_id,
         "clip_id": clip_id,
         "hz": hz,
+        "reward_fn_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "reward_fn_source": source,
         "rollouts": result.scored,
         "argmax_rollout_id": result.argmax_rollout_id,
         "argmax_gate": None
@@ -398,6 +402,156 @@ def score_scene(dump: dict[str, Any], source: str) -> dict[str, Any]:
             "failures": result.argmax_gate.failures,
         },
     }
+
+
+def rollout_audit_rows(records: list[dict[str, Any]]) -> list[list[Any]]:
+    """Flatten complete rollout groups for a queryable W&B table.
+
+    Keep the exact CoC, waypoint trajectory, independent reward values, and
+    component decomposition together. The S3 dump remains the source of
+    truth; this is the human-facing index into it.
+    """
+
+    rows: list[list[Any]] = []
+
+    def score_or_negative_infinity(row: dict[str, Any]) -> float:
+        value = row.get("clipgen_score")
+        try:
+            return float(value) if np.isfinite(value) else float("-inf")
+        except (TypeError, ValueError):
+            return float("-inf")
+
+    for group_index, record in enumerate(records):
+        argmax_id = record.get("argmax_rollout_id")
+        ranked = sorted(
+            record.get("rollouts") or [],
+            key=score_or_negative_infinity,
+            reverse=True,
+        )
+        for rank, rollout in enumerate(ranked, 1):
+            rows.append(
+                [
+                    group_index,
+                    record.get("scene_id"),
+                    record.get("clip_id"),
+                    rank,
+                    rollout.get("rollout_id"),
+                    rollout.get("rollout_id") == argmax_id,
+                    rollout.get("target_eligible"),
+                    rollout.get("clipgen_score"),
+                    rollout.get("reward"),
+                    rollout.get("code_reward_raw"),
+                    rollout.get("traj_L2"),
+                    rollout.get("comfort_reward"),
+                    rollout.get("code_atomic_precision"),
+                    json.dumps(rollout.get("clipgen_components") or {}, sort_keys=True),
+                    rollout.get("coc_text", ""),
+                    json.dumps(rollout.get("waypoints") or []),
+                    "; ".join(rollout.get("target_eligibility_failures") or []),
+                    record.get("reward_fn_sha256"),
+                ]
+            )
+    return rows
+
+
+_ROLLOUT_AUDIT_COLUMNS = [
+    "group",
+    "scene_id",
+    "clip_id",
+    "rank_by_reward",
+    "rollout_id",
+    "is_argmax",
+    "target_eligible",
+    "clipgen_score",
+    "training_reward",
+    "code_reward_raw",
+    "trajectory_l2",
+    "comfort_reward",
+    "atomic_precision",
+    "component_scores_json",
+    "reasoning_coc",
+    "trajectory_waypoints_json",
+    "eligibility_failures",
+    "reward_fn_sha256",
+]
+
+
+def log_analysis_to_wandb(
+    records: list[dict[str, Any]],
+    out_dir: Path,
+    *,
+    project: str,
+    entity: str | None,
+    run_name: str | None,
+) -> str:
+    """Publish the complete select-then-verify audit as one W&B run."""
+
+    import wandb
+
+    run = wandb.init(
+        project=project,
+        entity=entity,
+        name=run_name or f"clipgen-grpo-rollout-audit-{time.strftime('%Y%m%d%H%M%S')}",
+        job_type="clipgen-grpo-rollout-audit",
+    )
+    rollout_table = wandb.Table(
+        columns=_ROLLOUT_AUDIT_COLUMNS,
+        data=rollout_audit_rows(records),
+    )
+    group_table = wandb.Table(
+        columns=[
+            "group",
+            "scene_id",
+            "clip_id",
+            "argmax_rollout_id",
+            "gate_passed",
+            "positive_score",
+            "max_perturbation_score",
+            "delta",
+            "gate_feedback",
+            "reward_fn_sha256",
+            "reward_fn_source",
+            "trajectory_overlay",
+        ]
+    )
+    for group_index, record in enumerate(records):
+        gate = record.get("argmax_gate") or {}
+        pos = gate.get("pos_score")
+        max_pert = gate.get("max_pert")
+        overlay_path = out_dir / f"{record['scene_id']}.overlay.png"
+        group_table.add_data(
+            group_index,
+            record.get("scene_id"),
+            record.get("clip_id"),
+            record.get("argmax_rollout_id"),
+            gate.get("passed"),
+            pos,
+            max_pert,
+            pos - max_pert if pos is not None and max_pert is not None else None,
+            "\n".join(gate.get("failures") or []),
+            record.get("reward_fn_sha256"),
+            record.get("reward_fn_source"),
+            wandb.Image(str(overlay_path)) if overlay_path.exists() else None,
+        )
+    payload: dict[str, Any] = {
+        "rollout_audit": rollout_table,
+        "group_audit": group_table,
+        "coverage/groups": len(records),
+        "coverage/rollouts": sum(len(record.get("rollouts") or []) for record in records),
+        "gate/pass_rate": (
+            sum(bool((record.get("argmax_gate") or {}).get("passed")) for record in records)
+            / len(records)
+            if records
+            else 0.0
+        ),
+    }
+    heatmap = out_dir / "heatmap.png"
+    if heatmap.exists():
+        payload["all_groups_heatmap"] = wandb.Image(str(heatmap))
+    run.log(payload)
+    run_url = run.url
+    run.finish()
+    return run_url
 
 
 def render_multi_overlay(frame, rollouts: list[dict[str, Any]], cam_intr, cam_extr, argmax_id, max_dim: int = _MAX_IMAGE_DIM):
@@ -497,7 +651,16 @@ def build_heatmaps(records: list[dict[str, Any]], out_path: Path) -> None:
     plt.close(fig)
 
 
-def analyze(dump_dir: str, reward_fns_dir: str, out_dir: str, render_images: bool = True) -> list[dict[str, Any]]:
+def analyze(
+    dump_dir: str,
+    reward_fns_dir: str,
+    out_dir: str,
+    render_images: bool = True,
+    *,
+    wandb_project: str | None = None,
+    wandb_entity: str | None = None,
+    wandb_run_name: str | None = None,
+) -> list[dict[str, Any]]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -524,6 +687,15 @@ def analyze(dump_dir: str, reward_fns_dir: str, out_dir: str, render_images: boo
 
     if render_images:
         render_overlays(records, out)
+    if wandb_project:
+        url = log_analysis_to_wandb(
+            records,
+            out,
+            project=wandb_project,
+            entity=wandb_entity,
+            run_name=wandb_run_name,
+        )
+        print(f"W&B rollout audit: {url}", flush=True)
     return records
 
 
@@ -533,8 +705,19 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("reward_fns_dir", help="local dir or s3://bucket/prefix of reward_fns/<clip_id>.py")
     parser.add_argument("out_dir")
     parser.add_argument("--no-overlays", action="store_true", help="skip image overlays (heatmap + JSON only)")
+    parser.add_argument("--wandb-project")
+    parser.add_argument("--wandb-entity")
+    parser.add_argument("--wandb-run-name")
     args = parser.parse_args(argv)
-    analyze(args.dump_dir, args.reward_fns_dir, args.out_dir, render_images=not args.no_overlays)
+    analyze(
+        args.dump_dir,
+        args.reward_fns_dir,
+        args.out_dir,
+        render_images=not args.no_overlays,
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
+        wandb_run_name=args.wandb_run_name,
+    )
 
 
 if __name__ == "__main__":

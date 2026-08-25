@@ -225,7 +225,13 @@ _TRACE_COLS = [
     "code_reward_raw",
     "traj_L2",
     "comfort",
+    "group_gate_passed",
+    "group_argmax_score",
+    "group_min_delta",
+    "group_score_std",
+    "group_score_range",
     "coc_text",
+    "trajectory_waypoints_json",
     "fn_sha",
 ]
 _trace_rows: list[list] = []
@@ -349,7 +355,13 @@ def _maybe_log_group(
                     r.get("code_reward_raw"),
                     r["traj_L2"],
                     r["comfort_reward"],
+                    r.get("code_group_gate_passed"),
+                    r.get("code_group_gate_argmax_score"),
+                    r.get("code_group_gate_min_delta"),
+                    r.get("code_group_gate_score_std"),
+                    r.get("code_group_gate_score_range"),
                     r["coc_text"],
+                    json.dumps(r.get("waypoints") or []),
                     fn_sha,
                 ]
             )

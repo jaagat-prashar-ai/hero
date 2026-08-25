@@ -71,6 +71,11 @@ runtime_environment:
     CODE_REWARD_VERIFY_TOP_K: "1"
     CODE_REWARD_DEBUG_DUMP_ROLLOUTS: "1"
     CODE_REWARD_DEBUG_DUMP_RUN_ID: "clipgen-offline591-grpo"
+    # Live sibling W&B run: one composite of all 12 trajectories plus the
+    # reasoning/score table for every group. The complete, unsampled audit is
+    # also rebuilt from the S3 dumps after the run.
+    CODE_REWARD_WANDB_IMAGES: "1"
+    CODE_REWARD_WANDB_IMAGES_EVERY: "1"
   code_assets:
     root_directory: .
     pip_requirements_path: rl_posttrain/requirements.txt

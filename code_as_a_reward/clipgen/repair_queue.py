@@ -11,8 +11,11 @@ writes a *proposal*. It never overwrites an active reward function.
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import json
+import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -110,8 +113,8 @@ def development_feedback(batch: RepairBatch) -> str:
     return "\n".join(parts)
 
 
-def _validate_group(source: str, row: dict[str, Any]) -> list[str]:
-    result = agr.validate_rollout_group(
+def _evaluate_group(source: str, row: dict[str, Any]) -> agr.GroupValidationResult:
+    return agr.validate_rollout_group(
         str(row["clip_id"]),
         str(row["scene_id"]),
         float(row.get("hz") or 10.0),
@@ -119,7 +122,152 @@ def _validate_group(source: str, row: dict[str, Any]) -> list[str]:
         source,
         top_k=int(row.get("verify_top_k") or 1),
     )
-    return list(result.failures)
+
+
+def _validate_group(source: str, row: dict[str, Any]) -> list[str]:
+    return list(_evaluate_group(source, row).failures)
+
+
+def _gate_payload(gate: gate_mod.GateResult) -> dict[str, Any]:
+    return {
+        "passed": gate.passed,
+        "pos_score": gate.pos_score,
+        "max_pert": gate.max_pert,
+        "delta": gate.pos_score - gate.max_pert,
+        "scores": gate.scores,
+        "components": gate.components,
+        "failures": gate.failures,
+    }
+
+
+def _group_payload(scene_id: str, result: agr.GroupValidationResult) -> dict[str, Any]:
+    return {
+        "scene_id": scene_id,
+        "passed": result.passed,
+        "argmax_rollout_id": result.selection.argmax_rollout_id,
+        "score_std": result.score_std,
+        "score_range": result.score_range,
+        "unique_scores": result.unique_scores,
+        "saturation_fraction": result.saturation_fraction,
+        "failures": result.failures,
+        "top_gates": {
+            str(rollout_id): _gate_payload(gate)
+            for rollout_id, gate in result.top_gates.items()
+        },
+    }
+
+
+def repair_audit_rows(reports: list[dict[str, Any]]) -> list[list[Any]]:
+    """Flatten the complete source -> feedback -> candidate chain."""
+
+    rows: list[list[Any]] = []
+    for report in reports:
+        initial = report.get("initial_reward_source", "")
+        for attempt in report.get("attempts") or []:
+            gt_gate = attempt.get("gt_gate") or {}
+            development = attempt.get("development_results") or []
+            rows.append(
+                [
+                    report.get("clip_id"),
+                    report.get("parent_sha256"),
+                    attempt.get("attempt"),
+                    report.get("status"),
+                    attempt.get("candidate_sha256"),
+                    attempt.get("model"),
+                    attempt.get("api_cost_usd"),
+                    gt_gate.get("pos_score"),
+                    gt_gate.get("max_pert"),
+                    gt_gate.get("delta"),
+                    sum(bool(row.get("passed")) for row in development),
+                    len(development),
+                    initial,
+                    attempt.get("feedback_sent", ""),
+                    attempt.get("candidate_source", ""),
+                    attempt.get("source_diff", ""),
+                    json.dumps(attempt.get("llm_transcript") or [], default=str),
+                    "\n".join(attempt.get("failures") or []),
+                ]
+            )
+    return rows
+
+
+_REPAIR_AUDIT_COLUMNS = [
+    "clip_id",
+    "parent_sha256",
+    "attempt",
+    "final_status",
+    "candidate_sha256",
+    "model",
+    "attempt_api_cost_usd",
+    "gt_positive_score",
+    "gt_max_perturbation",
+    "gt_delta",
+    "development_groups_passed",
+    "development_groups_total",
+    "initial_reward_source",
+    "feedback_sent_to_llm",
+    "candidate_reward_source",
+    "source_diff",
+    "llm_transcript_json",
+    "candidate_failures",
+]
+
+
+def log_repair_reports_to_wandb(
+    reports: list[dict[str, Any]],
+    *,
+    api_cost_usd: float,
+    project: str,
+    entity: str | None,
+    run_name: str | None,
+) -> str:
+    """Log an auditable repair timeline and attempt-wise improvement curves."""
+
+    import wandb
+
+    run = wandb.init(
+        project=project,
+        entity=entity,
+        name=run_name or f"clipgen-repair-audit-{time.strftime('%Y%m%d%H%M%S')}",
+        job_type="clipgen-reward-repair",
+    )
+    step = 0
+    for report in reports:
+        for attempt in report.get("attempts") or []:
+            gate = attempt.get("gt_gate") or {}
+            run.log(
+                {
+                    "repair/attempt": attempt.get("attempt"),
+                    "repair/gt_positive_score": gate.get("pos_score"),
+                    "repair/gt_delta": gate.get("delta"),
+                    "repair/failure_count": len(attempt.get("failures") or []),
+                    "repair/development_pass_rate": (
+                        sum(
+                            bool(row.get("passed"))
+                            for row in attempt.get("development_results") or []
+                        )
+                        / len(attempt.get("development_results") or [])
+                        if attempt.get("development_results")
+                        else 0.0
+                    ),
+                },
+                step=step,
+            )
+            step += 1
+    rows = repair_audit_rows(reports)
+    run.log(
+        {
+            "repair_timeline": wandb.Table(columns=_REPAIR_AUDIT_COLUMNS, data=rows),
+            "repair/rewards_considered": len(reports),
+            "repair/accepted_proposals": sum(
+                report.get("status") == "accepted_proposal" for report in reports
+            ),
+            "repair/api_cost_usd": api_cost_usd,
+        }
+    )
+    run_url = run.url
+    run.finish()
+    return run_url
 
 
 def _latest_transcript(corpus_dir: Path, clip_id: str) -> list[dict[str, Any]]:
@@ -157,6 +305,7 @@ def repair_batch(
     transcript = _latest_transcript(corpus, batch.clip_id)
     target = derive_target_contract(clip["gt_claims"], clip["gt_traj"])
     feedback = development_feedback(batch)
+    initial_source = str(batch.development[0].get("reward_source") or "")
     report: dict[str, Any] = {
         "schema_version": "clipgen.repair-proposal.v1",
         "clip_id": batch.clip_id,
@@ -165,11 +314,23 @@ def repair_batch(
         "holdout_scene_ids": [r["scene_id"] for r in batch.holdout],
         "status": "rejected",
         "activation": "proposal_only",
+        "initial_reward_source": initial_source,
+        "initial_feedback": feedback,
+        "development_evidence": [
+            {
+                "scene_id": row.get("scene_id"),
+                "failures": row.get("failures") or [],
+                "top_gates": row.get("top_gates") or {},
+            }
+            for row in batch.development
+        ],
         "attempts": [],
     }
 
     candidate = None
     for attempt in range(1, max_attempts + 1):
+        feedback_sent = feedback
+        cost_before = tracker.spent_usd
         result = generate_reward_fn(
             client,
             dossier,
@@ -196,9 +357,37 @@ def repair_batch(
             ),
         )
         failures.extend(gt_gate.failures)
+        development_results = []
         for row in batch.development:
-            failures.extend(f"{row['scene_id']}: {f}" for f in _validate_group(source, row))
-        report["attempts"].append({"attempt": attempt, "failures": failures})
+            group_result = _evaluate_group(source, row)
+            development_results.append(_group_payload(str(row["scene_id"]), group_result))
+            failures.extend(f"{row['scene_id']}: {f}" for f in group_result.failures)
+        candidate_sha = hashlib.sha256(source.encode()).hexdigest()
+        source_diff = "\n".join(
+            difflib.unified_diff(
+                initial_source.splitlines(),
+                source.splitlines(),
+                fromfile=f"parent-{batch.parent_sha256[:12]}.py",
+                tofile=f"candidate-{candidate_sha[:12]}.py",
+                lineterm="",
+            )
+        )
+        report["attempts"].append(
+            {
+                "attempt": attempt,
+                "model": result.model,
+                "api_cost_usd": tracker.spent_usd - cost_before,
+                "feedback_sent": feedback_sent,
+                "llm_transcript": result.transcript,
+                "candidate_sha256": candidate_sha,
+                "candidate_spec": spec,
+                "candidate_source": source,
+                "source_diff": source_diff,
+                "gt_gate": _gate_payload(gt_gate),
+                "development_results": development_results,
+                "failures": failures,
+            }
+        )
         if not failures:
             candidate = (result, spec, source, gt_gate)
             break
@@ -213,9 +402,13 @@ def repair_batch(
     result, spec, source, gt_gate = candidate
     # Open the sealed split exactly once and never feed its result back.
     holdout_failures = []
+    holdout_results = []
     for row in batch.holdout:
-        holdout_failures.extend(f"{row['scene_id']}: {f}" for f in _validate_group(source, row))
+        group_result = _evaluate_group(source, row)
+        holdout_results.append(_group_payload(str(row["scene_id"]), group_result))
+        holdout_failures.extend(f"{row['scene_id']}: {f}" for f in group_result.failures)
     report["sealed_holdout_failures"] = holdout_failures
+    report["sealed_holdout_results"] = holdout_results
     if not holdout_failures:
         candidate_sha = hashlib.sha256(source.encode()).hexdigest()
         stem = f"{batch.clip_id}.{candidate_sha[:12]}"
@@ -244,6 +437,10 @@ def main() -> None:
     parser.add_argument("out_dir")
     parser.add_argument("--backend", choices=("openai", "anthropic"), default="openai")
     parser.add_argument("--min-groups", type=int, default=3)
+    parser.add_argument("--no-wandb", action="store_true")
+    parser.add_argument("--wandb-project", default="alpamayo-rl")
+    parser.add_argument("--wandb-entity", default=os.environ.get("WANDB_ENTITY") or "research")
+    parser.add_argument("--wandb-run-name")
     args = parser.parse_args()
 
     if args.backend == "openai":
@@ -269,7 +466,28 @@ def main() -> None:
                 tracker=tracker,
             )
         )
-    print(json.dumps({"proposals": reports, "api_cost_usd": tracker.spent_usd}, default=str))
+    wandb_url = None
+    if not args.no_wandb:
+        try:
+            wandb_url = log_repair_reports_to_wandb(
+                reports,
+                api_cost_usd=tracker.spent_usd,
+                project=args.wandb_project,
+                entity=args.wandb_entity,
+                run_name=args.wandb_run_name,
+            )
+        except Exception as exc:
+            print(f"repair W&B logging failed (continuing): {type(exc).__name__}: {exc}")
+    print(
+        json.dumps(
+            {
+                "proposals": reports,
+                "api_cost_usd": tracker.spent_usd,
+                "wandb_url": wandb_url,
+            },
+            default=str,
+        )
+    )
 
 
 if __name__ == "__main__":
