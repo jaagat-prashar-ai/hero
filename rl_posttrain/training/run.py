@@ -145,6 +145,11 @@ _DEFAULTS: dict[str, Any] = {
     # preemption/requeue re-pulls in-region instead of re-downloading from
     # HuggingFace. Upload runs in the background after a fresh download.
     "pai_s3_cache_prefix": None,
+    # Optional completed caches to use as a seed when pai_s3_cache_prefix is
+    # absent. The selected dataset is always rebuilt/verified afterwards;
+    # this only reuses overlapping camera/label chunks. The completed result
+    # is uploaded to pai_s3_cache_prefix, never back into a fallback cache.
+    "pai_s3_cache_fallback_prefixes": [],
     # When set (str), cosmos-rl checkpoints are continuously persisted to
     # s3://research-datasets-chicago/<prefix> while training runs
     # (_CheckpointUploader). Without it checkpoints land ONLY on node-local
@@ -668,10 +673,26 @@ def _download_pai_reasoning_dense(
         }
         for c in (int(x) for x in chunk_ids.split()):
             prune_marker = pai_dir / f".camera_pruned.chunk_{c:04d}"
-            if prune_marker.exists():
-                continue
-            _download(str(c))
             keep = by_chunk.get(c, set())
+            # A fallback cache can have been pruned for a different reward
+            # corpus. Its marker only proves that *some* clips were retained,
+            # not that today's selected clips are present. Verify exact video
+            # + timestamp members before trusting it; otherwise force only the
+            # camera chunk zips to be fetched again and re-pruned below.
+            if prune_marker.exists() and _camera_chunk_covers_clips(pai_dir, c, keep):
+                continue
+            if prune_marker.exists():
+                logger.info(
+                    "camera prune: stale cache for chunk %04d; selected clips changed, "
+                    "refreshing camera zips",
+                    c,
+                )
+                prune_marker.unlink()
+                for sub in _CAMERA_SUBPARTS:
+                    zpath = pai_dir / "camera" / sub / f"{sub}.chunk_{c:04d}.zip"
+                    if zpath.exists():
+                        zpath.unlink()
+            _download(str(c))
             kept_total = dropped_total = 0
             for sub in _CAMERA_SUBPARTS:
                 zpath = pai_dir / "camera" / sub / f"{sub}.chunk_{c:04d}.zip"
@@ -705,6 +726,27 @@ def _download_pai_reasoning_dense(
             )
     marker.write_text("ok\n")
     return mini_path
+
+
+def _camera_chunk_covers_clips(pai_dir: Path, chunk: int, clip_ids: set[str]) -> bool:
+    """Return whether every selected clip has usable members in all 4 cameras."""
+    if not clip_ids:
+        return False
+    for sub in _CAMERA_SUBPARTS:
+        zpath = pai_dir / "camera" / sub / f"{sub}.chunk_{chunk:04d}.zip"
+        if not zpath.exists():
+            return False
+        try:
+            with zipfile.ZipFile(zpath) as archive:
+                names = set(archive.namelist())
+        except (OSError, zipfile.BadZipFile):
+            return False
+        for clip_id in clip_ids:
+            if f"{clip_id}.{sub}.mp4" not in names:
+                return False
+            if f"{clip_id}.{sub}.timestamps.parquet" not in names:
+                return False
+    return True
 
 
 def _clipgen_reward_fns_dir() -> Path:
@@ -1235,12 +1277,22 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         # then costs ~nothing on restored/warm data.
         cache_prefix = cfg.get("pai_s3_cache_prefix")
         had_marker = (pai_reasoning_dir / ".dense_download_complete").exists()
-        restored = False
-        if cache_prefix and not had_marker:
-            try:
-                restored = _pai_cache_restore(str(cache_prefix), pai_reasoning_dir)
-            except Exception:
-                logger.exception("PAI warm cache: restore failed, falling back to HF download")
+        restored_prefix: str | None = None
+        if not had_marker:
+            raw_fallbacks = cfg.get("pai_s3_cache_fallback_prefixes") or []
+            fallbacks = [raw_fallbacks] if isinstance(raw_fallbacks, str) else list(raw_fallbacks)
+            restore_candidates = [str(p) for p in [cache_prefix, *fallbacks] if p]
+            for candidate in dict.fromkeys(restore_candidates):
+                try:
+                    if _pai_cache_restore(candidate, pai_reasoning_dir):
+                        restored_prefix = candidate
+                        break
+                except Exception:
+                    logger.exception(
+                        "PAI warm cache: restore failed for s3://%s/%s",
+                        _PAI_CACHE_BUCKET,
+                        candidate,
+                    )
         if dense_chunks is not None:
             _download_pai_reasoning_dense(
                 python_bin,
@@ -1252,7 +1304,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             _download_pai_reasoning(python_bin, pai_reasoning_dir, int(cfg["num_reasoning_clips"]))
         # Upload only when this node did the fresh bulk download itself --
         # re-uploading ~570 GB from a warm node or after a cache hit is waste.
-        if cache_prefix and not restored and not had_marker:
+        if cache_prefix and restored_prefix != str(cache_prefix) and not had_marker:
             _pai_cache_upload_async(str(cache_prefix), pai_reasoning_dir)
 
     lingo_judge_dir: Path | None = None

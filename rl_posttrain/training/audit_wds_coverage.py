@@ -33,6 +33,9 @@ REQUIRED_SUFFIXES = {
 
 
 def _s3_client():
+    if os.environ.get("AUDIT_USE_OCI_NATIVE") == "1":
+        return _OCIAdapter()
+
     import boto3
     from botocore.config import Config
 
@@ -47,6 +50,60 @@ def _s3_client():
             retries={"max_attempts": 8, "mode": "adaptive"},
         ),
     )
+
+
+class _OCIStreamingBody:
+    def __init__(self, content: bytes):
+        self._content = content
+
+    def read(self) -> bytes:
+        return self._content
+
+
+class _OCIPaginator:
+    def __init__(self, adapter: "_OCIAdapter"):
+        self._adapter = adapter
+
+    def paginate(self, *, Bucket: str, Prefix: str):
+        import oci
+
+        response = oci.pagination.list_call_get_all_results(
+            self._adapter._client.list_objects,
+            self._adapter._namespace,
+            Bucket,
+            prefix=Prefix,
+            fields="name",
+        )
+        yield {"Contents": [{"Key": obj.name} for obj in response.data.objects]}
+
+
+class _OCIAdapter:
+    """Small boto-shaped adapter for credentialed Grizzly diagnostics."""
+
+    def __init__(self):
+        import oci
+
+        config = oci.config.from_file(
+            file_location=os.environ.get("OCI_CONFIG_FILE", "~/.oci/config"),
+            profile_name=os.environ.get("OCI_PROFILE", "DEFAULT"),
+        )
+        config["region"] = os.environ.get("OCI_REGION", "us-chicago-1")
+        self._client = oci.object_storage.ObjectStorageClient(config)
+        self._namespace = self._client.get_namespace().data
+
+    def get_paginator(self, operation: str) -> _OCIPaginator:
+        if operation != "list_objects_v2":
+            raise ValueError(f"unsupported paginator {operation!r}")
+        return _OCIPaginator(self)
+
+    def get_object(self, *, Bucket: str, Key: str, Range: str):
+        response = self._client.get_object(
+            self._namespace, Bucket, Key, range=Range
+        )
+        return {"Body": _OCIStreamingBody(response.data.content)}
+
+    def put_object(self, *, Bucket: str, Key: str, Body: bytes) -> None:
+        self._client.put_object(self._namespace, Bucket, Key, Body)
 
 
 def _range_get(s3, bucket: str, key: str, start: int, length: int) -> bytes:
