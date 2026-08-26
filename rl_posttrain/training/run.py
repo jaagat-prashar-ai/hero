@@ -171,11 +171,33 @@ _CAMERA_SUBPARTS = [
 _CALIBRATION_SUBPARTS = ["camera_intrinsics", "sensor_extrinsics", "vehicle_dimensions"]
 
 
-def _run_streamed(cmd: list[str], **kwargs) -> None:
+def _run_streamed(
+    cmd: list[str], *, timeout_s: float | None = None, **kwargs
+) -> None:
     """Run a subprocess with stdout/stderr flowing through to this pod's own
-    log stream (not captured) so `lilypad workload logs` sees it live."""
+    log stream (not captured) so `lilypad workload logs` sees it live.
+
+    When timeout_s is set, give the child its own process group so a hung
+    downloader cannot leave helper processes behind after the timeout.
+    """
     logger.info("run: %s", " ".join(str(c) for c in cmd))
-    subprocess.run(cmd, check=True, **kwargs)
+    if timeout_s is None:
+        subprocess.run(cmd, check=True, **kwargs)
+        return
+
+    proc = subprocess.Popen(cmd, start_new_session=True, **kwargs)
+    try:
+        returncode = proc.wait(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        logger.error(
+            "subprocess timed out after %.0fs; terminating its process group: %s",
+            timeout_s,
+            " ".join(str(c) for c in cmd),
+        )
+        _terminate_process_group(proc)
+        raise
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, cmd)
 
 
 def _ensure_redis_server() -> None:
@@ -650,19 +672,23 @@ def _download_pai_reasoning_dense(
         # 04ey5y (2026-08-23) died ~13 chunks into 352 on "429 ... quota of
         # 1000 api requests per 5 minutes" with no retry, losing 1h14m of
         # node time. The quota is a 5-minute rolling window, so sleep past
-        # it and retry instead of failing the whole run.
+        # it and retry instead of failing the whole run. HF's downloader can
+        # also hang indefinitely after a burst of 429s (faithfulness s3fix2
+        # stalled on chunk 2443 for >10h), so bound each normally-20s
+        # invocation at 15 minutes.
         delays = [90, 300, 300, 600, 600]
         for attempt in range(len(delays) + 1):
             try:
-                _run_streamed(cmd, cwd=RECIPE_ROOT)
+                _run_streamed(cmd, cwd=RECIPE_ROOT, timeout_s=900)
                 return
-            except subprocess.CalledProcessError:
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
                 if attempt == len(delays):
                     raise
                 logger.warning(
-                    "download_pai failed for chunks %s (attempt %d/%d) -- retrying "
-                    "in %ds (usually HF 429: 1000 api requests / 5 min)",
+                    "download_pai failed for chunks %s with %s (attempt %d/%d) "
+                    "-- retrying in %ds (usually HF 429 or a stalled request)",
                     chunk_id_str,
+                    type(exc).__name__,
                     attempt + 1,
                     len(delays) + 1,
                     delays[attempt],

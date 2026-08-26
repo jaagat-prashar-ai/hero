@@ -1,11 +1,18 @@
 import sys
+import subprocess
 import types
 import zipfile
+
+import pytest
 
 
 sys.modules.setdefault("ray", types.ModuleType("ray"))
 
-from rl_posttrain.training.run import _CAMERA_SUBPARTS, _camera_chunk_covers_clips
+from rl_posttrain.training.run import (
+    _CAMERA_SUBPARTS,
+    _camera_chunk_covers_clips,
+    _run_streamed,
+)
 
 
 def _write_camera_zips(root, clip_ids, *, omit_timestamp_for=None):
@@ -31,3 +38,11 @@ def test_camera_chunk_coverage_requires_timestamps(tmp_path) -> None:
     missing = ("clip-a", _CAMERA_SUBPARTS[0])
     _write_camera_zips(tmp_path, {"clip-a"}, omit_timestamp_for=missing)
     assert not _camera_chunk_covers_clips(tmp_path, 7, {"clip-a"})
+
+
+def test_run_streamed_times_out_hung_process() -> None:
+    with pytest.raises(subprocess.TimeoutExpired):
+        _run_streamed(
+            [sys.executable, "-c", "import time; time.sleep(60)"],
+            timeout_s=0.05,
+        )
