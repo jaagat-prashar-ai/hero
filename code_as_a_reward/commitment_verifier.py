@@ -118,6 +118,10 @@ class VerifierThresholds:
     # stop/yield event, or an end-to-end speed change (either sign)
     # exceeding this.
     adapt_speed_min_change_mps: float = 1.0
+    # "Maintain speed" allows normal controller variation but rejects a
+    # meaningful transient or end-to-end change. This deliberately matches
+    # adapt_speed's 1.0 m/s meaning of a meaningful speed response.
+    maintain_speed_max_deviation_mps: float = 1.0
     # "wait" is satisfied by a stop_event, but ALSO by a stop-then-go
     # ("wait for the pedestrian, then proceed") that stop_event's
     # no-recovery clause deliberately excludes — so we additionally accept
@@ -144,6 +148,9 @@ class VerifierThresholds:
             proceed_min_final_speed_mps=verifier.get("proceed_min_final_speed_mps", 2.0),
             keep_lane_max_lateral_offset_m=verifier.get("keep_lane_max_lateral_offset_m", 0.5),
             adapt_speed_min_change_mps=verifier.get("adapt_speed_min_change_mps", 1.0),
+            maintain_speed_max_deviation_mps=verifier.get(
+                "maintain_speed_max_deviation_mps", 1.0
+            ),
             wait_max_min_speed_mps=verifier.get("wait_max_min_speed_mps", 0.5),
         )
 
@@ -371,6 +378,49 @@ def _verify_proceed(
     )
 
 
+def _verify_maintain_speed(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """Maintain speed means no meaningful deviation from the initial speed.
+
+    We inspect the full smoothed speed series rather than only its endpoints,
+    so a brake-then-recover trajectory cannot masquerade as constant speed.
+    """
+    max_deviation = max(
+        abs(speed - features.initial_speed_mps) for speed in features.speed_mps
+    )
+    evidence = {
+        "initial_speed_mps": features.initial_speed_mps,
+        "final_speed_mps": features.final_speed_mps,
+        "max_speed_deviation_mps": max_deviation,
+        "stop_event": features.stop_event,
+        "yield_event": features.yield_event,
+        "maintain_speed_max_deviation_mps": thresholds.maintain_speed_max_deviation_mps,
+    }
+    if (
+        max_deviation <= thresholds.maintain_speed_max_deviation_mps
+        and not features.stop_event
+        and not features.yield_event
+    ):
+        return CommitmentVerdict(
+            claim,
+            Verdict.PASS,
+            "bounded_speed_deviation",
+            evidence,
+            f"maximum speed deviation {max_deviation:.2f} m/s stayed within "
+            f"{thresholds.maintain_speed_max_deviation_mps:.2f} m/s",
+        )
+    return CommitmentVerdict(
+        claim,
+        Verdict.FAIL,
+        "bounded_speed_deviation",
+        evidence,
+        f"maximum speed deviation {max_deviation:.2f} m/s exceeds "
+        f"{thresholds.maintain_speed_max_deviation_mps:.2f} m/s "
+        f"or stop/yield event occurred",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Lateral predicates. Sign convention throughout (from classify_maneuvers.py,
 # ISO 8855): POSITIVE final_lateral_offset_m / total_heading_change_deg mean
@@ -556,6 +606,24 @@ def _abstain_needs_other_agent(
     )
 
 
+def _abstain_needs_signed_longitudinal_displacement(
+    claim: CommitmentClaim, features: TrajectoryFeatures, thresholds: VerifierThresholds
+) -> CommitmentVerdict:
+    """Reverse is undecidable from the current scalar-speed feature row.
+
+    Speed is a magnitude, so forward and reverse motion look identical after
+    feature extraction.  Explicit abstention avoids falsely rewarding either.
+    """
+    return CommitmentVerdict(
+        claim,
+        Verdict.ABSTAIN,
+        "needs_signed_longitudinal_displacement",
+        {},
+        "'reverse' needs signed longitudinal displacement; the current ego "
+        "feature row stores speed magnitude only",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Dispatch + orchestration.
 # ---------------------------------------------------------------------------
@@ -574,6 +642,8 @@ MANEUVER_VERIFIERS = {
     "turn": _verify_turn,
     "enter": _abstain_needs_lane_geometry,
     "exit": _abstain_needs_lane_geometry,
+    "overtake": _abstain_needs_other_agent,
+    "reverse": _abstain_needs_signed_longitudinal_displacement,
     "adapt_speed": _verify_adapt_speed,
     "accelerate": _verify_accelerate,
     "decelerate": _verify_decelerate,
@@ -582,6 +652,7 @@ MANEUVER_VERIFIERS = {
     "stop": _verify_stop,
     "yield": _verify_yield,
     "wait": _verify_wait,
+    "maintain_speed": _verify_maintain_speed,
     "proceed": _verify_proceed,
 }
 

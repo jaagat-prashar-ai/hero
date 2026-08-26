@@ -110,6 +110,13 @@ def test_proceed_means_kept_moving():
     assert verify_commitment(_claim("proceed"), _features(ramp_to_stop())).verdict == Verdict.FAIL
 
 
+def test_maintain_speed_checks_the_full_speed_profile():
+    assert verify_commitment(_claim("maintain_speed"), _features(straight_line())).verdict == Verdict.PASS
+    # Both a transient dip and a sustained speed-up contradict maintaining speed.
+    assert verify_commitment(_claim("maintain_speed"), _features(yield_dip())).verdict == Verdict.FAIL
+    assert verify_commitment(_claim("maintain_speed"), _features(accelerate())).verdict == Verdict.FAIL
+
+
 # --- lateral predicates -----------------------------------------------------
 # Sign convention under test: positive y / positive heading == LEFT.
 
@@ -177,7 +184,14 @@ def test_keep_lane_passes_straight_and_fails_lane_change():
 
 def test_undecidable_maneuvers_abstain_not_fail():
     feats = _features(straight_line())
-    for maneuver in ("enter", "exit", "keep_distance", "create_gap"):
+    for maneuver in (
+        "enter",
+        "exit",
+        "keep_distance",
+        "create_gap",
+        "overtake",
+        "reverse",
+    ):
         verdict = verify_commitment(_claim(maneuver), feats)
         assert verdict.verdict == Verdict.ABSTAIN, maneuver
 

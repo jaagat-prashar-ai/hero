@@ -8,12 +8,15 @@ import hashlib
 import os
 from typing import Any
 
-from torch.utils.data import Subset
-
-
 def _base_index(dataset: Any, idx: int) -> tuple[Any, int]:
-    """Unwrap nested Subsets while preserving the index into the base PAI dataset."""
-    while isinstance(dataset, Subset):
+    """Unwrap nested Subset-like views and preserve the base PAI index.
+
+    Ray can load the recipe and this module through different import paths,
+    producing two class objects for ``torch.utils.data.Subset``.  A strict
+    ``isinstance`` check then misses a perfectly ordinary Subset.  Its public
+    ``dataset``/``indices`` interface is the stable contract we need here.
+    """
+    while hasattr(dataset, "dataset") and hasattr(dataset, "indices"):
         idx = int(dataset.indices[idx])
         dataset = dataset.dataset
     return dataset, idx
@@ -44,6 +47,8 @@ def install_heldout_validation_split(dataloaders: Any) -> tuple[int, int]:
     exactly the same clips even when dataloader ordering changes.  It is only
     activated when ``FAITHFULNESS_VAL_FRACTION`` is positive.
     """
+    from torch.utils.data import Subset
+
     fraction = float(os.getenv("FAITHFULNESS_VAL_FRACTION", "0"))
     if fraction <= 0:
         return len(dataloaders["train"].dataset), 0
