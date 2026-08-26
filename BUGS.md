@@ -1822,6 +1822,52 @@ the fleet-kill bug.
 
 ---
 
+## 2026-08-26 — autovla counterfactual pilot: S3 sync wrote nuScenes tables one directory too high
+
+**Symptom:** `FileNotFoundError: .../rank{N}/nuscenes/v1.0-trainval/category.json`
+on every rank of autovla-counterfactual-pilot-hf979a, right after logging
+"Downloaded 13 metadata files ... to .../v1.0-trainval" — the sync ran but
+NuScenes still couldn't find the tables.
+**Root cause:** `_sync_s3_prefix(local_dir, dataroot, ...)` joined local
+paths onto `dataroot` while stripping the S3 prefix relative to the
+version dir — so `nuscenes/v1.0-trainval/category.json` landed at
+`nuscenes/category.json` (and map masks at `nuscenes/*.png`), one level
+above where NuScenes looks.
+**Fix:** AutoVLA submodule [084b0d4] — drop the `dataroot` param; paths
+join onto `local_dir`, which IS the mirror root of the synced prefix.
+Deployed via parent bump 3593d7f.
+**How this was found:** hf979a's "Downloaded 13 metadata files" line
+directly contradicting the FileNotFoundError two lines later.
+
+---
+
+## 2026-08-26 — pre-relaunch adversarial review: 2 blockers + 3 latent corruption bugs in the pilot path
+
+**Symptom:** (latent — caught by review before relaunch, after 5 failed runs)
+**Root cause:** five independent issues: (1) `torch.load(map_location="cuda:0")`
+materializes the 16GB fp32 SFT ckpt on the GPU already holding ~68GiB of the
+72B labeler → deterministic OOM on every 2-GPU worker; (2) stale
+lidarseg.json/panoptic.json from pre-skip-list syncs on reused nodes pass the
+metadata completeness check and re-trigger the lidarseg FileNotFoundError
+permanently; (3) "dir non-empty" completeness checks turn a mid-sync
+preemption into a permanent partial-metadata state (job is preemptible+requeue);
+(4) `nusc.sample` is scene-grouped, so a num_scenes cap yields ~300 consecutive
+0.5s-apart keyframes from ~8 scenes instead of 300 scenes — near-duplicate
+K-groups for a contrastive pilot; (5) non-atomic scene-JSON writes + exists()
+resume skip + unconditional S3 upload can ship preemption-truncated JSONs into
+the training corpus.
+**Fix:** AutoVLA submodule [6d91615] + [080e57d] (parent bump 3593d7f) —
+map_location="cpu" + max_memory GPU0 headroom; stale label-table purge guarded
+by label-dir absence (no-op on grizzly NFS); required-file completeness checks
++ per-file size-match resume in `_sync_s3_prefix`; one K-group per scene
+sharded by scene token; tmp+os.replace writes with json.load validation on
+resume.
+**How this was found:** 3-lens adversarial review workflow (diff correctness /
+execution trace / stale-node+preemption) before relaunching; sync-fix behavior
+verified live against the real OCI S3 bucket.
+
+---
+
 ## Format for new entries
 
 ```
