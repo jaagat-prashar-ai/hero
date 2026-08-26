@@ -40,6 +40,15 @@ Commands:
                        consistency reward on the dense-100 dataset
                        (consistency_full_cluster.yaml; reuses the
                        llm-judge-full S3 warm cache)
+  consistency-w05      Ablation arm: consistency_weight 0.2 -> 0.5, binary
+                       mode (consistency_w05_cluster.yaml)
+  consistency-twotier  Ablation arm: w=0.5, unparseable = half a
+                       contradiction (consistency_twotier_cluster.yaml)
+  consistency-axis     Ablation arm: w=0.5, per-axis partial credit
+                       0/0.5/1 (consistency_axis_cluster.yaml)
+  consistency-unpneutral
+                       Ablation CONTROL arm: w=0.5, unparseable exempt from
+                       the penalty (consistency_unpneutral_cluster.yaml)
   code-reward          Launch GRPO with the deterministic code-as-a-reward
                        claim verifier (code_reward_cluster.yaml; no
                        Anthropic key needed -- reward computed on-node)
@@ -146,6 +155,11 @@ case "${cmd}" in
 
     consistency-full)
         launch_py "${SCRIPT_DIR}/consistency_full_cluster.yaml" "$@"
+        ;;
+
+    consistency-w05|consistency-twotier|consistency-axis|consistency-unpneutral)
+        arm="${cmd#consistency-}"
+        launch_py "${SCRIPT_DIR}/consistency_${arm}_cluster.yaml" "$@"
         ;;
 
     code-reward)

@@ -1,0 +1,86 @@
+# CoC-action consistency ABLATION arm 'unpneutral' (2026-08-26): unparseable-neutral CONTROL arm (predicted to drift toward vagueness).
+# Identical to consistency_full_cluster.yaml except consistency_weight = 0.5,
+# consistency_mode = "unparseable_neutral", own W&B experiment + ckpt prefix. Comparison
+# structure: baseline 1tbgsl = w0.2/binary; w05 arm isolates weight; the mode
+# arms hold w=0.5 and isolate shaping vs the w05 arm. Raw 'consistency' in
+# W&B is unshaped in every arm, so curves compare directly across runs.
+name: alpamayo-rl-consistency-unpneutral
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_job"
+
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+
+    reward_mode: "consistency"
+
+    # Ablation arm: shaped consistency penalty (see consistency_entry.effective_consistency).
+    consistency_weight: 0.5
+    consistency_mode: "unparseable_neutral"
+
+    # All OOD clips inside the 100 chunks densest in OOD clips = 394 clips,
+    # ~570 GB of camera data (see select_dense_ood_chunks.py).
+    reasoning_dense_chunks: 100
+
+    # SAME warm-cache prefix as llm_judge_full / code_reward_full: identical
+    # chunk selection, so a prior run's cache restores this dataset at
+    # datacenter speed instead of re-paying the ~570 GB HF download.
+    pai_s3_cache_prefix: "pai_warm_cache/ood_dense_100chunks"
+
+    # Own checkpoint prefix; _CheckpointUploader ships each save to S3 and
+    # deletes the local copy (TOML max_keep=1 is the in-framework backstop).
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/consistency_unpneutral"
+
+    dp_shard_size: 4
+    # 3 epochs over ~394 clips ~= 295 GRPO steps. The reward is local and
+    # fast, so unlike llm_judge this is compute-bound: ~2.5-3 h of training.
+    train_epoch: 3
+
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_consistency_unpneutral"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # NOT preemptible: no cosmos-rl resume (resume=false), each requeue is a
+  # from-scratch restart -- see llm_judge_full_cluster.yaml's q00jjc note.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+    - WANDB_API_KEY
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
