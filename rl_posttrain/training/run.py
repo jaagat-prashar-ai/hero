@@ -129,6 +129,12 @@ _DEFAULTS: dict[str, Any] = {
     # coefficient [train.train_policy].kl_beta.
     "optm_lr": None,
     "kl_beta": None,
+    # Consistency-arm ablation overrides (None keeps the TOML template's
+    # values): [custom.alpamayo.reward].consistency_weight / .consistency_mode
+    # ("binary" | "two_tier" | "axis_partial" | "unparseable_neutral" -- see
+    # consistency_entry.effective_consistency).
+    "consistency_weight": None,
+    "consistency_mode": None,
     # When set (int N), llm_judge/reasoning modes IGNORE num_reasoning_clips
     # and instead train on ALL OOD clips within the N chunks densest in OOD
     # clips (select_dense_ood_chunks.py) -- ~2x more clips per downloaded GB
@@ -826,6 +832,8 @@ def _patch_toml(
     reasoning_weight: float | None = None,
     optm_lr: float | None = None,
     kl_beta: float | None = None,
+    consistency_weight: float | None = None,
+    consistency_mode: str | None = None,
 ) -> None:
     import tomlkit
 
@@ -840,6 +848,10 @@ def _patch_toml(
         doc["custom"]["alpamayo"]["reasoning_grading_model_path"] = str(reasoning_grading_model_path)
     if reasoning_weight is not None:
         doc["custom"]["alpamayo"]["reward"]["reasoning_weight"] = float(reasoning_weight)
+    if consistency_weight is not None:
+        doc["custom"]["alpamayo"]["reward"]["consistency_weight"] = float(consistency_weight)
+    if consistency_mode is not None:
+        doc["custom"]["alpamayo"]["reward"]["consistency_mode"] = str(consistency_mode)
     if optm_lr is not None:
         doc["train"]["optm_lr"] = float(optm_lr)
     if kl_beta is not None:
@@ -1273,6 +1285,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         reasoning_weight=cfg.get("reasoning_weight"),
         optm_lr=cfg.get("optm_lr"),
         kl_beta=cfg.get("kl_beta"),
+        consistency_weight=cfg.get("consistency_weight"),
+        consistency_mode=cfg.get("consistency_mode"),
     )
 
     _ensure_redis_server()
