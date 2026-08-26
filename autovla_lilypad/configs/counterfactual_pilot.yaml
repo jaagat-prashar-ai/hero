@@ -1,0 +1,74 @@
+# Qwen2.5-VL-72B-Instruct (bf16, ~144GB) doesn't fit on one A100-80GB, so this
+# can't use the "1 GPU per rank" pattern simlingo_lilypad/run.py or
+# counterfactual/run.py use. Follows rl_posttrain/configs/
+# code_reward_clipgen_kl1e4_cluster.yaml's precedented workload_type: generic
+# pattern, dispatching 4 PARALLEL ray.remote(...).options(num_gpus=2) tasks
+# (num_workers x gpus_per_worker = 8) instead of one num_gpus=8 task -- a real
+# run (autovla-counterfactual-pilot-7kq0x9) showed one 8-GPU model instance has
+# no cross-scene throughput (all 8 GPUs work together on one generation at a
+# time), whereas 4 independent 2-GPU workers (144GB fits in 160GB) process
+# disjoint scene shards concurrently for ~4x throughput.
+#
+# No /media/training_data anywhere below: confirmed absent on Lilypad cluster
+# nodes via a real run's AssertionError. nuScenes comes from
+# research-datasets-chicago/nuscenes/ on S3 (mirrors the exact devkit layout);
+# Qwen models + the AutoVLA SFT checkpoint come from HF hub (neither was found
+# on S3 after checking) via HF_TOKEN -- see autovla_lilypad/run.py's docstring.
+name: autovla-counterfactual-pilot
+model_identifier: other.training.autovla.default.v1
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: autovla_lilypad.run.generate_counterfactual_cot_loop
+  entrypoint_fn_config:
+    nuscenes_version: "v1.0-trainval"
+    sft_config: "config/training/qwen2.5-vl-3B-nuplan-cluster-pilot-eval.yaml"
+    sft_checkpoint_repo: "Zewei-Zhou/AutoVLA"
+    sft_checkpoint_file: "AutoVLA_PDMS_89.ckpt"
+
+    # Pilot scale -- a few hundred scenes, K=5 (1 real + 4 counterfactual).
+    num_scenes: 300
+    k_counterfactuals: 4
+    max_new_tokens: 128
+    seed: 0
+    num_workers: 4
+    gpus_per_worker: 2
+
+    workdir: "/mnt/work/autovla_counterfactual_pilot"
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "autovla/contrastive_pilot/nuscenes_train"
+
+  # No experiment_tracker: workload_type: generic's schema rejects it
+  # (confirmed via --dry-run: "Extra inputs are not permitted") -- that field
+  # is training-workload-only. run.py doesn't call any wandb API either, so
+  # nothing is lost.
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: always
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: autovla_lilypad/requirements.txt
+    regex_excludes:
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
