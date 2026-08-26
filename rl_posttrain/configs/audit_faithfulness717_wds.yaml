@@ -1,0 +1,46 @@
+name: alpamayo-rl-audit-faithfulness717-wds
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: generic
+  entrypoint_fn: rl_posttrain.training.audit_wds_coverage.run_from_lilypad_config
+  entrypoint_fn_config:
+    bucket: research-datasets-chicago
+    source_config: rl_posttrain/configs/faithfulness_compare_717.yaml
+    wds_manifest: pref_pairs/configs/sample_clips_all.json
+    output_key: alpamayo_rl/audits/faithfulness717_wds_coverage/report.json
+    max_workers: 48
+
+cluster_resources:
+  gpu_machine_type: a100.1
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+
+runtime_environment:
+  setup_timeout_seconds: 1800
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/simlingo/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
