@@ -1281,11 +1281,16 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
 
     reward_mode = _resolve_reward_mode(cfg)
 
-    # The LLM-judge reward calls the Anthropic API from inside the recipe
-    # venv, which the vendored uv.lock knows nothing about -- installed as an
-    # idempotent extra (see _ensure_extra_packages for why this must happen
-    # even when the persistent venv already validates).
-    extra_packages = ("anthropic",) if reward_mode == "llm_judge" else ()
+    # Cosmos-RL and our reward visualizers run inside the private recipe venv,
+    # not Lilypad's base environment.  The vendored recipe lock omits wandb
+    # and imageio, which silently disabled every requested curve/heatmap/video
+    # on faithfulness-clipgen717-s3fix3 even though the TOML selected the W&B
+    # logger.  Install observability packages for every arm.  The LLM-judge
+    # additionally needs the Anthropic SDK.  Extras are checked idempotently
+    # even when the persistent venv already validates.
+    extra_packages = ("wandb", "imageio")
+    if reward_mode == "llm_judge":
+        extra_packages += ("anthropic",)
     python_bin = ensure_recipe_venv(str(venv_dir), str(RECIPE_DIR), extra_packages=extra_packages)
 
     model_cache_prefix = cfg.get("model_s3_cache_prefix")
