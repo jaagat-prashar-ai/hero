@@ -43,6 +43,17 @@ def action_family(spec: dict[str, Any]) -> str:
         return "lateral_left"
     if feature in {"heading_right", "lateral_right"}:
         return "lateral_right"
+    if feature == "path_corridor_quality":
+        direction = primary["claim"].get("direction")
+        if direction in {"left", "right"}:
+            return f"lateral_{direction}"
+        return "path_following"
+    if feature == "heading_corridor_quality":
+        return "heading_envelope"
+    if feature == "speed_stability_quality":
+        return "speed_maintenance"
+    if feature == "cautious_progress_quality":
+        return "cautious_progress"
     raise ValueError(f"unclassified primary feature {feature!r}")
 
 

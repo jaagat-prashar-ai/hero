@@ -3,7 +3,11 @@ from __future__ import annotations
 
 import json
 
-from code_as_a_reward.clipgen.build_reward_corpus import build_corpus
+import copy
+
+import pytest
+
+from code_as_a_reward.clipgen.build_reward_corpus import action_family, build_corpus
 
 
 SPEC = {
@@ -80,3 +84,21 @@ def test_build_corpus_rejects_failed_or_rollout_tainted_offline_artifact(tmp_pat
         run_dir, out_dir = tmp_path / name, tmp_path / f"{name}-out"
         _write_artifact(run_dir, passed=passed, rollouts_used=rollouts_used)
         assert build_corpus([str(run_dir)], str(out_dir))["n_clips"] == 0
+
+
+@pytest.mark.parametrize(
+    ("feature", "direction", "expected"),
+    [
+        ("path_corridor_quality", "any", "path_following"),
+        ("path_corridor_quality", "left", "lateral_left"),
+        ("heading_corridor_quality", "any", "heading_envelope"),
+        ("speed_stability_quality", "any", "speed_maintenance"),
+        ("cautious_progress_quality", "any", "cautious_progress"),
+    ],
+)
+def test_action_family_supports_behavior_contract_features(feature, direction, expected):
+    spec = copy.deepcopy(SPEC)
+    primary = spec["components"][1]
+    primary["trajectory"]["feature"] = feature
+    primary["claim"]["direction"] = direction
+    assert action_family(spec) == expected
