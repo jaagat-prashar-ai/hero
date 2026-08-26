@@ -302,12 +302,23 @@ _CONTENT_RETRIES = 3
 _JUDGE_MODEL_ENV = "LLM_JUDGE_MODEL"
 _DEFAULT_JUDGE_MODEL = "claude-fable-5"
 _OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
-_OPENAI_TRANSIENT_STATUS = frozenset({408, 409, 429, 500, 502, 503, 504})
+_OPENAI_TRANSIENT_STATUS = frozenset({408, 409, 429})
 _DEFAULT_OPENAI_KEY_PATH = Path.home() / ".creds" / "openai.key"
 
 
 class _OpenAITransientError(Exception):
     """Retryable OpenAI HTTP status, so the transport ladder can catch it."""
+
+
+def _is_openai_transient_status(status_code: int) -> bool:
+    """Return whether an HTTP response is safe to retry.
+
+    OpenAI and its edge proxies can emit non-standard 5xx responses such as
+    520.  Treat the entire server-error class as transient instead of
+    maintaining an incomplete allowlist that can crash a long GRPO run.
+    Authentication and request-shape 4xx responses still fail immediately.
+    """
+    return status_code in _OPENAI_TRANSIENT_STATUS or 500 <= status_code < 600
 
 
 def load_openai_key(key_path: Path = _DEFAULT_OPENAI_KEY_PATH) -> None:
@@ -393,7 +404,7 @@ def _judge_trace_openai(
                 json={"model": model, "temperature": 0, "max_tokens": max_tokens, "messages": messages},
                 timeout=120,
             )
-            if resp.status_code in _OPENAI_TRANSIENT_STATUS:
+            if _is_openai_transient_status(resp.status_code):
                 raise _OpenAITransientError(f"HTTP {resp.status_code}: {resp.text[:200]}")
             resp.raise_for_status()  # non-transient 4xx (auth, bad request): fail immediately
         except (

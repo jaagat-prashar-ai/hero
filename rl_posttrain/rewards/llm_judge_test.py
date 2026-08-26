@@ -30,6 +30,7 @@ from rl_posttrain.rewards.llm_judge import (  # noqa: E402
     _build_openai_messages,
     _build_user_content,
     _build_user_message,
+    _is_openai_transient_status,
     _parse_single_judgment,
     _salvage_score,
     judge_trace,
@@ -40,6 +41,16 @@ from rl_posttrain.rewards.llm_judge import (  # noqa: E402
 # Real chosen_trace from judged_pairs.jsonl (scene 00bbc8b2..._12206610) --
 # corpus-derived per the project's testing convention, not invented text.
 _REAL_TRACE = "Keep distance to the lead vehicle since it is directly ahead in our lane"
+
+
+class TestOpenAITransientStatus:
+    @pytest.mark.parametrize("status", [408, 409, 429, 500, 502, 503, 504, 520, 599])
+    def test_transient_statuses_retry(self, status):
+        assert _is_openai_transient_status(status)
+
+    @pytest.mark.parametrize("status", [400, 401, 403, 404, 422])
+    def test_non_transient_client_errors_fail_fast(self, status):
+        assert not _is_openai_transient_status(status)
 
 
 def _straight_constant_speed_xyz(n: int = 64, step_m: float = 1.0) -> np.ndarray:
