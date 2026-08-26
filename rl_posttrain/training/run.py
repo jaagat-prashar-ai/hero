@@ -190,12 +190,41 @@ def _ensure_redis_server() -> None:
     _run_streamed(["apt-get", "install", "-y", "redis-server"])
 
 
+def _run_streamed_hf_retry(cmd: list, *, what: str, cwd: Path) -> None:
+    """_run_streamed with retries sized to HF's rolling 5-minute API quota.
+
+    Every HF-touching setup step can die on "429 Too Many Requests" when the
+    org-shared quota is hot (run 04ey5y lost 1h14m of node time to this in
+    the dense download; smoke run aweoxz 2026-08-25 died the same way inside
+    model conversion, on the Cosmos-Reason2-8B backbone snapshot). HF_HOME /
+    local_dir targets live on persistent /mnt/work, so each retry resumes
+    the snapshot instead of restarting it. Delays deliberately overshoot the
+    5-minute window."""
+    delays = [90, 300, 300, 600, 600]
+    for attempt in range(len(delays) + 1):
+        try:
+            _run_streamed(cmd, cwd=cwd)
+            return
+        except subprocess.CalledProcessError:
+            if attempt == len(delays):
+                raise
+            logger.warning(
+                "%s failed (attempt %d/%d) -- retrying in %ds "
+                "(usually HF 429: rolling 5-min API quota)",
+                what,
+                attempt + 1,
+                len(delays) + 1,
+                delays[attempt],
+            )
+            time.sleep(delays[attempt])
+
+
 def _convert_model(python_bin: str, model_dir: Path, alpamayo_model: str) -> None:
     if (model_dir / "config.json").exists():
         logger.info("model conversion: %s already has config.json, skipping", model_dir)
         return
     model_dir.mkdir(parents=True, exist_ok=True)
-    _run_streamed(
+    _run_streamed_hf_retry(
         [
             python_bin,
             "scripts/convert_release_config_to_training.py",
@@ -204,6 +233,7 @@ def _convert_model(python_bin: str, model_dir: Path, alpamayo_model: str) -> Non
             "--alpamayo-model",
             alpamayo_model,
         ],
+        what="model conversion",
         cwd=RECIPE_ROOT,
     )
 
@@ -272,7 +302,7 @@ def _download_pai_reasoning(python_bin: str, pai_dir: Path, num_clips: int) -> P
         return mini_path
 
     pai_dir.mkdir(parents=True, exist_ok=True)
-    _run_streamed(
+    _run_streamed_hf_retry(
         [
             python_bin,
             "scripts/download_pai.py",
@@ -292,6 +322,7 @@ def _download_pai_reasoning(python_bin: str, pai_dir: Path, num_clips: int) -> P
             "--output-dir",
             str(pai_dir),
         ],
+        what="PAI reasoning download",
         cwd=RECIPE_ROOT,
     )
     return mini_path
@@ -559,13 +590,14 @@ def _download_lingo_judge(python_bin: str, model_dir: Path) -> None:
     it with local_files_only=True, so the full snapshot must be on disk before
     launch. Idempotent -- snapshot_download skips files already present, so a
     warm node costs ~nothing."""
-    _run_streamed(
+    _run_streamed_hf_retry(
         [
             python_bin,
             "-c",
             "from huggingface_hub import snapshot_download; "
             f"snapshot_download('wayveai/Lingo-Judge', local_dir='{model_dir}')",
         ],
+        what="Lingo-Judge snapshot",
         cwd=RECIPE_ROOT,
     )
 
