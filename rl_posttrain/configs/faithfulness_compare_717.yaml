@@ -70,6 +70,7 @@ workload_variant_config:
     pai_s3_cache_fallback_prefixes:
       - "pai_warm_cache/ood_clipgen_offline591"
       - "pai_warm_cache/ood_clipgen_full1050"
+    model_s3_cache_prefix: "alpamayo_rl/model_cache/alpamayo15_converted"
     ckpt_s3_prefix: "alpamayo_rl/checkpoints/faithfulness_clipgen717"
     dp_shard_size: 4
     train_epoch: 1

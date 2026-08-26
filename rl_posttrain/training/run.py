@@ -150,6 +150,9 @@ _DEFAULTS: dict[str, Any] = {
     # this only reuses overlapping camera/label chunks. The completed result
     # is uploaded to pai_s3_cache_prefix, never back into a fallback cache.
     "pai_s3_cache_fallback_prefixes": [],
+    # Converted training checkpoint cache shared by matched experiment arms.
+    # The first arm populates it; later arms avoid hitting the Hub at setup.
+    "model_s3_cache_prefix": None,
     # When set (str), cosmos-rl checkpoints are continuously persisted to
     # s3://research-datasets-chicago/<prefix> while training runs
     # (_CheckpointUploader). Without it checkpoints land ONLY on node-local
@@ -197,17 +200,30 @@ def _convert_model(python_bin: str, model_dir: Path, alpamayo_model: str) -> Non
         logger.info("model conversion: %s already has config.json, skipping", model_dir)
         return
     model_dir.mkdir(parents=True, exist_ok=True)
-    _run_streamed(
-        [
-            python_bin,
-            "scripts/convert_release_config_to_training.py",
-            "--output-dir",
-            str(model_dir),
-            "--alpamayo-model",
-            alpamayo_model,
-        ],
-        cwd=RECIPE_ROOT,
-    )
+    cmd = [
+        python_bin,
+        "scripts/convert_release_config_to_training.py",
+        "--output-dir",
+        str(model_dir),
+        "--alpamayo-model",
+        alpamayo_model,
+    ]
+    delays = [90, 300, 300, 600]
+    for attempt in range(len(delays) + 1):
+        try:
+            _run_streamed(cmd, cwd=RECIPE_ROOT)
+            return
+        except subprocess.CalledProcessError:
+            if attempt == len(delays):
+                raise
+            logger.warning(
+                "model conversion failed (attempt %d/%d) -- retrying in %ds "
+                "(usually a transient Hugging Face 429)",
+                attempt + 1,
+                len(delays) + 1,
+                delays[attempt],
+            )
+            time.sleep(delays[attempt])
 
 
 def _download_pai(
@@ -1246,7 +1262,20 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     extra_packages = ("anthropic",) if reward_mode == "llm_judge" else ()
     python_bin = ensure_recipe_venv(str(venv_dir), str(RECIPE_DIR), extra_packages=extra_packages)
 
+    model_cache_prefix = cfg.get("model_s3_cache_prefix")
+    model_restored = False
+    if model_cache_prefix and not (model_dir / "config.json").exists():
+        try:
+            model_restored = _pai_cache_restore(str(model_cache_prefix), model_dir)
+        except Exception:
+            logger.exception(
+                "model cache: restore failed for s3://%s/%s",
+                _PAI_CACHE_BUCKET,
+                model_cache_prefix,
+            )
     _convert_model(python_bin, model_dir, cfg["alpamayo_model"])
+    if model_cache_prefix and not model_restored:
+        _pai_cache_upload_async(str(model_cache_prefix), model_dir)
 
     # Dataset + TOML template + entry script per reward mode. "llm_judge"
     # trains on the same reasoning-bearing clips as "reasoning" (its reward
