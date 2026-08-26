@@ -2438,16 +2438,749 @@ The actual statistical claim (p=0.016 paired-t, p=0.007 Wilcoxon) comes from a s
 # PDM with AutoVLA
 - run similar epxeriments 
 
-# Cycle-consistency line (the one we're asking about):
+# Cycle-consistency line: 
     # Stage-0 learnabiliry probe (val cycle_rank_acc 0.548 vs 0.40 gate, chance 0.25) - instructions ARE decodable from GT trajectories. 
-    # Rigor-battery ablations (seed-7 replication, shuffled-pairing control, predicted-trajectory, noise σ=0.3m) all completed 2026-08-19 and support 
+    # Rigor-battery ablations (seed-7 replication, shuffled-pairing control, predicted-trajectory, noise σ=0.3m) all completed 2026-08-19 and support the probes: no leakage (shufctl = exact ln(4) chance, signal survives on predicted trajectories, and survives coarse noise (not sub-30cm steganography)).
+    # Stage-1 co-training wave-1 launched (this was after fixing the bug for driving_label not passed on the co-training path, commit 5cb7219):
+        # Baselines: nfso8q, seed-7 8nauws
+        # GT-warmup family: z8fyo, seed-7, jwgs1s, placebo v6ngpl 
+        # noise-curve probes = (σ=0.1/0.6/1.0): cehqp2, e95iba, niybvu
+        # All reported healtyh; Phase-B (det/undet on non-GT trajectories) configs still pending Phase-A checkpoints. 
 
+    # Note on history: two full cycle-loss generations before this were killed by bugs - gen-1 had a candidate-mask bug (filter tokens flooding CE), gen-2 fixed that but had a row-only softmax prior-domination bug; gen-3 (properly fixed, symmetric ranking) still showed no signal above chance and wrecked the main task - that's what triggered the Stage-0 probe investigation now paying off. 
 
 SimLingo contrastive + cycle-loss runs - current state (as of 2026-08-19)
 
-Cycle-consistency line:
-    # Stage-0 learnability probe PASSED GATE (val cycle_rank_acc 0.548 vs 0.40 gate, chance 0.25) - istructions ARE deocdable from GT trajectories. 
-    # Rigor-battery ablations (seed-7 
+# data-efficiency 
+
+# optimize for AutoVLA is doing or NORD. 
+# benchmarks, comparing probes, etc. 
+# clear visuals, explain what you are doing and whiteboard it out 
+
+# Scope this out
+    # clearly explain results. 
+
+can yo
 
 
 # measuring validation 
+
+# think about the problem further and try to decompose this. 
+# the specific prompt for supervising both tasks 
+
+# z_text and z_traj and throwing away these
+# the cycle loss, the matrix with diagonals being 1 here because 
+# cross-entropy with GT instruction logits 
+
+# definign and comparing faithful for a reasonable baseline 
+# baseline simlingo isn't an apples-to-apples comparison because there is no contrastive loss 
+
+# Why K=4?
+# why various contrastive weight losses 
+
+# how do we define faithfulness?
+
+# how is this infonce matrix good for teaching the model to dscirminate with faithful and accurate pairs 
+    # we want to ensure that the model stays aligned. 
+    # tehre has to be a statistically significant difference for faithfulness. 
+
+# if we train on suboptimal dreaming data to begin with and this is unfaithful, is this really helpful at all?
+
+# Experiments and updates: 
+    # SimLingo 
+        # Baseline original approach 
+        # Constrastive loss idea; with just one direction and the matrix transpose
+        # Cyclic loss idea where we condition on a trajectory and then see if it is instruction-decodable. 
+            # but in this case, shouldn't we define a good boundary for how instruction-deocdable-friendly is for maximals emantic perturbation points?
+
+        # this is better than probes, but is it faithful? 
+            # is simlingo not faithful to begin with?
+
+        # can we do this with Alpamayo as well and show a differnet degree of faithfulness?
+            # is accuracy the right metric to be testing against since we are optimizing for faithfulness? we are optimziing for both faithfulness and accuracy here. 
+
+        # discarding the hidden states right before the command, and comparing those logits for the GT comparison for the command (i.e., how likely are we to observe this command with low surprise, i.e., a low perplexity and thus a low loss, where a high perplexity would be associated with a high loss) 
+
+        # LLM as a judge, global determnistic heuristic, and code as a reward 
+        # How is this exact loss being aggregated?
+
+        # AutoVLA experiments
+            # universal framework 
+
+        # show that thsi pre-trainign or RL post-training approach holds more universally 
+
+        # define faithfulness
+        # have a clear benchmark and approach here. 
+        # what is the main strategy or contribution.
+            # build it up cleanly and have very clear ablations. what is a good baseline?
+
+        # What is a good baseline?
+        # Are we doing things correctly? with the matrix multiplicaiton?
+        # hidden states for GT logits comparison with command
+        # AutoVLA probes // can we run quick experimetns 
+
+    # Cycle-consistency loss (cycle_consistency_loss in driving.py:380, objective in utils.py:grouped_rank_cycle_loss)
+
+    # Mechanism: for each group of K dreamer counterfactuals (same camera frame, K different instructions -> K different rajectoiries), take each trajectory's prediction (or GT) waypoints, encode them with wp_encoder - no image tokens - then feed [trajectory tokens] + [fixed template] + [candiate instruction tokens] through the language-model trunk for every trajectoryxinstruction pair in the group (K^2 forward passes). Score each pair by the mean-token cross entropy of teacher-forcing that candidate instruction behind that trajectory encoding. 
+
+    # Building the KxK CE martix M[i][j]: row i = trajectory i, column j = candidate instruction j. 
+    # 1. Column-centre first: subtract each column's mean CE. This cancel's the instruction's own language-model prior (some instructions are just cheaper tos ay regarldess of trajectory) - without thsi, softmax picks the same "cheapest" instruction for every trajectory (a bug we fixed). 
+    # 2. Conver to logits: logits = -M / temperature. 
+    # 3. Symmetric ranking loss: 0.5 * (CE(logits, diagonal_labels) + CE(logits.T, diagonal_labels)) - row direction = "which insturction explains this trajectory," column direction = "which trajectory does this instruction explain"
+
+    What flows through gradients: 
+        # Loss backprops into wp_encoder always 
+        # Whether it also reshapes the trajectory itself depends on cycle_detach: if True (detached/"explainer-only"), traj_pts.detach() is called - only the trunk/wp_encoder learn to read trajectories, the main trajectory-regression head is untouched. If False (undetached), the ranking gradient also flows back into the trajectory-prediction head itself, so the model is pushed to produce trajectories that are more identifiable from their instruction. 
+
+        # On the GT-trajectory path (cycle_use_gt_traj=True), the trajectory is awlays detached (it's ground truth, not a learnable prediction) - det/undet are identical there. 
+        # Only the discriminative delta-token span of each candidate is scored (group_delta_spans), trimming shared templat/prefix/suffix tokens that every sibling shares, so gradient isn't wasted on tokens no trajectory could plausibly encode. 
+
+    # cycle_warmup_steps - a loss-weight ramp (1000 steps)
+        # Standard gradual weight ramp, nothing to do with GT vs predicted trajectories. From driving.py:519-520:
+            
+            weight = self.cycle_loss_weight
+            if self.cycle_warmup_steps > 0: 
+                weight = weight * min(1.0, (global_step + 1) / self.cycle_warmup_steps)
+
+            # So for the first 1000 training steps the cycle loss's contribution ramps linearly from 0 up to full cycle_consistency_loss_weight (0.2), then stays at 0.2. Purpose: avoid slamming on untrained wp_encoder's garbage graidnets into the model at step 0. This exists in 
+
+
+        # go for a quick walk! 
+
+    # teacher-force, etc.   
+
+# cycle_warmup_steps - a loss-weight ramp (1000 steps)
+    # standard gradual weight ramp, nothing to do with GT vs predicted trajectories. 
+
+    weight = self.cycle_loss_weight
+    if self.cycle_warmup_steps > 0: 
+        weight = weight * min(1.0, (global_step + 1) / self.cycle_warmup_steps)
+
+    # For the first 1000 training steps, the cycle's loss contribution ramps linearly from 0 up to full cycle_loss_weight (0.2), then stays at 0.2. Purpose: avoid slamming on untrained wp_encoder's garbage gradients into the model at step 0. This exists in every cycle config (det, undet, GT-warmup) - it's a per-run mechanic, not a separate phase. 
+
+# GT-warmup - a differnt idea: a curriculum phase, using ground-truth trajectories
+This is the "Phase A" idea from the memory notes, unrelated to cycle_warmup_steps. The problem it solves: early int raining, the model's own predicted trajectories are garbage (untrained head) - trying to rank instructions against garbage trajectories is unlearnbale and just injects noise gradients that damage the main task (this is literally what happened in gen-1/2/3 of the cycle runs)
+
+    # Fix to this is two-stage curriculum:
+        # Phase A ("GT-warmup"): run with cycle_use_gt_Traj=true - the cycle loss operates on ground-truth trajectories (driving_label.waypoints/.path) instead of the model's predictions. This lets wp_encoder and the trunk learn to do the ranking task on trajectories that are actually meaningful, withouto needing the trajectory-prediction head to be any good yet. 
+        # Phase B: resume from Phase A's checkpoint, swtich to cycle_use_gt_traj=false (real predicted trajectories), continue trianing - now the cycle-loss gradient has smething sensible to work with. 
+
+    # Because GT trajectories are awlays 
+    # LLM trunk computes, for each tajectory, how cheap/liekly each candidate intruction is to generate - i.e., "does this trajectory make this instruction the most probable one?"
+
+
+    cycle_detach controls which side gets to learn from the comaprison:     
+        - cycle_detach=true ("Detached" arm): the trajectory embedding is detached before this pass. The cycle-loss gradient only teaches the trunk/wp_encoder how to read out an instruction from a trajectory - the trasjectory itself doens't change to become "more exlpainable." Thi si sthe "exoainer-only" framing: only the read-out mechanism (the "Explainer") trians, the trajectory-producer doesn't feel any pressure from this loss. 
+
+        - cycle_detach=false ("undetached" arm): gradient also flows back through the trajectory into the trajectory-prediction head. Now the model is pushed to produce trajectories that are more idenifable from their instrution - closed-loop, both sides adapt. this is the one for you (per the notes) to actually care about testing, since it's closer to "does forcing reasoning-action cocnistency change teha ctions." 
+
+        cycle_awrmuo_steps = short weight ramp inside any single run; GT-warmup is a whole separate early-training phase using ground-truth targets instead of predictions; cycle_detach = whether the ranking loss is allowed to rshape the trajectory-prediction head or onyl trains the read-out side. 
+
+# Thinking about the simlingo design and what is the best way to do this 
+    # design decisions 
+        # do we mean pool or take the last hidden state? likely the last hidden state, 
+        # is doing th edot product of these two vectors really a good idea? 
+            # can we do something that is more rich?
+            # how do we hope to actually get a meaningful representaiton between the embeddings of the text and the embeddings of the trajectory? how can we build this?
+
+# run ablations 
+
+# Trajectory->command direction: already have it twice, in two different strengths. 
+    # experimenting with various weight ablations too 
+
+    # Symmetric InfoNCE loss already runs the column direction (trajectory -> which instruction), which is the weak, embedding-space version of instruction-decodability. 
+        # The strong version is the Grouped Inverse cycle (but wasn't that just what was said?) 
+        # Grouped Inverse-Cycle loss we built just after the frontier-ideation session: a second vision-free trunk pass that literally asks the LLM "which instruction produced this trajectory?" and ranks the K sibling instructions by per-token CE. 
+        # That is the instruction-decodability measured through the model itself, not through a throaway projection head - and the Stage-0 probe already passed its pre-registered gate (val cycle_rank_acc 0.548 vs 0.40 gate, chance 0.25). So I wouldn't invest more in strengthening the InfoNCE column directions; the cycle loss subsumes it. 
+
+        # Delta tokens; implemented for the cycle loss, not for InfoNCE. group_delta_spans in models/utils.py:126 trims the longest common prefix/suffix across the K sibling instructions and scores only the discriminating clause - exactly your "nudge left vs nudge right" concern - gated by cycle_delta_token_ce (how are we gating this). what doe sthis mean?
+            # What does not exist is the analogous move on the InfoNCE text side: contrastive_alignment_loss mean-pools over the entire prompt (driving.py:349), so the shared template tokens dilute the signal exactly (shared template or command tokens). Reusing group_delta_spans to restrict the pooling mask to the delta span is a ~10-liune change and probably a meaningful ablation. 
+        
+
+    # Mean pool vs last hidden state: for a causal LM the last token attends to the whole prompt, so it can carry the delta, and it's the standard choice for decoder-only sentence embeddings. But it's an indirect fix for the dilution problem - delta-span mean-pooling attacks it deirectly and is interpretable (you know exactly which tokens feed the embedding). 
+    # My ordering: delta-span pooling first, last-token as a secondary ablation. 
+
+    # Actual code: 
+        # KxK matrix itself has no direction - direction comes from which axis you apply the softmax over. 
+            # Both directions are read off the same matrix; there's no second model. 
+                # There's no second model or second forward pass involved: 
+
+                Actual code: 
+                logits = z_text[idx] @ z_traj[idx].T / temperature # [K, K]
+                labels = torch.arange(idx.numel(), device=logits.device)  
+                loss_fwd = F.cross_entropy(logits, labels, reduction="none") # instruction -> trajetory
+                loss_inv = F.cross_entropy(logits.T, labels, reduction="none")  # trajectory -> instruction 
+                loss[idx] = 0.5 * (loss_fwd + loss_inv)
+
+            
+        # What is the main motivation for the second inverse loss function? 
+        
+        # 1. The InfoNCE signal lives in throaway heads. text_proj and traj_proj are two little MLPs bolted onto the side of the model, and they're discarded at inference - nothing at deployment ever uses them. So when the column loss "teaches trajectory->instruction decodability," what it mostly trains is those side heads plus a light touch on pooled hidden states (how are we training thse side heads, what aew reaining them to be preciselty better at from the initial noise?)
+
+        # 2. The InfoNCE signal is information-thin. Winning K-way retrieval requires only ~log_2(K) bits - at K=4, two bits. 
+            # Any arbitrary fingerprint suffices: the projection heads can key on some superifical statistic of the trajectory and some superficial statistic of the text, match them up, and hit high retrieval accuracy withotu the embeddings encoding anything about what the instructions mean as an action. 
+            # That's why the smoke runs' 66-68% retrieval accuracy is real but not strong evidence of faithfulness. The cycle loss is information-rich by construction: the trunk must assign high likelihood to the instruction's actual tokens given the trajectory - it has to reproduce the content (not just fingerprtint it). but what is the difference here between fingerptringing and reproducing exactly?
+
+        # 3. The InfoNCE gradient can't reach action generation. The trajectory side is detached (driving.py:361), so even the column direction only ever adjusts embeddings of trajectories, never the trajectories themselves. 
+
+        # is the training signal not strong in the first pass? What causes it to not be strong? hwo dow we vuild better representations? 
+
+        # trying to assess the impact of detached vs undetached 
+            # All 16 ablations are launched and initializing - the full 128-GPU cluster is now running the loss-function ablation fleet. 
+                # The desing changed mid-flight because of something before launching:  
+                    # checkpoint As aren't good?
+
+            # The fleet (16 jobs x 8 A100s, all fresh-init 2-epoch smokes, matches bs=1/K=4):
+
+            ┌───────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│             Axis              │                                                                 Arms                                                                 │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Delta-CE × weight × detach    │ det/undet × w=0.2/0.05/0.01, all with delta-token CE (the w=0.2 pair is a gen-3 rerun isolating delta-CE alone)                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Delta-CE ablation             │ undet full-span w=0.05 — separates "low weight rescues it" from "delta-CE rescues it"                                                │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ GT-reader (Phase-A done       │ gt_traj + delta-CE at w=0.05 and w=0.2                                                                                               │
+│ right)                        │                                                                                                                                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Controls                      │ placebo (shuffled pairing) and 0.3m-noise steganography tripwire, both at the central undet/w=0.05 setting                           │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Seeds                         │ seed-7 replicates of the central det/undet pair                                                                                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Loss-family comparison        │ contrastive-only w=0.1 and w=0.5 at matched bs=1 (old contrastive smokes were bs=2 — not comparable), plus a combined                │
+│                               │ contrastive+cycle arm                                                                                                                │
+└───────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+# Baselines aren't re-run: nfso8q/8nauws (two seeds, same bs=1 recipe, checkpoints on S3) are the comparators. All arms upload checkpoints to S3, so the faithfulness eval panel can run on them afterward. 
+# What if we experiment with the in-depth GRPO approach? i.e., a new recursive tree beyond the first layer where we initially have multiple new reasonings, actions and then we hold the reasoning fixed, and then we have multiple new action generations per each of these (this could be an interesting approach). 
+    # Baselines aren't re-run, can re-run these and check thse out. 
+
+# Analysis gates (recorded in memory): a cycle arm claims signal only if val_cycle_loss/weight < ln(4) *and* rank acc > 0.25; task-damage kill = >5% val route/speed degradation vs baseline; anything the placebo also shows is an artifact; tripwire collapse = steganography in the undetached arm. 
+    # Bookeeping: generator + all 16 configs 
+
+# Bookeeping: generator + all 16 configs committed and pushed as 17 individual commits (f4f7a52...); memory updated with the Phase-A finding and all workload IDs. Every launch succeeded first-attempt; only packaging skip was the .git pack (harmless). Cycle arms should finish in ~8-9h including extract, contrastive arms sooner - results land in W&B under research-interns/simlingo-contrastive as smoke_abl_*. 
+
+# B2D, CARLA, etc. 
+
+# Ablations 
+    # Group 1 - Does delta-token CE alone rescue co-training?
+    # Group 2- Or is it gradeint scale? Weight sweep 
+    # Group 3 - Separating delta-CE from weight
+    # Group 4 - GT-reader arms: Phase A redone correcty 
+    # Group 5 - Controls 
+    # Group 6 - Seed replicates 
+    # Group 7 - The loss-family comparison: contrastive InfoNCE 
+    # Pre-registred gates, same as recorded in memory: a cycle arm claims in signal only if val cycle_loss/weight drops below ln(4) = 1.386 and val cycle_rank_acc clears 0.25 chance (both together, because "at chance" and "pinned uniform" look identical on a dashboard but mean different things). 
+    # Task-damage kill: >5% degradation in val route/speed vs nfso8q. 
+    # Anything the placebo also producs is discounted as artifact; tripwire collapse disqualifies the undetached arm. And the eventual faithfulness verdict doesn't come from these training metrics at all - it comes from running the consistency eval panel on the S3 checkopints of whichever arms survive, where the requirement is that undetrached 
+    # beats both detached and baseline on sibling-flip/substituion tests (otherwise the loss taught rationalization, not faithfulness).
+
+# Inspecting wandb runs for plots: 
+
+
+
+All 16 ablation arms are launched and initializing — the full 128-GPU cluster is now running the loss-function ablation fleet. But the design changed mid-flight because of something I found before launching, which you should know about first.
+
+Critical finding: the Phase-A warmup checkpoints are poisoned
+
+The plan on record was Phase-B arms warm-started from the 08-19 GT-warmup checkpoints. I pulled their W&B results before building on them: all three warmup arms (z8fyo0, jwgs1s, placebo v6ngpl) have val cycle_loss = 0.2·ln(4) exactly — the uniform floor, identical to the placebo — meaning they learned zero ranking signal, while also wrecking the main task (val route 1.10–1.60 vs 0.24 baseline, language 3.57 vs 0.03). Root cause: the wave-1 configs never set cycle_delta_token_ce=true, so they trained full-span CE — the exact configuration the probe analysis had already shown dilutes the signal below the noise floor. So Phase-B-from-warmup is dead, and I pivoted the fleet to answer the sharper question: the probe recipe works (0.548 acc) and co-training fails — which ingredient rescues co-training?
+
+The fleet (16 jobs × 8 A100s, all fresh-init 2-epoch smokes, matched bs=1/K=4)
+
+┌───────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│             Axis              │                                                                 Arms                                                                 │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Delta-CE × weight × detach    │ det/undet × w=0.2/0.05/0.01, all with delta-token CE (the w=0.2 pair is a gen-3 rerun isolating delta-CE alone)                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Delta-CE ablation             │ undet full-span w=0.05 — separates "low weight rescues it" from "delta-CE rescues it"                                                │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ GT-reader (Phase-A done       │ gt_traj + delta-CE at w=0.05 and w=0.2                                                                                               │
+│ right)                        │                                                                                                                                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Controls                      │ placebo (shuffled pairing) and 0.3m-noise steganography tripwire, both at the central undet/w=0.05 setting                           │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Seeds                         │ seed-7 replicates of the central det/undet pair                                                                                      │
+├───────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Loss-family comparison        │ contrastive-only w=0.1 and w=0.5 at matched bs=1 (old contrastive smokes were bs=2 — not comparable), plus a combined                │
+│                               │ contrastive+cycle arm                                                                                                                │
+└───────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+Baselines aren't re-run: nfso8q/8nauws (two seeds, same bs=1 recipe, checkpoints on S3) are the comparators. All arms upload checkpoints to S3, so the faithfulness eval panel can run on them afterward.
+
+Analysis gates (recorded in memory): a cycle arm claims signal only if val cycle_loss/weight < ln(4) *and* rank acc > 0.25; task-damage kill = >5% val route/speed degradation vs baseline; anything the placebo also shows is an artifact; tripwire collapse = steganography in the undetached arm.
+
+Bookkeeping: generator + all 16 configs committed and pushed as 17 individual commits (f4f7a52…); memory updated with the Phase-A finding and all workload IDs. Every launch succeeded first-attempt; only packaging skip was the .git pack (harmless). Cycle arms should finish in ~8–9h including extract, contrastive arms sooner — results land in W&B under research-interns/simlingo-contrastive as smoke_abl_*.
+
+One unrelated flag: your two Bench2Drive full-eval sweeps (tgppf4/59igwt) failed on 08-20 after ~18–20h. I didn't investigate — different project — but it's waiting on you.
+
+✻ Crunched for 11m 7s · 1 monitor still running
+
+※ recap: Testing whether the cycle/contrastive alignment losses actually improve faithfulness and accuracy: all 16 ablation arms (delta-CE, weight, detach, controls, contrastive comparison) are now running on 128 GPUs. Next: pull W&B val metrics when arms finish in roughly 8 hours. (disable recaps in /config)
+
+❯ Can you walk me through all of the 16 ablations that you have launched please?
+
+Here's the full walkthrough. The organizing logic: the Stage-0 probe proved the ranking task is learnable (val acc 0.548 vs 0.25 chance), but it did so under three special conditions at once — delta-token CE, frozen trunk, and loss-only training — while every co-training attempt (which had none of the first condition and shares the trunk with the main task) learned nothing and destroyed driving performance. The fleet decomposes which condition matters, plus a parallel track comparing the cycle loss against the contrastive InfoNCE as a loss family. Every arm is a fresh-init 2-epoch smoke at bs=1, K=4, gradient checkpointing, warmup 1000, non-preemptible, with S3 checkpoints for later faithfulness evals. Baselines are the already-finished nfso8q/8nauws (w=0, same recipe, two seeds).
+
+Group 1 — Does delta-token CE alone rescue co-training? (2 arms)
+
+1. cyc-det-delta-w0.2 (ptv18e) and 2. cyc-undet-delta-w0.2 (5qfvb4): exact reruns of the failed gen-3 arms (girvw1/sucszd) with one change — delta-token CE on, so the ranking CE is scored only over the discriminating clause ("nudge left" vs "nudge right") instead of the whole instruction. Everything else, including the w=0.2 weight, is held at gen-3 values. If these show signal where gen-3 didn't, delta-CE was the missing ingredient. Det vs undet is the standing explainer-vs-closed-loop question: detached trains the trunk to read trajectories; undetached also pushes gradient into the waypoint predictions so the actions themselves become instruction-decodable — the arm you actually care about for faithfulness.
+
+Group 2 — Or is it gradient scale? Weight sweep (4 arms)
+
+3. cyc-det-delta-w0.05 (4xwnos), 4. cyc-undet-delta-w0.05 (ye10a0), 5. cyc-det-delta-w0.01 (xru6f9), 6. cyc-undet-delta-w0.01 (kd20pp): the standing suspect for why co-training wrecks the main task is gradient scale — the cycle pass backprops K²=16 sequences per step against the main pass's 4. Only w=0.2 has ever been tried. These four test whether 4×/20× smaller weight lets the ranking signal emerge without the task damage. The w=0.05 pair is the fleet's "central" setting — the controls and seed replicates all anchor to it. Reading the grid: if w=0.2 works fine with delta-CE, weight was never the problem; if only w≤0.05 works, gradient scale was; if nothing works even at w=0.01, co-training with a shared trunk is the problem and the "separate params" idea becomes the next move.
+
+Group 3 — Separating delta-CE from weight (1 arm)
+
+7. cyc-undet-fullspan-w0.05 (6hzp34): full-span CE (delta off) at the low weight. This is the deconfounder for groups 1–2: if the w=0.05 delta arms succeed, you can't tell whether delta-CE or the lower weight did it — unless this arm, which has the lower weight but not delta-CE, still fails. Fails → delta-CE is necessary. Succeeds → weight alone was the fix and delta-CE is optional.
+
+Group 4 — GT-reader arms: Phase-A redone correctly (2 arms)
+
+8. cyc-gtreader-w0.05 (g2ivas) and 9. cyc-gtreader-w0.2 (w3c1mj): cycle_use_gt_traj=true + delta-CE — the trunk learns to rank instructions against ground-truth trajectories (inherently detached) while co-training the main task. This is what the 08-19 Phase-A warmup was supposed to be, minus the bug that made it inert (no delta-CE). Two purposes: (a) if these learn signal and keep the main task healthy, the GT→pred curriculum idea is resurrected with valid warmup checkpoints to branch from; (b) GT trajectories are the cleanest possible ranking target — if even these fail in co-training, the problem is the co-training setup itself, full stop, not the trajectory source.
+
+Group 5 — Controls (2 arms)
+
+10. cyc-placebo-w0.05 (o93zsc): central undetached arm but with cycle_shuffle_traj=true — the trajectory↔instruction pairing is re-randomized every step, so there is nothing real to learn. Whatever this arm shows (in rank acc, task damage, or downstream faithfulness metrics) is by construction an artifact of having the auxiliary gradient, not of alignment. Every claimed effect in the real arms gets measured against this floor.
+
+11. cyc-tripwire-n03 (0bchan): central undetached arm + 0.3 m Gaussian noise on the trajectory before the cycle pass. The undetached arm's known failure mode is steganography — the model winning the ranking game by encoding instruction identity in sub-perceptual waypoint jitter rather than in genuinely different behavior. The probe already showed the GT signal survives 0.3 m noise (coarse geometry carries it); if the undetached co-trained arm only shows signal without noise, that's the steganography signature and the arm is disqualified even if its metrics look good.
+
+Group 6 — Seed replicates (2 arms)
+
+12. cyc-det-delta-w0.05-s7 (92o7s0) and 13. cyc-undet-delta-w0.05-s7 (ip2fb4): seed-7 copies of the central pair. The pre-registered rigor battery requires ≥2 seeds, and the smoke-scale noise floor is real — the earlier weight sweep's verdicts sat within ~0.04 baseline-rerun noise. Det-vs-undet differences only count if they replicate across both seeds.
+
+Group 7 — The loss-family comparison: contrastive InfoNCE (3 arms)
+
+14. ctr-w0.1-bs1 (68lt9a) and 15. ctr-w0.5-bs1 (ve8alj): contrastive-only arms, cycle off. w=0.1 was the sweet spot from the earlier weight sweep (it even beat baseline on route loss), w=0.5 is the original headline setting. The reason these needed re-running rather than reusing the old sweep: every prior contrastive smoke ran at bs=2 without gradient checkpointing, while the whole cycle family runs bs=1 — different steps-per-epoch, different effective batch, not comparable. These two put InfoNCE on identical footing so "cycle loss vs contrastive loss vs baseline" is finally a clean three-way comparison on the same yardstick.
+
+16. combo-c01-cyc005 (llk007): contrastive w=0.1 + undetached delta-CE cycle w=0.05 together. The two losses attack different weaknesses — InfoNCE shapes embedding geometry cheaply, the cycle loss forces the deployed language pathway to decode instructions from actions — so they could compose additively, be redundant, or interfere. One arm answers which.
+
+How the results get read
+
+Pre-registered gates, same as recorded in memory: a cycle arm claims signal only if val cycle_loss/weight drops below ln(4)=1.386 and val cycle_rank_acc clears 0.25 chance (both together, because "at chance" and "pinned uniform" look identical on a dashboard but mean different things). Task-damage kill: >5% degradation in val route/speed vs nfso8q. Anything the placebo also produces is discounted as artifact; tripwire collapse disqualifies the undetached arm. And the eventual faithfulness verdict doesn't come from these training metrics at all — it comes from running the consistency eval panel on the S3 checkpoints of whichever arms survive, where the requirement is that undetached beats both detached and baseline on sibling-flip/substitution tests (otherwise the loss taught rationalization, not faithfulness).
+
+Watch them in W&B under research-interns/simlingo-contrastive, runs named <timestamp>_smoke_abl_* — cycle arms should land in ~8–9h from launch, contrastive arms sooner 
+
+# DeepSpeed sharded checkpoints (model/optimizer weights, no offline wandb file saved here) - no full loss curve baked in, but the checkpoint's top-level metadata non-tensor often includes epoch, global_step, and the ModelCheckpoint callback's monitored score, which would ytive us 3 real data points (epoch 0/1/2) without retraining. 
+    # Cloud wandb for this run has zero training metrics
+    # The S3 checkpoints (epoch=000/001/002.ckpt, last.ckpt) are DeepSpeed sharded 
+
+    # download the lateest epoch and inspect that metadata - will give at most 3-4 sparse data points (once per epoch), not a smooth curve, but real signal on whether loss/val metric improved. 
+
+# If that metadata doesn't include the monitored metric (some LightningxDeepSpeed configs don't save it there), then genuinely nothing richer exists short of retraining with wandb sync fixed. 
+
+# First real signal recovered - epoch 2 (final of 3): val/loss = 0.6583 at global_step 132, 327 (6.35M samples seen). 
+    # That's an actual per-epoch checkpoint metric, extracted from the DeepSpeed checkpoint's ModelCheckpoint callback staet (had to stub out a missing transformrs submodule to get torch to unpickle it, but numbers are areal). 
+
+    ┌───────────┬─────────────┬──────────────┬──────────┐
+│   Epoch   │ Global step │ Samples seen │ val/loss │
+├───────────┼─────────────┼──────────────┼──────────┤
+│ 0         │ 44,109      │ 2.12M        │ 1.0444   │
+├───────────┼─────────────┼──────────────┼──────────┤
+│ 1         │ 88,218      │ 4.23M        │ 0.7574   │
+├───────────┼─────────────┼──────────────┼──────────┤
+│ 2 (final) │ 132,327     │ 6.35M        │ 0.6583   │
+└───────────┴─────────────┴──────────────┴──────────┘
+
+# Monotonically decreasing, health convergence, no sign of divergence/plateau - training looks like it went well. 
+    # This is only 3 epoch-level points (no itra-epoch step curve, no train loss, no other metrics like the contrastive loss component specifically), but its real signal and confirms no retrain is needed just tk now this run went. 
+    # If you want the full step-level curves (train loss, contrastive loss term, LR scheduler, etc.), that would require either fixing sync_wandb() and rerunning, or writing a proper checkpoint-metadata extractor for all metrics logged in the Lightning callback state. 
+
+# wandb logs only show the launcher's wrapper error ("train.py exited with code 1"), not train.py's actual traceback. Let me check what other files are attached - the real subprocess stdout/stderr should be captured somewhere. 
+    # The subprocess's real stderr never reached wandb log (wandb only captures the parent's own stdout, not the inhereited fd from subprocess.run). 
+
+    # Root cause bug: Error locating target "simlingo_training.models.driving.DrivingModel" - a Hydra config that doesn't resolve. Let me confirm this is consistent across the fleet and find why the class path broke. 
+        # figure out the bug! 
+        # look into the DrivingModel specificallt, rhe adaptors, and how to make better adaptors perhaps
+        # How do we embed really rich representations between the commands and the trajectory instructions?
+
+    # OCI rate limit, how to fix this (wraps the same OCI query) after backing off the rate limit. 
+    # InternVL2-revision theory (to reproduce this locally before touching code, rather than commit a guessed fix). 
+
+# Line 51 of adaptors.py has a stray text fragment can you inejected mid-function, breaking the file wiht a SyntaxError. 
+
+# Restores the file exactly back to its corruption state. 
+    # dry-run passes? pushed. 
+
+# contrastive loss alone, weight 0.1 (previously found sweet spot)
+# contrastive loss alone, weight 0.5 (stronger)
+
+# cyc-undet-delta-w001 (cycle loss, gradients flow through, weight 0.01 (very weak))
+# cyc-undet-delta-w005 (cycle loss, gradients flow through, weight 0.05 - central/main arm)
+# cyc-undet-delta-w00t-s7 (same as abopve, different seed (checks it's not a fluke))
+# cycle loss, gradients flow through, weight 0.2 (strong)
+# cycle loss, gradients blocked, weight 0.01
+# cycle loss, gradients blocked, weight 0.05
+# same as above, different seed 
+# cyc-det-delta-w02 (cycle loss, gradients blocked, weight 0.2)
+# cyc-undet-fullspan-w005 (like the central arm, but the scores the whole output instead of just the changed part)
+# cyc-gtreader-w005 (cycle loss reads the ground-truth trajectory instead of the model's own prediction, weight 0.05)
+# cyc-gtreader-w02 (same GT-reader setup, weight 0.2)
+# cyc-placebo-w005 (control: same setup as the central arm but with trajectories randomly shuffled (should show no real signal))
+# cyc-tripwire-n03 (control: central arm plus 0.3m of noise added to trajectories, to catch the model "cheating")
+# combo-c01-cyc005 (contrastive w=0.1 + cycle, w=0.05) combined, to see if they stack 
+
+# Bottom line: this sweep is hunting for the specific combination (detach vs not, weight, delta vs full-span) that lets the cycle loss actually teach something, after every earlier attempt either learned nothing or hurt the main driving task 
+    # all 16 ablatiosn relaunched 
+
+# All 16 relaunched runs are alive and progressing 
+
+# Alive and progressing (2 already past cluster-init into EXPERIMENT_RUNNING, none have failed) -- to early to confirm the fix since the old bug crashed runs at ~26-39 min in. Checking back in 30 min once they'd be past that window. 
+
+# question the contrastive loss idea and see if we can implement it in both ways 
+    # i.e., in both directions 
+    # i.e., when we sample commands, and comapre this with commands 
+    # and when we compare this the other way from actions to commands (i.e., are actions instruction-decodable in this maner)? 
+# inverse cyclic loss 
+    # kind of like a generator and discriminator! 
+
+# Core hypothesis of inverse cycle consistency loss! 
+
+Core hypothesis: A self-supervised cycle-consistency loss — where the model's predicted trajectory is fed back through the network to try to reconstruct the causal part of the instruction that produced it — can force a driving VLM's language explanations to be genuinely faithful to its actual driving behavior, without any human-labeled faithfulness data or expensive LLM-judge scoring.
+
+Why that would be a breakthrough: Right now the field (and your own embedding-grader attempt, see memory) either can't measure faithfulness cheaply or gets debunked numbers when it tries (83.9% → really 25.3% vs 10% chance). If closing the loop between language and action during training — rather than judging it after the fact — produces trajectory-grounded explanations, that's a fundamentally different, cheaper, and more principled way to solve interpretability for driving VLMs: faithfulness as a training-time property, not a post-hoc eval.
+
+The three sub-hypotheses this specific fleet isolates (any one being wrong kills the effect):
+
+1. Closing the loop matters — gradients must flow undetached from the trajectory prediction back into the language branch (not "detached/explainer-only") for the model to learn real grounding rather than a shallow correlation. (det vs undet arms test this.)
+2. You must target the causal tokens — scoring only the "delta" tokens that differ between counterfactual instructions (not the whole sequence) is what makes the signal learnable at all. (delta vs full-span arms test this — this is the one that already killed every prior attempt: full-span CE at w=0.2 "learned nothing AND wrecked the main task.")
+3. There's a weight sweet spot — strong enough to teach something, weak enough not to destroy the primary driving loss. (the 0.01/0.05/0.2 sweep.)
+
+The controls are what make this science, not confabulation:
+- Placebo (shuffled instruction-trajectory pairing) should show no learning signal — if it does, the effect is an artifact, not real grounding.
+- Tripwire (0.3m trajectory noise injected) checks the model isn't gaming the loss with a shortcut instead of genuinely reading the trajectory.
+- GT-reader arms isolate whether the effect needs the model's own prediction in the loop, or works just as well reading ground-truth trajectories (if GT-reader works just as well, the "closed-loop" story is wrong).
+- Seed-7 replicates on the central arm rule out lucky-seed noise.
+
+The win condition: if the central arm (undetached + delta-CE + w=0.05) shows real learning (val loss dropping like wzar5x's 1.04→0.76→0.66) and beats detached/full-span/GT-reader variants and placebo shows nothing — that's evidence you've found a genuinely novel, cheap mechanism for training driving VLMs whose stated reasoning is causally tied to their actions, rather than post-hoc rationalization. That's the paper. 
+    # how do we avoid post-hoc rationalization and also measure this reasonably through some benchmark?
+
+# how can we creatively improve the pre-training strategy?
+
+# focus on a series of experiments, get them moving. 
+# write the paper! 
+
+
+# Alpamayo Code as a Reward 
+
+# 1. per-clip, we get the obstacle parquet, egomotion-waypoints, GT chain-of-causation text, camera overlay JPEG. The waypoints are sliced at the training keyframe (t0_us) and truncated to 64 waypoints (6.4s), so the generator only ever 
+sees numbers a real rollout can be compared against. 
+
+# 2. Real rollout sampling (run_real_rollout_gen.py, GPU phase, once per clip): 12 real Alpamayo rollouts (CoC text + trajectory) cached to S3. 
+    # This exists specifically because of the GT-overfit bug (gating against GT let functions pass by hardcoding GT's literal numbers, then score every real rollout identically) 
+
+# 3. Dossier: quantiative scene description - decisive obstacle tracks, GT trajectory facts over esxactly the prediction window, GT CoC. 
+
+# 4. Generation (generate.py): 3-step LLM chain (gpt-4o at scale): (1) name decisive events, (2) define what an acceptable (not GT-exact) rollout looks like, (3) emit reward(claims, traj) +components(claims, traj). 
+# The prompt hard-teaches the conjunction principle: credit should require both a commitment claim (family-level, e.g., speed profile = "Decelerate") and a graded trajectory execution (perceptual claims that get small mention-only credit).
+
+# 5. Select-then-verify approach (analyze_group_rollouts.select_and_verify:128): the candidate scores all 12 cached rollouts, takes the argmax, and the gate corrupts that argmax rollout itself (not GT, not the other 11). Though, should we also be corrupting other trajectories here?
+
+# 6. Gate.py: pass writes reward_fns/<clip>.py; fail feeds structured feedback into a retry, up to 5 attempts; exhaustion = clip has no reward function (exluded fromtraining, hence 456 clips in the 04ey5y run).
+
+# The perturbation checker (build_perturbationbs, gate.py:168):
+
+Five corruptions of the argmax rollout, each designed to get one specific perturbation check:
+
+1. Perturbation: reversed_traj
+    What does this corrupt? trajectory-time reversed, claims kept 
+    What it catches? Order/timing-insensitive checks (aggregates, abs(), max-min survive reversal)
+
+2. No reaction traj?
+    # What this corrupts? constant-velocity trajectory, claims kept 
+    # Wthis catches "some deviation happened" checks; absolute-speed ceiling son already-slow scenes
+
+3. gutted_claims    
+    # Remove reasoning, trajectory kept 
+    # Catches trajectory-only components (survive thsi with identical credit, by construction)
+
+4. No commitments
+    # Commitments+causal revmoved, perception kept 
+    This catches components gated only on perception 
+
+5. corrupted identity
+What this corrupts: commitment flipped to a valid opposite (left<-> right, decelerate<-> accelerate, lateral<-> keep lane)
+# This catches the claim-presence checks that never verify claim-trajectory agreement. 
+
+Two hygeine rules: trajectory perturbations that deviate <2m from the original are skipped (stationary clips would reproduce the positive), and wayponts are tranformed then re-featurized, so derived fields (min speed, stop_event) stay internally consistent. 
+
+
+Gate verification approach: 
+    # 
+
+
+# maybe the issue is we are only looking at one argmax?
+# we ashould be considering all other valid rollouts?   
+    # those should not do as well if the argmax one gets 0.7? 
+        # but we make the reward function with GT here...
+
+# The parser: 
+    # The parser doesn't run when the LLM writes the function, it runs during GRPO training, thousands of times, with no LLM available. 
+        # Offline, once per cliop: LLM writes reward(claims, traj). 
+        # During training, every step: LLM writes reward(claims, traj).
+
+        # During taining, every step: a rollout arrives as free-form reasoning text. Plain Python can't read English, so something must convert "I'll yield to the pedestrian crossing" into objects the function can check. 
+            # That's the parser. It runs on every rollout's text, then the function runs on the parser's output. 
+                # So we extract ords from the reasoning and check this against the GT CoC?
+            # 
+
+# Parser runs at three points. 
+    # The flow for a grooup of 12 rollouts: 
+        # Step 1: parse everything. Each rollout i has reasoning r_i and waypoints t_i. 
+            # For each one: parse_coc_trace(r_i) -> claims_i (list of PerceptualClaim / CommitmentClaim / CausalClaim objects)
+            # extract_features(t_i) -> traj_i (speed series, heading, laterl offset, derived stats)
+
+        # Step 2: score everything. The clip's reward function runs 12 times: score_i = reward(claims_i, traj_i). The function nevers sees the text, only the parsed objects. 
+
+    # Then this diverges by context: 
+        # During GRPO training, the 12 scores are it. GRPO normalizes them within the group into advantages - rollouts scored above the group mean get pushed up. 
+        # Rollouts scored above the group mean get pushed up, below get pushed down. 
+        # Done; parser's job was translating text (objects so the function could score).
+
+    # During curation (the gate, what decided if the function is kept at all): 
+        # after scoring, 
+        # 1. Take the argmax rollout (say rollout 7).
+        # 2. Build 5 corruptions of rollout 7. Note the corruptions are made on the parsed objects and waypoints, not the text: gutted_claims empties claim_7's lists; corrupted_identity flips a CommitmentClaim's direction field; reversed_traj reverses the waypoints and re-runs feature extraction. This is the parser's third role (corruption is onyl cleanly possible because reasonign is structured objects, not prose we have to rewrite). 
+            # i.e., we extract the commitment, perceptual, or causal main phrases and corrupt these 
+        # 3. Score intact rollout 7 and the 5 corruptiosn with the same function (i.e., is this a good function perturbation checker?)
+        # 4. We pass this iff the intact >= 0.7 and every corruption pair drops >= 0.4. 
+
+    # Also, at generation, there is a one-time use: the GT Coc is parsed and shown to the LLM as a vocabulary refernce ("this scene's expert reasoning parses to these canonical keys"), so it writes checks against keys the parser can actually emit. 
+    # Parser = the fixed translation layer betwen free-form reasoning and the Python function, used identically at curation time and training time (which matters, because the function is verified and deployed against the exact same represntation)
+
+    # if we aren't generating LLMs during training, time we can use the parser thing?
+        # or we cache this?
+    # But we should cache this once offline and then move to doing iterative caches. 
+
+    # Are 0.7 / 0.4 principled? No, these are inhereited heuristics. 
+
+# chicken and egg problem 
+    # with generated reasoning 
+# and GT reasoning. good fucntion?
+
+Measured impact on the 12, 468 cached real rollouts: 
+┌──────────────────────────────────────┬────────┬───────┐
+│                metric                │ before │ after │
+├──────────────────────────────────────┼────────┼───────┤
+│ rollouts with zero commitments       │ 1.2%   │ 0.6%  │
+├──────────────────────────────────────┼────────┼───────┤
+│ rollouts with zero perceptual claims │ 1.3%   │ 0.5%  │
+├──────────────────────────────────────┼────────┼───────┤
+│ mean unparsed text fraction          │ 37.7%  │ 31.8% │
+├──────────────────────────────────────┼────────┼───────┤
+│ rollouts >50% unparsed               │ 24.6%  │ 21.0% │
+└──────────────────────────────────────┴────────┴───────┘
+
+# "The parser finds commitments by looking for words like "stop." It didn't notice that in the phrase "stop sign," the word "stop" is part of an object's name, not something the car promises to do. 
+
+# "The intesection is controlled by a stop sign, so I stop and wait" - parsed as three commitments to slow down (one from "stop sign")
+
+
+# SimLingo ablations: 
+    # The probes and the co-training runs measured different things
+
+    The Stage-0 probe (0.548 acc, passed the 0.40 gate) trained the ranking task alone on a frozen setup - it showed the task is learnable in isolation. 
+
+    Co-training adds a second trunk backward pass into a live DeepSpeed fp16 training run, and Friday showed that this backward pass itself destroys training. 
+
+The second trunk pass: The cycle loss asks the model: "given the trajectory you just predicted, which of the K canddiate instructiosn produced it?" 
+    # To answer that the code runs the LLM a second time each training step (first pass is normal driving forward with image+instruction->trajectory) and the second pass is the trajectory embedding+candidate instruction->a ranking score. That second run is the second trunk pass. 
+        # The loss here sends gradients back through the LLM a second time (where were gradients being sent before)? //?
+
+# DeepSpeed fp16: SimLingo trains with DeepSpeed, which keeps the model in 16-bit floats and uses "loss scaling" (multiply loss by a big number so tiny gradeints don't round to zero, divide back later). Machinery is tuned for normal single forward/backward. 
+    
+# Parser wave 2 -> spec compiler -> spec-based generator -> head-to-head prototype on shard 0 (~$3 of gpt-4o, per the plan you approved).
+
+# Think about the entier sequential process 
+# What are we doing and is it a good direction?
+
+# Mathematically, how is everything working. 
+# How do we convey this idea with a clear narrative and justify it?
+# What further experiments do we have to do? If it is not working, how do we get it to work?
+# What is the main contribution we want to convey here?
+
+# SimLingo debugging: 
+
+"branches" = two possible values inside torch.where. This line is a vectorized if/else:
+
+torch.where(count > 0, loss_sum / count, 0.0)
+# condiiton, if value, else value
+
+# What's being averaged: every loss in the codebase is returned as two vectors of length B (batch size): 
+    - loss[i] = the loss value for sample i 
+    - count[i] = whether/how much sample i actually participates (1 if it contributed, 0 if not)
+
+summarise_losses then computes each loss's batch average as loss.sum() / count.sum() - i.e., average over only the samples that participated, not over all B. For the driving losses, every sample always participates, so count.sum() >= 1 always. But the cycle loss only applies to samples that have counterfactuals ibligns to rank against - a sample whose dreamer group is a singleton (no altenative instruction for that frame, common in the data) gets count = 0. On a step where a GPU's entire batch is singletons, count.sum() == 0 for the cycle loss (NaN gradient). 
+
+# Gradient isn't computed at all once (built up by the chain rule, one operation at a time, flowin gbackward through the same ops the forward pass used):
+
+Forward, the op was: 
+    avg = loss_sum / count 
+
+Backward, autograd asks "I know the gradient of the final loss with respect to avg (call it g, coming from upstream). What's the gradient with respect to loss_sum? avg = loss_sum x (1/count)
+
+The answer is grad_loss_sum = g x (1/count)
+
+So the division by count in the backward pass is the derivative of the division we wrote in the forward pass. 
+    # Every op contributes its own derivative as the gradient flows through it; a divide-by-count forward means a multiply-by-1/count backward.
+
+# clear ideas and blockers to overcom3 by 3pm. 
+# ablations we ran. 
+# clipgen tuning and the new run. 
+    # new approaches to consdier here? compared to other baselines. 
+# measuring faithfulness clearly. 
+    # vlabench
+
+# gradient and loss recap for contrastive loss idea: 
+Both aux losses share one goal; force the model's reasoning (instruction/text) and its action (predicted trajectory) to actually depend on each other (but they push gradients into different parts of the odel). 
+
+The setup common to both ideas is that the dreamer data gives K counterfactual siblings of the same frame - identical camera image, K different instructions, each with its own trajectory. Since the image is identical within the group, the instruction is the only thing that can explain which trajectory was produced. 
+    # The main task losses aer waypoint/route regression + language CE and train as usual (the aux losses are added on top)
+
+
+# Aux loss 1 - contrastive (InfoNCE). Two embeddings per sample: a text one (LLM hidden states mean-pooled over the instruction tokens -> text_proj) and a trajectory one (the model's own predicted waypoints+route -> traj_proj). Within a group, we form a KxK similarity matrix that is scored symmetrically: each instruction must match its trajectory, not a sibling's. 
+    # // what if we penalize other cross-over pairs that are not appropriate here?
+    Gradients: the trajectory side is detached (deliberately, those predictions are already governed by the regression loss, and we don't want two objectives fighting over them). // So do we just feed oin the loss through the lLm decoder and not the actual trajectory part? So all gradient flows through the text side only: into text_proj and back into the LLM's instruction representations. In words: "Rehspae how you represent the instruction so it points at the action you actually took." The action itself is never moved by this loss. 
+
+# Aux loss 2 - cycle (inverse ranking). A second, vision-free forward pass through the LLM trunk; feed in the predicted trajectory (through wp_encoder) plus a template "which insrtuction produced this?", then measure the token cross-entropy of each of the K candidate instructions behind it?     (// how many answsrs are we expecting here for this second question?)
+    #T The loss says the true instruction must rank cheapest among its sibligns (softmax over the negated CEs, column-centered to cancel each instruction's intrinsic "cheapness")
+
+    // what is causing the big dip in the scores?
+    // string-matching issue, more alternatives... 
+    // regex matching
+
+# CHECKPOINT 
+    # Get B2D results for all K values on multiple routes 
+
+# compare with the singleton approach as well. 
+    # discard K=1
+    # do random bathc shuffling 
+
+# K=1 counterfactuals, etc. 
+# probe and decode at various hidden states?
+    # where does the misalignment actually occur? perhaps per category?
+
+# The dreamer instruction-following eval: paired counterfactual-instruction arms 
+    # SimLingo dreamer-instruction following eval with 3 paired arms 
+
+# Clean controlled experiments and a paper! 
+
+# August 25th: 
+
+# AutoVLA counterfactual label generation for this 
+    # Look into this and see if we ca nmake this contrast8ive loss function pre-training approach also work well 
+
+# Quick RL post-training benchmark 
+
+
+# NVIDIA reasoning challenge 
+    # get the dataest with RL post-trained checkdpoints here. 
+
+# GRPO
+# LLM as a Judge 
+# Global Deterministic Heurisitc 
+# B2D and NAVSIM scores, competitive! 
+
+# qualtitative and quantitative results for alpamayo reasoning benchmark 
+
+# optm_lr = 2e-6 (min 2e-7) but logs show 1.3e-8. What was the actual LR here?
+# Whole run trained at warmup-ramp LR (1e-10 -> 1.7e-8), never reaching the configured 2e-6 - that explains the flat curves?
+
+
+# don't retokenize this
+
+# trajectory 
+    # speed wps and route wps  
+
+# proceed cautiously,
+# keep lane 
+
+# loss functions shouldn't penalizing th emodel for these things
+
+# maintain, decelerate, accelearte, 
+# could eb some instructions 
+# can go slow or can go fast
+    # comfort... 
+
+# no duh examples 
+    # should we filter these out?
+
+obvious things to do in certain scenes 
+# traffic lights
+    # want the model to say something 
+    # accelerate to the light because it turns green before accelerating 
+
+    # relying on idea llms have a better ability to output text than actions 
+
+// proceed safely, this is a low-signal sample 
+
+// other reasonign traces are higher signal samples because they constrain the reward function much better 
+    // discuss this better 
+    // high signal vs low signal reasonigns with respect to the reawrd function 
+
+
+// LLM as a judge 
+// or rule-based appraoch
+    // can filter out reasonings 
+
+# action-dreaming dataset for NAVSIM 
+# side thing 
+# how to construct action dreaming dataset for NAVSIM 
+    # unlock running on all arhcitectures 
+
+# ishaan code 
+    # reasoning dataset generated 
+
+# in the pre-training reicpe, currently only trajectory tokens 
+# hyperparameters tuned 
+
+# good eval 
+    # LLM as a judge 
+    # rule-based checker 
+
+# good eval should inform the other works here 
+# LLM as a Judge 
+# GRPO code as a reward 
+
+# take qwen's repo, use their sft code, 
+# create a dataset that is compatible 
+
+# reasoning dataset, run larger model on top of GT trajectories
+# input iamge + trajectrory, have a large model that explains the trajectory 
+
+# modify dataloaders 
+
+# k-disk in autovla codebase
+# find this in the repo 
+
+# Qwern's fine-tuning for poutine as well
+
+# config files for put it on lilypad 
+
+# SFT 
+
+# we first need a really good eval framework 
+
+# SDPO angle 
+# GRPO angle 
+# How do we imrpove the model's ability to understand Qwen's - 
+# data-efficiency! 
+
+# August 26th 
+
+# eval
+# simlingo training 
+    # computaiton graph 
+        # compare all aux losses and weight ablations 
+        # can we do something like loking into how this works in terms of feeding the trajectories in?
+            # tokenize or just feed in hidden states? i.e., last?
+# get qwen sft workign with dataset 
+# grpo grpo grpo , get updaetes for this, compare this to llm as a judge, baseline, and global 
+#    paper! 
+
+# Faithfulness Rule-based Checker:
+    # Designed as losy, with compensation (trajectory_to_meta_actions is a threshold compression, lossy at three stages):
+        # Banding: accel/curvature are classified against hard thresholds (gentle >= 0.15 m/s^2, strong >= 1.4, delta gate 0.8 m/s, min segment lengths 8-12 ticks - mirrored from the NVlabs autolabeler).
+            # Trajectories near a boundary flip labels; the controls themselves are also dequantized from trajectory tokens, adding quantization noise right where thresholds bite. 
+        # Aggregation: 64 steps (6.4s) collapse to one label per axis. The config docstring admits it: longest_non_neutral "can miss a short, late maneuever behind a long cruise phase"
+            # Why do we only keep one? Shouldnt' we keep all to clearly represent the overall trajectory?
+        # Compensation: the compatibility table is deliberately one-to-many (e.g., KEEP_DISTANCE is compatible with maintain/gentle-accel/gentle-decel) precisely because the extraction can't disambiguate. 
+
+
