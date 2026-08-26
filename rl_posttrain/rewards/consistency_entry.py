@@ -121,9 +121,10 @@ _REQUIRED_REWARD_KEYS: list[str] = [
 
 _ADE_THRESHOLD = 3.0
 _REASONING_THRESHOLD = -0.4
+_CONSISTENCY_MODES = ("binary", "two_tier", "axis_partial", "unparseable_neutral")
 
 
-def _get_reward_cfg(config: object | None) -> dict[str, float]:
+def _get_reward_cfg(config: object | None) -> tuple[dict[str, float], str]:
     """Extract reward parameters from Cosmos TOML [custom.alpamayo.reward]."""
     try:
         reward_cfg = getattr(config, "custom")["alpamayo"]["reward"]
@@ -135,7 +136,42 @@ def _get_reward_cfg(config: object | None) -> dict[str, float]:
     missing = [k for k in _REQUIRED_REWARD_KEYS if k not in reward_cfg]
     if missing:
         raise ValueError(f"Missing key(s) in [custom.alpamayo.reward]: {missing}")
-    return {k: float(reward_cfg[k]) for k in _REQUIRED_REWARD_KEYS}
+    mode = str(reward_cfg.get("consistency_mode", "binary"))
+    if mode not in _CONSISTENCY_MODES:
+        raise ValueError(f"consistency_mode must be one of {_CONSISTENCY_MODES}, got {mode!r}")
+    return {k: float(reward_cfg[k]) for k in _REQUIRED_REWARD_KEYS}, mode
+
+
+def effective_consistency(score: float, diag: dict[str, Any], mode: str) -> float:
+    """Map the raw binary consistency score + diagnostics to the score the
+    penalty actually uses (2026-08-26 ablation arms; baseline 1tbgsl was flat
+    at w=0.2 binary). Raw `consistency` stays logged unchanged in all arms so
+    curves compare across runs.
+
+    binary: raw score (unparseable/malformed = 0) -- the paper's shape.
+    two_tier: unparseable = 0.5 -- vagueness costs half a contradiction;
+      keeps the anti-evasion gradient while ranking lying below vague.
+    axis_partial: mean of per-axis agreement (0/0.5/1); unparseable and
+      malformed stay 0 -- densifies the binary signal.
+    unparseable_neutral: unparseable = 1.0 (penalty-exempt) -- evasion
+      CONTROL arm: predicted to drift toward unparseable phrasing.
+    """
+    if mode == "binary":
+        return float(score)
+    malformed = bool(diag.get("malformed", False))
+    unparseable = bool(diag.get("unparseable", False))
+    if mode == "two_tier":
+        return 0.5 if (unparseable and not malformed) else float(score)
+    if mode == "axis_partial":
+        if malformed or unparseable:
+            return 0.0
+        return (
+            float(bool(diag.get("lon_consistent", False)))
+            + float(bool(diag.get("lat_consistent", False)))
+        ) / 2.0
+    if mode == "unparseable_neutral":
+        return 1.0 if (unparseable and not malformed) else float(score)
+    raise ValueError(f"Unknown consistency_mode: {mode!r}")
 
 
 def mix_reward(
@@ -199,7 +235,7 @@ def compute_reward(
     )
     from alpamayo1_x_rl.utils.trajectory_decode import decode_rollout_trajectory
 
-    w = _get_reward_cfg(config)
+    w, consistency_mode = _get_reward_cfg(config)
 
     gt_fut_xyz = reference["ego_future_xyz"]
     predicted_fut_xyz, predicted_fut_rot = decode_rollout_trajectory(
@@ -235,19 +271,21 @@ def compute_reward(
         traj_tokenizer=traj_tokenizer,
         model_config=model_config,
     )
+    consistency_eff = effective_consistency(consistency_score, consistency_diag, consistency_mode)
 
     final_reward = mix_reward(
         l2_dist=l2_dist,
         comfort_score=comfort_score,
         reasoning_score=reasoning_score,
-        consistency_score=consistency_score,
+        consistency_score=consistency_eff,
         cot_decoded=cot_decoded,
         w=w,
     )
 
     logger.debug(
         f"[consistency_reward] l2={l2_dist:.3f} reasoning={reasoning_score:.3f} "
-        f"consistency={consistency_score:.0f} diag={consistency_diag} "
+        f"consistency={consistency_score:.0f} eff={consistency_eff:.2f} "
+        f"mode={consistency_mode} diag={consistency_diag} "
         f"cot_decoded={cot_decoded} final={final_reward:.4f}"
     )
     reward_dict: dict[str, float] = {
@@ -255,6 +293,7 @@ def compute_reward(
         "comfort_reward": comfort_score,
         "reasoning_score": reasoning_score,
         "consistency": float(consistency_score),
+        "consistency_effective": float(consistency_eff),
         "consistency_unparseable": float(bool(consistency_diag.get("unparseable", False))),
         "reward": float(final_reward),
     }
