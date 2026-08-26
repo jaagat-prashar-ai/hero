@@ -67,5 +67,10 @@ class SceneReferenceDataset(AlpamayoCosmosDataset):
             "obstacle_bbox_future": sample.get("obstacle_bbox_future", None),
             "cot": sample.get("cot", ""),
         }
+        from rl_posttrain.rewards.heldout_validation import sample_identity
+
+        clip_id, t0_us, future_hz = sample_identity(self.dataset, idx)
+        reference["scene_id"] = f"{clip_id}_{t0_us}"
+        reference["future_hz"] = future_hz
         reference.update(build_scene_reference(sample))
         return reference

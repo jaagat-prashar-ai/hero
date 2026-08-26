@@ -1,0 +1,65 @@
+# One-epoch GRPO smoke over the 20 sealed rewards published by the first
+# Full1050 GT-only offline shard. The offline corpus contains no policy
+# rollouts; this workload is its first test against 12 live samples per clip.
+name: alpamayo-rl-clipgen-offline20-grpo-smoke
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_clipgen_offline20_smoke"
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+    reward_mode: "code"
+    clipgen_only_clips: true
+    clipgen_chunks_only: true
+    clipgen_run_s3_prefixes:
+      - "code_as_a_reward/clipgen/offline_rewards/full1050-v1-shard0"
+    clipgen_s3_bucket: "research-datasets-chicago"
+    clipgen_min_corpus_size: 20
+    reasoning_dense_chunks: 2000
+    pai_s3_cache_prefix: "pai_warm_cache/ood_clipgen_offline20_smoke"
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/clipgen_offline20_grpo_smoke"
+    dp_shard_size: 4
+    train_epoch: 1
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "reasoning_vla_clipgen_offline20_grpo_smoke"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 14400
+  required_environment_variables: [HF_TOKEN, WANDB_API_KEY]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    CODE_REWARD_VERIFY_TOP_K: "1"
+    CODE_REWARD_DEBUG_DUMP_ROLLOUTS: "1"
+    CODE_REWARD_DEBUG_DUMP_RUN_ID: "clipgen-offline20-grpo-smoke"
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"

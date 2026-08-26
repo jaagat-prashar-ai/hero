@@ -45,7 +45,9 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -60,6 +62,7 @@ from code_as_a_reward.clipgen.sandbox import (
     run_reward_fn,
 )
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
+from code_as_a_reward.clipgen.target_contract import TargetContract, classify_rollout
 from pref_pairs.trajectory_features import extract_features
 
 
@@ -73,6 +76,24 @@ class SelectVerifyResult:
     scored: list[dict[str, Any]]
     argmax_rollout_id: int | None
     argmax_gate: GateResult | None
+    eligible_rollout_ids: list[int] = dataclasses.field(default_factory=list)
+    selection_status: str = "ok"
+    best_eligible_score: float = float("nan")
+    best_ineligible_score: float = float("nan")
+
+
+@dataclasses.dataclass
+class GroupValidationResult:
+    """Generalization/rank-resolution checks over one rollout group."""
+
+    passed: bool
+    selection: SelectVerifyResult
+    failures: list[str]
+    score_std: float
+    score_range: float
+    unique_scores: int
+    saturation_fraction: float
+    top_gates: dict[int, GateResult]
 
 _MAX_IMAGE_DIM = 1024
 
@@ -126,7 +147,14 @@ def load_reward_source(reward_fns_dir: str, clip_id: str) -> str | None:
 
 
 def select_and_verify(
-    clip_id: str, scene_id: str, hz: float, rollouts: list[dict[str, Any]], source: str
+    clip_id: str,
+    scene_id: str,
+    hz: float,
+    rollouts: list[dict[str, Any]],
+    source: str,
+    *,
+    target_contract: TargetContract | None = None,
+    reward_spec: dict[str, Any] | None = None,
 ) -> SelectVerifyResult:
     """Score every rollout in a group with `source`, take the argmax, then
     build the SAME perturbation battery used at generation time -- but from
@@ -139,11 +167,19 @@ def select_and_verify(
 
     scored: list[dict[str, Any]] = []
     claims_by_rollout: dict[int, Any] = {}
+    eligible_ids: list[int] = []
     for ro in rollouts:
         rollout_id = ro["rollout_id"]
         claims = parse_coc_trace(ro["coc_text"], scene_id=clip_id, rollout_id=rollout_id)
         traj = extract_features(ro["waypoints"], hz=hz, scene_id=scene_id, rollout_id=rollout_id)
         claims_by_rollout[rollout_id] = claims
+        eligibility = (
+            classify_rollout(target_contract, claims, traj)
+            if target_contract is not None
+            else None
+        )
+        if eligibility is None or eligibility.eligible:
+            eligible_ids.append(int(rollout_id))
         clipgen_error = None
         try:
             clipgen_score = run_reward_fn(fn, claims, traj)
@@ -166,20 +202,180 @@ def select_and_verify(
                 "clipgen_score": clipgen_score,
                 "clipgen_components": clipgen_components,
                 "clipgen_error": clipgen_error,
+                "target_eligible": True if eligibility is None else eligibility.eligible,
+                "target_eligibility_failures": []
+                if eligibility is None
+                else list(eligibility.failures),
             }
         )
 
     finite = [r for r in scored if np.isfinite(r["clipgen_score"])]
     if not finite:
-        return SelectVerifyResult(scored=scored, argmax_rollout_id=None, argmax_gate=None)
-    argmax = max(finite, key=lambda r: r["clipgen_score"])
+        return SelectVerifyResult(
+            scored=scored,
+            argmax_rollout_id=None,
+            argmax_gate=None,
+            eligible_rollout_ids=eligible_ids,
+            selection_status="no_finite_rollout",
+        )
+    eligible_finite = [r for r in finite if r["target_eligible"]]
+    ineligible_finite = [r for r in finite if not r["target_eligible"]]
+    best_eligible = (
+        max(float(r["clipgen_score"]) for r in eligible_finite)
+        if eligible_finite
+        else float("nan")
+    )
+    best_ineligible = (
+        max(float(r["clipgen_score"]) for r in ineligible_finite)
+        if ineligible_finite
+        else float("nan")
+    )
+    if not eligible_finite:
+        return SelectVerifyResult(
+            scored=scored,
+            argmax_rollout_id=None,
+            argmax_gate=None,
+            eligible_rollout_ids=eligible_ids,
+            selection_status="no_target_eligible_rollout",
+            best_eligible_score=best_eligible,
+            best_ineligible_score=best_ineligible,
+        )
+    # The candidate reward does not get to nominate an independently wrong
+    # rollout as its own positive. Among target-eligible samples, verify the
+    # highest scorer; callers separately enforce a margin over ineligible
+    # samples so a tie cannot silently reward both.
+    argmax = max(eligible_finite, key=lambda r: r["clipgen_score"])
     argmax_id = argmax["rollout_id"]
     argmax_claims = claims_by_rollout[argmax_id]
     argmax_waypoints = np.asarray(argmax["waypoints"], dtype=np.float64)
 
-    cases = build_perturbations(clip_id, argmax_claims, argmax_waypoints, hz, tag=f"argmax_r{argmax_id}")
+    cases = build_perturbations(
+        clip_id,
+        argmax_claims,
+        argmax_waypoints,
+        hz,
+        tag=f"argmax_r{argmax_id}",
+        reward_spec=reward_spec,
+    )
     gate_result = run_gate(source, cases)
-    return SelectVerifyResult(scored=scored, argmax_rollout_id=argmax_id, argmax_gate=gate_result)
+    return SelectVerifyResult(
+        scored=scored,
+        argmax_rollout_id=argmax_id,
+        argmax_gate=gate_result,
+        eligible_rollout_ids=eligible_ids,
+        best_eligible_score=best_eligible,
+        best_ineligible_score=best_ineligible,
+    )
+
+
+def validate_rollout_group(
+    clip_id: str,
+    scene_id: str,
+    hz: float,
+    rollouts: list[dict[str, Any]],
+    source: str,
+    *,
+    top_k: int = 2,
+    min_score_std: float = 0.05,
+    min_score_range: float = 0.15,
+    min_unique_scores: int = 3,
+    max_saturation_fraction: float = 0.25,
+    min_target_margin: float = 0.05,
+    target_contract: TargetContract | None = None,
+    reward_spec: dict[str, Any] | None = None,
+) -> GroupValidationResult:
+    """Require both semantic sensitivity and useful GRPO rank resolution.
+
+    The old gate could accept a binary or saturated function because it
+    verified only one self-selected argmax. GRPO also needs variance within
+    the group. Verify the top-k winners and reject flat/tied/saturated score
+    distributions before a reward enters training.
+    """
+    selection = select_and_verify(
+        clip_id,
+        scene_id,
+        hz,
+        rollouts,
+        source,
+        target_contract=target_contract,
+        reward_spec=reward_spec,
+    )
+    finite = [r for r in selection.scored if np.isfinite(r.get("clipgen_score", np.nan))]
+    scores = np.asarray([float(r["clipgen_score"]) for r in finite], dtype=np.float64)
+    score_std = float(np.std(scores)) if len(scores) else float("nan")
+    score_range = float(np.ptp(scores)) if len(scores) else float("nan")
+    unique_scores = len(set(np.round(scores, 3).tolist())) if len(scores) else 0
+    saturation_fraction = float(np.mean(scores >= 1.0 - 1e-9)) if len(scores) else 1.0
+    failures: list[str] = []
+    if selection.selection_status == "no_target_eligible_rollout":
+        failures.append("NO_VALID_ROLLOUT: no independently target-eligible rollout in group")
+    if (
+        np.isfinite(selection.best_eligible_score)
+        and np.isfinite(selection.best_ineligible_score)
+        and selection.best_eligible_score - selection.best_ineligible_score < min_target_margin
+    ):
+        failures.append(
+            f"target ranking margin {selection.best_eligible_score - selection.best_ineligible_score:.3f} "
+            f"needs >= {min_target_margin:.3f}; wrong rollouts tie or outrank valid ones"
+        )
+    if len(finite) != len(rollouts):
+        failures.append(f"only {len(finite)}/{len(rollouts)} rollouts scored finitely")
+    if not np.isfinite(score_std) or score_std < min_score_std:
+        failures.append(
+            f"rollout score std {score_std:.3f} needs >= {min_score_std:.3f}; "
+            "flat groups produce near-zero GRPO advantage"
+        )
+    if not np.isfinite(score_range) or score_range < min_score_range:
+        failures.append(
+            f"rollout score range {score_range:.3f} needs >= {min_score_range:.3f}"
+        )
+    required_unique = min(min_unique_scores, len(rollouts))
+    if unique_scores < required_unique:
+        failures.append(
+            f"only {unique_scores} distinct scores (rounded 1e-3), needs >= {required_unique}"
+        )
+    if saturation_fraction > max_saturation_fraction:
+        failures.append(
+            f"{saturation_fraction:.1%} of rollouts saturate at 1.0, needs <= "
+            f"{max_saturation_fraction:.1%}"
+        )
+
+    ranked = sorted(
+        (r for r in finite if r.get("target_eligible", True)),
+        key=lambda r: float(r["clipgen_score"]),
+        reverse=True,
+    )
+    top_gates: dict[int, GateResult] = {}
+    for ro in ranked[: min(top_k, len(ranked))]:
+        rollout_id = int(ro["rollout_id"])
+        claims = parse_coc_trace(ro["coc_text"], scene_id=clip_id, rollout_id=rollout_id)
+        cases = build_perturbations(
+            clip_id,
+            claims,
+            np.asarray(ro["waypoints"], dtype=np.float64),
+            hz,
+            tag=f"top_r{rollout_id}",
+            reward_spec=reward_spec,
+        )
+        gate = run_gate(source, cases)
+        top_gates[rollout_id] = gate
+        if not gate.passed:
+            failures.append(
+                f"top-{len(top_gates)} rollout {rollout_id} failed perturbation gate: "
+                + gate.feedback()
+            )
+    if len(top_gates) < min(top_k, len(rollouts)):
+        failures.append(f"only {len(top_gates)} finite rollouts available for top-{top_k} verification")
+    return GroupValidationResult(
+        passed=not failures,
+        selection=selection,
+        failures=failures,
+        score_std=score_std,
+        score_range=score_range,
+        unique_scores=unique_scores,
+        saturation_fraction=saturation_fraction,
+        top_gates=top_gates,
+    )
 
 
 def score_scene(dump: dict[str, Any], source: str) -> dict[str, Any]:
@@ -191,6 +387,8 @@ def score_scene(dump: dict[str, Any], source: str) -> dict[str, Any]:
         "scene_id": scene_id,
         "clip_id": clip_id,
         "hz": hz,
+        "reward_fn_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "reward_fn_source": source,
         "rollouts": result.scored,
         "argmax_rollout_id": result.argmax_rollout_id,
         "argmax_gate": None
@@ -204,6 +402,156 @@ def score_scene(dump: dict[str, Any], source: str) -> dict[str, Any]:
             "failures": result.argmax_gate.failures,
         },
     }
+
+
+def rollout_audit_rows(records: list[dict[str, Any]]) -> list[list[Any]]:
+    """Flatten complete rollout groups for a queryable W&B table.
+
+    Keep the exact CoC, waypoint trajectory, independent reward values, and
+    component decomposition together. The S3 dump remains the source of
+    truth; this is the human-facing index into it.
+    """
+
+    rows: list[list[Any]] = []
+
+    def score_or_negative_infinity(row: dict[str, Any]) -> float:
+        value = row.get("clipgen_score")
+        try:
+            return float(value) if np.isfinite(value) else float("-inf")
+        except (TypeError, ValueError):
+            return float("-inf")
+
+    for group_index, record in enumerate(records):
+        argmax_id = record.get("argmax_rollout_id")
+        ranked = sorted(
+            record.get("rollouts") or [],
+            key=score_or_negative_infinity,
+            reverse=True,
+        )
+        for rank, rollout in enumerate(ranked, 1):
+            rows.append(
+                [
+                    group_index,
+                    record.get("scene_id"),
+                    record.get("clip_id"),
+                    rank,
+                    rollout.get("rollout_id"),
+                    rollout.get("rollout_id") == argmax_id,
+                    rollout.get("target_eligible"),
+                    rollout.get("clipgen_score"),
+                    rollout.get("reward"),
+                    rollout.get("code_reward_raw"),
+                    rollout.get("traj_L2"),
+                    rollout.get("comfort_reward"),
+                    rollout.get("code_atomic_precision"),
+                    json.dumps(rollout.get("clipgen_components") or {}, sort_keys=True),
+                    rollout.get("coc_text", ""),
+                    json.dumps(rollout.get("waypoints") or []),
+                    "; ".join(rollout.get("target_eligibility_failures") or []),
+                    record.get("reward_fn_sha256"),
+                ]
+            )
+    return rows
+
+
+_ROLLOUT_AUDIT_COLUMNS = [
+    "group",
+    "scene_id",
+    "clip_id",
+    "rank_by_reward",
+    "rollout_id",
+    "is_argmax",
+    "target_eligible",
+    "clipgen_score",
+    "training_reward",
+    "code_reward_raw",
+    "trajectory_l2",
+    "comfort_reward",
+    "atomic_precision",
+    "component_scores_json",
+    "reasoning_coc",
+    "trajectory_waypoints_json",
+    "eligibility_failures",
+    "reward_fn_sha256",
+]
+
+
+def log_analysis_to_wandb(
+    records: list[dict[str, Any]],
+    out_dir: Path,
+    *,
+    project: str,
+    entity: str | None,
+    run_name: str | None,
+) -> str:
+    """Publish the complete select-then-verify audit as one W&B run."""
+
+    import wandb
+
+    run = wandb.init(
+        project=project,
+        entity=entity,
+        name=run_name or f"clipgen-grpo-rollout-audit-{time.strftime('%Y%m%d%H%M%S')}",
+        job_type="clipgen-grpo-rollout-audit",
+    )
+    rollout_table = wandb.Table(
+        columns=_ROLLOUT_AUDIT_COLUMNS,
+        data=rollout_audit_rows(records),
+    )
+    group_table = wandb.Table(
+        columns=[
+            "group",
+            "scene_id",
+            "clip_id",
+            "argmax_rollout_id",
+            "gate_passed",
+            "positive_score",
+            "max_perturbation_score",
+            "delta",
+            "gate_feedback",
+            "reward_fn_sha256",
+            "reward_fn_source",
+            "trajectory_overlay",
+        ]
+    )
+    for group_index, record in enumerate(records):
+        gate = record.get("argmax_gate") or {}
+        pos = gate.get("pos_score")
+        max_pert = gate.get("max_pert")
+        overlay_path = out_dir / f"{record['scene_id']}.overlay.png"
+        group_table.add_data(
+            group_index,
+            record.get("scene_id"),
+            record.get("clip_id"),
+            record.get("argmax_rollout_id"),
+            gate.get("passed"),
+            pos,
+            max_pert,
+            pos - max_pert if pos is not None and max_pert is not None else None,
+            "\n".join(gate.get("failures") or []),
+            record.get("reward_fn_sha256"),
+            record.get("reward_fn_source"),
+            wandb.Image(str(overlay_path)) if overlay_path.exists() else None,
+        )
+    payload: dict[str, Any] = {
+        "rollout_audit": rollout_table,
+        "group_audit": group_table,
+        "coverage/groups": len(records),
+        "coverage/rollouts": sum(len(record.get("rollouts") or []) for record in records),
+        "gate/pass_rate": (
+            sum(bool((record.get("argmax_gate") or {}).get("passed")) for record in records)
+            / len(records)
+            if records
+            else 0.0
+        ),
+    }
+    heatmap = out_dir / "heatmap.png"
+    if heatmap.exists():
+        payload["all_groups_heatmap"] = wandb.Image(str(heatmap))
+    run.log(payload)
+    run_url = run.url
+    run.finish()
+    return run_url
 
 
 def render_multi_overlay(frame, rollouts: list[dict[str, Any]], cam_intr, cam_extr, argmax_id, max_dim: int = _MAX_IMAGE_DIM):
@@ -303,7 +651,16 @@ def build_heatmaps(records: list[dict[str, Any]], out_path: Path) -> None:
     plt.close(fig)
 
 
-def analyze(dump_dir: str, reward_fns_dir: str, out_dir: str, render_images: bool = True) -> list[dict[str, Any]]:
+def analyze(
+    dump_dir: str,
+    reward_fns_dir: str,
+    out_dir: str,
+    render_images: bool = True,
+    *,
+    wandb_project: str | None = None,
+    wandb_entity: str | None = None,
+    wandb_run_name: str | None = None,
+) -> list[dict[str, Any]]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -330,6 +687,15 @@ def analyze(dump_dir: str, reward_fns_dir: str, out_dir: str, render_images: boo
 
     if render_images:
         render_overlays(records, out)
+    if wandb_project:
+        url = log_analysis_to_wandb(
+            records,
+            out,
+            project=wandb_project,
+            entity=wandb_entity,
+            run_name=wandb_run_name,
+        )
+        print(f"W&B rollout audit: {url}", flush=True)
     return records
 
 
@@ -339,8 +705,19 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("reward_fns_dir", help="local dir or s3://bucket/prefix of reward_fns/<clip_id>.py")
     parser.add_argument("out_dir")
     parser.add_argument("--no-overlays", action="store_true", help="skip image overlays (heatmap + JSON only)")
+    parser.add_argument("--wandb-project")
+    parser.add_argument("--wandb-entity")
+    parser.add_argument("--wandb-run-name")
     args = parser.parse_args(argv)
-    analyze(args.dump_dir, args.reward_fns_dir, args.out_dir, render_images=not args.no_overlays)
+    analyze(
+        args.dump_dir,
+        args.reward_fns_dir,
+        args.out_dir,
+        render_images=not args.no_overlays,
+        wandb_project=args.wandb_project,
+        wandb_entity=args.wandb_entity,
+        wandb_run_name=args.wandb_run_name,
+    )
 
 
 if __name__ == "__main__":

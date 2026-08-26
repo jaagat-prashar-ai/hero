@@ -70,6 +70,37 @@ def test_score_scene_trusts_a_genuinely_good_argmax():
     json.dumps(record, default=str)
 
 
+def test_group_validation_requires_rank_resolution_and_sensitive_winner():
+    reactive = _reactive_waypoints()
+    rollouts = [
+        {"rollout_id": 0, "coc_text": GT_COC, "waypoints": _wp3(reactive)},
+        {"rollout_id": 1, "coc_text": GT_COC, "waypoints": _wp3(reactive[::-1].copy())},
+        {"rollout_id": 2, "coc_text": GT_COC, "waypoints": _wp3(flattened_waypoints(reactive))},
+        {
+            "rollout_id": 3,
+            "coc_text": "I will proceed straight ahead, nothing notable in view.",
+            "waypoints": _wp3(flattened_waypoints(reactive)),
+        },
+    ]
+    result = agr.validate_rollout_group(
+        CLIP_ID, f"{CLIP_ID}_holdout", HZ, rollouts, GOOD_FN, top_k=1
+    )
+    assert result.passed, result.failures
+    assert result.unique_scores >= 3
+    assert result.score_range >= 0.15
+
+    flat = agr.validate_rollout_group(
+        CLIP_ID,
+        f"{CLIP_ID}_flat",
+        HZ,
+        rollouts,
+        LENIENT_FN,
+        top_k=1,
+    )
+    assert not flat.passed
+    assert any("std" in failure or "distinct" in failure for failure in flat.failures)
+
+
 def test_score_scene_catches_untrustworthy_argmax():
     """A reward function that can't discriminate (LENIENT_FN, flat 0.9)
     "wins" some rollout by tie-break, but that argmax must FAIL its own
@@ -151,6 +182,40 @@ def test_build_heatmaps_writes_file(tmp_path):
     out = tmp_path / "heatmap.png"
     agr.build_heatmaps(records, out)
     assert out.exists() and out.stat().st_size > 0
+
+
+def test_rollout_audit_rows_keep_reasoning_trajectory_and_independent_scores():
+    records = [
+        {
+            "scene_id": "scene-a",
+            "clip_id": "clip-a",
+            "argmax_rollout_id": 7,
+            "reward_fn_sha256": "fn-sha",
+            "rollouts": [
+                {
+                    "rollout_id": 7,
+                    "target_eligible": True,
+                    "clipgen_score": 0.8,
+                    "reward": 0.2,
+                    "code_reward_raw": 0.75,
+                    "traj_L2": 1.5,
+                    "comfort_reward": 0.4,
+                    "code_atomic_precision": 1.0,
+                    "clipgen_components": {"reasoning": 0.3, "execution": 0.5},
+                    "coc_text": "yield for the pedestrian",
+                    "waypoints": [[0.0, 0.0, 0.0], [1.0, 0.2, 0.0]],
+                    "target_eligibility_failures": [],
+                }
+            ],
+        }
+    ]
+    row = agr.rollout_audit_rows(records)[0]
+    by_name = dict(zip(agr._ROLLOUT_AUDIT_COLUMNS, row))
+    assert by_name["reasoning_coc"] == "yield for the pedestrian"
+    assert json.loads(by_name["trajectory_waypoints_json"])[1][1] == 0.2
+    assert json.loads(by_name["component_scores_json"])["execution"] == 0.5
+    assert by_name["clipgen_score"] == 0.8
+    assert by_name["is_argmax"] is True
 
 
 def test_analyze_end_to_end_local_no_overlays(tmp_path):

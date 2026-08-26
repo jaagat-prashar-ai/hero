@@ -742,6 +742,74 @@ def _download_pai_reasoning_dense(
     return mini_path
 
 
+def _clipgen_reward_fns_dir() -> Path:
+    configured = os.environ.get("CODE_REWARD_CLIPGEN_CORPUS_DIR")
+    if not configured:
+        return REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+    path = Path(configured)
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+def _prepare_clipgen_corpus_from_s3(cfg: dict[str, Any], workspace_dir: Path) -> Path | None:
+    """Materialize sealed ClipGen run outputs into one spec-only corpus.
+
+    This lets a GRPO workload consume curation outputs directly from S3
+    without committing generated files or silently falling back to the old
+    463-function directory.
+    """
+    raw_prefixes = cfg.get("clipgen_run_s3_prefixes")
+    if not raw_prefixes:
+        return None
+    prefixes = [raw_prefixes] if isinstance(raw_prefixes, str) else list(raw_prefixes)
+    import boto3
+
+    from code_as_a_reward.clipgen.build_reward_corpus import build_corpus
+
+    bucket = cfg.get("clipgen_s3_bucket", "research-datasets-chicago")
+    staging = workspace_dir / "clipgen_v2_run_outputs"
+    corpus = workspace_dir / "clipgen_v2_corpus"
+    staging.mkdir(parents=True, exist_ok=True)
+    s3 = boto3.client("s3", endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3"))
+    run_dirs = []
+    for index, prefix in enumerate(prefixes):
+        run_dir = staging / f"run_{index:03d}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run_dirs.append(str(run_dir))
+        paginator = s3.get_paginator("list_objects_v2")
+        n = 0
+        for page in paginator.paginate(Bucket=bucket, Prefix=prefix.rstrip("/") + "/"):
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
+                marker = None
+                for candidate in ("reward_fns/", "reward_specs/"):
+                    if candidate in key:
+                        marker = candidate
+                        break
+                if marker is None or not key.endswith((".py", ".json")):
+                    continue
+                relative = key[key.index(marker) :]
+                target = run_dir / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                s3.download_file(bucket, key, str(target))
+                n += 1
+        if n == 0:
+            raise RuntimeError(f"no reward artifacts found at s3://{bucket}/{prefix}")
+    manifest = build_corpus(run_dirs, str(corpus))
+    minimum = int(cfg.get("clipgen_min_corpus_size", 1))
+    if manifest["n_clips"] < minimum:
+        raise RuntimeError(
+            f"sealed ClipGen corpus has {manifest['n_clips']} clips, needs >= {minimum}"
+        )
+    os.environ["CODE_REWARD_CLIPGEN_CORPUS_DIR"] = str(corpus)
+    logger.info(
+        "prepared sealed ClipGen corpus: %d clips from %d S3 runs at %s",
+        manifest["n_clips"],
+        len(prefixes),
+        corpus,
+    )
+    return corpus
+
+
 def _filter_index_to_clipgen_clips(pai_dir: Path) -> None:
     """Restrict clip_index_reasoning_mini.parquet to clips that have a
     gate-passed clipgen reward function (code_as_a_reward/clipgen/
@@ -753,7 +821,7 @@ def _filter_index_to_clipgen_clips(pai_dir: Path) -> None:
     mini index on warm nodes."""
     import pandas as pd
 
-    fns_dir = REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+    fns_dir = _clipgen_reward_fns_dir()
     passing = {p.stem for p in fns_dir.glob("*.py")}
 
     mini_path = pai_dir / "clip_index_reasoning_mini.parquet"
@@ -826,6 +894,9 @@ def _patch_toml(
     reasoning_weight: float | None = None,
     optm_lr: float | None = None,
     kl_beta: float | None = None,
+    validation_enable: bool | None = None,
+    validation_freq: int | None = None,
+    validation_n_generation: int | None = None,
 ) -> None:
     import tomlkit
 
@@ -844,6 +915,13 @@ def _patch_toml(
         doc["train"]["optm_lr"] = float(optm_lr)
     if kl_beta is not None:
         doc["train"]["train_policy"]["kl_beta"] = float(kl_beta)
+    if validation_enable is not None:
+        doc["validation"]["enable"] = bool(validation_enable)
+    if validation_freq is not None:
+        doc["validation"]["freq"] = int(validation_freq)
+        doc["train"]["validation_step"] = int(validation_freq)
+    if validation_n_generation is not None:
+        doc["validation"]["n_generation"] = int(validation_n_generation)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(tomlkit.dumps(doc))
@@ -1138,6 +1216,12 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     workspace_dir.mkdir(parents=True, exist_ok=True)
     hf_home.mkdir(parents=True, exist_ok=True)
 
+    # All matched comparison arms consume the same sealed clip manifest,
+    # including LLM-judge.  The corpus is a dataset selector in that arm,
+    # not its training reward.
+    if cfg.get("clipgen_run_s3_prefixes"):
+        _prepare_clipgen_corpus_from_s3(cfg, workspace_dir)
+
     logger.info("rl_posttrain: workspace_dir=%s", workspace_dir)
 
     # Keep the reserved GPUs measurably busy through venv build / model
@@ -1171,7 +1255,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     # download step (and vice versa).
     dense_chunks = cfg.get("reasoning_dense_chunks")
     clipgen_chunks_only = bool(cfg.get("clipgen_chunks_only"))
-    clipgen_fns_dir = REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+    clipgen_fns_dir = _clipgen_reward_fns_dir()
     if dense_chunks is not None and clipgen_chunks_only:
         # Own dir name: the chunk set differs from the plain dense{N} selection,
         # so sharing its dir would let a warm node's marker/index mislead.
@@ -1211,6 +1295,8 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
     lingo_judge_dir: Path | None = None
     if reward_mode == "llm_judge":
         _fetch_reasoning_dataset()
+        if cfg.get("clipgen_only_clips"):
+            _filter_index_to_clipgen_clips(pai_reasoning_dir)
         template_path = REPO_ROOT / "rl_posttrain" / "toml" / "alpamayo_rvla_rl_llm_judge.toml"
         entry_script = REPO_ROOT / "rl_posttrain" / "rewards" / "llm_judge_entry.py"
     elif reward_mode == "code":
@@ -1260,6 +1346,11 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
             RECIPE_DIR / "models" / "reasoning_vla" / "alpamayo_cosmos_rl_post_training_entry.py"
         )
 
+    configured_template = cfg.get("toml_template")
+    if configured_template:
+        configured_path = Path(str(configured_template))
+        template_path = configured_path if configured_path.is_absolute() else REPO_ROOT / configured_path
+
     _patch_toml(
         template_path,
         toml_out,
@@ -1273,6 +1364,9 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         reasoning_weight=cfg.get("reasoning_weight"),
         optm_lr=cfg.get("optm_lr"),
         kl_beta=cfg.get("kl_beta"),
+        validation_enable=cfg.get("validation_enable"),
+        validation_freq=cfg.get("validation_freq"),
+        validation_n_generation=cfg.get("validation_n_generation"),
     )
 
     _ensure_redis_server()
@@ -1307,6 +1401,14 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         # (mutually exclusive with ALPAMAYO_PAI_LOCAL_DIR, which the motion
         # entry reads).
         subprocess_env["ALPAMAYO_PAI_REASONING_LOCAL_DIR"] = str(pai_reasoning_dir)
+    if reward_mode == "code":
+        # Live group-gate failures are immutable replay records. Keep them
+        # under output_dir so the existing checkpoint uploader persists them
+        # to the run's S3 checkpoint prefix; repair happens asynchronously
+        # between frozen reward-corpus versions, never inside a GRPO batch.
+        subprocess_env.setdefault(
+            "CODE_REWARD_REPAIR_QUEUE", str(train_output_dir / "clipgen_repair_queue")
+        )
     if reward_mode == "llm_judge":
         judge_model = os.environ.get("LLM_JUDGE_MODEL", "claude-fable-5")
         subprocess_env["LLM_JUDGE_MODEL"] = judge_model

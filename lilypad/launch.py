@@ -52,7 +52,14 @@ def _load_lilypad_creds() -> None:
     if not _LILYPAD_CRED_FILE.is_file():
         return
 
-    wanted = {"HF_TOKEN", "WANDB_API_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"}
+    wanted = {
+        "HF_TOKEN",
+        "WANDB_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+    }
     missing = {k for k in wanted if not os.environ.get(k)}
     if not missing:
         return

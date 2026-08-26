@@ -84,6 +84,10 @@ def _badge(ok: bool, label_ok: str = "PASS", label_bad: str = "FAIL") -> str:
 
 def _score_table(scores: dict[str, float], gate_cases: list[dict]) -> str:
     kinds = {c["name"]: c["kind"] for c in gate_cases}
+    # run_prototype persists scores directly; older reports omitted the
+    # redundant gate_cases inventory. Case names carry the canonical kind.
+    for name in scores:
+        kinds.setdefault(name, "positive" if name.startswith("positive:") else "negative")
     pos = max(
         (s for n, s in scores.items()
          if kinds.get(n) == "positive" and isinstance(s, float) and math.isfinite(s)),

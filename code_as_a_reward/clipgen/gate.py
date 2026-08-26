@@ -6,8 +6,7 @@ rollout (VLM-CaR's expert-vs-random check, moved onto the rollout itself):
 
 - POSITIVE: the rollout's claims + trajectory must score >= POS_MIN.
 - PERTURBATIONS (each must score at least MIN_DROP below the positive):
-  * same claims, trajectory time-reversed
-  * same claims, flattened (no-reaction, constant-velocity) trajectory
+  * same claims, action-specific contradictory/no-reaction trajectory
   * claims gutted (no perceptual/commitment/causal content), same trajectory
   * commitments removed (perception-only reasoning), same trajectory
   * commitments' direction/maneuver flipped to a different-but-valid
@@ -72,6 +71,7 @@ class GateCase:
     claims: object  # ParsedCoCTrace
     traj: TrajectoryFeatures
     kind: str  # "positive" | "negative"
+    min_drop: float = MIN_DROP
 
 
 @dataclasses.dataclass
@@ -109,11 +109,12 @@ _DIRECTION_FLIP = {"left": "right", "right": "left"}
 # function should be expected to catch (confirmed against this module's own
 # GOOD_FN test fixture, whose `committed` check treats them as
 # interchangeable on purpose).
-_SPEED_PROFILE_FLIP = {"accelerate": "decelerate", "decelerate": "accelerate"}
 # Lateral claims without a direction are flipped between "committed lateral
 # movement" and "committed to staying in lane" -- the other real
 # contradiction available when there's no left/right to flip.
-_LATERAL_MOVE_MANEUVERS = {"lane_change", "nudge", "merge", "turn", "enter", "exit"}
+_LATERAL_MOVE_MANEUVERS = {
+    "lane_change", "nudge", "merge", "turn", "enter", "exit", "overtake"
+}
 
 
 def _corrupt_identity(claims):
@@ -127,19 +128,40 @@ def _corrupt_identity(claims):
     opposite, e.g. create_gap/proceed)."""
     if not claims.commitments:
         return None
+    profiles = {c.speed_profile for c in claims.commitments}
+    # A trace often expresses one longitudinal decision with two parser
+    # aliases (for example, "decelerate to maintain distance"). Corrupt the
+    # whole family together; flipping only `decelerate` while leaving
+    # `maintain` made a correct any-of rubric score the negative unchanged.
+    if "accelerate" in profiles:
+        opposite_profile = "decelerate"
+    elif "decelerate" in profiles:
+        opposite_profile = "accelerate"
+    elif profiles & {"maintain", "adapt"}:
+        # A stable/adaptive-speed trace must not retain credit when its
+        # reasoning instead promises acceleration.
+        opposite_profile = "accelerate"
+    else:
+        opposite_profile = None
+
     new_commitments = []
     changed = False
     for c in claims.commitments:
-        direction = _DIRECTION_FLIP.get(c.direction) if c.direction else None
-        if direction is not None:
-            new_commitments.append(dataclasses.replace(c, direction=direction))
+        # Semantic axis first: an incidental "left/right" word attached to
+        # a stop or slowdown must not turn a longitudinal contradiction into
+        # an irrelevant direction flip. This now matches the generator
+        # contract that longitudinal rewards ignore .direction.
+        if opposite_profile is not None and c.speed_profile in {
+            "accelerate", "decelerate", "maintain", "adapt"
+        }:
+            replacement = {"speed_profile": opposite_profile}
+            if c.maneuver not in _LATERAL_MOVE_MANEUVERS:
+                replacement["maneuver"] = opposite_profile
+            c = dataclasses.replace(c, **replacement)
             changed = True
-            continue
-        flipped_profile = _SPEED_PROFILE_FLIP.get(c.speed_profile)
-        if flipped_profile is not None:
-            new_commitments.append(
-                dataclasses.replace(c, maneuver=flipped_profile, speed_profile=flipped_profile)
-            )
+        direction = _DIRECTION_FLIP.get(c.direction) if c.direction else None
+        if c.maneuver in _LATERAL_MOVE_MANEUVERS and direction is not None:
+            new_commitments.append(dataclasses.replace(c, direction=direction))
             changed = True
             continue
         if c.maneuver in _LATERAL_MOVE_MANEUVERS:
@@ -148,6 +170,16 @@ def _corrupt_identity(claims):
             continue
         if c.maneuver == "keep_lane":
             new_commitments.append(dataclasses.replace(c, maneuver="lane_change"))
+            changed = True
+            continue
+        if c.maneuver in {"keep_distance", "proceed"}:
+            new_commitments.append(
+                dataclasses.replace(c, maneuver="stop", speed_profile="decelerate")
+            )
+            changed = True
+            continue
+        if c.maneuver == "reverse":
+            new_commitments.append(dataclasses.replace(c, maneuver="proceed"))
             changed = True
             continue
         new_commitments.append(c)
@@ -165,12 +197,99 @@ def _too_similar(a: np.ndarray, b: np.ndarray, min_dev_m: float = 2.0) -> bool:
     return float(np.max(np.linalg.norm(a[:n] - b[:n], axis=1))) < min_dev_m
 
 
+def forced_departure_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Make stopped/creeping motion depart decisively along initial heading."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) < 2:
+        return w
+    direction = w[min(5, len(w) - 1), :2] - w[0, :2]
+    norm = float(np.linalg.norm(direction))
+    if norm < 0.1:
+        direction = np.array([1.0, 0.0])
+    else:
+        direction = direction / norm
+    ramp = np.linspace(0.0, 8.0, len(w))[:, None]
+    w[:, :2] = w[0, :2] + ramp * direction
+    return w
+
+
+def forced_stop_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Make an accelerating/proceeding trajectory settle to a stop early."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) < 2:
+        return w
+    stop_i = max(1, min(len(w) - 1, len(w) // 4))
+    w[stop_i:] = w[stop_i]
+    return w
+
+
+def mirrored_lateral_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Reflect lateral motion and force a meaningful opposite-side offset."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) < 2:
+        return w
+    rel_y = w[:, 1] - w[0, 1]
+    mirrored = -rel_y
+    if float(np.max(np.abs(rel_y))) < 2.0:
+        sign = -1.0 if float(rel_y[-1]) >= 0.0 else 1.0
+        mirrored = mirrored + sign * np.linspace(0.0, 3.0, len(w))
+    w[:, 1] = w[0, 1] + mirrored
+    return w
+
+
+def forced_lane_departure_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Leave the GT-relative path corridor smoothly by roughly one lane."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) < 2:
+        return w
+    u = np.linspace(0.0, 1.0, len(w))
+    smooth = u * u * (3.0 - 2.0 * u)
+    sign = -1.0 if float(w[-1, 1] - w[0, 1]) >= 0.0 else 1.0
+    w[:, 1] += sign * 4.0 * smooth
+    return w
+
+
+def oscillatory_speed_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Preserve path direction while making speed conspicuously non-cautious."""
+    w = np.asarray(waypoints, dtype=np.float64)
+    if len(w) < 3:
+        return w.copy()
+    delta = np.diff(w[:, :2], axis=0)
+    lengths = np.linalg.norm(delta, axis=1)
+    unit = np.divide(delta, lengths[:, None], out=np.zeros_like(delta), where=lengths[:, None] > 1e-8)
+    factors = np.where((np.arange(len(delta)) // 4) % 2 == 0, 0.05, 2.50)
+    out = np.empty_like(w)
+    out[0] = w[0]
+    out[1:, :2] = w[0, :2] + np.cumsum(unit * (lengths * factors)[:, None], axis=0)
+    if w.shape[1] > 2:
+        out[1:, 2:] = w[1:, 2:]
+    return out
+
+
+def surged_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """An unsafe over-progress counterfactual along the same coarse path."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) > 1:
+        w[:, :2] = w[0, :2] + 2.5 * (w[:, :2] - w[0, :2])
+    return w
+
+
+def forced_forward_waypoints(waypoints: np.ndarray) -> np.ndarray:
+    """Replace a reversing action with decisive straight-ahead progress."""
+    w = np.asarray(waypoints, dtype=np.float64).copy()
+    if len(w) > 1:
+        w[:, 0] = w[0, 0] + np.linspace(0.0, 10.0, len(w))
+        w[:, 1] = w[0, 1]
+    return w
+
+
 def build_perturbations(
     scene_id: str,
     claims,
     waypoints: np.ndarray,
     hz: float,
     tag: str = "gt",
+    reward_spec: dict | None = None,
 ) -> list[GateCase]:
     """The positive plus corrupted variants of the SAME rollout.
 
@@ -180,23 +299,142 @@ def build_perturbations(
     """
     traj = _refeature(waypoints, hz, scene_id, tag)
     cases = [GateCase(f"positive:{tag}", claims, traj, "positive")]
-    reversed_wp = np.asarray(waypoints)[::-1].copy()
-    if not _too_similar(waypoints, reversed_wp):
-        cases.append(
-            GateCase(
-                "perturb:reversed_traj",
-                claims,
-                _refeature(reversed_wp, hz, scene_id, "rev"),
-                "negative",
-            )
-        )
+    # Time reversal is not a guaranteed negative: a trajectory that slows in
+    # the middle and then recovers can still slow when reversed (17/17 final
+    # GT-gate failures in the fresh canary had this label error).  Use only
+    # action-specific corruptions whose motion contradicts the scored intent.
     flat_wp = flattened_waypoints(waypoints)
-    if not _too_similar(waypoints, flat_wp):
+    spec_features = {
+        component.get("trajectory", {}).get("feature")
+        for component in (reward_spec or {}).get("components", [])
+        if isinstance(component.get("trajectory"), dict)
+    }
+    generic_no_reaction_is_negative = reward_spec is None or bool(
+        spec_features
+        & {
+            "speed_drop",
+            "speed_gain",
+            "speed_reduction_fraction",
+            "stationary_quality",
+            "stop_dwell_fraction",
+            "late_stationary_quality",
+        }
+    )
+    if generic_no_reaction_is_negative and not _too_similar(waypoints, flat_wp):
         cases.append(
             GateCase(
                 "perturb:no_reaction_traj",
                 claims,
                 _refeature(flat_wp, hz, scene_id, "flat"),
+                "negative",
+            )
+        )
+    if reward_spec is None:
+        profiles = {c.speed_profile for c in claims.commitments}
+        lateral_commitment = any(
+            c.maneuver in _LATERAL_MOVE_MANEUVERS for c in claims.commitments
+        )
+    else:
+        spec_components = reward_spec.get("components") or []
+        profiles = {
+            value
+            for component in spec_components
+            if isinstance(component.get("claim"), dict)
+            and component["claim"].get("kind") == "commitment"
+            and component["claim"].get("field") == "speed_profile"
+            for value in component["claim"].get("any_of", [])
+        }
+        lateral_commitment = any(
+            isinstance(component.get("claim"), dict)
+            and component["claim"].get("kind") == "commitment"
+            and component["claim"].get("field") == "maneuver"
+            and set(component["claim"].get("any_of", [])) & _LATERAL_MOVE_MANEUVERS
+            for component in spec_components
+        )
+    # Do not let low-motion scenes skip trajectory validation altogether.
+    # Add a semantic opposite tailored to the claimed action whenever the
+    # generic reverse/flatten transformations are insufficient.
+    if "decelerate" in profiles and _too_similar(waypoints, flat_wp):
+        depart_wp = forced_departure_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:accelerate_or_depart",
+                claims,
+                _refeature(depart_wp, hz, scene_id, "depart"),
+                "negative",
+            )
+        )
+    if "accelerate" in profiles:
+        stop_wp = forced_stop_waypoints(waypoints)
+        if not _too_similar(waypoints, stop_wp, min_dev_m=0.5):
+            cases.append(
+                GateCase(
+                    "perturb:forced_stop",
+                    claims,
+                    _refeature(stop_wp, hz, scene_id, "stop"),
+                    "negative",
+                )
+            )
+    if "path_corridor_quality" in spec_features:
+        depart_wp = forced_lane_departure_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:lane_departure_traj",
+                claims,
+                _refeature(depart_wp, hz, scene_id, "lanedepart"),
+                "negative",
+            )
+        )
+    elif lateral_commitment:
+        mirror_wp = mirrored_lateral_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:opposite_lateral_traj",
+                claims,
+                _refeature(mirror_wp, hz, scene_id, "latmirror"),
+                "negative",
+            )
+        )
+    if "speed_stability_quality" in spec_features:
+        oscillatory_wp = oscillatory_speed_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:unstable_speed_traj",
+                claims,
+                _refeature(oscillatory_wp, hz, scene_id, "unstable"),
+                "negative",
+            )
+        )
+    if "cautious_progress_quality" in spec_features:
+        stop_wp = forced_stop_waypoints(waypoints)
+        if _too_similar(waypoints, stop_wp, min_dev_m=0.5):
+            stop_wp = np.repeat(np.asarray(waypoints, dtype=np.float64)[:1], len(waypoints), axis=0)
+        cases.append(
+            GateCase(
+                "perturb:no_progress_traj",
+                claims,
+                _refeature(stop_wp, hz, scene_id, "noprogress"),
+                "negative",
+            )
+        )
+        surge_wp = surged_waypoints(waypoints)
+        if _too_similar(waypoints, surge_wp, min_dev_m=0.5):
+            surge_wp = forced_departure_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:unsafe_surge_traj",
+                claims,
+                _refeature(surge_wp, hz, scene_id, "surge"),
+                "negative",
+            )
+        )
+    if "heading_corridor_quality" in spec_features:
+        forward_wp = forced_forward_waypoints(waypoints)
+        cases.append(
+            GateCase(
+                "perturb:forward_instead_of_reverse_traj",
+                claims,
+                _refeature(forward_wp, hz, scene_id, "forward"),
                 "negative",
             )
         )
@@ -276,14 +514,15 @@ def run_gate(
             f"positive case scored {pos_score:.2f}, needs >= {pos_min} -- the intact"
             " reasoning+trajectory pair must be rewarded"
         )
-    ceiling = pos_score - min_drop
-    if np.isfinite(ceiling):
+    if np.isfinite(pos_score):
         for case in cases:
             s = scores[case.name]
+            required_drop = case.min_drop if case.min_drop is not None else min_drop
+            ceiling = pos_score - required_drop
             if case.kind == "negative" and np.isfinite(s) and s > ceiling:
                 failures.append(
                     f"{case.name} scored {s:.2f}, needs <= {ceiling:.2f} (positive"
-                    f" {pos_score:.2f} minus drop {min_drop}) -- a corrupted variant of"
+                    f" {pos_score:.2f} minus drop {required_drop}) -- a corrupted variant of"
                     " the rollout must not be rewarded"
                 )
     # Over-budget detection is MECHANICAL, not heuristic (8xvbos: 8/15 clips
@@ -300,6 +539,11 @@ def run_gate(
     # clips this way). Also verify the decomposition is truthful -- feedback
     # built on components that do not reconstruct the score misleads retries.
     for name, comp in components.items():
+        negative_components = {k: v for k, v in comp.items() if v < -1e-9}
+        if negative_components:
+            failures.append(
+                f"{name}: components must be non-negative, got {negative_components}"
+            )
         total = float(sum(comp.values()))
         if total > 1.0 + 1e-9:
             over.setdefault(name, total)
@@ -369,7 +613,12 @@ def run_gate(
                 if case.kind != "negative" or case.name not in components:
                     continue
                 s = scores.get(case.name)
-                if not (np.isfinite(s) and np.isfinite(ceiling) and s > ceiling):
+                case_ceiling = pos_score - (
+                    case.min_drop if case.min_drop is not None else min_drop
+                )
+                if not (
+                    np.isfinite(s) and np.isfinite(case_ceiling) and s > case_ceiling
+                ):
                     continue
                 case_components = components[case.name]
                 culprits = [

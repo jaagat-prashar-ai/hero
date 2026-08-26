@@ -18,6 +18,12 @@ import threading
 import numpy as np
 
 from code_as_a_reward.coc_claim_parser import ENTITY_PATTERNS, MANEUVER_PATTERNS, STATE_PATTERNS
+from code_as_a_reward.clipgen.reward_spec import (
+    RewardSpecError,
+    compile_reward_spec_to_source,
+    evaluate_reward_spec_components,
+    validate_reward_spec,
+)
 
 class RewardFnError(Exception):
     """Any way a generated function can be invalid or misbehave."""
@@ -143,18 +149,53 @@ def window(values, dt_s: float, t0: float, t1: float) -> np.ndarray:
     return arr[i0:i1]
 
 
-def _check_ast(source: str) -> None:
+def _check_ast(source: str) -> ast.Module:
     """Reject imports, dunder access, and non-canonical claim predicates before anything executes."""
     tree = ast.parse(source)
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             raise RewardFnError("generated code must not import anything")
+        if isinstance(node, ast.While):
+            # A thread timeout cannot kill Python code; it only stops
+            # waiting and leaks the worker. No current corpus function needs
+            # while loops, and deterministic v2 specs contain no loops.
+            raise RewardFnError("while loops are forbidden in reward functions")
         if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
             raise RewardFnError(f"dunder attribute access forbidden: {node.attr}")
         if isinstance(node, ast.Name) and node.id.startswith("__"):
             raise RewardFnError(f"dunder name forbidden: {node.id}")
     _check_canonical_vocab(tree)
     _check_no_float_equality(tree)
+    return tree
+
+
+def _validate_compiled_spec_source(tree: ast.Module) -> None:
+    """If source declares REWARD_SPEC, require exact compiler output.
+
+    This check happens before exec. A model cannot smuggle top-level code or
+    replace the deterministic evaluator while still looking like a spec-
+    compiled reward module.
+    """
+    spec_node = None
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "REWARD_SPEC"
+            for target in node.targets
+        ):
+            spec_node = node.value
+            break
+    if spec_node is None:
+        return  # legacy free-form corpus; migration/regating handles it
+    try:
+        raw_spec = ast.literal_eval(spec_node)
+        spec = validate_reward_spec(raw_spec)
+        expected = ast.parse(compile_reward_spec_to_source(spec))
+    except (ValueError, TypeError, RewardSpecError, SyntaxError) as exc:
+        raise RewardFnError(f"invalid compiled REWARD_SPEC: {exc}") from exc
+    if ast.dump(tree, include_attributes=False) != ast.dump(expected, include_attributes=False):
+        raise RewardFnError(
+            "REWARD_SPEC modules must be exact output of the deterministic compiler"
+        )
 
 
 def compile_reward_module(source: str, require_components: bool = False):
@@ -171,10 +212,16 @@ def compile_reward_module(source: str, require_components: bool = False):
     `reward` definition.
     """
     try:
-        _check_ast(source)
+        tree = _check_ast(source)
+        _validate_compiled_spec_source(tree)
     except SyntaxError as e:
         raise RewardFnError(f"syntax error: {e}") from e
-    namespace = {"__builtins__": _SAFE_BUILTINS, "np": np, "window": window}
+    namespace = {
+        "__builtins__": _SAFE_BUILTINS,
+        "np": np,
+        "window": window,
+        "evaluate_reward_spec_components": evaluate_reward_spec_components,
+    }
     try:
         exec(compile(source, "<generated_reward>", "exec"), namespace)  # noqa: S102
     except Exception as e:

@@ -7,29 +7,31 @@ and the reward implementation it wires in.
 Structure, top to bottom:
 
   1. REWARD HALF -- compute_reward / compute_reward_batch with the exact
-     signature + (reward, reward_dict) contract of the vendored recipe's
-     aggregated_reward_with_reasoning, derived from our validated
-     aggregated_reward_llm_judge with exactly ONE component swapped: the
-     reasoning score comes from code_as_a_reward's deterministic claim
+     signature + (reward, reward_dict) contract of the vendored recipe.
+     For clips without a generated artifact, the reasoning score comes from
+     code_as_a_reward's deterministic claim
      verification (parse the rollout's CoC into typed claims -> verify
      commitments against the trajectory that SAME rollout produced and
      perceptual claims against the clip's obstacle.offline tracks ->
      precision-over-decided-claims scalar in [0, 1]) instead of an
      Anthropic-API judge. No network, no API key, no thread pool -- the
-     whole score is local CPU work, so the NCCL-starvation problems that
+     whole score is local CPU work. With a cached per-clip function, the
+     completed GRPO group is scored and its argmax (or top-3 ablation) is
+     perturb-verified using that same frozen source. Failed groups are
+     neutralized and queued for asynchronous, versioned repair. No policy
+     rollout participates in offline corpus construction.
+
+     The NCCL-starvation problems that
      shaped the judge reward (watchdog timeout, group batching for latency
      hiding) don't apply; group_reward_calculation stays enabled in the
      shared TOML and is simply cheap here.
 
-     Everything around the reasoning component is kept IDENTICAL to
-     aggregated_reward_llm_judge: trajectory decode + ADE, comfort, the
-     mixing formula and its TOML weight keys under
-     [custom.alpamayo.reward], the ade_threshold = 3.0 /
-     reasoning_threshold = -0.4 gates, and the graded failure band -- so
-     a code-reward run differs from the running llm-judge experiments in
-     the reasoning signal ONLY. (Both entries deliberately mirror the
-     vendored reasoning term, which was inverted -- full weight at
-     barely-passing, zero at perfect; fixed 2026-07-30, see BUGS.md.)
+     For a clip with a cached ClipGen artifact, that exact [0,1] function is
+     the complete GRPO reward. ADE/comfort remain audit metrics but are not
+     remixed into the policy signal: doing so would make optimization use a
+     different scorer from argmax/perturbation verification and reintroduce
+     exact-GT imitation. The older ADE/comfort/TraceReward mixture remains
+     only as the explicit no-ClipGen fallback/control path.
 
      Score mapping: TraceReward.reward r in [0, 1] -> reasoning_score
      r - 1.0 in [-1, 0], the same scale the judge's normalize_score and
@@ -88,6 +90,7 @@ signal.
 from __future__ import annotations
 
 import functools
+import hashlib
 import io
 import json
 import logging
@@ -222,7 +225,13 @@ _TRACE_COLS = [
     "code_reward_raw",
     "traj_L2",
     "comfort",
+    "group_gate_passed",
+    "group_argmax_score",
+    "group_min_delta",
+    "group_score_std",
+    "group_score_range",
     "coc_text",
+    "trajectory_waypoints_json",
     "fn_sha",
 ]
 _trace_rows: list[list] = []
@@ -346,7 +355,13 @@ def _maybe_log_group(
                     r.get("code_reward_raw"),
                     r["traj_L2"],
                     r["comfort_reward"],
+                    r.get("code_group_gate_passed"),
+                    r.get("code_group_gate_argmax_score"),
+                    r.get("code_group_gate_min_delta"),
+                    r.get("code_group_gate_score_std"),
+                    r.get("code_group_gate_score_range"),
                     r["coc_text"],
+                    json.dumps(r.get("waypoints") or []),
                     fn_sha,
                 ]
             )
@@ -373,6 +388,49 @@ def _maybe_log_group(
 _DUMP_BUCKET = "research-datasets-chicago"
 _dump_lock = threading.Lock()
 _dump_group_counter = 0
+_repair_queue_lock = threading.Lock()
+
+
+def _clipgen_verify_top_k() -> int:
+    """Top-k live rollouts to perturb-verify (1=argmax, 3=ablation)."""
+
+    raw = int(os.environ.get("CODE_REWARD_VERIFY_TOP_K", "1"))
+    if raw not in {1, 3}:
+        raise ValueError("CODE_REWARD_VERIFY_TOP_K must be 1 or 3")
+    return raw
+
+
+def _enqueue_reward_repair(payload: dict[str, Any]) -> None:
+    """Persist failed live verification for asynchronous, versioned repair.
+
+    The hot GRPO worker never mutates a reward function: doing so would make
+    rewards non-stationary inside a batch and overfit a single corruption.
+    A separate repair pass consumes this replay queue, validates a candidate
+    against GT plus accumulated failures/holdouts, and activates it only at a
+    later training boundary.
+    """
+
+    path_raw = os.environ.get("CODE_REWARD_REPAIR_QUEUE")
+    if not path_raw:
+        return
+    path = Path(path_raw)
+    payload = {**payload, "queued_at_unix_s": time.time()}
+    serialized = json.dumps(payload, sort_keys=True, default=str)
+    if path.suffix == ".jsonl":
+        # Convenient single-process/test format.
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with _repair_queue_lock:
+            with path.open("a") as f:
+                f.write(serialized + "\n")
+        return
+    # Production cosmos-rl has multiple worker processes. One immutable file
+    # per record avoids cross-process JSONL interleaving for large rollout
+    # payloads and lets the checkpoint uploader persist them independently.
+    path.mkdir(parents=True, exist_ok=True)
+    stamp = time.time_ns()
+    digest = hashlib.sha256(serialized.encode()).hexdigest()[:12]
+    target = path / f"{stamp}-{os.getpid()}-{digest}.json"
+    target.write_text(serialized)
 
 
 def _dump_enabled() -> bool:
@@ -685,18 +743,41 @@ def _load_scene(clip_id: str):
         return None
 
 
-# Gate-passed per-clip generated reward functions (clipgen). When a clip
-# has one, it REPLACES TraceReward as the reasoning-score source: the
-# function was empirically verified (select-then-verify gate,
-# code_as_a_reward/clipgen/gate.py) to score that clip's real argmax
-# rollout >= 0.7 and every corruption of it >= 0.4 lower. TraceReward
+# GT-built per-clip generated reward functions (ClipGen). When a clip has
+# one, it REPLACES TraceReward as the reasoning-score source. Offline it was
+# verified only against the recorded NVIDIA pair and GT-derived semantic
+# counterfactuals. Its first policy-rollout test happens below, on the live
+# GRPO group: argmax/top-k must score >= 0.7 and every corruption >= 0.4
+# lower before that group contributes an optimization signal. TraceReward
 # remains only as a loud, logged fallback for compile/runtime failures --
 # a clipgen-corpus run filters the training clip index to clips that HAVE
 # a function (run.py, clipgen_only_clips), so the fallback firing at all
 # means something is wrong and code_clipgen_used=0.0 makes it visible in
 # W&B rather than silently diluting the experiment with the global
 # heuristic (2026-08-11 design decision).
-_CLIPGEN_REWARD_FNS_DIR = _REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+_configured_clipgen_dir = os.environ.get("CODE_REWARD_CLIPGEN_CORPUS_DIR")
+if _configured_clipgen_dir:
+    _CLIPGEN_REWARD_FNS_DIR = Path(_configured_clipgen_dir)
+    if not _CLIPGEN_REWARD_FNS_DIR.is_absolute():
+        _CLIPGEN_REWARD_FNS_DIR = _REPO_ROOT / _CLIPGEN_REWARD_FNS_DIR
+else:
+    _CLIPGEN_REWARD_FNS_DIR = _REPO_ROOT / "code_as_a_reward" / "clipgen" / "reward_fns"
+
+
+@functools.lru_cache(maxsize=1)
+def _clipgen_action_families() -> dict[str, str]:
+    manifest = _CLIPGEN_REWARD_FNS_DIR / "corpus_manifest.json"
+    if not manifest.exists():
+        return {}
+    try:
+        doc = json.loads(manifest.read_text())
+        return {
+            str(row["clip_id"]): str(row["action_family"])
+            for row in doc.get("clips", [])
+        }
+    except Exception:
+        logger.exception("[code_reward] invalid clipgen corpus_manifest.json")
+        return {}
 
 
 @functools.lru_cache(maxsize=512)
@@ -713,20 +794,29 @@ def _load_clipgen_fn(clip_id: str):
     ablation control arm that scores the SAME clipgen-filtered corpus with
     TraceReward, isolating the reasoning-signal source from the corpus
     restriction (code_clipgen_used stays 0.0 so W&B shows the arm)."""
-    if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0") == "1":
+    if os.environ.get("CODE_REWARD_DISABLE_CLIPGEN", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "enabled",
+    }:
         return None, None
+
     if os.environ.get("CODE_REWARD_SHUFFLE_CLIPGEN", "0") == "1":
         # Shuffled-reward CONTROL arm: score every clip with a DIFFERENT
         # clip's gate-passed function (deterministic rotate-by-one over the
         # sorted fn set). If training under mismatched functions matches the
-        # properly-paired run, per-clip tailoring contributes nothing --
-        # the falsification test for clipgen's core premise. Deterministic
-        # so every worker process agrees on the mapping.
+        # properly-paired run, per-clip tailoring contributes nothing.
         fns = sorted(p.stem for p in _CLIPGEN_REWARD_FNS_DIR.glob("*.py"))
-        if clip_id in fns:
-            shuffled = fns[(fns.index(clip_id) + 1) % len(fns)]
+        families = _clipgen_action_families()
+        family = families.get(clip_id)
+        matched = [cid for cid in fns if cid != clip_id and families.get(cid) == family]
+        candidates = matched if matched else [cid for cid in fns if cid != clip_id]
+        if candidates:
+            shuffled = candidates[sum(clip_id.encode("utf-8")) % len(candidates)]
             logger.warning(
-                f"[code_reward] SHUFFLE control: clip {clip_id} scored by {shuffled}'s fn"
+                f"[code_reward] SHUFFLE control: clip {clip_id} scored by {shuffled}'s fn "
+                f"(action_family={family or 'legacy-unmatched'})"
             )
             clip_id = shuffled
     path = _CLIPGEN_REWARD_FNS_DIR / f"{clip_id}.py"
@@ -743,6 +833,79 @@ def _load_clipgen_fn(clip_id: str):
             "-- falling back to TraceReward for this clip"
         )
         return None, None
+
+
+def _verify_clipgen_group_live(
+    *,
+    clip_id: str,
+    scene_id: str,
+    hz: float,
+    rollouts: list[dict[str, Any]],
+    source_path: str,
+) -> tuple[bool, dict[str, float], dict[str, Any]]:
+    """Verify argmax/top-3 only after the current GRPO group is sampled."""
+
+    from code_as_a_reward.clipgen import analyze_group_rollouts as agr
+
+    source = Path(source_path).read_text()
+    top_k = _clipgen_verify_top_k()
+    result = agr.validate_rollout_group(
+        clip_id,
+        scene_id,
+        hz,
+        rollouts,
+        source,
+        top_k=top_k,
+    )
+    deltas = [
+        float(gate.pos_score - gate.max_pert)
+        for gate in result.top_gates.values()
+        if math.isfinite(gate.pos_score) and math.isfinite(gate.max_pert)
+    ]
+    argmax_gate = result.selection.argmax_gate
+    metrics = {
+        "code_group_gate_passed": float(result.passed),
+        "code_group_gate_top_k": float(top_k),
+        "code_group_gate_min_delta": min(deltas) if deltas else 0.0,
+        "code_group_gate_argmax_score": (
+            float(argmax_gate.pos_score) if argmax_gate is not None else 0.0
+        ),
+        "code_group_gate_score_std": float(result.score_std),
+        "code_group_gate_score_range": float(result.score_range),
+    }
+    feedback = {
+        "schema_version": "clipgen.repair.v1",
+        "clip_id": clip_id,
+        "scene_id": scene_id,
+        "hz": hz,
+        "reward_source_path": source_path,
+        "reward_source_sha256": hashlib.sha256(source.encode()).hexdigest(),
+        "reward_source": source,
+        "verify_top_k": top_k,
+        "passed": result.passed,
+        "failures": result.failures,
+        "argmax_rollout_id": result.selection.argmax_rollout_id,
+        "score_std": result.score_std,
+        "score_range": result.score_range,
+        "unique_scores": result.unique_scores,
+        "saturation_fraction": result.saturation_fraction,
+        "top_gates": {
+            str(rollout_id): {
+                "passed": gate.passed,
+                "pos_score": gate.pos_score,
+                "max_pert": gate.max_pert,
+                "delta": gate.pos_score - gate.max_pert,
+                "scores": gate.scores,
+                "failures": gate.failures,
+            }
+            for rollout_id, gate in result.top_gates.items()
+        },
+        # Retain the sampled group as replay evidence. Repair must validate
+        # against multiple queued groups and a held-out split, never only the
+        # single perturbation that triggered this record.
+        "rollouts": rollouts,
+    }
+    return result.passed, metrics, feedback
 
 
 def _score_cot(
@@ -880,6 +1043,8 @@ def compute_reward_batch(
 
     w = _get_reward_cfg(config)
     gt_fut_xyz = reference["ego_future_xyz"]
+    gt0 = gt_fut_xyz[0]
+    gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
     scene_id = reference.get("scene_id")
     # Fail loud, not neutral: without a scene_id every trace would silently
     # take the undecided fallback and the "code" reward would train on ADE
@@ -943,7 +1108,19 @@ def compute_reward_batch(
                 "code_clipgen_used": 0.0 if clipgen_fn is None else 1.0,
             }
 
-        if pred_cot_decoded:
+        if clipgen_fn is not None:
+            # The cached reward is the GRPO reward, not merely one term in a
+            # second GT-ADE mixture. This keeps selection, perturbation
+            # verification, and policy optimization on the exact same
+            # function and avoids reintroducing exact-GT imitation after the
+            # offline rubric deliberately established a tolerant action
+            # bound. A missing CoC cannot satisfy reasoning/action alignment.
+            final_reward = (
+                float(aux["code_reward_raw"])
+                if pred_cot_decoded and aux.get("code_clipgen_used") == 1.0
+                else 0.0
+            )
+        elif pred_cot_decoded:
             # DELIBERATE deviation from the vendored formula (and from every
             # run before 2026-07-30): the vendored reasoning term was
             # `w * (reasoning_score / reasoning_threshold)`, which DECREASES
@@ -1003,6 +1180,20 @@ def compute_reward_batch(
                 **aux,
             }
         )
+        from rl_posttrain.rewards.faithfulness_metrics import compute_faithfulness_metrics
+
+        reward_dicts[-1].update(
+            compute_faithfulness_metrics(
+                pred_cot=pred_cot,
+                pred_xyz=pred_xyz_np,
+                gt_cot=reference.get("cot", ""),
+                gt_xyz=gt_np,
+                scene_id=scene_id,
+                rollout_id=rollout_id,
+                hz=hz,
+                ade_m=l2_dist,
+            )
+        )
         dump_rollouts.append(
             {
                 "rollout_id": rollout_id,
@@ -1028,10 +1219,61 @@ def compute_reward_batch(
             if math.isnan(d[key]):
                 d[key] = fill
 
+    # ClipGen's offline stage never sees policy rollouts. The first time a
+    # generated reward is tested against sampled policy behavior is here,
+    # after the complete GRPO group exists. Score all 12 with the frozen
+    # per-clip source, select argmax (or top-3 ablation), perturb reasoning
+    # and trajectory independently, and re-score with that exact source.
+    # A failed group is neutralized as a whole so it contributes zero GRPO
+    # advantage; its evidence is queued for an asynchronous/versioned repair
+    # rather than changing the scorer inside the current optimizer batch.
+    gate_metrics = {
+        "code_group_gate_passed": 0.0,
+        "code_group_gate_top_k": 0.0,
+        "code_group_gate_min_delta": 0.0,
+        "code_group_gate_argmax_score": 0.0,
+        "code_group_gate_score_std": 0.0,
+        "code_group_gate_score_range": 0.0,
+    }
+    if clipgen_fn_path is not None and len(dump_rollouts) > 1:
+        try:
+            group_passed, gate_metrics, repair_feedback = _verify_clipgen_group_live(
+                clip_id=clip_id,
+                scene_id=scene_id,
+                hz=hz,
+                rollouts=dump_rollouts,
+                source_path=clipgen_fn_path,
+            )
+        except Exception as exc:
+            logger.exception(
+                "[code_reward] %s: live ClipGen group verification failed closed", scene_id
+            )
+            group_passed = False
+            failed_source = Path(clipgen_fn_path).read_text()
+            repair_feedback = {
+                "schema_version": "clipgen.repair.v1",
+                "clip_id": clip_id,
+                "scene_id": scene_id,
+                "hz": hz,
+                "reward_source_path": clipgen_fn_path,
+                "reward_source_sha256": hashlib.sha256(failed_source.encode()).hexdigest(),
+                "reward_source": failed_source,
+                "passed": False,
+                "failures": [f"live verifier exception: {type(exc).__name__}: {exc}"],
+                "rollouts": dump_rollouts,
+            }
+        if not group_passed:
+            _enqueue_reward_repair(repair_feedback)
+            rewards = [0.0 for _ in rewards]
+            for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
+                reward_dict["reward"] = 0.0
+                rollout["reward"] = 0.0
+    for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
+        reward_dict.update(gate_metrics)
+        rollout.update(gate_metrics)
+
     # gt_fut_xyz is (1, T, 3), torch on the worker's device in production
     # (same shape contract as predicted_fut_xyz); tolerate ndarray for tests.
-    gt0 = gt_fut_xyz[0]
-    gt_np = gt0.detach().float().cpu().numpy() if hasattr(gt0, "detach") else gt0
     _maybe_log_group(reference, scene_id, clip_id, gt_np, dump_rollouts, clipgen_fn_path, config)
     _maybe_dump_rollouts(clip_id, scene_id, hz, dump_rollouts)
 
@@ -1288,16 +1530,12 @@ def main() -> None:
                 ref = AlpamayoCosmosDataset.get_reference_answer(self, idx)
             if not ref:
                 return ref
-            ds = self.dataset
             try:
-                clip_id = str(ds.clip_ids[idx])
-                t0_us = int(
-                    ds.DEFAULT_T0_US
-                    if ds.use_default_keyframe
-                    else ds.avdi.get_clip_key_frame(clip_id)
-                )
+                from rl_posttrain.rewards.heldout_validation import sample_identity
+
+                clip_id, t0_us, future_hz = sample_identity(self.dataset, idx)
                 ref["scene_id"] = f"{clip_id}_{t0_us}"
-                ref["future_hz"] = 1.0 / float(ds.time_step)
+                ref["future_hz"] = future_hz
             except Exception:
                 # Leave scene_id unset and let the reward's assert fail the
                 # run with a message naming this dataset, rather than
@@ -1322,6 +1560,10 @@ def main() -> None:
             "data.train.dataset.reasoning_metadata=reasoning/ood_reasoning.parquet",
         ],
     )
+    from rl_posttrain.rewards.heldout_validation import install_heldout_validation_split
+
+    train_n, val_n = install_heldout_validation_split(alp_state.get_dataloaders())
+    logger.warning("[code_reward] deterministic dataset split: train=%d val=%d", train_n, val_n)
 
     ModelRegistry.register_model(
         ReasoningVLACosmos,

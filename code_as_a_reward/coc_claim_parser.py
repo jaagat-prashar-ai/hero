@@ -179,7 +179,7 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         ManeuverAxis.LATERAL,
         None,
         re.compile(
-            r"\bkeep(?:s|ing)?\s+lane\b|\bgo(?:es|ing)?\s+straight\b"
+            r"\b(?:keep|maintain)(?:s|ing)?\s+(?:the\s+)?lane\b|\bgo(?:es|ing)?\s+straight\b"
             r"|\bcontinue(?:s|d)?\s+straight\b|\bstraight\s+ahead\b"
             r"|\bfollow(?:s|ing)?\s+(?:the\s+)?(?:temporary\s+)?"
             r"(?:lanes?|cones?|delineators?|markings?|detour)\b",
@@ -194,7 +194,8 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         None,
         re.compile(
             r"\bnudg(?:e|es|ed|ing)\b|\bbypass(?:es|ing)?\b"
-            r"|\bsteer(?:s|ing|ed)?\b|\bshift(?:s|ing|ed)?\b",
+            r"|\bsteer(?:s|ing|ed)?\b|\bshift(?:s|ing|ed)?\b"
+            r"|\bsplit(?:s|ting)?\b",
             re.I,
         ),
     ),
@@ -207,6 +208,18 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
     ),
     ("enter", ManeuverAxis.LATERAL, None, re.compile(r"\benter(?:s|ing|ed)?\b", re.I)),
     ("exit", ManeuverAxis.LATERAL, None, re.compile(r"\bexit(?:s|ing|ed)?\b", re.I)),
+    (
+        "overtake",
+        ManeuverAxis.LATERAL,
+        None,
+        re.compile(r"\b(?:pass(?:es|ed|ing)?|overtak(?:e|es|ing|en))\b", re.I),
+    ),
+    (
+        "reverse",
+        ManeuverAxis.LONGITUDINAL,
+        None,
+        re.compile(r"\brevers(?:e|es|ed|ing)\b|\bback(?:s|ed|ing)?\s+up\b", re.I),
+    ),
     (
         "adapt_speed",
         ManeuverAxis.LONGITUDINAL,
@@ -243,7 +256,7 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
         ManeuverAxis.LONGITUDINAL,
         "maintain",
         re.compile(
-            r"\bkeep(?:s|ing)?\s+distance\b"
+            r"\bkeep(?:s|ing)?\s+(?:a\s+|the\s+)?(?:safe\s+)?distance\b"
             r"|\bmaintain(?:s|ing)?\s+(?:a\s+|the\s+)?(?:safe\s+)?"
             r"(?:distance|gap|following\s+distance|progress)\b",
             re.I,
@@ -258,19 +271,30 @@ MANEUVER_PATTERNS: list[tuple[str, ManeuverAxis, str | None, re.Pattern[str]]] =
     # (?!\s+sign): "stop sign" is a perceived object (signal entity), not a
     # commitment -- without the lookahead a mere mention of a stop sign
     # manufactured a decelerate-family claim.
-    ("stop", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bstop(?:s|ping)?\b(?!\s+sign)", re.I)),
+    (
+        "stop",
+        ManeuverAxis.LONGITUDINAL,
+        "decelerate",
+        re.compile(
+            r"\bstop(?:s|ping)?\b(?!\s+sign)|\b(?:stay|remain)(?:s|ed|ing)?\s+stopped\b",
+            re.I,
+        ),
+    ),
     ("yield", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\byield(?:s|ing)?\b", re.I)),
     ("wait", ManeuverAxis.LONGITUDINAL, "decelerate", re.compile(r"\bwait(?:s|ing)?\b", re.I)),
+    (
+        "maintain_speed",
+        ManeuverAxis.LONGITUDINAL,
+        "maintain",
+        re.compile(r"\b(?:maintain|keep|hold)(?:s|ing)?\s+speed\b", re.I),
+    ),
     (
         "proceed",
         ManeuverAxis.LONGITUDINAL,
         None,
-        # "maintain/keep/hold speed" = continue as-is, the proceed family
-        # (keep_distance already claimed "maintain ... distance/gap" above);
         # "creep" = proceed slowly (flagger/work-zone scenes).
         re.compile(
-            r"\bproceed(?:s|ing)?\b|\b(?:maintain|keep|hold)(?:s|ing)?\s+speed\b"
-            r"|\bcreep(?:s|ing)?\b|\bnavigat(?:e|es|ing)\b",
+            r"\bproceed(?:s|ing)?\b|\bcreep(?:s|ing)?\b|\bnavigat(?:e|es|ing)\b",
             re.I,
         ),
     ),
@@ -547,8 +571,8 @@ def _extract_commitments(text: str, span: tuple[int, int]) -> list[CommitmentCla
 
     claims: list[CommitmentClaim] = []
     for i, (m_start, m_end, name, axis, speed_profile) in enumerate(raw_matches):
-        # Direction is searched only AFTER this maneuver's own match, and
-        # only up to wherever the NEXT maneuver match starts -- so in
+        # Prefer a direction after this maneuver's own match, and only up to
+        # wherever the NEXT maneuver starts -- so in
         # "change lanes to the right and enter the freeway on-ramp",
         # "right" is attributed to "change lanes" (the nearer verb) and
         # "enter" correctly gets no direction of its own, rather than both
@@ -557,6 +581,18 @@ def _extract_commitments(text: str, span: tuple[int, int]) -> list[CommitmentCla
         if i + 1 < len(raw_matches):
             window_end = min(window_end, raw_matches[i + 1][0])
         direction_match = DIRECTION_PATTERN.search(text[m_end:window_end])
+        # Real rollouts also use adjective-first forms ("right nudge",
+        # "left lane change"). Search a tight prefix only when no following
+        # direction was found; cause clauses are already excluded above.
+        if direction_match is None:
+            prefix_start = max(start, m_start - 16)
+            prefix_matches = list(DIRECTION_PATTERN.finditer(text[prefix_start:m_start]))
+            direction_match = None
+            for candidate in reversed(prefix_matches):
+                between = text[prefix_start + candidate.end() : m_start].strip(" -")
+                if between in {"", "hand", "side"}:
+                    direction_match = candidate
+                    break
         direction = direction_match.group(1).lower() if direction_match else None
         claims.append(
             CommitmentClaim(

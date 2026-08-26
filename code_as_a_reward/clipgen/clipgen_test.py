@@ -7,6 +7,9 @@ and CoC text written against the scene, so gate behavior is exercised on
 realistic structures end to end.
 """
 
+import dataclasses
+from types import SimpleNamespace
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -18,6 +21,7 @@ from code_as_a_reward.clipgen.generate import (
     _STEP3,
     build_step1_message,
     extract_code,
+    extract_reward_spec,
     render_gt_claims,
     render_gt_traj_facts,
 )
@@ -121,6 +125,32 @@ def test_track_summaries_ranked_by_distance():
     assert all(s.bearing_at_closest in ("ahead", "left", "right", "behind") for s in summaries)
 
 
+def test_track_window_excludes_arbitrary_pre_keyframe_history():
+    track = SimpleNamespace(
+        timestamps_us=np.array([0, 1_000_000, 2_000_000, 3_000_000]),
+        centers_m=np.array([[0.1, 0.0], [0.2, 0.0], [10.0, 0.0], [9.0, 0.0]]),
+        track_id=1,
+        label_class="automobile",
+    )
+    scene = SimpleNamespace(tracks=[track])
+    summaries = dossier_mod.summarize_tracks(
+        scene, t0_offset_s=2.0, t1_cutoff_s=1.0, history_s=0.0
+    )
+    assert len(summaries) == 1
+    assert summaries[0].t_enter_s == 0.0
+    assert summaries[0].closest_approach_m == 9.0
+
+
+def test_reframe_waypoints_uses_keyframe_origin_and_heading():
+    # Clip coordinates move north; at index 2 the keyframe ego frame should
+    # see future motion along +x with zero lateral offset.
+    wp = np.array([[5.0, 0.0], [5.0, 1.0], [5.0, 2.0], [5.0, 3.0], [5.0, 4.0]])
+    framed = dossier_mod.reframe_waypoints_at_keyframe(wp, 2)
+    assert np.allclose(framed[2], [0.0, 0.0])
+    assert framed[4, 0] == pytest.approx(2.0)
+    assert framed[4, 1] == pytest.approx(0.0, abs=1e-8)
+
+
 def test_waypoints_from_egomotion_column_variants():
     ts = np.arange(0, 5_000_000, 100_000)  # us
     df = pd.DataFrame({"timestamp": ts, "x": ts / 1e6 * 8.0, "y": np.zeros(len(ts))})
@@ -182,11 +212,10 @@ def test_sandbox_allows_canonical_claim_attribute():
 
 
 def test_sandbox_timeout_and_clamping():
-    fn = sandbox.compile_reward_fn(
-        "def reward(claims, traj):\n    x = 0\n    while True:\n        x += 1\n"
-    )
-    with pytest.raises(sandbox.RewardFnError, match="timed out"):
-        sandbox.run_reward_fn(fn, None, None, timeout_s=0.2)
+    with pytest.raises(sandbox.RewardFnError, match="while loops"):
+        sandbox.compile_reward_fn(
+            "def reward(claims, traj):\n    x = 0\n    while True:\n        x += 1\n"
+        )
     fn = sandbox.compile_reward_fn("def reward(claims, traj):\n    return 7.5\n")
     assert sandbox.run_reward_fn(fn, None, None) == 1.0
 
@@ -200,6 +229,13 @@ def test_window_helper():
 def test_extract_code_takes_last_block():
     text = "draft:\n```python\nx = 1\n```\nfinal:\n```python\ndef reward(claims, traj):\n    return 0.0\n```\n"
     assert extract_code(text).startswith("def reward")
+
+
+def test_extract_reward_spec_validates_json_contract():
+    text = '''```json
+{"schema_version":"clipgen.reward.v1","scene_summary":"slow","components":[{"name":"seen_vehicle","weight":0.1,"claim":{"kind":"perceptual","field":"entity","any_of":["stopped_vehicle"]},"trajectory":null},{"name":"slow_execution","weight":0.9,"claim":{"kind":"commitment","field":"speed_profile","any_of":["decelerate"],"direction":"any"},"trajectory":{"feature":"speed_drop","window_s":[0,6],"floor":1,"full":5}}]}
+```'''
+    assert extract_reward_spec(text)["schema_version"] == "clipgen.reward.v1"
 
 
 def test_build_step1_message_shapes():
@@ -253,7 +289,35 @@ def _gate_cases():
 def test_battery_contains_rollout_perturbations():
     names = {c.name for c in _gate_cases()}
     assert "positive:gt" in names
-    assert {"perturb:reversed_traj", "perturb:no_reaction_traj", "perturb:gutted_claims"} <= names
+    assert {"perturb:no_reaction_traj", "perturb:gutted_claims"} <= names
+    assert "perturb:reversed_traj" not in names
+
+
+def test_identity_corruption_flips_longitudinal_axis_before_incidental_direction():
+    claims = parse_coc_trace(GT_COC, scene_id=CLIP_ID)
+    first = dataclasses.replace(claims.commitments[0], direction="left")
+    claims = dataclasses.replace(claims, commitments=[first])
+    corrupted = gate_mod._corrupt_identity(claims)
+    assert corrupted.commitments[0].speed_profile == "accelerate"
+    assert corrupted.commitments[0].direction == "left"
+
+
+def test_identity_corruption_flips_all_longitudinal_aliases_together():
+    claims = parse_coc_trace(
+        "Decelerate to maintain distance from the lead vehicle", scene_id=CLIP_ID
+    )
+    assert {c.speed_profile for c in claims.commitments} == {"decelerate", "maintain"}
+    corrupted = gate_mod._corrupt_identity(claims)
+    assert {c.speed_profile for c in corrupted.commitments} == {"accelerate"}
+
+
+def test_stationary_slowing_scene_gets_action_specific_trajectory_negative():
+    claims = parse_coc_trace(GT_COC, scene_id=CLIP_ID)
+    stationary = np.zeros((64, 2), dtype=np.float64)
+    names = {
+        c.name for c in gate_mod.build_perturbations(CLIP_ID, claims, stationary, HZ)
+    }
+    assert "perturb:accelerate_or_depart" in names
 
 
 def test_gate_passes_scene_aware_function():

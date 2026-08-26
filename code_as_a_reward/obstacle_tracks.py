@@ -161,6 +161,10 @@ class SceneObstacles:
 
     clip_id: str
     tracks: list[ActorTrack]
+    # None means the official obstacle label was loaded normally.  A value
+    # records an explicit upstream-data absence; downstream dossiers must
+    # disclose it rather than presenting an empty scene as "no actors".
+    availability_note: str | None = None
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame, clip_id: str) -> "SceneObstacles":

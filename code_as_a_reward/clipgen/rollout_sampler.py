@@ -33,11 +33,17 @@ code_as_a_reward/ood_eval/bootstrap_venv.py).
 
 from __future__ import annotations
 
+import contextlib
+import os
 from typing import Any
 
 MODEL_CHECKPOINT = "nvidia/Alpamayo-1.5-10B"
+MODEL_REVISION = os.environ.get("ALPAMAYO_MODEL_REVISION") or None
 HZ = 10.0  # load_physical_aiavdataset's time_step=0.1s convention
 DEFAULT_GROUP_SIZE = 12
+TOP_P = 0.98
+TEMPERATURE = 0.6
+MAX_GENERATION_LENGTH = 256
 
 
 def fetch_clip_data(clip_id: str, t0_us: int, avdi=None):
@@ -56,13 +62,20 @@ def load_model():
     import torch
     from alpamayo1_5.models.alpamayo1_5 import Alpamayo1_5
 
-    return Alpamayo1_5.from_pretrained(
-        MODEL_CHECKPOINT, dtype=torch.bfloat16, attn_implementation="eager"
-    ).to("cuda")
+    kwargs = {
+        "dtype": torch.bfloat16,
+        "attn_implementation": "eager",
+    }
+    if MODEL_REVISION is not None:
+        kwargs["revision"] = MODEL_REVISION
+    return Alpamayo1_5.from_pretrained(MODEL_CHECKPOINT, **kwargs).to("cuda")
 
 
 def sample_rollout_group(
-    model, data: dict, n: int = DEFAULT_GROUP_SIZE
+    model,
+    data: dict,
+    n: int = DEFAULT_GROUP_SIZE,
+    seed: int | None = None,
 ) -> list[dict[str, Any]]:
     """Sample `n` (reasoning, trajectory) rollouts for one clip's scene in a
     SINGLE forward pass (num_traj_samples=n, not n separate calls).
@@ -96,15 +109,27 @@ def sample_rollout_group(
         },
         "cuda",
     )
-    with torch.autocast("cuda", dtype=torch.bfloat16):
-        pred_xyz, _pred_rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
-            data=model_inputs,
-            top_p=0.98,
-            temperature=0.6,
-            num_traj_samples=n,
-            max_generation_length=256,
-            return_extra=True,
-        )
+    # Two independently seeded forward passes are used for generation and
+    # holdout groups. fork_rng keeps ClipGen reproducible without mutating
+    # the caller's global RNG state.
+    rng_context = (
+        torch.random.fork_rng(devices=[torch.cuda.current_device()])
+        if seed is not None
+        else contextlib.nullcontext()
+    )
+    with rng_context:
+        if seed is not None:
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            pred_xyz, _pred_rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
+                data=model_inputs,
+                top_p=TOP_P,
+                temperature=TEMPERATURE,
+                num_traj_samples=n,
+                max_generation_length=MAX_GENERATION_LENGTH,
+                return_extra=True,
+            )
     # alpamayo1_5.py's sample_trajectories_from_data_with_vlm_rollout
     # rearranges pred_xyz to (B, num_traj_sets, num_traj_samples, T, 3) and
     # reshapes extra["cot"] to (B, num_traj_sets, num_traj_samples) (a numpy
@@ -122,8 +147,13 @@ def sample_rollout_group(
 
 
 def sample_rollout_group_for_clip(
-    model, clip_id: str, t0_us: int, n: int = DEFAULT_GROUP_SIZE, avdi=None
+    model,
+    clip_id: str,
+    t0_us: int,
+    n: int = DEFAULT_GROUP_SIZE,
+    avdi=None,
+    seed: int | None = None,
 ) -> list[dict[str, Any]]:
     """Convenience wrapper: fetch + sample in one call."""
     data = fetch_clip_data(clip_id, t0_us, avdi=avdi)
-    return sample_rollout_group(model, data, n=n)
+    return sample_rollout_group(model, data, n=n, seed=seed)

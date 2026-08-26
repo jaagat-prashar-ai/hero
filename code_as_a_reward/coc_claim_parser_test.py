@@ -113,6 +113,21 @@ def test_direction_is_not_shared_across_two_different_maneuvers_in_one_clause():
     assert enter.maneuver == "enter" and enter.direction is None
 
 
+def test_split_and_adjective_first_direction_are_parsed_from_real_rollout_wording():
+    split = parse_coc_trace("Split to the right because barricades block the lane")
+    assert [(c.maneuver, c.direction) for c in split.commitments] == [("nudge", "right")]
+    adjective = parse_coc_trace("Make a right nudge to clear the cones")
+    assert [(c.maneuver, c.direction) for c in adjective.commitments] == [
+        ("nudge", "right")
+    ]
+
+
+def test_maintain_speed_has_a_typed_speed_profile():
+    parsed = parse_coc_trace("Maintain speed while following the temporary lane")
+    maintain = next(c for c in parsed.commitments if c.maneuver == "maintain_speed")
+    assert maintain.speed_profile == "maintain"
+
+
 def test_no_connective_beat_still_extracts_a_chained_commitment_only_claim():
     # "Stop to yield ... wait ... before proceeding." has no
     # because/since/due to/for/after connective at all in this corpus's
@@ -208,3 +223,17 @@ def test_closed_beat_claims_are_stable_under_prefix_truncation():
             assert closed_beat_claims(partial, closed_limit) == closed_beat_claims(
                 trace, closed_limit
             ), f"closed-beat instability at cut={cut} of {text!r}"
+
+
+def test_full1050_behavior_phrasings_are_canonicalized():
+    cases = {
+        "Maintain lane and keep a safe distance from the lead vehicle ahead.": {
+            "keep_lane",
+            "keep_distance",
+        },
+        "Stay stopped and parked with a pedestrian approaching.": {"stop"},
+        "Pass/Overtake the lead vehicle ahead.": {"overtake"},
+        "Reverse due to the road closure ahead.": {"reverse"},
+    }
+    for text, expected in cases.items():
+        assert {c.maneuver for c in parse_coc_trace(text).commitments} == expected
