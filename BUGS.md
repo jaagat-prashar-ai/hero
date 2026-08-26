@@ -6,6 +6,36 @@ now, not routine typos.
 
 ---
 
+## 2026-08-26 — consistency full run 3u250m trained entirely inside a 30,000-step LR warmup (max LR 1.7e-8, not 2e-6); result void
+
+**Symptom:** `alpamayo-rl-consistency-full-3u250m` completed all 253/253 steps
+cleanly, but every training curve was flat (train/consistency 0.190→0.201,
+reward −0.43→−0.42, entropy unchanged); W&B `train/learning_rate` ramped
+monotonically 1.3e-10 → 1.69e-8 and never approached the configured 2e-6.
+**Root cause:** cosmos-rl at the pinned rev (747d1bd) builds LR schedulers once
+in `GRPOTrainer.__init__` with hardcoded `total_steps=1e6`, and its
+`update_lr_schedulers` rebuilds via `self.build_lr_schedulers()` — which
+ignores the real total it was handed. So `optm_warmup_steps = 0.03`
+(fraction-of-total float) became a 30,000-step warmup; the whole 253-step run
+sat inside the ramp (verified: 2e-6 × 254/30000 = 1.693e-8 matches W&B
+exactly). This same bug was found 2026-08-03 (run fbbpdd) and patched — but
+only in `code_reward_entry.py`; the new `consistency_entry.py` (2026-08-25)
+never applied the monkeypatch, and the 6-step smoke run can't distinguish an
+8-step warmup from a 30,000-step one.
+**Fix:** [c543064](../../commit/c543064) — copy
+`_patch_lr_scheduler_total_steps` verbatim into `consistency_entry.py` and
+apply it to `ReasoningVLAGRPOTrainer`: wraps `step_training` to rebuild the
+schedulers with the controller's real `total_steps` on the first call.
+**How this was found:** post-run status audit — flat W&B curves prompted an
+LR-history pull; the hardcoded 1e6 was confirmed by reading cosmos-rl at the
+run's exact pinned commit (from the wandb-captured requirements.txt), and the
+warmup arithmetic reproduced the logged LR to four significant digits.
+Salvage: the run doubles as a ~12k-rollout SFT baseline on dense-100
+(consistency ≈0.19). Open follow-up: `consistency_unparseable` ~30% on
+dense-100 OOD clips vs 2–4% on the smoke set — audit before quoting numbers.
+
+---
+
 ## 2026-08-24 — summarise_losses zero-count division: torch.where backprops NaN through the untaken branch; poisoned every cycle co-training arm
 
 **Symptom:** every cycle-loss co-training arm ever launched (gen-1 through the
