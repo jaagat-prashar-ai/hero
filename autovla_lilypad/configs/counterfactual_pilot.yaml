@@ -72,3 +72,14 @@ runtime_environment:
       - "^/research-core/"
       - "^/docker/"
       - "^/lockfiles/"
+      # This job only needs autovla_lilypad/ + autovla/AutoVLA/. The dirs
+      # below are ~19GB of unrelated experiment data/caches that made the
+      # working-dir zip ~5.6GB (an ENOSPC risk on the submitting box).
+      - "^/jspace/"
+      - "^/perplexity/"
+      - "^/simlingo/"
+      - "^/bench2drive/"
+      - "^/pref_pairs/"
+      - "^/code_as_a_reward/"
+      - "^/counterfactual/"
+      - "^/masking/"
