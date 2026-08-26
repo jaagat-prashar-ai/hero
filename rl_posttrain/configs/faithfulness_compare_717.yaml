@@ -68,6 +68,7 @@ workload_variant_config:
     reasoning_dense_chunks: 2000
     pai_s3_cache_prefix: "pai_warm_cache/ood_clipgen_faithfulness717"
     pai_s3_cache_fallback_prefixes:
+      - "pai_warm_cache/ood_clipgen_offline591"
       - "pai_warm_cache/ood_clipgen_full1050"
     ckpt_s3_prefix: "alpamayo_rl/checkpoints/faithfulness_clipgen717"
     dp_shard_size: 4
