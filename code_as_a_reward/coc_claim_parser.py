@@ -376,7 +376,12 @@ ENTITY_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         "work_zone",
         re.compile(
             r"\bwork-zone\b|\bwork\s+zone\b|\bconstruction\s+zone\b|\broadwork\b"
-            r"|\bclosures?\b|\bmaintenance\b|\butility\s+(?:work|crew|truck)\b",
+            # A utility truck is still a vehicle.  Treating the noun phrase
+            # itself as a work zone made the GT entity contract incompatible
+            # with an otherwise-equivalent rollout that said "lead vehicle".
+            # Explicit utility work/crew language remains work-zone context;
+            # "utility truck" falls through to vehicle_generic below.
+            r"|\bclosures?\b|\bmaintenance\b|\butility\s+(?:work|crew)\b",
             re.I,
         ),
     ),

@@ -361,9 +361,16 @@ def calibrate_spec_against_target(
     elif direction is not None and contract.lateral_maneuvers:
         field, values, feature = "maneuver", sorted(contract.lateral_maneuvers), "path_corridor_quality"
     elif "decelerate" in profiles:
-        field, values, feature = "speed_profile", sorted(profiles), "speed_drop"
+        # The execution feature defines the commitment that must be stated.
+        # Do not let an accompanying "maintain"/keep-distance claim collect
+        # credit for an unstated deceleration merely because both appeared in
+        # the GT annotation.
+        field, values, feature = "speed_profile", ["decelerate"], "speed_drop"
     elif "accelerate" in profiles:
-        field, values, feature = "speed_profile", sorted(profiles), "speed_gain"
+        # Likewise, speed_gain requires an acceleration commitment.  The old
+        # union accepted "maintain" here, which gave full acceleration credit
+        # to reasoning that only said "keep distance".
+        field, values, feature = "speed_profile", ["accelerate"], "speed_gain"
     elif "keep_lane" in behavior:
         field, values, feature = "maneuver", ["keep_lane"], "path_corridor_quality"
     elif "keep_distance" in behavior:
@@ -493,17 +500,32 @@ def validate_spec_against_target(spec: dict[str, Any], contract: TargetContract)
             "reasoning trace drops by the required 0.40 while still needing execution "
             "credit to clear POS_MIN"
         )
-    # keep_distance is a narrower and more faithful exact behavior than its
-    # parser alias speed_profile=maintain; do not require both predicates.
+    # Require the profile that corresponds to the selected execution axis,
+    # not every verb that happened to coexist in the GT sentence.  Requiring
+    # the union forced calibration to let a maintain-only claim earn a
+    # speed_gain component (and vice versa), defeating reasoning/action
+    # alignment.  keep_distance remains a valid exact substitute for a
+    # maintain-only contract.
+    if contract.requires_stop or "decelerate" in contract.speed_profiles:
+        required_profiles = frozenset({"decelerate"})
+    elif "accelerate" in contract.speed_profiles:
+        required_profiles = frozenset({"accelerate"})
+    elif "adapt" in contract.speed_profiles:
+        required_profiles = frozenset({"adapt"})
+    elif "maintain" in contract.speed_profiles:
+        required_profiles = frozenset({"maintain"})
+    else:
+        required_profiles = frozenset()
     missing_profiles = (
         frozenset()
-        if "keep_distance" in contract.behavior_maneuvers
+        if required_profiles == {"maintain"}
+        and "keep_distance" in contract.behavior_maneuvers
         and "keep_distance" in claimed_maneuvers
-        else contract.speed_profiles - claimed_profiles
+        else required_profiles - claimed_profiles
     )
     if missing_profiles:
         failures.append(
-            "spec does not score every GT-supported speed-profile wording; "
+            "spec does not score the GT-decisive speed-profile wording; "
             f"missing {sorted(missing_profiles)}"
         )
     if contract.lateral_maneuvers and not contract.lateral_maneuvers & claimed_lateral_maneuvers:

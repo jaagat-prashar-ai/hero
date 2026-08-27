@@ -202,7 +202,7 @@ def test_spec_rejects_unrequested_lateral_scoring_axis():
     )
 
 
-def test_spec_must_accept_all_gt_supported_speed_wordings():
+def test_spec_requires_the_profile_matching_the_execution_axis():
     claims = parse_coc_trace("Decelerate to maintain distance from the lead vehicle")
     target = derive_target_contract(
         claims, _features(_reactive_waypoints(), "multi_wording_gt")
@@ -231,11 +231,11 @@ def test_spec_must_accept_all_gt_supported_speed_wordings():
         ]
     }
     failures = validate_spec_against_target(spec, target)
-    assert any("missing ['maintain']" in failure for failure in failures)
+    assert not any("speed-profile wording" in failure for failure in failures)
 
-    spec["components"][1]["claim"]["any_of"].append("maintain")
-    assert not any(
-        "speed-profile wording" in failure
+    spec["components"][1]["claim"]["any_of"] = ["maintain"]
+    assert any(
+        "missing ['decelerate']" in failure
         for failure in validate_spec_against_target(spec, target)
     )
 
@@ -322,11 +322,25 @@ def test_compiler_calibrates_weights_aliases_and_thresholds_from_gt():
     assert calibrated["components"][0]["weight"] == 0.4
     execution = calibrated["components"][1]
     assert execution["weight"] == 0.6
-    assert set(execution["claim"]["any_of"]) == {"decelerate", "maintain"}
+    assert execution["claim"]["any_of"] == ["decelerate"]
     assert execution["trajectory"]["floor"] == 0.05 * target.gt_speed_drop_mps
     assert execution["trajectory"]["full"] == 1.20 * target.gt_speed_drop_mps
     assert execution["trajectory"]["power"] == 0.30
     assert not validate_spec_against_target(calibrated, target)
+
+
+def test_acceleration_calibration_does_not_credit_maintain_only_reasoning():
+    claims = parse_coc_trace(
+        "Gentle acceleration and maintain a safe distance from the utility truck ahead."
+    )
+    progress = 18.0 * np.linspace(0.0, 1.0, 64) ** 1.2
+    waypoints = np.column_stack([progress, np.zeros(64)])
+    target = derive_target_contract(claims, _features(waypoints, "utility_truck_gt"))
+    raw = _semantic_stub("vehicle_generic", "speed_profile", "accelerate")
+    calibrated = calibrate_spec_against_target(raw, target)
+    execution = calibrated["components"][-1]
+    assert execution["trajectory"]["feature"] == "speed_gain"
+    assert execution["claim"]["any_of"] == ["accelerate"]
 
 
 def _semantic_stub(entity: str, field: str, value: str) -> dict:

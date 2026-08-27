@@ -157,6 +157,15 @@ def test_unicode_hyphen_variant_is_normalized_and_still_matched():
     assert any(p.entity == "work_zone" for p in parsed.perceptual)
 
 
+def test_utility_truck_is_a_vehicle_not_a_work_zone():
+    parsed = parse_coc_trace(
+        "Gentle acceleration and maintain a safe distance from the utility truck ahead."
+    )
+    entities = {claim.entity for claim in parsed.perceptual}
+    assert "vehicle_generic" in entities
+    assert "work_zone" not in entities
+
+
 def test_unrecognized_prose_is_reported_as_unparsed_not_silently_dropped():
     parsed = parse_coc_trace(
         "Change lanes to the left and enter the left side street due to the "
