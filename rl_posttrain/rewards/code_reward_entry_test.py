@@ -209,6 +209,11 @@ class TestLrSchedulerPatch:
         assert fake_cosmos == []  # no rebuild attempted
         assert len(calls) == 1  # original still ran
 
+    def test_llm_judge_entry_installs_real_horizon_patch(self):
+        """The judge arm must not silently regress to Cosmos' 1e6 horizon."""
+        judge_entry = Path(__file__).with_name("llm_judge_entry.py").read_text()
+        assert "_patch_lr_scheduler_total_steps(ReasoningVLAGRPOTrainer)" in judge_entry
+
 
 class TestObstacleManifest:
     @pytest.fixture(autouse=True)

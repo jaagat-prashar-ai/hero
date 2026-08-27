@@ -3,7 +3,7 @@
 
 Derived verbatim from the vendored recipe's
 models/reasoning_vla/alpamayo_cosmos_rl_post_training_reasoning_entry.py
-with exactly two functional changes:
+with exactly three functional changes:
   - the reward function imports rl_posttrain.rewards.aggregated_reward_llm_judge
     instead of the recipe's aggregated_reward_with_reasoning (whose
     Lingo-Judge grader compares predicted CoC to reference CoC and needs a
@@ -11,6 +11,10 @@ with exactly two functional changes:
   - launch goes through _launch_with_scene_reference (a copy of the vendored
     launcher) so the dataset is SceneReferenceDataset, whose reference dicts
     carry the scene frame + calibration the scene-grounded judge requires.
+  - the trainer's LR scheduler is rebuilt on the first training step using
+    the controller's real run horizon. The pinned Cosmos revision otherwise
+    constructs fractional schedules against its 1,000,000-step default,
+    leaving short runs at an effectively zero learning rate.
 
 Everything else -- env-var contract (ALPAMAYO_PAI_REASONING_LOCAL_DIR),
 vLLM registration, ModelSpec components, hydra config/overrides -- is kept
@@ -170,6 +174,15 @@ def _launch_with_scene_reference(spec: ModelSpec) -> None:
 
     train_n, val_n = install_heldout_validation_split(alp_state.get_dataloaders())
     logger.warning("[llm_judge] deterministic dataset split: train=%d val=%d", train_n, val_n)
+
+    # Keep the judge optimizer schedule identical to the code/global arms.
+    # The pinned Cosmos trainer creates this scheduler with total_steps=1e6;
+    # step_training is the first point that receives the real controller
+    # horizon. Without this wrapper the live judge arm reached only 1.73e-9
+    # at step 25 instead of ~1.91e-6.
+    from rl_posttrain.rewards.code_reward_entry import _patch_lr_scheduler_total_steps
+
+    _patch_lr_scheduler_total_steps(ReasoningVLAGRPOTrainer)
 
     ModelRegistry.register_model(
         spec.cosmos_wrapper,

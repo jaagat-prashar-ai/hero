@@ -23,6 +23,10 @@
 #      [custom.alpamayo.reward] weights keep the same keys/semantics.
 #   2. group_reward_calculation = true (see comment at the key).
 #   3. dataloader_shuffle = true (see comment at the key).
+#   4. the optimizer schedule, KL anchor, and comfort regularizer match the
+#      code/global comparison arms. Keeping the old flat, unanchored judge
+#      optimizer would confound a reward-method comparison with a training-
+#      configuration change.
 # Placeholder paths below (output_dir, model_name_or_path) are patched into
 # a scratch copy by rl_posttrain/training/run.py at job time, never edited
 # here.
@@ -39,7 +43,11 @@ optm_lr = 2e-6
 optm_impl = "fused"
 optm_weight_decay = 0.01
 optm_betas = [0.9, 0.999]
-optm_warmup_steps = 0
+# Fractional warmup and cosine decay are rebuilt against the controller's
+# real total-step horizon by llm_judge_entry.py.
+optm_warmup_steps = 0.03
+optm_decay_type = "cosine"
+optm_min_lr_factor = 0.1
 optm_grad_norm_clip = 1.0
 async_tp_enabled = false
 compile = false
@@ -104,7 +112,7 @@ temperature = 1.0
 epsilon_low = 0.2
 epsilon_high = 0.28
 lower_bound_ratio = 10.0
-kl_beta = 0.0
+kl_beta = 1e-3
 mu_iterations = 1
 mini_batch = 1
 min_filter_prefix_tokens = 1
@@ -159,7 +167,7 @@ idx_rng_debug = false
 
 [custom.alpamayo.reward]
 traj_l2_weight = 0.2
-comfort_weight = 0.0
+comfort_weight = 0.05
 reasoning_weight = 0.3
 
 [custom.alpamayo.prefetch]
