@@ -349,12 +349,27 @@ def track1_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     from code_as_a_reward.ood_eval.bootstrap_venv import ensure_alpamayo15_venv
 
     python_bin = ensure_alpamayo15_venv(venv_dir, repo_root)
+    # uv venvs ship without pip (smoke 09h6u9's failure) -- install extra deps
+    # the way bootstrap_venv does, and let exactly one rank do it.
     deps_marker = os.path.join(venv_dir, "TRACK1_DEPS_OK")
+    deps_lock = os.path.join(venv_dir, "TRACK1_DEPS_LOCK")
     if not os.path.exists(deps_marker):
-        subprocess.run([python_bin, "-m", "pip", "install", "scipy>=1.11", "safetensors>=0.4"],
-                       check=True)
-        with open(deps_marker, "w") as f:
-            f.write("ok")
+        try:
+            os.mkdir(deps_lock)
+            am_installer = True
+        except FileExistsError:
+            am_installer = False
+        if am_installer:
+            uv_bin = os.path.expanduser("~/.local/bin/uv")
+            env = dict(os.environ)
+            env["UV_NO_CONFIG"] = "1"
+            env["PATH"] = f"{os.path.dirname(uv_bin)}:{env.get('PATH', '')}"
+            subprocess.run([uv_bin, "pip", "install", "--python", python_bin,
+                            "scipy>=1.11", "safetensors>=0.4"], check=True, env=env)
+            with open(deps_marker, "w") as f:
+                f.write("ok")
+        else:
+            _wait_for_marker(deps_marker, 20 * 60, "track1 extra deps install")
 
     # 3. Resolve + download + convert this arm's checkpoint (base arm skips).
     export_dir = None
