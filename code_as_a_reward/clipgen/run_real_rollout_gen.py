@@ -183,10 +183,31 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
     manifest_entries = merge_manifest_targets(manifest_entries, targets)
     selection_key = training_fn_config.get("selection_report_s3_key")
     if selection_key:
-        prior = json.loads(
-            s3.get_object(Bucket=s3_bucket, Key=selection_key)["Body"].read()
-        )
-        prior_clips = prior.get("clips") or {}
+        # Layer a sparse repair report over the original full-shard report.
+        # Repair outputs contain only previously failed clips, so treating
+        # them as a complete manifest silently drops unfinished records when
+        # a shard terminates part-way through. Oldest -> newest overlay keeps
+        # every original denominator while honoring successful repairs.
+        selection_keys = [
+            training_fn_config.get("selection_base_report_s3_key"),
+            selection_key,
+        ]
+        prior_clips: dict[str, dict] = {}
+        loaded_selection_keys: list[str] = []
+        for key in dict.fromkeys(key for key in selection_keys if key):
+            try:
+                prior = json.loads(
+                    s3.get_object(Bucket=s3_bucket, Key=key)["Body"].read()
+                )
+            except s3.exceptions.NoSuchKey:
+                logger.warning("selection report is absent: s3://%s/%s", s3_bucket, key)
+                continue
+            prior_clips.update(prior.get("clips") or {})
+            loaded_selection_keys.append(key)
+        if not loaded_selection_keys:
+            raise FileNotFoundError(
+                f"no selection reports found in s3://{s3_bucket}: {selection_keys}"
+            )
 
         selection_mode = training_fn_config.get("selection_mode", "repair")
 
@@ -208,11 +229,10 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
         selected_ids = {entry["clip_id"] for entry in manifest_entries}
         targets = [target for target in targets if target["clip_id"] in selected_ids]
         logger.info(
-            "selected %d clips in mode=%s using s3://%s/%s",
+            "selected %d clips in mode=%s using layered reports %s",
             len(manifest_entries),
             selection_mode,
-            s3_bucket,
-            selection_key,
+            [f"s3://{s3_bucket}/{key}" for key in loaded_selection_keys],
         )
     with tempfile.NamedTemporaryFile("w", suffix=".offline.manifest.json", delete=False) as f:
         json.dump(manifest_entries, f)
