@@ -1,0 +1,89 @@
+# Short matched post-training canary over the 75 five-hour-v4 rewards.
+# All three arms launched by launch_faithfulness_compare_fivehour75.sh share
+# this source of truth; only the reward implementation and output locations
+# differ.
+name: alpamayo-rl-faithfulness-fivehour75-clipgen
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "generic"
+  entrypoint_fn: rl_posttrain.training.run.rl_local_test_loop
+  entrypoint_fn_config:
+    workspace_dir: "/mnt/work/tmp/alpamayo_rl_faithfulness_fivehour75_clipgen"
+    alpamayo_model: "nvidia/Alpamayo-1.5-10B"
+    reward_mode: "code"
+    toml_template: "rl_posttrain/toml/alpamayo_rvla_rl_code_reward.toml"
+    clipgen_only_clips: true
+    clipgen_chunks_only: true
+    clipgen_run_s3_prefixes:
+      - "code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard0"
+      - "code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard10"
+      - "code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard21"
+    clipgen_s3_bucket: "research-datasets-chicago"
+    clipgen_min_corpus_size: 75
+    reasoning_dense_chunks: 2000
+    # These 75 clips were selected from Full1050, whose complete canonical
+    # cache already exists. Never rebuild or re-download it for this canary.
+    pai_s3_cache_prefix: "pai_warm_cache/ood_clipgen_full1050"
+    pai_s3_cache_fallback_prefixes:
+      - "pai_warm_cache/ood_clipgen_faithfulness717"
+      - "pai_warm_cache/ood_clipgen_offline591"
+    model_s3_cache_prefix: "alpamayo_rl/model_cache/alpamayo15_converted"
+    ckpt_s3_prefix: "alpamayo_rl/checkpoints/faithfulness_fivehour75_clipgen"
+    dp_shard_size: 4
+    train_epoch: 1
+    validation_enable: true
+    # The 75-clip canary is about one tenth the length of the 717 run. Validate
+    # every five steps so it still produces multiple held-out measurements.
+    validation_freq: 5
+    validation_n_generation: 6
+    wandb_project: "alpamayo-rl"
+    wandb_experiment: "faithfulness_fivehour75_clipgen"
+    wandb_entity: "research"
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+  requeue_if_preempted: true
+
+runtime_environment:
+  setup_timeout_seconds: 28800
+  required_environment_variables: [HF_TOKEN, WANDB_API_KEY, OPENAI_API_KEY]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    FAITHFULNESS_VAL_FRACTION: "0.15"
+    FAITHFULNESS_VAL_SEED: "20260825"
+    LLM_JUDGE_MODEL: "gpt-4o"
+    CODE_REWARD_DISABLE_CLIPGEN: "0"
+    CODE_REWARD_VERIFY_TOP_K: "1"
+    CODE_REWARD_DEBUG_DUMP_ROLLOUTS: "1"
+    CODE_REWARD_DEBUG_DUMP_RUN_ID: "faithfulness-fivehour75-clipgen"
+    CODE_REWARD_WANDB_IMAGES: "1"
+    CODE_REWARD_WANDB_IMAGES_EVERY: "1"
+    LLM_JUDGE_WANDB_IMAGES: "1"
+    LLM_JUDGE_WANDB_IMAGES_EVERY: "1"
+  code_assets:
+    root_directory: .
+    pip_requirements_path: rl_posttrain/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/simlingo/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/third_party/alpamayo1\\.5/"
+      - "^/perplexity/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"

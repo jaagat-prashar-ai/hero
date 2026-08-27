@@ -167,6 +167,15 @@ def analyze(
             evaluated.append(
                 {
                     "passed": bool(result.passed),
+                    # A group with no independently GT-compatible rollout is
+                    # a sampler/model-coverage failure, not evidence that the
+                    # frozen reward itself is flat. Keep it in the overall
+                    # diagnostic denominator, but do not mix it into the
+                    # reward-quality go/no-go statistics below.
+                    "has_target_eligible_rollout": bool(
+                        result.selection.selection_status
+                        not in {"no_target_eligible_rollout", "no_finite_rollout"}
+                    ),
                     "scores": score_array,
                     "consistencies": consistency_array,
                     "score_std": float(np.std(score_array)),
@@ -179,28 +188,56 @@ def analyze(
         except Exception as exc:  # retain the denominator and failure type
             failure_counts[f"exception:{type(exc).__name__}"] += 1
 
-    centered_scores: list[float] = []
-    centered_consistencies: list[float] = []
-    for group in evaluated:
-        centered_scores.extend((group["scores"] - np.mean(group["scores"])).tolist())
-        centered_consistencies.extend(
-            (group["consistencies"] - np.mean(group["consistencies"])).tolist()
-        )
-    correlation = float("nan")
-    if (
-        centered_scores
-        and np.std(centered_scores) > 0
-        and np.std(centered_consistencies) > 0
-    ):
-        correlation = float(
-            np.corrcoef(centered_scores, centered_consistencies)[0, 1]
-        )
+    def pooled_correlation(rows: list[dict[str, Any]]) -> float:
+        centered_scores: list[float] = []
+        centered_consistencies: list[float] = []
+        for group in rows:
+            centered_scores.extend(
+                (group["scores"] - np.mean(group["scores"])).tolist()
+            )
+            centered_consistencies.extend(
+                (
+                    group["consistencies"]
+                    - np.mean(group["consistencies"])
+                ).tolist()
+            )
+        if (
+            centered_scores
+            and np.std(centered_scores) > 0
+            and np.std(centered_consistencies) > 0
+        ):
+            return float(
+                np.corrcoef(centered_scores, centered_consistencies)[0, 1]
+            )
+        return float("nan")
 
     total = len(groups)
     evaluated_total = len(evaluated)
     passed = sum(group["passed"] for group in evaluated)
     exact_flat = sum(group["score_range"] <= 1e-9 for group in evaluated)
     low_resolution = sum(group["score_std"] < 0.05 for group in evaluated)
+    target_eligible = [
+        group for group in evaluated if group["has_target_eligible_rollout"]
+    ]
+    eligible_total = len(target_eligible)
+    eligible_exact_flat = sum(
+        group["score_range"] <= 1e-9 for group in target_eligible
+    )
+    eligible_low_resolution = sum(
+        group["score_std"] < 0.05 for group in target_eligible
+    )
+    eligible_argmax_lift = (
+        float(
+            np.mean(
+                [
+                    group["argmax_consistency"] - group["mean_consistency"]
+                    for group in target_eligible
+                ]
+            )
+        )
+        if eligible_total
+        else float("nan")
+    )
     return {
         "published_rewards": len(rewards),
         "unique_matched_clips": len({key[2] for key in groups}),
@@ -212,7 +249,7 @@ def analyze(
         "exact_flat_rate": exact_flat / total if total else 0.0,
         "low_resolution_groups_std_lt_005": low_resolution,
         "low_resolution_rate": low_resolution / total if total else 0.0,
-        "within_group_reward_action_consistency_corr": correlation,
+        "within_group_reward_action_consistency_corr": pooled_correlation(evaluated),
         "argmax_consistency_lift": float(
             np.mean(
                 [
@@ -223,6 +260,20 @@ def analyze(
         )
         if evaluated_total
         else float("nan"),
+        "target_eligible_groups": eligible_total,
+        "no_target_eligible_groups": evaluated_total - eligible_total,
+        "eligible_exact_flat_groups": eligible_exact_flat,
+        "eligible_exact_flat_rate": (
+            eligible_exact_flat / eligible_total if eligible_total else 0.0
+        ),
+        "eligible_low_resolution_groups_std_lt_005": eligible_low_resolution,
+        "eligible_low_resolution_rate": (
+            eligible_low_resolution / eligible_total if eligible_total else 0.0
+        ),
+        "eligible_within_group_reward_action_consistency_corr": pooled_correlation(
+            target_eligible
+        ),
+        "eligible_argmax_consistency_lift": eligible_argmax_lift,
         "failure_counts": dict(sorted(failure_counts.items())),
     }
 
