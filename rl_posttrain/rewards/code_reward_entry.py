@@ -279,7 +279,10 @@ def _get_overlay_run(config: object | None):
         entity=os.environ.get("WANDB_ENTITY") or None,
         name=f"{experiment}/images-{time.strftime('%Y%m%d%H%M%S')}",
         job_type="overlay-images",
-        settings=wandb.Settings(start_method="thread"),
+        # W&B 0.24 removed Settings.start_method.  This process has Cosmos's
+        # primary metrics run already, so explicitly create a sibling run for
+        # the high-volume tables/images without replacing that primary run.
+        reinit="create_new",
     )
     return _overlay_run
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -123,6 +124,29 @@ class TestNeutralPrior:
         prior = cre._neutral_prior()
         r_effs = [df * prior + (1.0 - df) * prior for df in (0.0, 0.3, 0.7, 1.0)]
         assert max(r_effs) - min(r_effs) < 1e-12
+
+
+def test_overlay_run_uses_current_wandb_init_contract(monkeypatch):
+    calls = []
+    fake_wandb = types.ModuleType("wandb")
+
+    def init(**kwargs):
+        calls.append(kwargs)
+        return object()
+
+    fake_wandb.init = init
+    monkeypatch.setitem(sys.modules, "wandb", fake_wandb)
+    monkeypatch.setattr(cre, "_overlay_run", None)
+    config = types.SimpleNamespace(
+        logging=types.SimpleNamespace(
+            project_name="project", experiment_name="experiment"
+        )
+    )
+
+    cre._get_overlay_run(config)
+
+    assert calls[0]["reinit"] == "create_new"
+    assert "settings" not in calls[0]
 
 
 class TestLrSchedulerPatch:
