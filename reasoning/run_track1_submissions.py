@@ -240,6 +240,33 @@ def _convert(python_bin: str, repo_root: str, policy_dir: str, base_cfg_dir: str
 
 
 # ── submission assembly ──
+def _rank_rollouts(rollouts: list[str]) -> list[str]:
+    """Best-first ordering for the benchmark's top1_score (score of rollout 1).
+
+    No GT and no usable model logprobs exist at submission time, so rank by
+    medoid self-consistency: each rollout's score is its mean bag-of-words
+    cosine similarity to the other rollouts, and the one closest to the
+    sample consensus goes first. Arm-agnostic, deterministic (stable sort),
+    and order only affects top1 (topk/avgk are order-invariant).
+    """
+    from collections import Counter
+    from math import sqrt
+
+    bags = [Counter(r.lower().split()) for r in rollouts]
+    norms = [sqrt(sum(v * v for v in b.values())) or 1.0 for b in bags]
+
+    def _cos(i: int, j: int) -> float:
+        bi, bj = bags[i], bags[j]
+        if len(bj) < len(bi):
+            bi, bj = bj, bi
+        return sum(v * bj[k] for k, v in bi.items()) / (norms[i] * norms[j])
+
+    n = len(rollouts)
+    scores = [sum(_cos(i, j) for j in range(n) if j != i) / max(n - 1, 1) for i in range(n)]
+    order = sorted(range(n), key=lambda i: -scores[i])
+    return [rollouts[i] for i in order]
+
+
 def _expected_keys(repo_root: str) -> list[str]:
     import pandas as pd
 
@@ -259,7 +286,7 @@ def _build_submission(jsonl_path: str, expected: list[str], group_size: int) -> 
                 continue
             rec = json.loads(line)
             if "rollouts" in rec:
-                by_key[rec["submission_key"]] = rec["rollouts"][:group_size]
+                by_key[rec["submission_key"]] = _rank_rollouts(rec["rollouts"][:group_size])
             else:
                 n_err += 1
     missing = [k for k in expected if k not in by_key]
