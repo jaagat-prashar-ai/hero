@@ -512,7 +512,7 @@ def evaluate_reward_spec_components(spec: dict[str, Any], claims: Any, traj: Any
     # add generic credit or second-guess the target component; only penalize
     # extra, independently contradicted commitments. ABSTAIN remains neutral
     # because missing geometry/actor data is not evidence of unfaithfulness.
-    from code_as_a_reward.commitment_verifier import Verdict, verify_trace_commitments
+    from code_as_a_reward.commitment_verifier import Verdict, verify_commitment
 
     commitment_rules = [
         component["claim"]
@@ -537,11 +537,13 @@ def evaluate_reward_spec_components(spec: dict[str, Any], claims: Any, traj: Any
     if not extra_indices:
         return out
 
-    verdicts = verify_trace_commitments(claims, traj)
     extra_decided = [
-        verdicts[index]
+        verdict
         for index in extra_indices
-        if verdicts[index].verdict is not Verdict.ABSTAIN
+        if (
+            verdict := verify_commitment(claims.commitments[index], traj)
+        ).verdict
+        is not Verdict.ABSTAIN
     ]
     if extra_decided:
         consistency = sum(
