@@ -26,10 +26,8 @@ from code_as_a_reward.clipgen import analyze_group_rollouts as agr
 from code_as_a_reward.clipgen import dossier as dossier_mod
 from code_as_a_reward.clipgen import gate as gate_mod
 from code_as_a_reward.clipgen.generate import CostTracker, generate_reward_fn
-from code_as_a_reward.clipgen.reward_spec import compile_reward_spec_to_source
 from code_as_a_reward.clipgen.run_prototype import _load_clip
 from code_as_a_reward.clipgen.target_contract import (
-    calibrate_spec_against_target,
     derive_target_contract,
     validate_spec_against_target,
 )
@@ -340,10 +338,11 @@ def repair_batch(
             tracker=tracker,
             overlay_jpeg=clip["overlay_jpeg"],
             gt_traj_facts=gate_mod._traj_facts(clip["gt_traj"]),
+            target_contract=target,
         )
         transcript = result.transcript
-        spec = calibrate_spec_against_target(result.spec, target)
-        source = compile_reward_spec_to_source(spec)
+        spec = result.spec
+        source = result.source
         failures = validate_spec_against_target(spec, target)
         gt_gate = gate_mod.run_gate(
             source,

@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """Validated ClipGen reward DSL and deterministic evaluator/compiler.
 
-The language model chooses semantic components and calibrated numbers. It
-does not write executable Python. Every accepted spec has non-negative
-weights summing exactly to one, bounded scene-reasoning credit, at least one
+The language model chooses semantic components. The compiler owns weights,
+GT-relative execution features, and calibrated numbers; it also writes all
+executable Python. Every accepted final spec has non-negative weights summing
+exactly to one, bounded scene-reasoning credit, at least one
 commitment/trajectory conjunction, and monotonic graded trajectory curves.
 """
 
@@ -285,6 +286,77 @@ def validate_reward_spec(raw: Any) -> dict[str, Any]:
         )
     if not commitment_count:
         raise RewardSpecError("at least one commitment/trajectory component is required")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "scene_summary": summary.strip(),
+        "components": normalized_components,
+    }
+
+
+def validate_reward_spec_semantics(raw: Any) -> dict[str, Any]:
+    """Validate only the LLM-owned semantic shell before GT calibration.
+
+    Numeric weights, trajectory references, tolerances, and curve parameters
+    are derived from the sealed GT target immediately afterward. Rejecting an
+    otherwise useful semantic proposal because the model emitted ``null`` for
+    a tolerance or too few reference anchors wastes repair attempts on values
+    the compiler will overwrite. Canonical claim vocabulary and component
+    identity remain strict; these are genuinely model-owned semantics.
+
+    The returned shell is intentionally a syntactically valid placeholder so
+    existing compiler plumbing can carry it. It must be passed through
+    ``calibrate_spec_against_target`` before publication or scoring.
+    """
+
+    if not isinstance(raw, dict):
+        raise RewardSpecError("reward spec must be a JSON object")
+    if raw.get("schema_version") != SCHEMA_VERSION:
+        raise RewardSpecError(f"schema_version must be {SCHEMA_VERSION!r}")
+    summary = raw.get("scene_summary")
+    if not isinstance(summary, str) or not summary.strip():
+        raise RewardSpecError("scene_summary must be a non-empty string")
+    components = raw.get("components")
+    if not isinstance(components, list) or not components:
+        raise RewardSpecError("components must be a non-empty list")
+
+    normalized_components: list[dict[str, Any]] = []
+    names: set[str] = set()
+    for index, component in enumerate(components):
+        label = f"components[{index}]"
+        if not isinstance(component, dict):
+            raise RewardSpecError(f"{label} must be an object")
+        name = component.get("name")
+        if not isinstance(name, str) or not _NAME_RE.fullmatch(name):
+            raise RewardSpecError(f"{label}.name must match {_NAME_RE.pattern}")
+        if name in names:
+            raise RewardSpecError(f"duplicate component name {name!r}")
+        names.add(name)
+        claim = _validate_claim(component.get("claim"), f"{label}.claim")
+        try:
+            weight = _finite_number(component.get("weight"), f"{label}.weight")
+        except RewardSpecError:
+            weight = 1.0
+        if weight <= 0.0:
+            weight = 1.0
+        trajectory = None
+        if claim["kind"] == "commitment":
+            # Placeholder only. The target compiler replaces the entire
+            # commitment/trajectory component, including this feature.
+            trajectory = {
+                "feature": "speed_gain",
+                "window_s": [0.0, 6.4],
+                "floor": 0.0,
+                "full": 1.0,
+                "power": 1.0,
+            }
+        normalized_components.append(
+            {
+                "name": name,
+                "weight": weight,
+                "claim": claim,
+                "trajectory": trajectory,
+            }
+        )
     return {
         "schema_version": SCHEMA_VERSION,
         "scene_summary": summary.strip(),

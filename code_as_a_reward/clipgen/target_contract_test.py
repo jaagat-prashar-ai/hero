@@ -343,6 +343,38 @@ def test_acceleration_calibration_does_not_credit_maintain_only_reasoning():
     assert execution["claim"]["any_of"] == ["accelerate"]
 
 
+def test_calibration_ignores_malformed_llm_numeric_fields_owned_by_compiler():
+    increments = np.linspace(0.35, 0.65, 64)
+    waypoints = np.column_stack([np.cumsum(increments), np.zeros(64)])
+    claims = parse_coc_trace(
+        "Proceed cautiously and adapt speed through the work zone"
+    )
+    target = derive_target_contract(claims, _features(waypoints, "numeric_repair"))
+    raw = _semantic_stub("work_zone", "speed_profile", "adapt")
+    raw["components"][0]["weight"] = None
+    raw["components"][1]["weight"] = "not-a-number"
+    raw["components"][1]["trajectory"] = {
+        "feature": "cautious_progress_quality",
+        "window_s": [0.0, 6.4],
+        "floor": 0.0,
+        "full": 1.0,
+        "reference_speed_profile_mps": [1.0],
+        "speed_tolerance_mps": None,
+        "reference_progress_m": None,
+        "progress_tolerance_m": None,
+    }
+
+    calibrated = calibrate_spec_against_target(raw, target)
+
+    assert calibrated["components"][0]["weight"] == 0.4
+    execution = calibrated["components"][-1]
+    assert execution["weight"] == 0.6
+    assert execution["trajectory"]["feature"] == "cautious_progress_quality"
+    assert len(execution["trajectory"]["reference_speed_profile_mps"]) == 9
+    assert execution["trajectory"]["speed_tolerance_mps"] > 0.0
+    assert not validate_spec_against_target(calibrated, target)
+
+
 def _semantic_stub(entity: str, field: str, value: str) -> dict:
     return {
         "schema_version": "clipgen.reward.v1",

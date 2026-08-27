@@ -39,6 +39,7 @@ from code_as_a_reward.clipgen.reward_spec import (
     SCHEMA_VERSION as REWARD_SPEC_SCHEMA_VERSION,
     compile_reward_spec_to_source,
     validate_reward_spec,
+    validate_reward_spec_semantics,
 )
 from code_as_a_reward.clipgen.sandbox import RewardFnError, compile_reward_module
 
@@ -777,14 +778,17 @@ def extract_code(text: str) -> str:
     return blocks[-1].strip() + "\n"
 
 
-def extract_reward_spec(text: str) -> dict:
+def extract_reward_spec(text: str, *, semantic_only: bool = False) -> dict:
     """Parse and validate the last fenced JSON object in a model reply."""
     blocks = re.findall(r"```(?:json)?\s*\n(.*?)```", text, flags=re.DOTALL | re.IGNORECASE)
     if not blocks:
         raise RewardFnError("no fenced JSON reward specification in model reply")
     try:
         raw = json.loads(blocks[-1])
-        return validate_reward_spec(raw)
+        validator = (
+            validate_reward_spec_semantics if semantic_only else validate_reward_spec
+        )
+        return validator(raw)
     except (json.JSONDecodeError, RewardSpecError) as exc:
         raise RewardFnError(f"invalid reward specification: {exc}") from exc
 
@@ -836,6 +840,7 @@ def generate_reward_fn(
     tracker: CostTracker | None = None,
     overlay_jpeg: bytes | None = None,  # scene frame + projected waypoints
     gt_traj_facts: str | None = None,  # gate._traj_facts of the GT trajectory
+    target_contract=None,
 ) -> GenerationResult:
     """One generation attempt. First attempt runs the 3-step chain; retry
     attempts (feedback set) continue the prior transcript with gate results.
@@ -877,9 +882,23 @@ def generate_reward_fn(
         # The model emits declarative JSON. Only the deterministic compiler
         # writes executable source, eliminating arbitrary generated Python
         # and enforcing the theoretical component budget before gating.
-        spec = extract_reward_spec(_text(response))
+        spec = extract_reward_spec(
+            _text(response), semantic_only=target_contract is not None
+        )
+        if target_contract is not None:
+            # Local import avoids a module cycle: target_contract imports the
+            # reward DSL validators used above.
+            from code_as_a_reward.clipgen.target_contract import (
+                calibrate_spec_against_target,
+            )
+
+            spec = calibrate_spec_against_target(spec, target_contract)
         source = compile_reward_spec_to_source(spec)
         compile_reward_module(source, require_components=True)
+    except RewardSpecError as exc:
+        e = RewardFnError(f"invalid reward specification: {exc}")
+        e.transcript = messages
+        raise e from exc
     except RewardFnError as e:
         e.transcript = messages
         raise

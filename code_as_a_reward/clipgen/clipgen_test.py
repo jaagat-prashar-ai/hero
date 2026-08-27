@@ -238,6 +238,24 @@ def test_extract_reward_spec_validates_json_contract():
     assert extract_reward_spec(text)["schema_version"] == "clipgen.reward.v1"
 
 
+def test_extract_semantic_spec_defers_compiler_owned_numeric_validation():
+    text = '''```json
+{
+  "schema_version": "clipgen.reward.v1",
+  "scene_summary": "proceed cautiously",
+  "components": [
+    {"name":"context","weight":null,"claim":{"kind":"perceptual","field":"entity","any_of":["work_zone"]},"trajectory":null},
+    {"name":"execution","weight":null,"claim":{"kind":"commitment","field":"speed_profile","any_of":["adapt"],"direction":"any"},"trajectory":{"feature":"cautious_progress_quality","window_s":[0,6.4],"floor":0,"full":1,"reference_speed_profile_mps":[1],"speed_tolerance_mps":null}}
+  ]
+}
+```'''
+    with pytest.raises(sandbox.RewardFnError, match="must be numeric"):
+        extract_reward_spec(text)
+    shell = extract_reward_spec(text, semantic_only=True)
+    assert shell["components"][0]["claim"]["any_of"] == ["work_zone"]
+    assert shell["components"][1]["claim"]["any_of"] == ["adapt"]
+
+
 def test_build_step1_message_shapes():
     import base64
 

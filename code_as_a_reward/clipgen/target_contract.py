@@ -21,7 +21,10 @@ from typing import Any
 
 import numpy as np
 
-from code_as_a_reward.clipgen.reward_spec import validate_reward_spec
+from code_as_a_reward.clipgen.reward_spec import (
+    validate_reward_spec,
+    validate_reward_spec_semantics,
+)
 
 
 _DIRECTIONAL_LATERAL_MOVES = frozenset(
@@ -317,7 +320,11 @@ def calibrate_spec_against_target(
     on semantics and makes every emitted curve reproducible.
     """
 
-    out = validate_reward_spec(copy.deepcopy(spec))
+    # Validate only canonical LLM-owned semantics here. All numeric fields
+    # and the primary execution component are replaced below from sealed GT
+    # evidence, so malformed generated tolerances/anchors must not consume an
+    # LLM retry or reduce corpus coverage.
+    out = validate_reward_spec_semantics(copy.deepcopy(spec))
     components = out["components"]
     perception = [c for c in components if c["claim"]["kind"] == "perceptual"]
 

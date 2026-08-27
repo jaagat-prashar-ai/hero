@@ -64,7 +64,6 @@ from code_as_a_reward.clipgen.generate import (
 from code_as_a_reward.clipgen.reward_spec import compile_reward_spec_to_source
 from code_as_a_reward.clipgen.sandbox import RewardFnError
 from code_as_a_reward.clipgen.target_contract import (
-    calibrate_spec_against_target,
     derive_target_contract,
     validate_gt_target,
     validate_spec_against_target,
@@ -655,6 +654,7 @@ def run(
                     tracker=tracker,
                     overlay_jpeg=clip["overlay_jpeg"],
                     gt_traj_facts=gate_mod._traj_facts(clip["gt_traj"]),
+                    target_contract=target_contract,
                 )
             except BudgetExceeded as e:
                 entry["attempts"].append({"attempt": attempt, "error": str(e)})
@@ -685,14 +685,6 @@ def run(
                 break
             transcript = result.transcript
             report["model"] = result.model
-
-            # Numeric weights, family aliases, and motion thresholds are
-            # deterministic functions of the GT contract.  Let the LLM choose
-            # semantics; do not spend seven API retries asking it to perform
-            # exact floating-point constraint solving.
-            if result.spec is not None:
-                result.spec = calibrate_spec_against_target(result.spec, target_contract)
-                result.source = compile_reward_spec_to_source(result.spec)
 
             # A generated rubric first has to recognize the NVIDIA GT pair
             # and reject target-specific GT counterfactuals. Policy samples
