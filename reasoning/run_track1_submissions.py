@@ -296,7 +296,13 @@ def _build_submission(jsonl_path: str, expected: list[str], group_size: int) -> 
                 continue
             rec = json.loads(line)
             if "rollouts" in rec:
-                by_key[rec["submission_key"]] = _rank_rollouts(rec["rollouts"][:group_size])
+                ranked = _rank_rollouts(rec["rollouts"][:group_size])
+                # The portal requires exactly 6 NON-EMPTY strings per key; the
+                # model occasionally emits an empty CoC -- fill empty slots
+                # with the key's consensus (first-ranked) rollout.
+                if ranked and ranked[0].strip():
+                    ranked = [r if r.strip() else ranked[0] for r in ranked]
+                by_key[rec["submission_key"]] = ranked
             else:
                 n_err += 1
     missing = [k for k in expected if k not in by_key]
