@@ -1,0 +1,54 @@
+name: clipgen-fivehour-v4-cached-regate
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: training
+  training_fn: code_as_a_reward.clipgen.regate_wandb_cache.regate_s3_loop
+  training_fn_config:
+    s3_bucket: research-datasets-chicago
+    s3_prefixes:
+      - code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard0
+      - code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard10
+      - code_as_a_reward/clipgen/offline_rewards/fivehour-v4-shard21
+    wandb_table_artifact: research/alpamayo-rl/run-5fb2fo0d-trace_groups:latest
+    output_s3_key: code_as_a_reward/clipgen/regates/fivehour-v4/report.json
+    wandb_entity: research
+    wandb_project: code-as-reward-clipgen
+    wandb_name: clipgen-fivehour-v4-cached-regate
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: code-as-reward-clipgen
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+
+runtime_environment:
+  setup_timeout_seconds: 1800
+  required_environment_variables: [WANDB_API_KEY]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: ../../..
+    pip_requirements_path: code_as_a_reward/clipgen/requirements.txt
+    regex_excludes:
+      - '^/\.git/'
+      - '^/third_party/alpamayo1\.5/\.git/'
+      - "^/masking/"
+      - "^/mnist/"
+      - "^/build_wds/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/counterfactual/"
+      - "^/perplexity/"
+      - "^/simlingo/"

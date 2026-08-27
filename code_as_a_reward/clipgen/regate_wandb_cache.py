@@ -196,7 +196,8 @@ def analyze(
             np.corrcoef(centered_scores, centered_consistencies)[0, 1]
         )
 
-    total = len(evaluated)
+    total = len(groups)
+    evaluated_total = len(evaluated)
     passed = sum(group["passed"] for group in evaluated)
     exact_flat = sum(group["score_range"] <= 1e-9 for group in evaluated)
     low_resolution = sum(group["score_std"] < 0.05 for group in evaluated)
@@ -204,6 +205,7 @@ def analyze(
         "published_rewards": len(rewards),
         "unique_matched_clips": len({key[2] for key in groups}),
         "matched_cached_groups": total,
+        "successfully_evaluated_groups": evaluated_total,
         "group_gate_pass": passed,
         "group_gate_rate": passed / total if total else 0.0,
         "exact_flat_groups": exact_flat,
@@ -219,10 +221,68 @@ def analyze(
                 ]
             )
         )
-        if total
+        if evaluated_total
         else float("nan"),
         "failure_counts": dict(sorted(failure_counts.items())),
     }
+
+
+def regate_s3_loop(training_fn_config: dict[str, Any], experiment_tracker=None) -> None:
+    """Lilypad entrypoint for a sealed, read-only cached-rollout re-gate."""
+
+    import boto3
+    import wandb
+
+    bucket = str(training_fn_config.get("s3_bucket", "research-datasets-chicago"))
+    prefixes = [str(value).rstrip("/") for value in training_fn_config["s3_prefixes"]]
+    s3 = boto3.client("s3")
+    reports = [
+        json.loads(
+            s3.get_object(Bucket=bucket, Key=f"{prefix}/report.json")["Body"].read()
+        )
+        for prefix in prefixes
+    ]
+
+    artifact_name = str(training_fn_config["wandb_table_artifact"])
+    table_root = Path("/tmp/clipgen_regate_wandb_table")
+    artifact = wandb.Api().artifact(artifact_name)
+    artifact.download(root=str(table_root))
+    table_paths = sorted(table_root.glob("*.table.json"))
+    if len(table_paths) != 1:
+        raise RuntimeError(
+            f"expected exactly one W&B table in {artifact_name}, found {table_paths}"
+        )
+    result = analyze(reports, json.loads(table_paths[0].read_text()))
+    result.update(
+        {
+            "source_s3_prefixes": prefixes,
+            "wandb_table_artifact": artifact_name,
+            "diagnostic_kind": "cached_development_regate",
+        }
+    )
+    payload = json.dumps(result, indent=2, sort_keys=True, allow_nan=True).encode()
+    output_key = str(training_fn_config["output_s3_key"])
+    s3.put_object(Bucket=bucket, Key=output_key, Body=payload)
+
+    run = wandb.init(
+        entity=str(training_fn_config.get("wandb_entity", "research")),
+        project=str(training_fn_config.get("wandb_project", "code-as-reward-clipgen")),
+        name=str(training_fn_config.get("wandb_name", "clipgen-cached-regate")),
+        job_type="cached-development-regate",
+    )
+    scalars = {
+        key: value
+        for key, value in result.items()
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+    }
+    run.log(scalars)
+    run.summary.update(scalars)
+    run.summary["output_s3_key"] = output_key
+    run.summary["failure_counts_json"] = json.dumps(
+        result["failure_counts"], sort_keys=True
+    )
+    run.finish()
+    print(json.dumps(result, sort_keys=True, allow_nan=True), flush=True)
 
 
 def main() -> None:
