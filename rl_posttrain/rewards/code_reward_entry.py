@@ -1560,9 +1560,13 @@ def main() -> None:
             "data.train.dataset.reasoning_metadata=reasoning/ood_reasoning.parquet",
         ],
     )
-    from rl_posttrain.rewards.heldout_validation import install_heldout_validation_split
+    from rl_posttrain.rewards.heldout_validation import (
+        install_cosmos_validation_compat,
+        install_heldout_validation_split,
+    )
 
     train_n, val_n = install_heldout_validation_split(alp_state.get_dataloaders())
+    install_cosmos_validation_compat()
     logger.warning("[code_reward] deterministic dataset split: train=%d val=%d", train_n, val_n)
 
     ModelRegistry.register_model(
