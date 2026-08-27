@@ -103,6 +103,9 @@ _DEFAULTS: dict[str, Any] = {
     "wandb_project": "alpamayo-rl",
     "wandb_experiment": "reasoning_vla_local_test",
     "wandb_entity": "research",
+    # Optional exact S3 prefix of a Cosmos ``step_N/policy`` directory.
+    # The checkpoint is restored before launch and training resumes from it.
+    "resume_ckpt_s3_prefix": None,
     "reasoning": False,
     # Reward mode: null (derive from legacy `reasoning` bool: false->"motion",
     # true->"reasoning"), or explicitly one of "motion" | "reasoning" |
@@ -407,6 +410,82 @@ def _pai_cache_restore(prefix: str, dest: Path) -> bool:
         list(pool.map(_get, keys))
     logger.info("PAI warm cache: restore complete (%d objects)", len(keys))
     return True
+
+
+def _restore_cosmos_checkpoint(prefix: str, dest: Path) -> None:
+    """Restore one complete Cosmos ``step_N/policy`` checkpoint from S3."""
+    s3 = _pai_cache_client()
+    normalized = prefix.rstrip("/")
+    paginator = s3.get_paginator("list_objects_v2")
+    objects: list[tuple[str, int]] = []
+    for page in paginator.paginate(
+        Bucket=_PAI_CACHE_BUCKET, Prefix=f"{normalized}/"
+    ):
+        objects.extend(
+            (obj["Key"], int(obj["Size"]))
+            for obj in page.get("Contents", [])
+            if not obj["Key"].endswith("/")
+        )
+    if not objects:
+        raise FileNotFoundError(
+            f"no checkpoint objects at s3://{_PAI_CACHE_BUCKET}/{normalized}"
+        )
+
+    names = {key.rsplit("/", 1)[-1] for key, _size in objects}
+    saved_ranks = sorted(
+        int(match.group(1))
+        for name in names
+        if (match := re.fullmatch(r"\.rank_(\d+)_complete", name))
+    )
+    if not saved_ranks:
+        raise RuntimeError(
+            f"checkpoint at s3://{_PAI_CACHE_BUCKET}/{normalized} has no rank markers"
+        )
+    required = {"cosmos_config"}
+    for rank in saved_ranks:
+        required.update(
+            {
+                f".rank_{rank}_complete",
+                f"model_rank_{rank}.pth",
+                f"optimizer_rank_{rank}.pth",
+                f"scheduler_rank_{rank}.pth",
+                f"extra_info_rank_{rank}.pth",
+            }
+        )
+    missing = sorted(required - names)
+    if missing:
+        raise RuntimeError(
+            f"incomplete Cosmos checkpoint at s3://{_PAI_CACHE_BUCKET}/{normalized}; "
+            f"missing {missing}"
+        )
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    logger.info(
+        "checkpoint restore: downloading %d objects (%.1f GB) from s3://%s/%s",
+        len(objects),
+        sum(size for _key, size in objects) / 1e9,
+        _PAI_CACHE_BUCKET,
+        normalized,
+    )
+
+    def _get(item: tuple[str, int]) -> None:
+        key, expected_size = item
+        target = dest / key[len(normalized) + 1 :]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_file() and target.stat().st_size == expected_size:
+            return
+        s3.download_file(_PAI_CACHE_BUCKET, key, str(target))
+        actual_size = target.stat().st_size
+        if actual_size != expected_size:
+            raise IOError(
+                f"checkpoint size mismatch for {target}: "
+                f"expected {expected_size}, got {actual_size}"
+            )
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        list(pool.map(_get, objects))
+    logger.info("checkpoint restore: complete at %s", dest)
 
 
 def _pai_cache_upload_async(prefix: str, src: Path) -> None:
@@ -946,6 +1025,7 @@ def _patch_toml(
     validation_enable: bool | None = None,
     validation_freq: int | None = None,
     validation_n_generation: int | None = None,
+    resume_checkpoint: Path | None = None,
 ) -> None:
     import tomlkit
 
@@ -971,6 +1051,8 @@ def _patch_toml(
         doc["train"]["validation_step"] = int(validation_freq)
     if validation_n_generation is not None:
         doc["validation"]["n_generation"] = int(validation_n_generation)
+    if resume_checkpoint is not None:
+        doc["train"]["resume"] = str(resume_checkpoint)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(tomlkit.dumps(doc))
@@ -1413,6 +1495,12 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         configured_path = Path(str(configured_template))
         template_path = configured_path if configured_path.is_absolute() else REPO_ROOT / configured_path
 
+    resume_checkpoint: Path | None = None
+    resume_prefix = cfg.get("resume_ckpt_s3_prefix")
+    if resume_prefix:
+        resume_checkpoint = workspace_dir / "resume_checkpoint" / "policy"
+        _restore_cosmos_checkpoint(str(resume_prefix), resume_checkpoint)
+
     _patch_toml(
         template_path,
         toml_out,
@@ -1429,6 +1517,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         validation_enable=cfg.get("validation_enable"),
         validation_freq=cfg.get("validation_freq"),
         validation_n_generation=cfg.get("validation_n_generation"),
+        resume_checkpoint=resume_checkpoint,
     )
 
     _ensure_redis_server()
