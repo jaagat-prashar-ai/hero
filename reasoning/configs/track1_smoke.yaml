@@ -1,0 +1,74 @@
+# Smoke test for the Track 1 submission fleet: 2 arms x 3 events on 2 GPUs.
+# Validates the full unproven chain -- venv bootstrap, test-shard download,
+# cosmos-rl DTensor merge (convert_cosmos_rl_checkpoint.py), weight overlay
+# into Alpamayo1_5, generation via sample_rollout_group, submission assembly,
+# S3 upload -- before the 7-arm full launch (track1_submissions.yaml).
+# Writes to a throwaway out_s3_prefix so the real fleet prefix stays clean.
+name: track1-smoke
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: "training"
+  training_fn: reasoning.run_track1_submissions.track1_loop
+  training_fn_config:
+    group_size: 6
+    max_events: 3
+    s3_bucket: "research-datasets-chicago"
+    out_s3_prefix: "alpamayo_rl/track1_submissions/smoke"
+    work_dir: "/mnt/work/tmp/track1"
+    venv_dir: "/mnt/work/tmp/alpamayo15_venv"
+
+    arms:
+      - name: base_sft
+        ckpt_prefix: null
+      # One trained arm to exercise the download+convert+overlay path.
+      - name: code_v2_main
+        ckpt_prefix: "alpamayo_rl/checkpoints/code_reward_clipgen_v2/20260817200928"
+        step: 447
+
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: alpamayo-track1-submissions
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  # SDK requires num_gpus in {1, 4} or a multiple of 8; ranks 2-3 exit
+  # immediately (only 2 arms).
+  num_gpus: 4
+  customer_resource: research
+  preemptible: never
+  requeue_if_preempted: true
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 7200
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: code_as_a_reward/ood_eval/requirements.txt
+    regex_excludes:
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/build_wds/"
+      - "^/masking/"
+      - "^/pref_pairs/results/"
+      - "^/autovla/"
+      - "^/perplexity/"
+      - "^/simlingo/"
+      - "/\\.venv/"
+      - "^/jspace/"
+      - "^/\\.git/"
