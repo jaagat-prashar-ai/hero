@@ -1,0 +1,243 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Re-gate published ClipGen rewards against an existing W&B rollout table.
+
+This is a development diagnostic: it reuses already-sampled rollout evidence
+and never mutates or activates a reward function.  Reports are recovered from
+the final JSON line in each Lilypad workload's logs so the same sealed source
+that was published by the offline GT job is evaluated.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+from code_as_a_reward.clipgen import analyze_group_rollouts as agr
+from code_as_a_reward.clipgen.sandbox import compile_reward_module, run_reward_fn
+from code_as_a_reward.clipgen.target_contract import TargetContract
+from code_as_a_reward.coc_claim_parser import parse_coc_trace
+from code_as_a_reward.commitment_verifier import Verdict, verify_trace_commitments
+from pref_pairs.trajectory_features import extract_features
+
+
+def _report_from_workload(workload_id: str, lilypad: str) -> dict[str, Any]:
+    output = subprocess.check_output(
+        [lilypad, "workload", "logs", workload_id],
+        text=True,
+        stderr=subprocess.DEVNULL,
+    )
+    rows = [line for line in output.splitlines() if '"summary":' in line]
+    if not rows:
+        raise RuntimeError(f"no final report JSON found in {workload_id}")
+    raw = rows[-1]
+    return json.loads(raw[raw.index("{") :])
+
+
+def _contract(payload: dict[str, Any]) -> TargetContract:
+    values = dict(payload)
+    for key in (
+        "entities",
+        "speed_profiles",
+        "lateral_maneuvers",
+        "lateral_directions",
+        "behavior_maneuvers",
+    ):
+        values[key] = frozenset(values.get(key) or [])
+    for key in (
+        "gt_reference_speed_mps",
+        "gt_reference_lateral_m",
+        "gt_reference_heading_deg",
+    ):
+        values[key] = tuple(values.get(key) or [])
+    return TargetContract(**values)
+
+
+def _published_rewards(
+    reports: list[dict[str, Any]],
+) -> dict[str, tuple[str, TargetContract, dict[str, Any] | None]]:
+    rewards = {}
+    for report in reports:
+        for clip_id, record in (report.get("clips") or {}).items():
+            if record.get("passed") is not True:
+                continue
+            attempt = next(
+                (
+                    item
+                    for item in reversed(record.get("attempts") or [])
+                    if item.get("passed") is True and item.get("source")
+                ),
+                None,
+            )
+            if attempt is not None:
+                rewards[str(clip_id)] = (
+                    str(attempt["source"]),
+                    _contract(record["target_contract"]),
+                    attempt.get("reward_spec"),
+                )
+    return rewards
+
+
+def _rollout_groups(
+    table: dict[str, Any], reward_clip_ids: set[str]
+) -> dict[tuple[Any, str, str], list[dict[str, Any]]]:
+    index = {name: i for i, name in enumerate(table["columns"])}
+    groups: dict[tuple[Any, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in table["data"]:
+        clip_id = str(row[index["clip_id"]])
+        if clip_id not in reward_clip_ids:
+            continue
+        key = (row[index["group"]], str(row[index["scene_id"]]), clip_id)
+        groups[key].append(
+            {
+                "rollout_id": int(row[index["rollout_id"]]),
+                "coc_text": str(row[index["coc_text"]]),
+                "waypoints": json.loads(row[index["trajectory_waypoints_json"]]),
+            }
+        )
+    return groups
+
+
+def analyze(
+    reports: list[dict[str, Any]], table: dict[str, Any]
+) -> dict[str, Any]:
+    rewards = _published_rewards(reports)
+    groups = _rollout_groups(table, set(rewards))
+    evaluated: list[dict[str, Any]] = []
+    failure_counts: dict[str, int] = defaultdict(int)
+
+    for (_group, scene_id, clip_id), rollouts in groups.items():
+        source, contract, reward_spec = rewards[clip_id]
+        try:
+            result = agr.validate_rollout_group(
+                clip_id,
+                scene_id,
+                10.0,
+                rollouts,
+                source,
+                top_k=1,
+                target_contract=contract,
+                reward_spec=reward_spec,
+            )
+            fn, _ = compile_reward_module(source)
+            scores: list[float] = []
+            consistencies: list[float] = []
+            rollout_ids: list[int] = []
+            for rollout in rollouts:
+                rollout_id = int(rollout["rollout_id"])
+                trace = parse_coc_trace(
+                    rollout["coc_text"], scene_id=scene_id, rollout_id=rollout_id
+                )
+                features = extract_features(
+                    rollout["waypoints"],
+                    hz=10.0,
+                    scene_id=scene_id,
+                    rollout_id=rollout_id,
+                )
+                scores.append(float(run_reward_fn(fn, trace, features)))
+                verdicts = verify_trace_commitments(trace, features)
+                n_pass = sum(v.verdict is Verdict.PASS for v in verdicts)
+                consistencies.append(n_pass / len(verdicts) if verdicts else 0.0)
+                rollout_ids.append(rollout_id)
+
+            score_array = np.asarray(scores, dtype=np.float64)
+            consistency_array = np.asarray(consistencies, dtype=np.float64)
+            argmax_index = int(np.argmax(score_array))
+            for failure in result.failures:
+                if failure.startswith("NO_VALID_ROLLOUT"):
+                    key = "no_valid_rollout"
+                elif failure.startswith("rollout score std"):
+                    key = "low_std"
+                elif failure.startswith("rollout score range"):
+                    key = "low_range"
+                elif failure.startswith("only ") and "distinct scores" in failure:
+                    key = "low_unique"
+                elif "failed perturbation gate" in failure:
+                    key = "perturbation"
+                elif failure.startswith("target ranking margin"):
+                    key = "target_margin"
+                else:
+                    key = "other"
+                failure_counts[key] += 1
+            evaluated.append(
+                {
+                    "passed": bool(result.passed),
+                    "scores": score_array,
+                    "consistencies": consistency_array,
+                    "score_std": float(np.std(score_array)),
+                    "score_range": float(np.ptp(score_array)),
+                    "argmax_consistency": float(consistency_array[argmax_index]),
+                    "mean_consistency": float(np.mean(consistency_array)),
+                    "argmax_rollout_id": rollout_ids[argmax_index],
+                }
+            )
+        except Exception as exc:  # retain the denominator and failure type
+            failure_counts[f"exception:{type(exc).__name__}"] += 1
+
+    centered_scores: list[float] = []
+    centered_consistencies: list[float] = []
+    for group in evaluated:
+        centered_scores.extend((group["scores"] - np.mean(group["scores"])).tolist())
+        centered_consistencies.extend(
+            (group["consistencies"] - np.mean(group["consistencies"])).tolist()
+        )
+    correlation = float("nan")
+    if (
+        centered_scores
+        and np.std(centered_scores) > 0
+        and np.std(centered_consistencies) > 0
+    ):
+        correlation = float(
+            np.corrcoef(centered_scores, centered_consistencies)[0, 1]
+        )
+
+    total = len(evaluated)
+    passed = sum(group["passed"] for group in evaluated)
+    exact_flat = sum(group["score_range"] <= 1e-9 for group in evaluated)
+    low_resolution = sum(group["score_std"] < 0.05 for group in evaluated)
+    return {
+        "published_rewards": len(rewards),
+        "unique_matched_clips": len({key[2] for key in groups}),
+        "matched_cached_groups": total,
+        "group_gate_pass": passed,
+        "group_gate_rate": passed / total if total else 0.0,
+        "exact_flat_groups": exact_flat,
+        "exact_flat_rate": exact_flat / total if total else 0.0,
+        "low_resolution_groups_std_lt_005": low_resolution,
+        "low_resolution_rate": low_resolution / total if total else 0.0,
+        "within_group_reward_action_consistency_corr": correlation,
+        "argmax_consistency_lift": float(
+            np.mean(
+                [
+                    group["argmax_consistency"] - group["mean_consistency"]
+                    for group in evaluated
+                ]
+            )
+        )
+        if total
+        else float("nan"),
+        "failure_counts": dict(sorted(failure_counts.items())),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("table", type=Path)
+    parser.add_argument("workload_ids", nargs="+")
+    parser.add_argument("--lilypad", default="lilypad")
+    args = parser.parse_args()
+    reports = [
+        _report_from_workload(workload_id, args.lilypad)
+        for workload_id in args.workload_ids
+    ]
+    table = json.loads(args.table.read_text())
+    print(json.dumps(analyze(reports, table), indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
