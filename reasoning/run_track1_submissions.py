@@ -46,6 +46,9 @@ S3_SYNC_INTERVAL_S = 60.0
 BASE_MODEL = "nvidia/Alpamayo-1.5-10B"
 TEST_PARQUET_REPO_PATH = "reasoning/ood_reasoning_test.parquet"
 TEST_SHARDS_PREFIX = "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds/test/"
+# Egomotion sidecars for the 4 shard-0 clips whose original WDS build dropped
+# the egomotion member (backfilled from HF 2026-08-26).
+EGOMOTION_FILL_PREFIX = "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds/test_egomotion_fill/"
 CONVERT_SCRIPT = "third_party/alpamayo-recipes/scripts/convert_cosmos_rl_checkpoint.py"
 GROUP_SIZE_DEFAULT = 6
 
@@ -130,6 +133,8 @@ class _ConvertSlot:
         self._held: str | None = None
         os.makedirs(base_dir, exist_ok=True)
 
+    STALE_S = 90 * 60  # a slot older than this is residue from a crashed run
+
     def __enter__(self):
         while self._held is None:
             for i in range(self._slots):
@@ -139,6 +144,11 @@ class _ConvertSlot:
                     self._held = path
                     return self
                 except FileExistsError:
+                    try:
+                        if time.time() - os.path.getmtime(path) > self.STALE_S:
+                            os.rmdir(path)
+                    except OSError:
+                        pass
                     continue
             time.sleep(15)
         return self
@@ -317,6 +327,20 @@ def track1_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     os.makedirs(work_dir, exist_ok=True)
     logger.info("rank %d/%d -> arm %s", rank, world_size, arm["name"])
 
+    # Pin this rank to exactly ONE physical GPU BEFORE anything touches CUDA.
+    # Smoke e2wbdb proved Ray's CUDA_VISIBLE_DEVICES can span multiple devices
+    # here, landing two ~30-50 GB models on the same GPU (OOM).
+    cvd = [d for d in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",") if d != ""]
+    local_rank = int(os.environ.get("LOCAL_RANK", str(rank)))
+    if not cvd:  # unset/empty means ALL node GPUs are visible to every rank
+        import torch
+
+        cvd = [str(i) for i in range(torch.cuda.device_count())]
+    if len(cvd) > 1:
+        pinned = cvd[local_rank % len(cvd)]
+        os.environ["CUDA_VISIBLE_DEVICES"] = pinned
+        logger.info("pinned CUDA_VISIBLE_DEVICES=%s (was %s)", pinned, ",".join(cvd) or "unset")
+
     keepalive = _GpuKeepalive()
     keepalive.start()
 
@@ -326,15 +350,20 @@ def track1_loop(training_fn_config: dict, experiment_tracker=None) -> None:
 
     # 1. Test shards: rank 0 downloads once for the node, everyone else waits.
     shards_dir = os.path.join(work_dir, "test_shards")
+    fill_dir = os.path.join(work_dir, "egomotion_fill")
     shards_marker = os.path.join(shards_dir, "DOWNLOAD_OK")
     if rank == 0:
         os.makedirs(shards_dir, exist_ok=True)
+        os.makedirs(fill_dir, exist_ok=True)
         if not os.path.exists(shards_marker):
             shard_keys = [k for k in _list_keys(s3, bucket, TEST_SHARDS_PREFIX) if k.endswith(".tar")]
             if not shard_keys:
                 raise RuntimeError(f"no test shards under s3://{bucket}/{TEST_SHARDS_PREFIX}")
-            for key in sorted(shard_keys):
-                local = os.path.join(shards_dir, key.rsplit("/", 1)[-1])
+            fill_keys = [k for k in _list_keys(s3, bucket, EGOMOTION_FILL_PREFIX)
+                         if k.endswith(".parquet")]
+            for key, dest in [(k, shards_dir) for k in sorted(shard_keys)] + [
+                    (k, fill_dir) for k in sorted(fill_keys)]:
+                local = os.path.join(dest, key.rsplit("/", 1)[-1])
                 if os.path.exists(local):
                     continue
                 logger.info("downloading %s", key)
@@ -345,9 +374,12 @@ def track1_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     else:
         _wait_for_marker(shards_marker, 45 * 60, "rank0 shard download")
 
-    # 2. Venv (idempotent + safe under concurrent ranks) + extra deps.
-    from code_as_a_reward.ood_eval.bootstrap_venv import ensure_alpamayo15_venv
+    # 2. Venv: built by rank 0 only (bootstrap_venv is NOT safe under 8
+    # concurrent cold-node builders -- verify-workflow finding), then extra deps.
+    from code_as_a_reward.ood_eval.bootstrap_venv import MARKER_NAME, ensure_alpamayo15_venv
 
+    if rank != 0:
+        _wait_for_marker(os.path.join(venv_dir, MARKER_NAME), 45 * 60, "rank0 venv bootstrap")
     python_bin = ensure_alpamayo15_venv(venv_dir, repo_root)
     # uv venvs ship without pip (smoke 09h6u9's failure) -- install extra deps
     # the way bootstrap_venv does, and let exactly one rank do it.
@@ -409,6 +441,7 @@ def track1_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     cmd = [python_bin, "-m", "reasoning.track1_worker",
            "--arm", arm["name"],
            "--shards-dir", shards_dir,
+           "--fill-dir", fill_dir,
            "--output-jsonl", jsonl_local,
            "--group-size", str(group_size)]
     if export_dir:

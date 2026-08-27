@@ -36,6 +36,8 @@ MIN_OVERLAY_MATCH_FRACTION = 0.95
 
 
 def _load_done_keys(output_jsonl: str) -> set[str]:
+    """Keys with REAL rollouts only -- errored events must be retried on
+    resume, not frozen as permanently-empty submission keys."""
     done: set[str] = set()
     if os.path.exists(output_jsonl):
         with open(output_jsonl) as f:
@@ -44,7 +46,9 @@ def _load_done_keys(output_jsonl: str) -> set[str]:
                 if not line:
                     continue
                 try:
-                    done.add(json.loads(line)["submission_key"])
+                    rec = json.loads(line)
+                    if rec.get("rollouts"):
+                        done.add(rec["submission_key"])
                 except Exception:
                     logger.warning("skipping unparseable resume line: %r", line[:100])
     return done
@@ -99,6 +103,8 @@ def main() -> None:
     parser.add_argument("--export-dir", default=None,
                         help="cosmos-rl HF export dir; omit for the base SFT model")
     parser.add_argument("--shards-dir", required=True)
+    parser.add_argument("--fill-dir", default=None,
+                        help="egomotion sidecar dir for clips whose shard member is missing")
     parser.add_argument("--output-jsonl", required=True)
     parser.add_argument("--group-size", type=int, default=6)
     parser.add_argument("--max-events", type=int, default=None,
@@ -124,6 +130,7 @@ def main() -> None:
 
     done = _load_done_keys(args.output_jsonl)
     logger.info("[%s] resume: %d events already done", args.arm, len(done))
+    iter_kwargs = {"fill_dir": args.fill_dir} if args.fill_dir else {}
 
     model = load_model()
     if args.export_dir:
@@ -136,7 +143,7 @@ def main() -> None:
     n_done, n_err = 0, 0
     t_start = time.time()
     with open(args.output_jsonl, "a") as out:
-        for sample in iter_track1_samples(shard_paths):
+        for sample in iter_track1_samples(shard_paths, **iter_kwargs):
             key = sample["submission_key"]
             if key in done:
                 continue

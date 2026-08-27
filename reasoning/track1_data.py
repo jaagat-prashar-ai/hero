@@ -27,6 +27,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import os
 import tarfile
 
 import numpy as np
@@ -152,27 +153,29 @@ def _decode_frames_spaced(mp4_bytes: bytes, timestamps_bytes: bytes, t0_us: int)
 
 
 def _iter_tar_samples(shard_path: str):
-    """Yield {member-suffix: bytes} per WDS sample key from one .tar shard."""
+    """Yield {member-suffix: bytes} per WDS sample key from one .tar shard.
+
+    build_test_split.py wrote shards from a ThreadPoolExecutor, so one clip's
+    members are NOT guaranteed contiguous (smoke e2wbdb hit real interleaving:
+    'egomotion.parquet' KeyErrors). Index the whole tar by key first, then
+    extract per key via random access."""
     with tarfile.open(shard_path, "r") as tar:
-        current_key: str | None = None
-        current: dict[str, bytes] = {}
+        by_key: dict[str, list] = {}
         for member in tar:
             if not member.isfile():
                 continue
-            base = member.name.split("/")[-1]
-            key, _, suffix = base.partition(".")
-            if key != current_key:
-                if current_key is not None:
-                    yield current_key, current
-                current_key, current = key, {}
-            f = tar.extractfile(member)
-            assert f is not None, member.name
-            current[suffix] = f.read()
-        if current_key is not None:
-            yield current_key, current
+            key, _, _suffix = member.name.split("/")[-1].partition(".")
+            by_key.setdefault(key, []).append(member)
+        for key, members in by_key.items():
+            sample: dict[str, bytes] = {}
+            for member in members:
+                f = tar.extractfile(member)
+                assert f is not None, member.name
+                sample[member.name.split("/")[-1].partition(".")[2]] = f.read()
+            yield key, sample
 
 
-def iter_track1_samples(shard_paths: list[str]):
+def iter_track1_samples(shard_paths: list[str], fill_dir: str | None = None):
     """Yield one dict per (clip_id, event_idx) across the given shards.
 
     Each dict has the load_physical_aiavdataset-shaped keys sample_rollout_group
@@ -181,6 +184,11 @@ def iter_track1_samples(shard_paths: list[str]):
     t0_us_used, clamped. Events that fail even after clamping are yielded as
     {"submission_key", "clip_id", "event_idx", "error"} so the caller can
     still emit the key.
+
+    fill_dir: directory of <clip_id>.egomotion.parquet sidecars for the 4
+    shard-0 clips whose original build dropped the egomotion member
+    (backfilled 2026-08-26 from HF via build_webdataset's own serialization,
+    at s3 .../wds/test_egomotion_fill/).
     """
     camera_indices = torch.tensor([idx for _, idx in CAMERA_KEYS], dtype=torch.int64)
 
@@ -195,9 +203,16 @@ def iter_track1_samples(shard_paths: list[str]):
                 continue
 
             try:
-                egomotion, track_min_us, track_max_us = _egomotion_from_bytes(
-                    sample["egomotion.parquet"]
-                )
+                ego_bytes = sample.get("egomotion.parquet")
+                if ego_bytes is None and fill_dir is not None:
+                    fill_path = os.path.join(fill_dir, f"{clip_id}.egomotion.parquet")
+                    if os.path.exists(fill_path):
+                        with open(fill_path, "rb") as f:
+                            ego_bytes = f.read()
+                        logger.info("using egomotion sidecar for %s", clip_id)
+                if ego_bytes is None:
+                    raise KeyError("egomotion.parquet (no shard member, no sidecar)")
+                egomotion, track_min_us, track_max_us = _egomotion_from_bytes(ego_bytes)
             except Exception as exc:
                 for event_idx in range(len(events)):
                     yield {
