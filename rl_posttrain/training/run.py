@@ -1251,6 +1251,48 @@ def _terminate_process_group(proc: subprocess.Popen) -> None:
         proc.wait()
 
 
+def _ensure_prefetch_rpc_fallback(server_path: Path | None = None) -> None:
+    """Make node-prefetch failure fall back to a synchronous sample read.
+
+    Upstream registers a process-local ``atexit`` hook for a node-shared
+    server. During final Cosmos synchronization, one exiting replica can shut
+    down that server while another still needs its last sample. Prefetch is an
+    optimization, so that transport race must not fail completed training.
+
+    This idempotent runtime patch keeps the fix in the Hero commit copied to
+    Lilypad without changing the pinned upstream submodule.
+    """
+    path = server_path or (RECIPE_DIR / "prefetch" / "server.py")
+    source = path.read_text()
+    marker = '"client_get_fallback_local"'
+    if marker in source:
+        return
+    original = '    sample, mapped2, was_hit = client.get(n=int(n), role=str(role or "raw"))\n'
+    replacement = '''    role2 = str(role or "raw")
+    try:
+        sample, mapped2, was_hit = client.get(n=int(n), role=role2)
+    except (OSError, RuntimeError, EOFError, BrokenPipeError, ConnectionResetError, TimeoutError) as exc:
+        _prefetch_log(
+            "warn",
+            "client_get_fallback_local",
+            n=int(n),
+            mapped_idx=int(mapped_idx),
+            role=role2,
+            server_key=key,
+            error=repr(exc),
+        )
+        return _materialize_local_for_role(
+            dataset=dataset, mapped_idx=int(mapped_idx), role=role2
+        ), int(mapped_idx)
+'''
+    if source.count(original) != 1:
+        raise RuntimeError(
+            f"prefetch fallback patch target changed in {path}; refusing a partial patch"
+        )
+    path.write_text(source.replace(original, replacement, 1))
+    logger.info("rl_posttrain: installed synchronous prefetch RPC fallback in %s", path)
+
+
 def _launch_cosmos_rl(
     python_bin: str,
     toml_path: Path,
@@ -1617,6 +1659,7 @@ def _run_on_gpu_node(cfg: dict[str, Any]) -> None:
         )
 
     try:
+        _ensure_prefetch_rpc_fallback()
         _launch_cosmos_rl(python_bin, toml_out, entry_script, log_dir, subprocess_env)
     finally:
         if keepalive_through_training:

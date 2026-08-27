@@ -11,6 +11,7 @@ sys.modules.setdefault("ray", types.ModuleType("ray"))
 from rl_posttrain.training.run import (
     _CAMERA_SUBPARTS,
     _camera_chunk_covers_clips,
+    _ensure_prefetch_rpc_fallback,
     _patch_toml,
     _run_streamed,
 )
@@ -47,6 +48,26 @@ def test_run_streamed_times_out_hung_process() -> None:
             [sys.executable, "-c", "import time; time.sleep(60)"],
             timeout_s=0.05,
         )
+
+
+def test_prefetch_rpc_fallback_patch_is_idempotent(tmp_path) -> None:
+    server_path = tmp_path / "server.py"
+    server_path.write_text(
+        '''def _fetch_sample(n, role, client):
+    mapped_idx = n
+    key = "train"
+    sample, mapped2, was_hit = client.get(n=int(n), role=str(role or "raw"))
+    return sample, int(mapped2)
+'''
+    )
+
+    _ensure_prefetch_rpc_fallback(server_path)
+    first = server_path.read_text()
+    _ensure_prefetch_rpc_fallback(server_path)
+
+    assert server_path.read_text() == first
+    assert '"client_get_fallback_local"' in first
+    assert "_materialize_local_for_role" in first
 
 
 def test_patch_toml_sets_exact_resume_checkpoint(tmp_path) -> None:
