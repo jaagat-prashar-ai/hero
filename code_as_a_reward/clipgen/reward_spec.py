@@ -27,6 +27,12 @@ from code_as_a_reward.coc_claim_parser import (
 SCHEMA_VERSION = "clipgen.reward.v1"
 MAX_PERCEPTION_WEIGHT = 0.40
 MAX_HORIZON_S = 6.5
+# ClipGen is explicitly a reasoning/action reward. The scene-specific rubric
+# supplies target accuracy; this multiplier makes contradictory extra action
+# claims lower the same reward instead of being ignored once the primary GT
+# component happens to match. It never adds credit and preserves an intact
+# rubric's maximum of exactly 1.0.
+ACTION_ALIGNMENT_PENALTY = 0.50
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 _ENTITIES = frozenset(key for key, _ in ENTITY_PATTERNS)
@@ -500,6 +506,49 @@ def evaluate_reward_spec_components(spec: dict[str, Any], claims: Any, traj: Any
             linear = max(0.0, min(1.0, (measure - floor) / (full - floor)))
             grade = linear ** trajectory.get("power", 1.0)
         out[component["name"]] = component["weight"] * grade
+    # The target components above previously ignored *additional* action
+    # statements. Thus "decelerate, then accelerate" could score exactly
+    # like faithful "decelerate" reasoning on a slowing trajectory. Do not
+    # add generic credit or second-guess the target component; only penalize
+    # extra, independently contradicted commitments. ABSTAIN remains neutral
+    # because missing geometry/actor data is not evidence of unfaithfulness.
+    from code_as_a_reward.commitment_verifier import Verdict, verify_trace_commitments
+
+    commitment_rules = [
+        component["claim"]
+        for component in normalized["components"]
+        if component["claim"]["kind"] == "commitment"
+    ]
+
+    def is_target_commitment(claim: Any) -> bool:
+        for rule in commitment_rules:
+            if getattr(claim, rule["field"], None) not in set(rule["any_of"]):
+                continue
+            direction = rule.get("direction", "any")
+            if direction == "any" or getattr(claim, "direction", None) == direction:
+                return True
+        return False
+
+    extra_indices = [
+        index
+        for index, claim in enumerate(claims.commitments)
+        if not is_target_commitment(claim)
+    ]
+    if not extra_indices:
+        return out
+
+    verdicts = verify_trace_commitments(claims, traj)
+    extra_decided = [
+        verdicts[index]
+        for index in extra_indices
+        if verdicts[index].verdict is not Verdict.ABSTAIN
+    ]
+    if extra_decided:
+        consistency = sum(
+            verdict.verdict is Verdict.PASS for verdict in extra_decided
+        ) / len(extra_decided)
+        scale = 1.0 - ACTION_ALIGNMENT_PENALTY * (1.0 - consistency)
+        out = {name: value * scale for name, value in out.items()}
     return out
 
 

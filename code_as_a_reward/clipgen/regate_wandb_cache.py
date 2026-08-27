@@ -19,6 +19,7 @@ from typing import Any
 import numpy as np
 
 from code_as_a_reward.clipgen import analyze_group_rollouts as agr
+from code_as_a_reward.clipgen.reward_spec import compile_reward_spec_to_source
 from code_as_a_reward.clipgen.sandbox import compile_reward_module, run_reward_fn
 from code_as_a_reward.clipgen.target_contract import TargetContract
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
@@ -75,10 +76,20 @@ def _published_rewards(
                 None,
             )
             if attempt is not None:
+                reward_spec = attempt.get("reward_spec")
+                # This mirrors build_reward_corpus.py, which deterministically
+                # recompiles the sealed JSON spec when constructing the live
+                # training corpus. Scoring the historical source text here
+                # would test an older evaluator than training will load.
+                source = (
+                    compile_reward_spec_to_source(reward_spec)
+                    if reward_spec is not None
+                    else str(attempt["source"])
+                )
                 rewards[str(clip_id)] = (
-                    str(attempt["source"]),
+                    source,
                     _contract(record["target_contract"]),
-                    attempt.get("reward_spec"),
+                    reward_spec,
                 )
     return rewards
 

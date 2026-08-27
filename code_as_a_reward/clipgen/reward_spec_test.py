@@ -111,6 +111,29 @@ def test_speed_gain_is_directional_and_reversal_sensitive():
     assert reversed_score["executed_slowdown"] == 0.0
 
 
+def test_reward_penalizes_extra_action_claim_that_contradicts_trajectory():
+    from pref_pairs.trajectory_features import extract_features
+
+    faithful = parse_coc_trace("Slow down for the stopped vehicle")
+    contradictory = parse_coc_trace(
+        "Slow down for the stopped vehicle, then accelerate"
+    )
+    speed = np.concatenate([np.full(10, 8.0), np.linspace(8.0, 3.0, 51)])
+    waypoints = np.zeros((len(speed), 3), dtype=np.float64)
+    waypoints[:, 0] = np.cumsum(speed) * 0.1
+    traj = extract_features(waypoints, hz=10.0, scene_id="test", rollout_id=0)
+    faithful_score = sum(
+        evaluate_reward_spec_components(_spec(), faithful, traj).values()
+    )
+    contradictory_score = sum(
+        evaluate_reward_spec_components(_spec(), contradictory, traj).values()
+    )
+
+    assert faithful_score > 0.99
+    assert contradictory_score < faithful_score
+    assert contradictory_score == pytest.approx(0.5 * faithful_score)
+
+
 def test_spec_rejects_overweight_perception_and_wrong_budget():
     spec = _spec()
     spec["components"][0]["weight"] = 0.5
