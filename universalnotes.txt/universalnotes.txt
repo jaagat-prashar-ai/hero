@@ -3183,4 +3183,86 @@ obvious things to do in certain scenes
             # Why do we only keep one? Shouldnt' we keep all to clearly represent the overall trajectory?
         # Compensation: the compatibility table is deliberately one-to-many (e.g., KEEP_DISTANCE is compatible with maintain/gentle-accel/gentle-decel) precisely because the extraction can't disambiguate. 
 
+    # in an RL loopscoring, unparseable as 0 is the right call. The reason is that this is incentive-shaped, not measurement-shaped: any treatment that exempts unparseable traces from the penalty makes vaguness a safe harbor (?).
+
+    # Under GRPO the reawrd only matters through within-group ranking - if an unparseable rollout took no penalty while a parsed-but-inconsistent took one -w, the gradient
+
+    # high variandce or no variance, we want to fix this. 
+
+# SimLingo architecture
+    # SimLingo is an InternVL2-1B split into two halves that meet in embedding space. The vision half (ViT + mlp1 projector) and the LLM half are loaded separately, each discarding the other (encoder/vlm.py:30-31, language_model/llm.py:89). Everything - image tiles, prompt text, numeric target points, and 30 learned driving query tokens - is converted into LLM-embedding-space vectors, concatenated into one sequence, and pushed through a single trunk forward. Task heads read hidden states back off specific positions. One trunk pass per trainign step (plus a second, vision-free pass if the cyclel loss is on).
+        # we have a learned projection or lm_head for trajectory 
+        # but we don't have one to go from trajectory to instructions?
+
+    # 1. Batch Construction (dataloader/)
+        - 50/50 mixture of the driving dataset and the dreamer (counterfactual-instruction) dataset via WeightedRandomSampler (datamodule.py:96-171).
+        - A dreamer item with dreamer_contrastive=true returns K samples of the same frame with different instructions/trajectories (dataset_dreamer.py:101-106, 221-225); the collate flatetns them and assigns shared group_ids (datamodule.py:237-247) - this group structure is what both of your aux losses consume. Safety flag is forced off in contrastive model so the instruction<->trajectory pairiong stays honest (dataset_dreamer.py:60-64).
+        - Images: one front frame, bottom-quarter (bonnet), crop, InternVL 448px tiling with max_num_grid=2 -> camera images [B, T=1, N_patches, 3, 448, 448] (datamodule.py:255-284).
+        - Text: chat-templated twice - prompt (full user+assistant convo with a per-token loss mask) for teacher forcing, prompt_inference(question only) for generation. 
+        Prompt is e.g., "Current speed: 4.0 m/s. Target waypoint: <TARGET_POINT><TARGET_POINT>. {dreamer_instruction}"; answer is "Following the given instruction. Waypoints:" (dataset_dreamer.py:135-150).
+        - Numeric conditioning travels as placeholder values: a per-sample dict {token_id(<TARGET_POINT>): (2,2) array (Datmaodule.py:289-295)}
+        - Labels: waypoints [B, 10,2] (0.2s apart), path [B,20,2] route polyline at 1m arc-length spacing. 
+        
+        # InfoNCE loss.   
+
+# wp_encoder never touches the hidden states. It takes raw (x,y) numbers - 2 floats in, one embedding vector out. That's its entire signature: 2 -> 64 -> 128 -> hidden_size. 
+
+    The full chain in the cycle pass: 
+
+    hidden states [30, 2048] (main pass, at the query slots)
+            # trajectory heads (MLPs) + cumsum 
+    coordinates [30, 2]
+            # the bottleneck: only these numbers cross into the cycle pass 
+    wp_encoder (MLP: 2 -> ... -> 2048)
+    
+    trajectory vectors [30, 2048] (new embeddings, built from numbers alone)
+    
+    into the second LLM forward 
+
+    # The hidden states are turned into embeddings only in the indirect sense that they first get collapsed down to 30 coordinate pairs, and wp_encoder then re-expands those numbers into vectors. 
+
+    # hidden states, 30 pairs, wp_encoder converts these into vectors
+
+# reserach interns bucket in Chicago?
+
+
+##
+
+
+All done — 8 agents: 4 researchers, 2 competing designs, 2 adversarial critiques (verified claims against actual scorer code). Saving a project memory, then the synthesis.
+
+  Wrote 2 memories
+
+Yes — and it's more feasible than it looks: ~80% of the infrastructure already exists on this machine. The workflow finished (8 agents; researchers read the actual SimLingo and navsim source, designers proposed two pipelines, critics verified/refuted claims against scorer code). Synthesis:
+
+The core insight
+
+SimLingo's "Action Dreaming" never re-simulates or re-renders CARLA. It keeps the original camera image, rolls alternate 2.5s futures with a kinematic bicycle model + PID controllers from logged privileged state (agent boxes, map, ego kinematics), collision-checks them against other agents' ground-truth futures, and attaches templated instructions (simlingo/dataset_generation/dreamer_data/dreamer_generator.py in your checkout). So CARLA's only real role is supplying privileged state — which NAVSIM's logs also have. And NAVSIM adds something CARLA-SimLingo lacked: pdm_score() scores an arbitrary (40,3)@10Hz trajectory offline against a per-scene metric cache in ~tens of ms on CPU (LQR + bicycle re-simulation, per-subscore breakdown). The scorer is your feasibility/safety oracle — no rendering, no simulator.
+
+What's already on disk
+
+- navsim v2.0.0 checkout: /home/shubh-gupta/workspace/collab/navsim; NoRD (Qwen2.5-VL → 8 discrete TRAJ tokens) with tokenizer encode/decode and a minimal eval loop in nord-release/scripts/eval_navsim.py
+- Full OpenScene dataset + prebuilt metric caches under /mnt/work/applied/ishaan.rawal/data/navsim/, plus premade NoRD chat-template JSONLs
+- Battle-tested batched PDM-reward workers already used in verl GRPO: verl_waymo/verl/utils/reward_score/pdm_reward_*
+- Your own reusable pieces: SimLingo's dreamer generator + instruction templates + K-way contrastive loader, the AutoVLA counterfactual-CoT recipe, and the dpo_pairs fingerprint-gate QC discipline
+
+Recommended pipeline (score-first, post-critique)
+
+Per scene: generate ~64 candidates inside the scoring stack's own representations (PDM-Closed IDM×lateral-offset proposals already in each cache, plus candidates sampled/perturbed in NoRD's K-Disc token space — zero quantization error by construction) → batch pdm_score all → attach language post-hoc from the measured simulated kinematics via SimLingo's template bank (never from intent, so text can't hallucinate geometry) → slice three products from one scored ensemble: (a) dreamer SFT samples + gate-named refusals, (b) DPO pairs (high-vs-low PDMS, same instruction), (c) OmniDrive-style counterfactual QA composed mechanically from subscores. CPU-only, $0 API cost.
+
+Traps the critics verified in scorer source (would have silently poisoned labels)
+
+1. Cache version: local caches are likely v1-era (the verl reward code pins a separate navsimv1 checkout), and v1 pdm_score lacks simulated states, traffic policies, and half the subscores. Day-1 hard gate: rebuild v2 caches for the pilot subset; don't take the v1 fallback.
+2. At-fault-collision gate inverts labels: a replayed follower rear-ending a hard-braking ego scores no_at_fault_collisions=1 (stop wrongly labeled safe), while a lane-changing ego straddling lanes gets faulted for side collisions a real driver would've been yielded to (lane changes wrongly labeled unsafe). Fix: AND the PDM gates with an any-collision check from the cache's built-in 10 Hz occupancy, fault-class-aware refusal rules, divergence-capped trust.
+3. Don't generate training rows from navtest — that's NoRD's benchmark split (PDMS 0.8626).
+4. Route-anchored subscores (progress/direction/lane-keeping) are fictional for route-changing counterfactuals — restrict to route-compatible maneuvers (speed, stop, lane shifts) or mask those subscores.
+5. Sensor staleness (image frozen at t0 while the counterfactual diverges 4s) is the same compromise SimLingo and OmniDrive accept; the navhard_two_stage splat-rendered perturbation grid already on disk gives a free sensor-consistent eval slice.
+
+Why it's worth doing
+
+The prior-art sweep found instructions-on-NAVSIM (Vega/InstructScene) and scored-ensembles-on-NAVSIM (Hydra-MDP, DriveDPO) but no published work combining counterfactual instructions with verified counterfactual outcomes on real logs — that intersection is open.
+
+Pilot: ~200 scenes, rebuilt v2 caches, one CPU node, realistic effort ~8–10 days (the designers' 4–6 day estimates didn't survive critique). Full navtrain scale-up is ~6.6M scorings ≈ 40–90 CPU-hours. Note /mnt/work is 99% full — outputs would go to S3.
+
+Saved to memory as project-navsim-counterfactual-data; full research/designs/critiques are in the workflow output if you want any section expanded. Happy to publish this as a shareable artifact report, or start on the day-1 cache smoke test — say which.
 
