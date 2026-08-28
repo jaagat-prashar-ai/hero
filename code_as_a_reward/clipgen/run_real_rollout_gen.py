@@ -72,6 +72,34 @@ def merge_manifest_targets(manifest: list[dict], targets: list[dict]) -> list[di
     return merged
 
 
+def select_prior_clip(
+    entry: dict, prior_clips: dict[str, dict], selection_mode: str
+) -> bool:
+    """Select one manifest entry from layered prior offline reports.
+
+    ``published_prior`` is the clean-regeneration mode: it preserves the
+    exact previously sealed corpus denominator while forcing every selected
+    clip through the current parser, compiler, and semantic gates.
+    """
+
+    clip = prior_clips.get(entry["clip_id"])
+    if selection_mode == "missing_prior":
+        return not isinstance(clip, dict)
+    if selection_mode == "published_prior":
+        return isinstance(clip, dict) and clip.get("passed") is True
+    if selection_mode != "repair":
+        raise ValueError(f"unknown selection_mode {selection_mode!r}")
+    if not isinstance(clip, dict) or clip.get("passed") is True:
+        return False
+    gt_validation = clip.get("gt_target_validation") or {}
+    unsupported = any(
+        "no currently verifiable discriminative action family" in str(reason)
+        for reason in gt_validation.get("failures", [])
+    )
+    reward_generation_failure = gt_validation.get("passed") is True
+    return unsupported or reward_generation_failure
+
+
 def _sync_dir(s3, bucket: str, prefix: str, local_dir: str) -> None:
     """put_object, NOT upload_file: the OCI S3-compat endpoint rejects
     boto3's managed-transfer chunked encoding ("AWS chunked encoding not
@@ -211,21 +239,11 @@ def clipgen_offline_gt_loop(training_fn_config: dict, experiment_tracker=None) -
 
         selection_mode = training_fn_config.get("selection_mode", "repair")
 
-        def selected(entry: dict) -> bool:
-            clip = prior_clips.get(entry["clip_id"])
-            if selection_mode == "missing_prior":
-                return not isinstance(clip, dict)
-            if not isinstance(clip, dict) or clip.get("passed") is True:
-                return False
-            gt_validation = clip.get("gt_target_validation") or {}
-            unsupported = any(
-                "no currently verifiable discriminative action family" in str(reason)
-                for reason in gt_validation.get("failures", [])
-            )
-            reward_generation_failure = gt_validation.get("passed") is True
-            return unsupported or reward_generation_failure
-
-        manifest_entries = [entry for entry in manifest_entries if selected(entry)]
+        manifest_entries = [
+            entry
+            for entry in manifest_entries
+            if select_prior_clip(entry, prior_clips, selection_mode)
+        ]
         selected_ids = {entry["clip_id"] for entry in manifest_entries}
         targets = [target for target in targets if target["clip_id"] in selected_ids]
         logger.info(

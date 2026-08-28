@@ -5,7 +5,10 @@ import json
 
 import pytest
 
-from code_as_a_reward.clipgen.run_real_rollout_gen import merge_manifest_targets
+from code_as_a_reward.clipgen.run_real_rollout_gen import (
+    merge_manifest_targets,
+    select_prior_clip,
+)
 from code_as_a_reward.clipgen.rollout_worker import _clip_seed, _valid_existing
 
 
@@ -78,3 +81,27 @@ def test_resume_requires_exact_rollout_provenance(tmp_path):
     doc["provenance"]["holdout_seed"] = generation_seed
     path.write_text(json.dumps(doc))
     assert not _valid_existing(str(path), **kwargs)
+
+
+def test_published_prior_selects_only_the_sealed_corpus():
+    reports = {
+        "published": {"passed": True},
+        "failed": {
+            "passed": False,
+            "gt_target_validation": {"passed": True, "failures": []},
+        },
+    }
+    assert select_prior_clip(
+        {"clip_id": "published"}, reports, "published_prior"
+    )
+    assert not select_prior_clip(
+        {"clip_id": "failed"}, reports, "published_prior"
+    )
+    assert not select_prior_clip(
+        {"clip_id": "missing"}, reports, "published_prior"
+    )
+
+
+def test_prior_selector_rejects_unknown_mode():
+    with pytest.raises(ValueError, match="unknown selection_mode"):
+        select_prior_clip({"clip_id": "a"}, {}, "typo")
