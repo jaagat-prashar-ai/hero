@@ -13,6 +13,7 @@ from code_as_a_reward.clipgen.reward_spec import (
     RewardSpecError,
     compile_reward_spec_to_source,
     evaluate_reward_spec_components,
+    extract_reward_spec_from_source,
     validate_reward_spec,
 )
 from code_as_a_reward.coc_claim_parser import parse_coc_trace
@@ -131,7 +132,15 @@ def test_reward_penalizes_extra_action_claim_that_contradicts_trajectory():
 
     assert faithful_score > 0.99
     assert contradictory_score < faithful_score
-    assert contradictory_score == pytest.approx(0.5 * faithful_score)
+    # A fully contradicted extra action claim must not retain positive reward;
+    # the previous 0.5 multiplier still made an unfaithful pair attractive.
+    assert contradictory_score == 0.0
+
+
+def test_compiled_reward_spec_can_be_recovered_without_execution():
+    spec = validate_reward_spec(_spec())
+    assert extract_reward_spec_from_source(compile_reward_spec_to_source(spec)) == spec
+    assert extract_reward_spec_from_source("def reward(claims, traj):\n    return 0.0\n") is None
 
 
 def test_spec_rejects_overweight_perception_and_wrong_budget():

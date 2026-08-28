@@ -138,6 +138,9 @@ def analyze(
             fn, _ = compile_reward_module(source)
             scores: list[float] = []
             consistencies: list[float] = []
+            precisions: list[float] = []
+            coverages: list[float] = []
+            zero_reasons: list[str] = []
             rollout_ids: list[int] = []
             for rollout in rollouts:
                 rollout_id = int(rollout["rollout_id"])
@@ -153,7 +156,21 @@ def analyze(
                 scores.append(float(run_reward_fn(fn, trace, features)))
                 verdicts = verify_trace_commitments(trace, features)
                 n_pass = sum(v.verdict is Verdict.PASS for v in verdicts)
-                consistencies.append(n_pass / len(verdicts) if verdicts else 0.0)
+                n_fail = sum(v.verdict is Verdict.FAIL for v in verdicts)
+                n_decided = n_pass + n_fail
+                precision = n_pass / n_decided if n_decided else 0.0
+                coverage = n_decided / len(verdicts) if verdicts else 0.0
+                consistencies.append(precision * coverage)
+                precisions.append(precision)
+                coverages.append(coverage)
+                if not verdicts:
+                    zero_reasons.append("no_parsed_commitment")
+                elif not n_decided:
+                    zero_reasons.append("all_abstain")
+                elif not n_pass:
+                    zero_reasons.append("all_decided_claims_failed")
+                else:
+                    zero_reasons.append("nonzero")
                 rollout_ids.append(rollout_id)
 
             score_array = np.asarray(scores, dtype=np.float64)
@@ -189,6 +206,9 @@ def analyze(
                     ),
                     "scores": score_array,
                     "consistencies": consistency_array,
+                    "precisions": np.asarray(precisions, dtype=np.float64),
+                    "coverages": np.asarray(coverages, dtype=np.float64),
+                    "zero_reasons": zero_reasons,
                     "score_std": float(np.std(score_array)),
                     "score_range": float(np.ptp(score_array)),
                     "argmax_consistency": float(consistency_array[argmax_index]),
@@ -249,6 +269,27 @@ def analyze(
         if eligible_total
         else float("nan")
     )
+    all_consistencies = np.concatenate(
+        [group["consistencies"] for group in evaluated]
+    ) if evaluated else np.asarray([], dtype=np.float64)
+    all_precisions = np.concatenate(
+        [group["precisions"] for group in evaluated]
+    ) if evaluated else np.asarray([], dtype=np.float64)
+    all_coverages = np.concatenate(
+        [group["coverages"] for group in evaluated]
+    ) if evaluated else np.asarray([], dtype=np.float64)
+    zero_reasons = [
+        reason for group in evaluated for reason in group["zero_reasons"]
+    ]
+    zero_reason_counts = {
+        reason: zero_reasons.count(reason)
+        for reason in (
+            "no_parsed_commitment",
+            "all_abstain",
+            "all_decided_claims_failed",
+        )
+    }
+    nonzero_consistencies = all_consistencies[all_consistencies > 0.0]
     return {
         "published_rewards": len(rewards),
         "unique_matched_clips": len({key[2] for key in groups}),
@@ -285,6 +326,27 @@ def analyze(
             target_eligible
         ),
         "eligible_argmax_consistency_lift": eligible_argmax_lift,
+        "rollout_count": int(len(all_consistencies)),
+        "reasoning_action_consistency_mean": (
+            float(np.mean(all_consistencies)) if len(all_consistencies) else float("nan")
+        ),
+        "reasoning_action_consistency_zero_rate": (
+            float(np.mean(all_consistencies == 0.0))
+            if len(all_consistencies)
+            else float("nan")
+        ),
+        "reasoning_action_consistency_nonzero_mean": (
+            float(np.mean(nonzero_consistencies))
+            if len(nonzero_consistencies)
+            else float("nan")
+        ),
+        "reasoning_action_precision_mean": (
+            float(np.mean(all_precisions)) if len(all_precisions) else float("nan")
+        ),
+        "reasoning_action_coverage_mean": (
+            float(np.mean(all_coverages)) if len(all_coverages) else float("nan")
+        ),
+        "reasoning_action_zero_reason_counts": zero_reason_counts,
         "failure_counts": dict(sorted(failure_counts.items())),
     }
 

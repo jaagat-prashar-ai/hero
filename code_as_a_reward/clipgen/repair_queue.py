@@ -29,6 +29,7 @@ from code_as_a_reward.clipgen.generate import CostTracker, generate_reward_fn
 from code_as_a_reward.clipgen.run_prototype import _load_clip
 from code_as_a_reward.clipgen.target_contract import (
     derive_target_contract,
+    target_contract_from_dict,
     validate_spec_against_target,
 )
 
@@ -67,6 +68,8 @@ def make_batches(
 
     grouped: dict[tuple[str, str], dict[str, dict[str, Any]]] = {}
     for row in records:
+        if row.get("repair_eligible") is False:
+            continue
         key = (str(row["clip_id"]), str(row["reward_source_sha256"]))
         scene_id = str(row.get("scene_id") or "")
         if scene_id:
@@ -98,7 +101,10 @@ def development_feedback(batch: RepairBatch) -> str:
         "Repair general semantics, not rollout IDs, exact coordinates, or these literal strings."
     ]
     for row in batch.development:
-        parts.append(f"scene {row['scene_id']}: " + "; ".join(row.get("failures") or []))
+        parts.append(
+            f"scene {row['scene_id']}: "
+            + "; ".join(row.get("reward_failures") or row.get("failures") or [])
+        )
         for rollout_id, gate in sorted((row.get("top_gates") or {}).items()):
             parts.append(
                 f"  selected rollout {rollout_id}: positive={gate.get('pos_score')}, "
@@ -112,6 +118,7 @@ def development_feedback(batch: RepairBatch) -> str:
 
 
 def _evaluate_group(source: str, row: dict[str, Any]) -> agr.GroupValidationResult:
+    contract_payload = row.get("target_contract")
     return agr.validate_rollout_group(
         str(row["clip_id"]),
         str(row["scene_id"]),
@@ -119,11 +126,19 @@ def _evaluate_group(source: str, row: dict[str, Any]) -> agr.GroupValidationResu
         list(row.get("rollouts") or []),
         source,
         top_k=int(row.get("verify_top_k") or 1),
+        target_contract=(
+            target_contract_from_dict(contract_payload)
+            if isinstance(contract_payload, dict)
+            else None
+        ),
+        reward_spec=row.get("reward_spec"),
     )
 
 
 def _validate_group(source: str, row: dict[str, Any]) -> list[str]:
-    return list(_evaluate_group(source, row).failures)
+    # A candidate repair is judged only on rubric defects. The immutable
+    # cached sampler evidence cannot be repaired by changing the reward.
+    return list(_evaluate_group(source, row).reward_failures)
 
 
 def _gate_payload(gate: gate_mod.GateResult) -> dict[str, Any]:
@@ -148,6 +163,8 @@ def _group_payload(scene_id: str, result: agr.GroupValidationResult) -> dict[str
         "unique_scores": result.unique_scores,
         "saturation_fraction": result.saturation_fraction,
         "failures": result.failures,
+        "sample_failures": result.sample_failures,
+        "reward_failures": result.reward_failures,
         "top_gates": {
             str(rollout_id): _gate_payload(gate)
             for rollout_id, gate in result.top_gates.items()

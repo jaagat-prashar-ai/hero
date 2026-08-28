@@ -51,6 +51,24 @@ def test_no_valid_rollout_is_not_relabelled_as_candidate_positive():
     assert selection.argmax_rollout_id is None
     assert selection.argmax_gate is None
 
+    validation = agr.validate_rollout_group(
+        "clip",
+        "scene",
+        HZ,
+        [
+            {
+                "rollout_id": 0,
+                "coc_text": "Keep lane since the lane is clear ahead",
+                "waypoints": flat.tolist(),
+            }
+        ],
+        GOOD_FN,
+        top_k=1,
+        target_contract=target,
+    )
+    assert validation.sample_failures
+    assert not validation.reward_failures
+
 
 def test_stop_target_requires_sustained_stop_not_brief_touch():
     claims = parse_coc_trace("Stop for the construction worker holding a stop sign ahead")

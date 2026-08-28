@@ -104,4 +104,12 @@ def compute_faithfulness_metrics(
         "eval_reasoning_action_precision": precision,
         "eval_reasoning_action_coverage": coverage,
         "eval_reasoning_action_consistency": action_consistency,
+        # These make zero inflation directly measurable in W&B.  The old
+        # dashboard exposed only a mean, which could not distinguish parser
+        # abstention from genuinely contradicted commitments.
+        "eval_reasoning_action_zero": float(action_consistency == 0.0),
+        "eval_reasoning_action_claim_count": float(n_claims),
+        "eval_reasoning_action_decided_count": float(n_decided),
+        "eval_reasoning_action_pass_count": float(n_pass),
+        "eval_reasoning_action_fail_count": float(n_fail),
     }

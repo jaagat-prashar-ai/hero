@@ -77,6 +77,27 @@ class TargetContract:
         }
 
 
+def target_contract_from_dict(payload: dict[str, Any]) -> TargetContract:
+    """Restore the immutable contract carried in live repair evidence."""
+
+    values = dict(payload)
+    for key in (
+        "entities",
+        "speed_profiles",
+        "lateral_maneuvers",
+        "lateral_directions",
+        "behavior_maneuvers",
+    ):
+        values[key] = frozenset(values.get(key) or [])
+    for key in (
+        "gt_reference_speed_mps",
+        "gt_reference_lateral_m",
+        "gt_reference_heading_deg",
+    ):
+        values[key] = tuple(values.get(key) or [])
+    return TargetContract(**values)
+
+
 @dataclasses.dataclass(frozen=True)
 class EligibilityResult:
     eligible: bool

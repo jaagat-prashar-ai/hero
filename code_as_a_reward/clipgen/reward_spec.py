@@ -10,6 +10,7 @@ commitment/trajectory conjunction, and monotonic graded trajectory curves.
 
 from __future__ import annotations
 
+import ast
 import copy
 import hashlib
 import json
@@ -32,7 +33,7 @@ MAX_HORIZON_S = 6.5
 # claims lower the same reward instead of being ignored once the primary GT
 # component happens to match. It never adds credit and preserves an intact
 # rubric's maximum of exactly 1.0.
-ACTION_ALIGNMENT_PENALTY = 0.50
+ACTION_ALIGNMENT_PENALTY = 1.00
 
 _NAME_RE = re.compile(r"^[a-z][a-z0-9_]{1,63}$")
 _ENTITIES = frozenset(key for key, _ in ENTITY_PATTERNS)
@@ -374,6 +375,30 @@ def reward_spec_digest(spec: dict[str, Any]) -> str:
     normalized = validate_reward_spec(spec)
     payload = json.dumps(normalized, sort_keys=True, separators=(",", ":")).encode()
     return hashlib.sha256(payload).hexdigest()
+
+
+def extract_reward_spec_from_source(source: str) -> dict[str, Any] | None:
+    """Recover a validated deterministic spec without executing its source.
+
+    Legacy free-form reward modules return ``None``.  Live GRPO verification
+    uses this to build the exact same action-specific perturbations as the
+    offline sealed gate instead of silently falling back to generic ones.
+    """
+
+    tree = ast.parse(source)
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(
+            isinstance(target, ast.Name) and target.id == "REWARD_SPEC"
+            for target in node.targets
+        ):
+            continue
+        try:
+            return validate_reward_spec(ast.literal_eval(node.value))
+        except (ValueError, TypeError, RewardSpecError) as exc:
+            raise RewardSpecError(f"invalid compiled REWARD_SPEC: {exc}") from exc
+    return None
 
 
 def _claim_matches(rule: dict[str, Any], claims: Any) -> bool:

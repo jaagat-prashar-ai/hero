@@ -94,6 +94,8 @@ class GroupValidationResult:
     unique_scores: int
     saturation_fraction: float
     top_gates: dict[int, GateResult]
+    sample_failures: list[str]
+    reward_failures: list[str]
 
 _MAX_IMAGE_DIM = 1024
 
@@ -306,36 +308,43 @@ def validate_rollout_group(
     score_range = float(np.ptp(scores)) if len(scores) else float("nan")
     unique_scores = len(set(np.round(scores, 3).tolist())) if len(scores) else 0
     saturation_fraction = float(np.mean(scores >= 1.0 - 1e-9)) if len(scores) else 1.0
-    failures: list[str] = []
+    sample_failures: list[str] = []
+    reward_failures: list[str] = []
     if selection.selection_status == "no_target_eligible_rollout":
-        failures.append("NO_VALID_ROLLOUT: no independently target-eligible rollout in group")
+        sample_failures.append(
+            "NO_VALID_ROLLOUT: no independently target-eligible rollout in group"
+        )
     if (
         np.isfinite(selection.best_eligible_score)
         and np.isfinite(selection.best_ineligible_score)
         and selection.best_eligible_score - selection.best_ineligible_score < min_target_margin
     ):
-        failures.append(
+        reward_failures.append(
             f"target ranking margin {selection.best_eligible_score - selection.best_ineligible_score:.3f} "
             f"needs >= {min_target_margin:.3f}; wrong rollouts tie or outrank valid ones"
         )
     if len(finite) != len(rollouts):
-        failures.append(f"only {len(finite)}/{len(rollouts)} rollouts scored finitely")
+        reward_failures.append(f"only {len(finite)}/{len(rollouts)} rollouts scored finitely")
+    # Resolution is evidence about the reward only when the sampler produced
+    # at least one independently plausible positive.  A uniformly bad batch
+    # cannot diagnose the frozen rubric and must never trigger LLM repair.
+    resolution_failures: list[str] = []
     if not np.isfinite(score_std) or score_std < min_score_std:
-        failures.append(
+        resolution_failures.append(
             f"rollout score std {score_std:.3f} needs >= {min_score_std:.3f}; "
             "flat groups produce near-zero GRPO advantage"
         )
     if not np.isfinite(score_range) or score_range < min_score_range:
-        failures.append(
+        resolution_failures.append(
             f"rollout score range {score_range:.3f} needs >= {min_score_range:.3f}"
         )
     required_unique = min(min_unique_scores, len(rollouts))
     if unique_scores < required_unique:
-        failures.append(
+        resolution_failures.append(
             f"only {unique_scores} distinct scores (rounded 1e-3), needs >= {required_unique}"
         )
     if saturation_fraction > max_saturation_fraction:
-        failures.append(
+        resolution_failures.append(
             f"{saturation_fraction:.1%} of rollouts saturate at 1.0, needs <= "
             f"{max_saturation_fraction:.1%}"
         )
@@ -360,12 +369,18 @@ def validate_rollout_group(
         gate = run_gate(source, cases)
         top_gates[rollout_id] = gate
         if not gate.passed:
-            failures.append(
+            reward_failures.append(
                 f"top-{len(top_gates)} rollout {rollout_id} failed perturbation gate: "
                 + gate.feedback()
             )
-    if len(top_gates) < min(top_k, len(rollouts)):
-        failures.append(f"only {len(top_gates)} finite rollouts available for top-{top_k} verification")
+    required_top = min(top_k, len(rollouts))
+    if len(top_gates) < required_top:
+        sample_failures.append(
+            f"only {len(top_gates)} target-eligible rollouts available for top-{top_k} verification"
+        )
+    if selection.selection_status != "no_target_eligible_rollout":
+        reward_failures.extend(resolution_failures)
+    failures = [*sample_failures, *reward_failures]
     return GroupValidationResult(
         passed=not failures,
         selection=selection,
@@ -375,6 +390,8 @@ def validate_rollout_group(
         unique_scores=unique_scores,
         saturation_fraction=saturation_fraction,
         top_gates=top_gates,
+        sample_failures=sample_failures,
+        reward_failures=reward_failures,
     )
 
 

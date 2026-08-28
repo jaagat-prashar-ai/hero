@@ -845,7 +845,9 @@ def _verify_clipgen_group_live(
     hz: float,
     rollouts: list[dict[str, Any]],
     source_path: str,
-) -> tuple[bool, dict[str, float], dict[str, Any]]:
+    target_contract: Any,
+    reward_spec: dict[str, Any] | None,
+) -> tuple[bool, bool, dict[str, float], dict[str, Any]]:
     """Verify argmax/top-3 only after the current GRPO group is sampled."""
 
     from code_as_a_reward.clipgen import analyze_group_rollouts as agr
@@ -859,6 +861,8 @@ def _verify_clipgen_group_live(
         rollouts,
         source,
         top_k=top_k,
+        target_contract=target_contract,
+        reward_spec=reward_spec,
     )
     deltas = [
         float(gate.pos_score - gate.max_pert)
@@ -866,8 +870,43 @@ def _verify_clipgen_group_live(
         if math.isfinite(gate.pos_score) and math.isfinite(gate.max_pert)
     ]
     argmax_gate = result.selection.argmax_gate
+    target_eligible = [
+        row for row in result.selection.scored if row.get("target_eligible", True)
+    ]
+    score_consistency_pairs = [
+        (
+            float(row["clipgen_score"]),
+            float(row.get("eval_reasoning_action_consistency", 0.0)),
+        )
+        for row in result.selection.scored
+        if math.isfinite(float(row.get("clipgen_score", math.nan)))
+    ]
+    within_group_corr = 0.0
+    argmax_lift = 0.0
+    if score_consistency_pairs:
+        import numpy as np
+
+        score_values = np.asarray([row[0] for row in score_consistency_pairs])
+        consistency_values = np.asarray([row[1] for row in score_consistency_pairs])
+        if np.std(score_values) > 0.0 and np.std(consistency_values) > 0.0:
+            within_group_corr = float(np.corrcoef(score_values, consistency_values)[0, 1])
+        if result.selection.argmax_rollout_id is not None:
+            selected = next(
+                (
+                    float(row.get("eval_reasoning_action_consistency", 0.0))
+                    for row in result.selection.scored
+                    if int(row["rollout_id"]) == result.selection.argmax_rollout_id
+                ),
+                0.0,
+            )
+            argmax_lift = selected - float(np.mean(consistency_values))
+    reward_valid = not result.reward_failures
+    sample_valid = not result.sample_failures
     metrics = {
         "code_group_gate_passed": float(result.passed),
+        "code_group_reward_valid": float(reward_valid),
+        "code_group_sample_valid": float(sample_valid),
+        "code_group_signal_applied": float(result.passed),
         "code_group_gate_top_k": float(top_k),
         "code_group_gate_min_delta": min(deltas) if deltas else 0.0,
         "code_group_gate_argmax_score": (
@@ -875,6 +914,13 @@ def _verify_clipgen_group_live(
         ),
         "code_group_gate_score_std": float(result.score_std),
         "code_group_gate_score_range": float(result.score_range),
+        "code_group_target_eligible_fraction": (
+            len(target_eligible) / len(result.selection.scored)
+            if result.selection.scored
+            else 0.0
+        ),
+        "code_group_reward_consistency_corr": within_group_corr,
+        "code_group_argmax_consistency_lift": argmax_lift,
     }
     feedback = {
         "schema_version": "clipgen.repair.v1",
@@ -884,9 +930,14 @@ def _verify_clipgen_group_live(
         "reward_source_path": source_path,
         "reward_source_sha256": hashlib.sha256(source.encode()).hexdigest(),
         "reward_source": source,
+        "target_contract": target_contract.to_dict(),
+        "reward_spec": reward_spec,
         "verify_top_k": top_k,
         "passed": result.passed,
         "failures": result.failures,
+        "sample_failures": result.sample_failures,
+        "reward_failures": result.reward_failures,
+        "repair_eligible": bool(result.reward_failures),
         "argmax_rollout_id": result.selection.argmax_rollout_id,
         "score_std": result.score_std,
         "score_range": result.score_range,
@@ -908,7 +959,7 @@ def _verify_clipgen_group_live(
         # single perturbation that triggered this record.
         "rollouts": rollouts,
     }
-    return result.passed, metrics, feedback
+    return result.passed, bool(result.reward_failures), metrics, feedback
 
 
 def _score_cot(
@@ -1060,6 +1111,30 @@ def compute_reward_batch(
     clip_id, _t0_us = split_scene_id(scene_id)
     scene = _load_scene(clip_id)
     clipgen_fn, clipgen_fn_path = _load_clipgen_fn(clip_id)
+    clipgen_target_contract = None
+    clipgen_reward_spec = None
+    if clipgen_fn_path is not None:
+        # The scorer stays the frozen offline artifact.  GT is used only by
+        # this reward-independent admission check so a broken rubric cannot
+        # nominate a confidently wrong rollout as its own positive.
+        from code_as_a_reward.clipgen.reward_spec import extract_reward_spec_from_source
+        from code_as_a_reward.clipgen.target_contract import derive_target_contract
+        from code_as_a_reward.coc_claim_parser import parse_coc_trace
+        from pref_pairs.trajectory_features import extract_features
+
+        gt_cot = reference.get("cot", "")
+        if isinstance(gt_cot, (list, tuple)):
+            gt_cot = " ".join(str(value) for value in gt_cot)
+        elif not isinstance(gt_cot, str):
+            gt_cot = "" if gt_cot is None else str(gt_cot)
+        gt_trace = parse_coc_trace(gt_cot, scene_id=scene_id, rollout_id=-1)
+        gt_features = extract_features(
+            gt_np, hz=hz, scene_id=scene_id, rollout_id=-1
+        )
+        clipgen_target_contract = derive_target_contract(gt_trace, gt_features)
+        clipgen_reward_spec = extract_reward_spec_from_source(
+            Path(clipgen_fn_path).read_text()
+        )
 
     ade_threshold = 3.0
     reasoning_threshold = -0.4
@@ -1232,26 +1307,35 @@ def compute_reward_batch(
     # rather than changing the scorer inside the current optimizer batch.
     gate_metrics = {
         "code_group_gate_passed": 0.0,
+        "code_group_reward_valid": 0.0,
+        "code_group_sample_valid": 0.0,
+        "code_group_signal_applied": 0.0,
         "code_group_gate_top_k": 0.0,
         "code_group_gate_min_delta": 0.0,
         "code_group_gate_argmax_score": 0.0,
         "code_group_gate_score_std": 0.0,
         "code_group_gate_score_range": 0.0,
+        "code_group_target_eligible_fraction": 0.0,
+        "code_group_reward_consistency_corr": 0.0,
+        "code_group_argmax_consistency_lift": 0.0,
     }
     if clipgen_fn_path is not None and len(dump_rollouts) > 1:
         try:
-            group_passed, gate_metrics, repair_feedback = _verify_clipgen_group_live(
+            group_passed, should_repair, gate_metrics, repair_feedback = _verify_clipgen_group_live(
                 clip_id=clip_id,
                 scene_id=scene_id,
                 hz=hz,
                 rollouts=dump_rollouts,
                 source_path=clipgen_fn_path,
+                target_contract=clipgen_target_contract,
+                reward_spec=clipgen_reward_spec,
             )
         except Exception as exc:
             logger.exception(
                 "[code_reward] %s: live ClipGen group verification failed closed", scene_id
             )
             group_passed = False
+            should_repair = True
             failed_source = Path(clipgen_fn_path).read_text()
             repair_feedback = {
                 "schema_version": "clipgen.repair.v1",
@@ -1266,7 +1350,13 @@ def compute_reward_batch(
                 "rollouts": dump_rollouts,
             }
         if not group_passed:
-            _enqueue_reward_repair(repair_feedback)
+            # A bad sampled group is not evidence that the frozen reward is
+            # wrong. Queue LLM repair only for rubric failures (bad ranking,
+            # flatness with a plausible positive, runtime error, or failed
+            # action-specific corruptions). Both cases remain neutral for the
+            # active batch; a repaired version may activate only later.
+            if should_repair:
+                _enqueue_reward_repair(repair_feedback)
             rewards = [0.0 for _ in rewards]
             for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
                 reward_dict["reward"] = 0.0
