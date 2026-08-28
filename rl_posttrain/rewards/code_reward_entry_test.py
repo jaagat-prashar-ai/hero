@@ -390,3 +390,52 @@ class TestLiveClipgenGateConfig:
         cre._enqueue_reward_repair({**payload, "scene_id": "clip-a_2"})
         rows = [json.loads(path.read_text()) for path in queue_dir.glob("*.json")]
         assert {row["scene_id"] for row in rows} == {"clip-a_1", "clip-a_2"}
+
+    def test_sampler_failure_does_not_request_reward_repair(self, tmp_path, monkeypatch):
+        from code_as_a_reward.clipgen import analyze_group_rollouts as agr
+
+        source = tmp_path / "reward.py"
+        source.write_text("def reward(claims, traj):\n    return 0.0\n")
+        selection = types.SimpleNamespace(
+            scored=[
+                {
+                    "rollout_id": 0,
+                    "clipgen_score": 0.0,
+                    "target_eligible": False,
+                    "eval_reasoning_action_consistency": 0.0,
+                }
+            ],
+            argmax_gate=None,
+            argmax_rollout_id=None,
+        )
+        result = types.SimpleNamespace(
+            passed=False,
+            selection=selection,
+            top_gates={},
+            score_std=0.0,
+            score_range=0.0,
+            unique_scores=1,
+            saturation_fraction=0.0,
+            failures=["NO_VALID_ROLLOUT"],
+            sample_failures=["NO_VALID_ROLLOUT"],
+            reward_failures=[],
+        )
+        monkeypatch.setattr(agr, "validate_rollout_group", lambda *args, **kwargs: result)
+        monkeypatch.setenv("CODE_REWARD_VERIFY_TOP_K", "1")
+        contract = types.SimpleNamespace(to_dict=lambda: {"entities": []})
+
+        passed, should_repair, metrics, feedback = cre._verify_clipgen_group_live(
+            clip_id="clip-a",
+            scene_id="clip-a_1",
+            hz=10.0,
+            rollouts=selection.scored,
+            source_path=str(source),
+            target_contract=contract,
+            reward_spec=None,
+        )
+
+        assert not passed
+        assert not should_repair
+        assert metrics["code_group_reward_valid"] == 1.0
+        assert metrics["code_group_sample_valid"] == 0.0
+        assert feedback["repair_eligible"] is False
