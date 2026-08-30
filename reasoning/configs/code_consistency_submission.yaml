@@ -26,9 +26,8 @@ cluster_resources:
 
 runtime_environment:
   setup_timeout_seconds: 14400
-  required_environment_variables: [HF_TOKEN]
+  required_environment_variables: [HF_TOKEN, WANDB_API_KEY]
   constant_environment_variables:
-    WANDB_MODE: offline
     AWS_REQUEST_CHECKSUM_CALCULATION: when_required
     AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
     AWS_ENDPOINT_URL_S3: https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com
