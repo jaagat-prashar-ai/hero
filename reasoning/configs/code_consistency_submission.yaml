@@ -1,0 +1,47 @@
+name: alpamayo-code-consistency-track1-submission
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+
+workload_variant_config:
+  workload_type: training
+  training_fn: reasoning.run_submission.submission_loop
+  training_fn_config:
+    workspace_dir: /mnt/work/tmp/code_consistency_track1_submission
+    s3_bucket: research-datasets-chicago
+    checkpoint_s3_prefix: alpamayo_rl/checkpoints/reasoning_vla_code_consistency_full/20260828233918/checkpoints/step_253/policy
+    base_model_s3_prefix: alpamayo_rl/model_cache/alpamayo15_converted
+    test_wds_s3_prefix: nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds/test
+    output_s3_key: alpamayo_rl/submissions/reasoning_vla_code_consistency_full_20260828233918/submission.json
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: alpamayo-rl
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+
+runtime_environment:
+  setup_timeout_seconds: 14400
+  required_environment_variables: [HF_TOKEN, WANDB_API_KEY]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com
+    AWS_DEFAULT_REGION: us-chicago-1
+  code_assets:
+    root_directory: ../..
+    pip_requirements_path: code_as_a_reward/ood_eval/requirements.txt
+    regex_excludes:
+      - ^/masking/
+      - ^/mnist/
+      - ^/research-core/
+      - ^/docker/
+      - ^/lockfiles/
+      - ^/counterfactual/
+      - ^/pref_pairs/results/
+      - /\.venv/
+      - ^/\.git/

@@ -29,6 +29,7 @@ CAMERA_KEYS = (
     "camera_cross_right_120fov",
     "camera_front_tele_30fov",
 )
+CAMERA_INDICES = torch.tensor([0, 1, 2, 6], dtype=torch.int64)
 
 
 def _egomotion_interpolator_from_bytes(egomotion_bytes: bytes):
@@ -144,6 +145,7 @@ def iter_test_samples(shard_paths: list[str]):
 
             yield {
                 "image_frames": image_frames,
+                "camera_indices": CAMERA_INDICES.clone(),
                 **windows,
                 "t0_us": t0_us,
                 "clip_id": clip_id,
