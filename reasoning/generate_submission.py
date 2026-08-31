@@ -33,6 +33,7 @@ def validate_submission(payload: dict[str, list[str]]) -> None:
 
 
 def main() -> None:
+    import numpy as np
     import torch
     from alpamayo1_5 import helper
     from alpamayo1_5.models.alpamayo1_5 import Alpamayo1_5
@@ -93,7 +94,11 @@ def main() -> None:
                 max_generation_length=256,
                 return_extra=True,
             )
-        texts = [str(x).strip() for x in extra["cot"][0]]
+        # Alpamayo returns text as [batch, trajectory_set, trajectory_sample].
+        # Flatten only after selecting the single batch item so both the
+        # canonical (1, 1, 6) output and list-backed equivalents yield six
+        # independent strings rather than one stringified nested array.
+        texts = [str(x).strip() for x in np.asarray(extra["cot"], dtype=object)[0].reshape(-1)]
         if len(texts) != ROLLOUTS_PER_KEY or any(not text for text in texts):
             raise RuntimeError(f"{key}: model returned invalid CoC rollouts: {texts!r}")
         results[key] = texts
