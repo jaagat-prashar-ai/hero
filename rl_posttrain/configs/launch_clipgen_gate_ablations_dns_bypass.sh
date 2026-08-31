@@ -27,7 +27,7 @@ launch_one() {
     -o workload_variant_config.entrypoint_fn_config.ckpt_s3_prefix "alpamayo_rl/checkpoints/clipgen602_${suffix}" \
     -o workload_variant_config.entrypoint_fn_config.wandb_experiment "clipgen602_${suffix}" \
     -o runtime_environment.constant_environment_variables.CODE_REWARD_GATE_MODE "${gate_mode}" \
-    -o runtime_environment.constant_environment_variables.CODE_REWARD_VERIFY_TOP_K "\"${top_k}\"" \
+    -o runtime_environment.constant_environment_variables.CODE_REWARD_VERIFY_TOP_K "!!str ${top_k}" \
     -o runtime_environment.constant_environment_variables.CODE_REWARD_DEBUG_DUMP_RUN_ID "clipgen602-${suffix}"
 }
 
