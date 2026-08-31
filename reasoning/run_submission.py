@@ -15,6 +15,16 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+def _put_file(s3, bucket: str, key: str, path: Path) -> None:
+    """Upload a small JSON file with fixed Content-Length (OCI rejects aws-chunked)."""
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=path.read_bytes(),
+        ContentType="application/json",
+    )
+
+
 def _run_streamed(cmd: list[str], *, cwd: Path, env: dict[str, str], on_line=None) -> None:
     """Stream child output and retain a diagnostic tail for durable status."""
     tail: deque[str] = deque(maxlen=80)
@@ -146,8 +156,13 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
                 return
             progress_count += 1
             if progress_count % 10 == 0 and output.exists():
-                s3.upload_file(str(output), bucket, partial_key)
-                logger.info("synced partial submission after %d new events", progress_count)
+                try:
+                    _put_file(s3, bucket, partial_key, output)
+                    logger.info("synced partial submission after %d new events", progress_count)
+                except Exception:
+                    # A progress snapshot must never kill an otherwise healthy
+                    # inference process; the final upload remains mandatory.
+                    logger.exception("partial submission sync failed; continuing inference")
 
         status("inference")
         _run_streamed([
@@ -155,17 +170,17 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
             "--shards", *map(str, shard_paths), "--output", str(output),
         ], cwd=repo, env=env, on_line=sync_progress)
         status("upload")
-        s3.upload_file(str(output), bucket, output_key)
+        _put_file(s3, bucket, output_key, output)
         alias = output.with_name("submissions.json")
         shutil.copy2(output, alias)
-        s3.upload_file(str(alias), bucket, output_key.rsplit("/", 1)[0] + "/submissions.json")
+        _put_file(s3, bucket, output_key.rsplit("/", 1)[0] + "/submissions.json", alias)
         status("complete")
         logger.info("submission complete: s3://%s/%s", bucket, output_key)
     except Exception as exc:
         logger.exception("submission failed")
         try:
             if "output" in locals() and output.exists():
-                s3.upload_file(str(output), bucket, partial_key)
+                _put_file(s3, bucket, partial_key, output)
         except Exception:
             logger.exception("failed to persist partial submission")
         try:
