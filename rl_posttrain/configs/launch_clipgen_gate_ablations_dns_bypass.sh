@@ -32,14 +32,14 @@ launch_one() {
 }
 
 cd "${repo_root}"
-arms=("${@:-hard-top1 twotier-top1 twotier-top3}")
+arms=("${@:-hard-top1-v2 twotier-top1-v2 twotier-top3-v2}")
 failures=0
 for arm_list in "${arms[@]}"; do
   for arm in ${arm_list}; do
     case "${arm}" in
-      hard-top1) launch_one hard-top1 hard 1 || failures=$((failures + 1)) ;;
-      twotier-top1) launch_one twotier-top1 two_tier 1 || failures=$((failures + 1)) ;;
-      twotier-top3) launch_one twotier-top3 two_tier 3 || failures=$((failures + 1)) ;;
+      hard-top1-v2) launch_one hard-top1-v2 hard 1 || failures=$((failures + 1)) ;;
+      twotier-top1-v2) launch_one twotier-top1-v2 two_tier 1 || failures=$((failures + 1)) ;;
+      twotier-top3-v2) launch_one twotier-top3-v2 two_tier 3 || failures=$((failures + 1)) ;;
       *) echo "unknown arm: ${arm}" >&2; failures=$((failures + 1)) ;;
     esac
   done
