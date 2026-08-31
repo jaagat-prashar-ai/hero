@@ -414,6 +414,34 @@ def _clipgen_gate_mode() -> str:
     return mode
 
 
+def _clipgen_required_top_passes(top_k: int) -> int:
+    raw = os.environ.get("CODE_REWARD_VERIFY_MIN_PASSES", "all").strip().lower()
+    if raw == "all":
+        return top_k
+    if raw == "majority":
+        return top_k // 2 + 1
+    value = int(raw)
+    if not 1 <= value <= top_k:
+        raise ValueError(f"CODE_REWARD_VERIFY_MIN_PASSES must be in [1,{top_k}]")
+    return value
+
+
+def _clipgen_score_mode() -> str:
+    mode = os.environ.get("CODE_REWARD_SCORE_MODE", "raw").strip().lower()
+    if mode not in {"raw", "rank"}:
+        raise ValueError("CODE_REWARD_SCORE_MODE must be raw or rank")
+    return mode
+
+
+def _rank_rewards(values: list[float]) -> list[float]:
+    """Map finite group scores to tie-preserving [0,1] ordinal ranks."""
+    finite_unique = sorted({float(value) for value in values if math.isfinite(value)})
+    if len(finite_unique) < 2:
+        return [0.0 for _ in values]
+    rank = {value: idx / (len(finite_unique) - 1) for idx, value in enumerate(finite_unique)}
+    return [rank.get(float(value), 0.0) if math.isfinite(value) else 0.0 for value in values]
+
+
 def _two_tier_gate_confidence(metrics: dict[str, float], feedback: dict[str, Any]) -> float:
     """Return 0 for unusable groups, otherwise a diagnostic confidence in (0,1].
 
@@ -895,6 +923,7 @@ def _verify_clipgen_group_live(
 
     source = Path(source_path).read_text()
     top_k = _clipgen_verify_top_k()
+    required_top_passes = _clipgen_required_top_passes(top_k)
     result = agr.validate_rollout_group(
         clip_id,
         scene_id,
@@ -902,6 +931,7 @@ def _verify_clipgen_group_live(
         rollouts,
         source,
         top_k=top_k,
+        required_top_passes=required_top_passes,
         target_contract=target_contract,
         reward_spec=reward_spec,
     )
@@ -949,6 +979,10 @@ def _verify_clipgen_group_live(
         "code_group_sample_valid": float(sample_valid),
         "code_group_signal_applied": float(result.passed),
         "code_group_gate_top_k": float(top_k),
+        "code_group_gate_required_top_passes": float(required_top_passes),
+        "code_group_gate_top_pass_count": float(
+            sum(gate.passed for gate in result.top_gates.values())
+        ),
         "code_group_gate_min_delta": min(deltas) if deltas else 0.0,
         "code_group_gate_argmax_score": (
             float(argmax_gate.pos_score) if argmax_gate is not None else 0.0
@@ -1352,7 +1386,10 @@ def compute_reward_batch(
         "code_group_sample_valid": 0.0,
         "code_group_signal_applied": 0.0,
         "code_group_signal_confidence": 0.0,
+        "code_group_rank_reward_applied": 0.0,
         "code_group_gate_top_k": 0.0,
+        "code_group_gate_required_top_passes": 0.0,
+        "code_group_gate_top_pass_count": 0.0,
         "code_group_gate_min_delta": 0.0,
         "code_group_gate_argmax_score": 0.0,
         "code_group_gate_score_std": 0.0,
@@ -1397,6 +1434,7 @@ def compute_reward_batch(
             signal_confidence = _two_tier_gate_confidence(gate_metrics, repair_feedback)
         gate_metrics["code_group_signal_confidence"] = signal_confidence
         gate_metrics["code_group_signal_applied"] = float(signal_confidence > 0.0)
+        gate_metrics["code_group_rank_reward_applied"] = 0.0
         if not group_passed:
             # A bad sampled group is not evidence that the frozen reward is
             # wrong. Queue LLM repair only for rubric failures (bad ranking,
@@ -1410,6 +1448,12 @@ def compute_reward_batch(
                 for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
                     reward_dict["reward"] = 0.0
                     rollout["reward"] = 0.0
+        if signal_confidence > 0.0 and _clipgen_score_mode() == "rank":
+            rewards = _rank_rewards(rewards)
+            gate_metrics["code_group_rank_reward_applied"] = 1.0
+            for value, reward_dict, rollout in zip(rewards, reward_dicts, dump_rollouts):
+                reward_dict["reward"] = value
+                rollout["reward"] = value
     for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
         reward_dict.update(gate_metrics)
         rollout.update(gate_metrics)

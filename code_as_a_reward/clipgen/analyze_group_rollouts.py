@@ -278,6 +278,7 @@ def validate_rollout_group(
     source: str,
     *,
     top_k: int = 2,
+    required_top_passes: int | None = None,
     min_score_std: float = 0.05,
     min_score_range: float = 0.15,
     min_unique_scores: int = 3,
@@ -355,6 +356,7 @@ def validate_rollout_group(
         reverse=True,
     )
     top_gates: dict[int, GateResult] = {}
+    top_gate_failures: list[str] = []
     for ro in ranked[: min(top_k, len(ranked))]:
         rollout_id = int(ro["rollout_id"])
         claims = parse_coc_trace(ro["coc_text"], scene_id=clip_id, rollout_id=rollout_id)
@@ -369,7 +371,7 @@ def validate_rollout_group(
         gate = run_gate(source, cases)
         top_gates[rollout_id] = gate
         if not gate.passed:
-            reward_failures.append(
+            top_gate_failures.append(
                 f"top-{len(top_gates)} rollout {rollout_id} failed perturbation gate: "
                 + gate.feedback()
             )
@@ -377,6 +379,18 @@ def validate_rollout_group(
     if len(top_gates) < required_top:
         sample_failures.append(
             f"only {len(top_gates)} target-eligible rollouts available for top-{top_k} verification"
+        )
+    needed_passes = required_top if required_top_passes is None else required_top_passes
+    if not 1 <= needed_passes <= required_top:
+        raise ValueError(
+            f"required_top_passes must be in [1, {required_top}], got {needed_passes}"
+        )
+    passed_top = sum(gate.passed for gate in top_gates.values())
+    if passed_top < needed_passes:
+        reward_failures.extend(top_gate_failures)
+        reward_failures.append(
+            f"only {passed_top}/{len(top_gates)} top rollouts passed perturbation verification; "
+            f"needs >= {needed_passes}"
         )
     if selection.selection_status != "no_target_eligible_rollout":
         reward_failures.extend(resolution_failures)

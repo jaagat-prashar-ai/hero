@@ -1,4 +1,10 @@
-from rl_posttrain.rewards.code_reward_entry import _two_tier_gate_confidence
+import os
+
+from rl_posttrain.rewards.code_reward_entry import (
+    _clipgen_required_top_passes,
+    _rank_rewards,
+    _two_tier_gate_confidence,
+)
 
 
 def test_two_tier_rejects_sample_failure():
@@ -27,3 +33,12 @@ def test_two_tier_rejects_uninformative_ranking():
         "code_group_gate_min_delta": 0.0,
     }
     assert _two_tier_gate_confidence(metrics, {"sample_failures": [], "reward_failures": []}) == 0.0
+
+
+def test_majority_requires_two_of_three():
+    os.environ["CODE_REWARD_VERIFY_MIN_PASSES"] = "majority"
+    assert _clipgen_required_top_passes(3) == 2
+
+
+def test_rank_rewards_preserve_ties_and_order():
+    assert _rank_rewards([0.2, 0.8, 0.2, 0.5]) == [0.0, 1.0, 0.0, 0.5]
