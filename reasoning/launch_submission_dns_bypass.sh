@@ -15,6 +15,7 @@ cd "${repo_root}"
 unshare -Ur -m bash -c '
   mount --bind "$1" /etc/hosts
   shift
+  export GRPC_DNS_RESOLVER=native
   exec "$@"
 ' bash "${hosts_file}" \
   python3 lilypad/launch.py reasoning/configs/code_consistency_submission.yaml \
