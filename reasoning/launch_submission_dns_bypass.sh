@@ -10,6 +10,7 @@ hosts_file="$(mktemp)"
 trap 'rm -f "${hosts_file}"' EXIT
 cp /etc/hosts "${hosts_file}"
 printf '\n137.131.42.171 ml-infra.applied.dev\n' >> "${hosts_file}"
+printf '134.70.16.1 idskhu5vqvtl.compat.objectstorage.us-phoenix-1.oraclecloud.com\n' >> "${hosts_file}"
 
 cd "${repo_root}"
 unshare -Ur -m bash -c '
