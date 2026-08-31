@@ -403,6 +403,43 @@ def _clipgen_verify_top_k() -> int:
     return raw
 
 
+def _clipgen_gate_mode() -> str:
+    mode = os.environ.get("CODE_REWARD_GATE_MODE", "hard").strip().lower()
+    if mode not in {"hard", "two_tier"}:
+        raise ValueError("CODE_REWARD_GATE_MODE must be hard or two_tier")
+    return mode
+
+
+def _two_tier_gate_confidence(metrics: dict[str, float], feedback: dict[str, Any]) -> float:
+    """Return 0 for unusable groups, otherwise a diagnostic confidence in (0,1].
+
+    GRPO normalizes within each rollout group, so multiplying a whole group by
+    this scalar would mostly cancel.  The value controls whether an imperfect
+    but still finite/discriminative ranking is retained; hard failures remain
+    neutralized.
+    """
+    if feedback.get("sample_failures"):
+        return 0.0
+    failures = "\n".join(feedback.get("reward_failures") or []).lower()
+    severe_markers = (
+        "scored finitely", "raised instead of scoring", "runtime", "exception",
+        "no finite", "nan", "saturat",
+    )
+    if any(marker in failures for marker in severe_markers):
+        return 0.0
+    score_range = max(0.0, float(metrics.get("code_group_gate_score_range", 0.0)))
+    corr = max(0.0, float(metrics.get("code_group_reward_consistency_corr", 0.0)))
+    lift = max(0.0, float(metrics.get("code_group_argmax_consistency_lift", 0.0)))
+    delta = max(0.0, float(metrics.get("code_group_gate_min_delta", 0.0)))
+    evidence = (
+        min(1.0, score_range / 0.15)
+        + min(1.0, corr / 0.30)
+        + min(1.0, lift / 0.03)
+        + min(1.0, delta / 0.40)
+    ) / 4.0
+    return 0.0 if evidence < 0.25 else max(0.25, evidence)
+
+
 def _enqueue_reward_repair(payload: dict[str, Any]) -> None:
     """Persist failed live verification for asynchronous, versioned repair.
 
@@ -1310,6 +1347,7 @@ def compute_reward_batch(
         "code_group_reward_valid": 0.0,
         "code_group_sample_valid": 0.0,
         "code_group_signal_applied": 0.0,
+        "code_group_signal_confidence": 0.0,
         "code_group_gate_top_k": 0.0,
         "code_group_gate_min_delta": 0.0,
         "code_group_gate_argmax_score": 0.0,
@@ -1349,6 +1387,12 @@ def compute_reward_batch(
                 "failures": [f"live verifier exception: {type(exc).__name__}: {exc}"],
                 "rollouts": dump_rollouts,
             }
+        gate_mode = _clipgen_gate_mode()
+        signal_confidence = 1.0 if group_passed else 0.0
+        if not group_passed and gate_mode == "two_tier":
+            signal_confidence = _two_tier_gate_confidence(gate_metrics, repair_feedback)
+        gate_metrics["code_group_signal_confidence"] = signal_confidence
+        gate_metrics["code_group_signal_applied"] = float(signal_confidence > 0.0)
         if not group_passed:
             # A bad sampled group is not evidence that the frozen reward is
             # wrong. Queue LLM repair only for rubric failures (bad ranking,
@@ -1357,10 +1401,11 @@ def compute_reward_batch(
             # active batch; a repaired version may activate only later.
             if should_repair:
                 _enqueue_reward_repair(repair_feedback)
-            rewards = [0.0 for _ in rewards]
-            for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
-                reward_dict["reward"] = 0.0
-                rollout["reward"] = 0.0
+            if signal_confidence <= 0.0:
+                rewards = [0.0 for _ in rewards]
+                for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
+                    reward_dict["reward"] = 0.0
+                    rollout["reward"] = 0.0
     for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
         reward_dict.update(gate_metrics)
         rollout.update(gate_metrics)
