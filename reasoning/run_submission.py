@@ -88,7 +88,6 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
 
         status("bootstrap")
         python = ensure_alpamayo15_venv(str(workspace / "venv"), str(repo))
-        subprocess.run([python, "-m", "pip", "install", "safetensors", "webdataset"], check=True)
         env = dict(os.environ)
         env["PYTHONPATH"] = os.pathsep.join([
             str(repo), str(repo / "third_party/alpamayo-recipes/src"), env.get("PYTHONPATH", "")

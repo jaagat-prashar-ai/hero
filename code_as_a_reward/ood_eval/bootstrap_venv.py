@@ -28,7 +28,7 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 MARKER_NAME = "BOOTSTRAP_OK"
-_VALIDATE_IMPORTS = "import torch, physical_ai_av, alpamayo1_5"
+_VALIDATE_IMPORTS = "import torch, physical_ai_av, alpamayo1_5, safetensors, webdataset"
 
 
 def _run(cmd: list[str], **kwargs) -> None:
@@ -104,6 +104,8 @@ def ensure_alpamayo15_venv(venv_dir: str, repo_root: str) -> str:
             "matplotlib>=3.10.7",
             "seaborn>=0.13.2",
             "boto3>=1.34",
+            "safetensors>=0.4",
+            "webdataset>=0.2.86",
         ],
         env=env,
     )
