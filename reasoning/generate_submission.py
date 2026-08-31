@@ -46,6 +46,7 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--top-p", type=float, default=0.98)
+    parser.add_argument("--max-generation-attempts", type=int, default=5)
     args = parser.parse_args()
 
     output = Path(args.output)
@@ -84,23 +85,38 @@ def main() -> None:
             },
             "cuda",
         )
-        torch.cuda.manual_seed_all(args.seed + sample_idx)
-        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
-            _xyz, _rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
-                data=model_inputs,
-                top_p=args.top_p,
-                temperature=args.temperature,
-                num_traj_samples=ROLLOUTS_PER_KEY,
-                max_generation_length=256,
-                return_extra=True,
+        texts: list[str] = []
+        for attempt in range(args.max_generation_attempts):
+            needed = ROLLOUTS_PER_KEY - len(texts)
+            if needed <= 0:
+                break
+            torch.cuda.manual_seed_all(args.seed + sample_idx * 100 + attempt)
+            with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+                _xyz, _rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
+                    data=model_inputs,
+                    top_p=args.top_p,
+                    temperature=args.temperature,
+                    num_traj_samples=needed,
+                    max_generation_length=256,
+                    return_extra=True,
+                )
+            generated = [
+                str(x).strip()
+                for x in np.asarray(extra["cot"], dtype=object)[0].reshape(-1)
+            ]
+            texts.extend(text for text in generated if text)
+            if len(texts) < ROLLOUTS_PER_KEY:
+                print(
+                    f"retrying {key}: {len(texts)}/{ROLLOUTS_PER_KEY} valid CoCs "
+                    f"after attempt {attempt + 1}",
+                    flush=True,
+                )
+        texts = texts[:ROLLOUTS_PER_KEY]
+        if len(texts) != ROLLOUTS_PER_KEY:
+            raise RuntimeError(
+                f"{key}: only {len(texts)}/{ROLLOUTS_PER_KEY} non-empty CoCs after "
+                f"{args.max_generation_attempts} attempts"
             )
-        # Alpamayo returns text as [batch, trajectory_set, trajectory_sample].
-        # Flatten only after selecting the single batch item so both the
-        # canonical (1, 1, 6) output and list-backed equivalents yield six
-        # independent strings rather than one stringified nested array.
-        texts = [str(x).strip() for x in np.asarray(extra["cot"], dtype=object)[0].reshape(-1)]
-        if len(texts) != ROLLOUTS_PER_KEY or any(not text for text in texts):
-            raise RuntimeError(f"{key}: model returned invalid CoC rollouts: {texts!r}")
         results[key] = texts
         _write_atomic(output, results)
         print(f"submission progress: {len(results)}/{EXPECTED_KEYS} ({key})", flush=True)

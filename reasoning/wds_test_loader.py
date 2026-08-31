@@ -64,10 +64,6 @@ def _ego_windows(
     """Ego-local (relative-to-t0) history/future windows -- same windowing +
     t0-relative transform as load_physical_aiavdataset.py /
     perplexity/s3_clip_loader.py's load_clip_from_s3_extract."""
-    history_time_range_us = num_history_steps * time_step * 1_000_000
-    if t0_us <= history_time_range_us:
-        raise ValueError(f"{t0_us=} must be greater than the history time range ({history_time_range_us=} us)")
-
     history_offsets_us = np.arange(
         -(num_history_steps - 1) * time_step * 1_000_000,
         time_step * 1_000_000 / 2,
@@ -79,9 +75,17 @@ def _ego_windows(
         time_step * 1_000_000,
     ).astype(np.int64)
 
+    # The official test set includes events earlier than the nominal 1.6 s
+    # history window. Clamp out-of-range timestamps to the first/last real
+    # sample, which left/right-pads with a stationary boundary pose instead
+    # of silently dropping required submission keys.
+    min_us = int(np.asarray(egomotion.timestamps)[0])
+    max_us = int(np.asarray(egomotion.timestamps)[-1])
+    history_times = np.clip(t0_us + history_offsets_us, min_us, max_us)
+    future_times = np.clip(t0_us + future_offsets_us, min_us, max_us)
     try:
-        ego_history = egomotion(t0_us + history_offsets_us)
-        ego_future = egomotion(t0_us + future_offsets_us)
+        ego_history = egomotion(history_times)
+        ego_future = egomotion(future_times)
     except ValueError as e:
         raise ClipWindowOutOfRangeError(
             f"t0_us={t0_us} window doesn't fit the egomotion track: {e}"

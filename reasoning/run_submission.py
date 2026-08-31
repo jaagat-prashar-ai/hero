@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def _run_streamed(cmd: list[str], *, cwd: Path, env: dict[str, str]) -> None:
+def _run_streamed(cmd: list[str], *, cwd: Path, env: dict[str, str], on_line=None) -> None:
     """Stream child output and retain a diagnostic tail for durable status."""
     tail: deque[str] = deque(maxlen=80)
     proc = subprocess.Popen(
@@ -30,6 +30,8 @@ def _run_streamed(cmd: list[str], *, cwd: Path, env: dict[str, str]) -> None:
     for line in proc.stdout:
         print(line, end="", flush=True)
         tail.append(line)
+        if on_line is not None:
+            on_line(line)
     returncode = proc.wait()
     if returncode != 0:
         raise RuntimeError(
@@ -72,6 +74,7 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
     base_prefix = training_fn_config.get("base_model_s3_prefix", "alpamayo_rl/model_cache/alpamayo15_converted").rstrip("/")
     test_prefix = training_fn_config.get("test_wds_s3_prefix", "nvidia_physicalai_datasets/PhysicalAI-Autonomous-Vehicles/wds/test").rstrip("/")
     output_key = training_fn_config.get("output_s3_key", "alpamayo_rl/submissions/code_consistency_full/submission.json")
+    partial_key = output_key.rsplit("/", 1)[0] + "/submission.partial.json"
     status_key = output_key.rsplit("/", 1)[0] + "/status.json"
     repo = Path(__file__).resolve().parents[1]
     workspace.mkdir(parents=True, exist_ok=True)
@@ -130,11 +133,27 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
         ], check=True, env=env)
 
         output = workspace / "submission.json"
+        try:
+            s3.download_file(bucket, partial_key, str(output))
+            logger.info("resumed partial submission from s3://%s/%s", bucket, partial_key)
+        except Exception:
+            logger.info("no prior partial submission; starting generation from zero")
+        progress_count = 0
+
+        def sync_progress(line: str) -> None:
+            nonlocal progress_count
+            if not line.startswith("submission progress:"):
+                return
+            progress_count += 1
+            if progress_count % 10 == 0 and output.exists():
+                s3.upload_file(str(output), bucket, partial_key)
+                logger.info("synced partial submission after %d new events", progress_count)
+
         status("inference")
         _run_streamed([
             python, "-m", "reasoning.generate_submission", "--checkpoint", str(inference),
             "--shards", *map(str, shard_paths), "--output", str(output),
-        ], cwd=repo, env=env)
+        ], cwd=repo, env=env, on_line=sync_progress)
         status("upload")
         s3.upload_file(str(output), bucket, output_key)
         alias = output.with_name("submissions.json")
@@ -144,6 +163,11 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
         logger.info("submission complete: s3://%s/%s", bucket, output_key)
     except Exception as exc:
         logger.exception("submission failed")
+        try:
+            if "output" in locals() and output.exists():
+                s3.upload_file(str(output), bucket, partial_key)
+        except Exception:
+            logger.exception("failed to persist partial submission")
         try:
             status("failed", f"{type(exc).__name__}: {exc}")
         except Exception:
