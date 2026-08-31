@@ -397,7 +397,11 @@ _repair_queue_lock = threading.Lock()
 def _clipgen_verify_top_k() -> int:
     """Top-k live rollouts to perturb-verify (1=argmax, 3=ablation)."""
 
-    raw = int(os.environ.get("CODE_REWARD_VERIFY_TOP_K", "1"))
+    raw_value = os.environ.get("CODE_REWARD_VERIFY_TOP_K", "1").strip().lower()
+    aliases = {"top1": 1, "top3": 3}
+    raw = aliases.get(raw_value)
+    if raw is None:
+        raw = int(raw_value)
     if raw not in {1, 3}:
         raise ValueError("CODE_REWARD_VERIFY_TOP_K must be 1 or 3")
     return raw

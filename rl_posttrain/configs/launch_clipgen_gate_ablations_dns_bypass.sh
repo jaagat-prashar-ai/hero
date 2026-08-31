@@ -27,11 +27,21 @@ launch_one() {
     -o workload_variant_config.entrypoint_fn_config.ckpt_s3_prefix "alpamayo_rl/checkpoints/clipgen602_${suffix}" \
     -o workload_variant_config.entrypoint_fn_config.wandb_experiment "clipgen602_${suffix}" \
     -o runtime_environment.constant_environment_variables.CODE_REWARD_GATE_MODE "${gate_mode}" \
-    -o runtime_environment.constant_environment_variables.CODE_REWARD_VERIFY_TOP_K "!!str ${top_k}" \
+    -o runtime_environment.constant_environment_variables.CODE_REWARD_VERIFY_TOP_K "top${top_k}" \
     -o runtime_environment.constant_environment_variables.CODE_REWARD_DEBUG_DUMP_RUN_ID "clipgen602-${suffix}"
 }
 
 cd "${repo_root}"
-launch_one hard-top1 hard 1
-launch_one twotier-top1 two_tier 1
-launch_one twotier-top3 two_tier 3
+arms=("${@:-hard-top1 twotier-top1 twotier-top3}")
+failures=0
+for arm_list in "${arms[@]}"; do
+  for arm in ${arm_list}; do
+    case "${arm}" in
+      hard-top1) launch_one hard-top1 hard 1 || failures=$((failures + 1)) ;;
+      twotier-top1) launch_one twotier-top1 two_tier 1 || failures=$((failures + 1)) ;;
+      twotier-top3) launch_one twotier-top3 two_tier 3 || failures=$((failures + 1)) ;;
+      *) echo "unknown arm: ${arm}" >&2; failures=$((failures + 1)) ;;
+    esac
+  done
+done
+exit "${failures}"
