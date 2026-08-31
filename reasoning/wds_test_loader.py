@@ -111,6 +111,7 @@ def iter_test_samples(shard_paths: list[str]):
     (f"{clip_id}_{event_idx}", matching the benchmark's submission key format).
     """
     dataset = wds.WebDataset([str(p) for p in shard_paths], shardshuffle=False)
+    avdi = None
 
     for sample in dataset:
         clip_id = sample["__key__"]
@@ -122,7 +123,24 @@ def iter_test_samples(shard_paths: list[str]):
         if not events:
             continue
 
-        egomotion = _egomotion_interpolator_from_bytes(sample["egomotion.parquet"])
+        if "egomotion.parquet" in sample:
+            egomotion = _egomotion_interpolator_from_bytes(sample["egomotion.parquet"])
+        else:
+            # A small number of test-shard samples were written after the
+            # builder's best-effort egomotion fetch failed. Keep S3 as the
+            # primary source, but recover only the missing feature from the
+            # canonical PhysicalAI dataset instead of dropping a submission
+            # key (Track 1 requires all 284 events).
+            if avdi is None:
+                import physical_ai_av
+
+                avdi = physical_ai_av.PhysicalAIAVDatasetInterface()
+            print(f"recovering missing egomotion for {clip_id}", flush=True)
+            egomotion = avdi.get_clip_feature(
+                clip_id,
+                feature=avdi.features.LABELS.EGOMOTION,
+                maybe_stream=True,
+            )
 
         for event_idx, event in enumerate(events):
             t0_us = event["event_start_timestamp"]

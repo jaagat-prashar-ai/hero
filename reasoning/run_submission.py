@@ -8,10 +8,33 @@ import os
 import shutil
 import subprocess
 import time
+from collections import deque
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+
+def _run_streamed(cmd: list[str], *, cwd: Path, env: dict[str, str]) -> None:
+    """Stream child output and retain a diagnostic tail for durable status."""
+    tail: deque[str] = deque(maxlen=80)
+    proc = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        print(line, end="", flush=True)
+        tail.append(line)
+    returncode = proc.wait()
+    if returncode != 0:
+        raise RuntimeError(
+            f"child exited {returncode}; final output:\n{''.join(tail)}"
+        )
 
 
 def _download_prefix(s3, bucket: str, prefix: str, dest: Path, *, keep=None) -> int:
@@ -108,10 +131,10 @@ def submission_loop(training_fn_config: dict, experiment_tracker=None) -> None:
 
         output = workspace / "submission.json"
         status("inference")
-        subprocess.run([
-        python, "-m", "reasoning.generate_submission", "--checkpoint", str(inference),
-        "--shards", *map(str, shard_paths), "--output", str(output),
-        ], check=True, cwd=repo, env=env)
+        _run_streamed([
+            python, "-m", "reasoning.generate_submission", "--checkpoint", str(inference),
+            "--shards", *map(str, shard_paths), "--output", str(output),
+        ], cwd=repo, env=env)
         status("upload")
         s3.upload_file(str(output), bucket, output_key)
         alias = output.with_name("submissions.json")
