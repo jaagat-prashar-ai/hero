@@ -428,8 +428,10 @@ def _clipgen_required_top_passes(top_k: int) -> int:
 
 def _clipgen_score_mode() -> str:
     mode = os.environ.get("CODE_REWARD_SCORE_MODE", "raw").strip().lower()
-    if mode not in {"raw", "rank"}:
-        raise ValueError("CODE_REWARD_SCORE_MODE must be raw or rank")
+    if mode not in {"raw", "rank", "hybrid75", "hybrid50"}:
+        raise ValueError(
+            "CODE_REWARD_SCORE_MODE must be raw, rank, hybrid75, or hybrid50"
+        )
     return mode
 
 
@@ -440,6 +442,19 @@ def _rank_rewards(values: list[float]) -> list[float]:
         return [0.0 for _ in values]
     rank = {value: idx / (len(finite_unique) - 1) for idx, value in enumerate(finite_unique)}
     return [rank.get(float(value), 0.0) if math.isfinite(value) else 0.0 for value in values]
+
+
+def _shape_clipgen_rewards(values: list[float], mode: str) -> list[float]:
+    if mode == "raw":
+        return values
+    ranked = _rank_rewards(values)
+    if mode == "rank":
+        return ranked
+    raw_weight = 0.75 if mode == "hybrid75" else 0.50
+    return [
+        raw_weight * float(raw) + (1.0 - raw_weight) * rank
+        for raw, rank in zip(values, ranked)
+    ]
 
 
 def _two_tier_gate_confidence(metrics: dict[str, float], feedback: dict[str, Any]) -> float:
@@ -1448,8 +1463,9 @@ def compute_reward_batch(
                 for reward_dict, rollout in zip(reward_dicts, dump_rollouts):
                     reward_dict["reward"] = 0.0
                     rollout["reward"] = 0.0
-        if signal_confidence > 0.0 and _clipgen_score_mode() == "rank":
-            rewards = _rank_rewards(rewards)
+        score_mode = _clipgen_score_mode()
+        if signal_confidence > 0.0 and score_mode != "raw":
+            rewards = _shape_clipgen_rewards(rewards, score_mode)
             gate_metrics["code_group_rank_reward_applied"] = 1.0
             for value, reward_dict, rollout in zip(rewards, reward_dicts, dump_rollouts):
                 reward_dict["reward"] = value

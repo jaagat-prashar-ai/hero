@@ -1,8 +1,10 @@
 import os
+import math
 
 from rl_posttrain.rewards.code_reward_entry import (
     _clipgen_required_top_passes,
     _rank_rewards,
+    _shape_clipgen_rewards,
     _two_tier_gate_confidence,
 )
 
@@ -42,3 +44,19 @@ def test_majority_requires_two_of_three():
 
 def test_rank_rewards_preserve_ties_and_order():
     assert _rank_rewards([0.2, 0.8, 0.2, 0.5]) == [0.0, 1.0, 0.0, 0.5]
+
+
+def test_hybrid_rewards_keep_raw_margin_and_rank_order():
+    values = [0.2, 0.5, 0.8]
+    assert all(
+        math.isclose(actual, expected)
+        for actual, expected in zip(
+            _shape_clipgen_rewards(values, "hybrid75"), [0.15, 0.5, 0.85]
+        )
+    )
+    assert all(
+        math.isclose(actual, expected)
+        for actual, expected in zip(
+            _shape_clipgen_rewards(values, "hybrid50"), [0.1, 0.5, 0.9]
+        )
+    )
