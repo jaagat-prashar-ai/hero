@@ -20,8 +20,9 @@ workload_variant_config:
     checkpoint_epoch: "epoch=001"
     workdir: "/mnt/work/simlingo_consolidate"
     sessions:
-      - "20260902220910_smoke_cycle_det_qhidden_w0.2"
-      - "20260902221116_smoke_cycle_undet_qhidden_w0.2"
+      # det_qhidden: consolidated by first attempt rid4y1 (verified on S3);
+      # undet_qhidden: its epoch=001.ckpt upload never happened at teardown --
+      # consolidated from last.ckpt via consolidate_smoke_0902_undet_qhidden_last.yaml
       - "20260902221110_smoke_cycle_qhidden_placebo_w0.2"
       - "20260902220325_smoke_cycle_det_trajenc_w0.2"
       - "20260902220324_smoke_cycle_undet_trajenc_w0.2"

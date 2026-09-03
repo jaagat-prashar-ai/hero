@@ -1,0 +1,85 @@
+# Consolidate ONLY undet_qhidden from last.ckpt: its epoch=001.ckpt upload
+# never happened at training teardown, but last.ckpt is byte-size-identical
+# to the other arms' epoch=001 model states (3183199247) and written at the
+# same point (end of epoch 1) -- verified via S3 timestamps 2026-09-03.
+# Destination key is .../checkpoints/last.ckpt/pytorch_model.pt, so its B2D
+# eval config uses checkpoint_epoch: "last".
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/consolidate_smoke_0902_undet_qhidden_last.yaml
+name: simlingo-consolidate-smoke-0902-undet-qhidden-last
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.consolidate_checkpoint.consolidate_checkpoint
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    src_prefix: "simlingo-checkpoints"
+    dst_prefix: "simlingo-checkpoints-consolidated"
+    checkpoint_epoch: "last"
+    workdir: "/mnt/work/simlingo_consolidate"
+    sessions:
+      - "20260902221116_smoke_cycle_undet_qhidden_w0.2"
+    session_hydra_overrides:
+      "20260902221116_smoke_cycle_undet_qhidden_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=false
+        - model.cycle_warmup_steps=1000
+        - model.cycle_traj_source=query_hidden
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_undet_qhidden_w0.2
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-checkpoint-consolidate
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"

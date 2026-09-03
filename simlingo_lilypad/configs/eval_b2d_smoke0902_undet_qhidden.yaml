@@ -14,7 +14,7 @@ workload_variant_config:
     assets_prefix: "simlingo-b2d-eval"
     checkpoint_prefix: "simlingo-checkpoints-consolidated"
     checkpoint_session: "20260902221116_smoke_cycle_undet_qhidden_w0.2"
-    checkpoint_epoch: "epoch=001"
+    checkpoint_epoch: "last"  # epoch=001 upload never happened; last.ckpt == end of epoch 1 (see consolidate_smoke_0902_undet_qhidden_last.yaml)
     eval_name: "smoke0902_undet_qhidden_ep1"
     results_prefix: "simlingo-b2d-results"
     workdir: "/mnt/work/simlingo_b2d_eval"
