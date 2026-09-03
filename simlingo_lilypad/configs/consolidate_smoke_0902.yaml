@@ -1,0 +1,191 @@
+# Consolidate the 2026-09-02 qhidden/trajenc smoke fleet (5 arms) plus the two
+# matched w0 baseline smokes (2026-08-19) into single-file pytorch_model.pt
+# under simlingo-checkpoints-consolidated/, for B2D eval. Smokes ran
+# max_epochs=2, so the final checkpoint is epoch=001 (not epoch=002 like the
+# full k-sweep arms).
+# session_hydra_overrides replayed verbatim from each arm's launch config
+# (smoke_cycle_*.yaml, recovered in 181c8b0; baselines from aee5831/4948917),
+# minus the runtime-only gpus/num_nodes/wandb_name overrides run.py appends.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/consolidate_smoke_0902.yaml
+name: simlingo-consolidate-smoke-0902
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.consolidate_checkpoint.consolidate_checkpoint
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    src_prefix: "simlingo-checkpoints"
+    dst_prefix: "simlingo-checkpoints-consolidated"
+    checkpoint_epoch: "epoch=001"
+    workdir: "/mnt/work/simlingo_consolidate"
+    sessions:
+      - "20260902220910_smoke_cycle_det_qhidden_w0.2"
+      - "20260902221116_smoke_cycle_undet_qhidden_w0.2"
+      - "20260902221110_smoke_cycle_qhidden_placebo_w0.2"
+      - "20260902220325_smoke_cycle_det_trajenc_w0.2"
+      - "20260902220324_smoke_cycle_undet_trajenc_w0.2"
+      - "20260819212527_smoke_cycle_base_w0_bs1"
+      - "20260819220805_smoke_cycle_base_w0_bs1_s7"
+    session_hydra_overrides:
+      "20260902220910_smoke_cycle_det_qhidden_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=true
+        - model.cycle_warmup_steps=1000
+        - model.cycle_traj_source=query_hidden
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_det_qhidden_w0.2
+      "20260902221116_smoke_cycle_undet_qhidden_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=false
+        - model.cycle_warmup_steps=1000
+        - model.cycle_traj_source=query_hidden
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_undet_qhidden_w0.2
+      "20260902221110_smoke_cycle_qhidden_placebo_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=false
+        - model.cycle_warmup_steps=1000
+        - model.cycle_traj_source=query_hidden
+        - model.cycle_shuffle_traj=true
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_qhidden_placebo_w0.2
+      "20260902220325_smoke_cycle_det_trajenc_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=true
+        - model.cycle_warmup_steps=1000
+        - model.traj_encoder_type=transformer
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_det_trajenc_w0.2
+      "20260902220324_smoke_cycle_undet_trajenc_w0.2":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.2
+        - model.cycle_detach=false
+        - model.cycle_warmup_steps=1000
+        - model.traj_encoder_type=transformer
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_undet_trajenc_w0.2
+      "20260819212527_smoke_cycle_base_w0_bs1":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.0
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_base_w0_bs1
+      "20260819220805_smoke_cycle_base_w0_bs1_s7":
+        - experiment=simlingo_seed1
+        - data_module=carla_no_buckets
+        - max_epochs=2
+        - val_every_n_epochs=1
+        - data_module.batch_size=1
+        - data_module.num_workers=8
+        - data_module.base_dataset.use_safety_flag=false
+        - data_module.base_dataset.dreamer_contrastive=true
+        - data_module.base_dataset.dreamer_contrastive_k=4
+        - model.language_model.gradient_checkpointing=true
+        - model.cycle_loss_weight=0.0
+        - seed=7
+        - wandb_project=simlingo-contrastive
+        - name=smoke_cycle_base_w0_bs1_s7
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-checkpoint-consolidate
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 1
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
