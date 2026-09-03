@@ -44,6 +44,11 @@ class DrivingModelConfig:
     contrastive_loss_weight: float = 0.0
     contrastive_embed_dim: int = 256
     contrastive_temperature: float = 0.07
+    # trajectory side of the contrastive loss. 'coords_mlp': MLP over the
+    # flattened predicted coordinates. 'trunk_hidden': run the trajectory tokens
+    # (traj_encoder_type) through the trunk alone - no image, no instruction in
+    # context - mean-pool its last hidden states and apply a learned projection
+    contrastive_traj_embed: str = 'coords_mlp'
 
     # trajectory->instruction grouped inverse-cycle consistency (0.0 = disabled).
     # cycle_detach=True trains only the explainer direction (trunk reads the
@@ -54,8 +59,8 @@ class DrivingModelConfig:
     # linear ramp of the cycle weight over the first N optimizer steps
     # (0 = no warmup); protects early waypoint regression
     cycle_warmup_steps: int = 0
-    # Stage-0 learnability probe: freeze everything except wp_encoder + the
-    # LoRA adapters, skip the vision/main-task forward entirely, and train
+    # Stage-0 learnability probe: freeze everything except the cycle trajectory
+    # encoder + the LoRA adapters, skip the vision/main-task forward entirely, and train
     # only the cycle ranking objective on a loaded (frozen) driving checkpoint.
     cycle_probe: bool = False
     # condition the cycle pass on GT waypoints/path instead of the model's own
@@ -77,6 +82,24 @@ class DrivingModelConfig:
     # Splits forward-side vs backward/graph-side causes of the co-training
     # collapse (2026-08-23: collapse is weight-independent down to w=1e-6)
     cycle_no_grad: bool = False
+    # encoder that turns trajectory coordinates into trunk input tokens for the
+    # vision-free passes (cycle loss, contrastive trunk_hidden). 'wp_mlp' reuses
+    # the per-point WaypointInputAdaptor (2 -> token_size, each point alone);
+    # 'transformer' encodes the whole point sequence ([x, y, dx, dy] + position
+    # + segment) and projects to token_size, so tokens carry trajectory-shape context
+    traj_encoder_type: str = 'wp_mlp'
+    traj_encoder_dim: int = 256
+    traj_encoder_layers: int = 2
+    traj_encoder_heads: int = 4
+    # what the cycle pass reads as "the trajectory". 'coords': the predicted
+    # coordinates re-encoded by traj_encoder_type (a function of the action
+    # alone). 'query_hidden': the trunk's own last hidden states at the 30
+    # waypoint-query slots of the main pass, through a learned projection
+    # (query_state_proj) into input-embedding space. Those states attended to
+    # the instruction, so the ranking can be solved without reading the
+    # trajectory - compare against the 'coords' arms and the shuffled-pairing
+    # placebo. cycle_traj_noise_m and cycle_use_gt_traj do not apply to it.
+    cycle_traj_source: str = 'coords'
 
     _target_: str = "simlingo_training.models.driving.DrivingModel"
 

@@ -1,3 +1,4 @@
+import math
 from typing import Dict, List, Optional, Tuple
 
 import torch
@@ -91,6 +92,81 @@ class WaypointInputAdaptor(nn.Module):
             x = self.norm_layer(x)
         x = self.mlp(x)
         return x
+
+
+class TrajectoryEncoder(nn.Module):
+    """
+    Sequence encoder over trajectory points -> LLM token embeddings.
+
+    Takes [B, N, 2] coordinates made of consecutive segments (e.g. speed
+    waypoints then route points), builds per-point features [x, y, dx, dy]
+    plus a sinusoidal within-segment position and a learned segment embedding,
+    runs a transformer encoder over all N points, and projects to token_size.
+    Returns [B, N, token_size].
+    """
+
+    def __init__(
+        self,
+        token_size: int,
+        n_segments: int,
+        d_model: int = 256,
+        n_layers: int = 2,
+        n_heads: int = 4,
+        dim_feedforward: Optional[int] = None,
+        dropout: float = 0.0,
+        max_len: int = 64,
+    ):
+        super().__init__()
+        if d_model % 2:
+            raise ValueError(f"d_model must be even for sinusoidal positions, got {d_model}")
+        self.in_proj = nn.Linear(4, d_model)
+        self.seg_emb = nn.Embedding(n_segments, d_model)
+        self.register_buffer("pos", self._sinusoidal(max_len, d_model), persistent=False)
+        layer = nn.TransformerEncoderLayer(
+            d_model, n_heads, dim_feedforward or 4 * d_model, dropout,
+            activation="gelu", batch_first=True, norm_first=True,
+        )
+        self.encoder = nn.TransformerEncoder(layer, n_layers, enable_nested_tensor=False)
+        self.out_norm = nn.LayerNorm(d_model)
+        self.out_proj = nn.Linear(d_model, token_size)
+
+    @staticmethod
+    def _sinusoidal(max_len: int, d_model: int) -> Tensor:
+        position = torch.arange(max_len).unsqueeze(1)
+        div = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, d_model)
+        pe[:, 0::2] = torch.sin(position * div)
+        pe[:, 1::2] = torch.cos(position * div)
+        return pe
+
+    def forward(self, x: Tensor, seg_lens: List[int]) -> Tensor:
+        """
+        Args:
+            x: [B, N, 2] coordinates, segments laid out consecutively.
+            seg_lens: number of points in each segment; must sum to N.
+
+        Returns:
+            [B, N, token_size]
+        """
+        if sum(seg_lens) != x.size(1):
+            raise ValueError(f"seg_lens {seg_lens} do not sum to N={x.size(1)}")
+        if max(seg_lens) > self.pos.size(0):
+            raise ValueError(f"segment of {max(seg_lens)} points exceeds max_len={self.pos.size(0)}")
+        feats, pos, seg = [], [], []
+        start = 0
+        for s, length in enumerate(seg_lens):
+            pts = x[:, start:start + length]
+            delta = pts - F.pad(pts[:, :-1], (0, 0, 1, 0))
+            feats.append(torch.cat([pts, delta], dim=-1))
+            pos.append(self.pos[:length])
+            seg.append(torch.full((length,), s, dtype=torch.long, device=x.device))
+            start += length
+        h = self.in_proj(torch.cat(feats, dim=1))
+        h = h + torch.cat(pos, dim=0).to(h.dtype) + self.seg_emb(torch.cat(seg, dim=0))
+        # every segment row must reach the graph on every rank (DDP allreduce param-set parity)
+        h = h + (self.seg_emb.weight * 0.0).sum()
+        h = self.encoder(h)
+        return self.out_proj(self.out_norm(h))
 
 
 class DrivingAdaptor(nn.Module):

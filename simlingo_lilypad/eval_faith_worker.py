@@ -5,7 +5,7 @@ upstream simlingo_training/eval.py's commentary branch, but with a seeded
 fixed-subset predict loop and JSONL output instead of the upstream save path.
 All arms share the SAME base hydra config (the HF original's .hydra/config.yaml)
 and the SAME subset indices, so the eval is paired across arms; the contrastive
-arms' extra projection heads (traj_proj/text_proj) are inference-dead and are
+arms' extra projection heads (traj_proj/text_proj/traj_state_proj/traj_encoder/query_state_proj) are inference-dead and are
 the only state-dict keys allowed to mismatch.
 """
 import argparse
@@ -25,7 +25,7 @@ from simlingo_training.models.driving import decode_uint8
 
 # heads created only when contrastive_loss_weight > 0 at train time; harmless
 # and unused in predict, so they may be absent from the eval-time model
-ALLOWED_MISSING_PREFIXES = ("traj_proj.", "text_proj.")
+ALLOWED_MISSING_PREFIXES = ("traj_proj.", "text_proj.", "traj_state_proj.", "traj_encoder.", "query_state_proj.")
 
 
 def load_state(ckpt_path: Path) -> dict:

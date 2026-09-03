@@ -67,6 +67,18 @@ def test_gradients_flow_to_both_sides():
     assert z_traj.grad is not None and z_traj.grad.abs().sum() > 0
 
 
+def test_singleton_only_batch_still_ties_both_sides_into_the_graph():
+    # a rank whose local batch has no sibling groups must still produce (zero)
+    # grads for the same parameters as every other rank
+    z_text = make_embeddings(3, seed=1).requires_grad_(True)
+    z_traj = make_embeddings(3, seed=2).requires_grad_(True)
+    loss, count, acc = intra_scene_contrastive_loss(z_text, z_traj, torch.tensor([0, 1, 2]))
+    assert count.sum().item() == 0 and acc is None
+    loss.sum().backward()
+    assert z_text.grad is not None and z_traj.grad is not None
+    assert z_text.grad.abs().sum().item() == 0.0 and z_traj.grad.abs().sum().item() == 0.0
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for test in tests:

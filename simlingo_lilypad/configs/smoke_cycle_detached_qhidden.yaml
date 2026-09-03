@@ -1,0 +1,109 @@
+# SimLingo smoke run, DETACHED cycle arm reading QUERY HIDDEN STATES: identical
+# to smoke_cycle_detached.yaml except the cycle pass does not re-encode the
+# predicted coordinates; it takes the trunk's own last hidden states at the 30
+# waypoint-query slots of the main pass and maps them into input-embedding space
+# with a learned projection (query_state_proj). Those states attended to the
+# instruction, so read cycle_rank_acc against smoke_cycle_detached_trajenc.yaml
+# and the shuffled-pairing placebo smoke_cycle_qhidden_placebo.yaml.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/smoke_cycle_detached_qhidden.yaml
+name: simlingo-cycle-det-qhidden-smoke
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo"
+    workdir: "/mnt/work/simlingo_smoke"
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      # subset has no bucket index files; sample uniformly instead
+      - data_module=carla_no_buckets
+      - max_epochs=2
+      - val_every_n_epochs=1
+      # batch_size counts dataset items; dreamer items expand to K=4 samples,
+      # so the forward batch is up to 4x this on dreamer-heavy batches.
+      # bs=2 + the cycle pass (32 extra full-vocab-logit sequences) OOMed at
+      # 75.5GB on the first training step (y35tq3/a1flqu, 2026-08-14); bs=1
+      # halves both passes (4 samples + 16 cycle seqs), same fix as K=7 (6d986b8).
+      # CAVEAT: bs=1 doubles optimizer steps/epoch vs the bs=2 baseline arm -
+      # compare epoch-indexed val metrics; det-vs-undet comparison is unaffected.
+      - data_module.batch_size=1
+      - data_module.num_workers=8
+      # keep the safety objective out of the alignment experiments
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      # cycle pass adds a second (short-sequence) trunk forward+backward with a
+      # full vocab-logits tensor; grad checkpointing for memory headroom
+      # (proven at K=7, commit 802c3da)
+      - model.language_model.gradient_checkpointing=true
+      - model.cycle_loss_weight=0.2
+      - model.cycle_detach=true
+      - model.cycle_warmup_steps=1000
+      - wandb_project=simlingo-contrastive
+      - model.cycle_traj_source=query_hidden
+      - name=smoke_cycle_det_qhidden_w0.2
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # Ckpts persist to S3 (CHECKPOINT_S3_PREFIX) but resume isn't auto-wired,
+  # so an eviction is still a total restart: gen-1 burned 31h of wall-clock on
+  # a 7h job and gen-3 lost ~45% of epoch 0 the same way. Preemption cost >
+  # spot savings at this point, same reasoning as the full_k* runs.
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+  requeue_if_preempted: true
+
+runtime_environment:
+  # torch pip install ~3 GB + 54 GB dataset extract before first GPU step
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    # reduce fragmentation headroom pressure (suggested by the OOM error itself)
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    SIMLINGO_EXPECTED_OBJECTS: "121"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      - "^/bench2drive/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"

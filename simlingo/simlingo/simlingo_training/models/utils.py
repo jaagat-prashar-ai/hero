@@ -33,7 +33,9 @@ def intra_scene_contrastive_loss(
         count: [B] int64, 1 where the sample took part in the loss.
         accuracy: mean text->trajectory retrieval accuracy (None if all groups are singletons).
     """
-    loss = z_text.new_zeros(z_text.size(0))
+    # zero for singletons but tied to both embeddings, so every rank's backward
+    # reaches the same parameters whatever its group composition
+    loss = (z_text * 0.0).sum(-1) + (z_traj * 0.0).sum(-1)
     count = torch.zeros_like(group_ids)
     accuracies = []
     for group_id in group_ids.unique():

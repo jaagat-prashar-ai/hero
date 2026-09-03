@@ -16,7 +16,7 @@ from torch.optim import AdamW
 from hydra.utils import get_original_cwd
 
 
-from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, AdaptorList
+from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, TrajectoryEncoder, AdaptorList
 from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss, group_delta_spans, apply_traj_controls
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
@@ -100,13 +100,24 @@ class DrivingModel(pl.LightningModule):
         # map instructions and predicted trajectories into a shared embedding space
         # (getattr so checkpoints from before this feature still load)
         self.contrastive_loss_weight = getattr(self, 'contrastive_loss_weight', 0.0)
-        if self.contrastive_loss_weight > 0:
-            traj_dim = self.adaptors.driving.future_speed_waypoints * (2 if self.speed_wps_mode == '2d' else 1)
-            if self.predict_route_as_wps:
-                traj_dim += self.adaptors.driving.future_waypoints * 2
-            self.traj_proj = nn.Sequential(
-                nn.Linear(traj_dim, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
+        self.contrastive_traj_embed = getattr(self, 'contrastive_traj_embed', 'coords_mlp')
+        if self.contrastive_traj_embed not in ('coords_mlp', 'trunk_hidden'):
+            raise ValueError(
+                f"contrastive_traj_embed must be 'coords_mlp' or 'trunk_hidden', not {self.contrastive_traj_embed!r}"
             )
+        if self.contrastive_loss_weight > 0:
+            if self.contrastive_traj_embed == 'coords_mlp':
+                traj_dim = self.adaptors.driving.future_speed_waypoints * (2 if self.speed_wps_mode == '2d' else 1)
+                if self.predict_route_as_wps:
+                    traj_dim += self.adaptors.driving.future_waypoints * 2
+                self.traj_proj = nn.Sequential(
+                    nn.Linear(traj_dim, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
+                )
+            else:
+                # learned projection of the trunk's trajectory-only hidden states
+                self.traj_state_proj = nn.Sequential(
+                    nn.Linear(self.language_model.hidden_size, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
+                )
             self.text_proj = nn.Sequential(
                 nn.Linear(self.language_model.hidden_size, 256), nn.SiLU(True), nn.Linear(256, self.contrastive_embed_dim)
             )
@@ -129,6 +140,43 @@ class DrivingModel(pl.LightningModule):
         self.cycle_shuffle_traj = getattr(self, 'cycle_shuffle_traj', False)
         self.cycle_traj_noise_m = getattr(self, 'cycle_traj_noise_m', 0.0)
         self.cycle_no_grad = getattr(self, 'cycle_no_grad', False)
+        self.cycle_traj_source = getattr(self, 'cycle_traj_source', 'coords')
+        if self.cycle_traj_source not in ('coords', 'query_hidden'):
+            raise ValueError(f"cycle_traj_source must be 'coords' or 'query_hidden', not {self.cycle_traj_source!r}")
+        self.traj_encoder_type = getattr(self, 'traj_encoder_type', 'wp_mlp')
+        if self.traj_encoder_type not in ('wp_mlp', 'transformer'):
+            raise ValueError(f"traj_encoder_type must be 'wp_mlp' or 'transformer', not {self.traj_encoder_type!r}")
+        cycle_active = self.cycle_loss_weight > 0 or self.cycle_probe
+        contrastive_uses_traj_tokens = self.contrastive_loss_weight > 0 and self.contrastive_traj_embed == 'trunk_hidden'
+        uses_traj_tokens = (cycle_active and self.cycle_traj_source == 'coords') or contrastive_uses_traj_tokens
+        if self.cycle_traj_source == 'query_hidden' and cycle_active:
+            if self.cycle_use_gt_traj:
+                raise ValueError("cycle_traj_source='query_hidden' reads the model's own waypoint-query hidden states; "
+                                 "it cannot be combined with cycle_use_gt_traj")
+            if self.cycle_no_grad and not self.cycle_probe:
+                raise ValueError("cycle_traj_source='query_hidden' with cycle_no_grad=true leaves query_state_proj untrained")
+            # learned projection of the main pass's waypoint-query hidden states
+            # into the trunk's input-embedding space
+            self.query_state_proj = nn.Sequential(
+                nn.Linear(self.language_model.hidden_size, 512), nn.SiLU(True),
+                nn.Linear(512, self.language_model.hidden_size),
+            )
+        if self.traj_encoder_type == 'transformer' and uses_traj_tokens:
+            if self.cycle_no_grad and not self.cycle_probe and not contrastive_uses_traj_tokens:
+                # its only consumer would run under no_grad: a module that never
+                # receives gradients on any rank, which plain DDP rejects
+                raise ValueError(
+                    "traj_encoder_type='transformer' with cycle_no_grad=true leaves the encoder untrained; "
+                    "use traj_encoder_type='wp_mlp' for the no-grad diagnostic"
+                )
+            self.traj_encoder = TrajectoryEncoder(
+                token_size=self.language_model.hidden_size,
+                # speed waypoints + route/path: GT mode carries both regardless of predict_route_as_wps
+                n_segments=2,
+                d_model=getattr(self, 'traj_encoder_dim', 256),
+                n_layers=getattr(self, 'traj_encoder_layers', 2),
+                n_heads=getattr(self, 'traj_encoder_heads', 4),
+            )
         if self.cycle_loss_weight > 0:
             template_ids = self.tokenizer(
                 "\nWhich instruction produced this trajectory?\n",
@@ -136,10 +184,15 @@ class DrivingModel(pl.LightningModule):
             ).input_ids.squeeze(0)
             self.register_buffer("cycle_template_ids", template_ids, persistent=False)
         if self.cycle_probe:
-            # learnability probe: only wp_encoder + the LoRA adapters train;
-            # the base trunk, vision encoder, and task heads stay frozen
+            # learnability probe: only the cycle trajectory encoder + the LoRA
+            # adapters train; the base trunk, vision encoder, and task heads
+            # stay frozen
+            if self.cycle_traj_source == 'query_hidden':
+                encoder_key = 'query_state_proj'
+            else:
+                encoder_key = 'traj_encoder' if self.traj_encoder_type == 'transformer' else 'wp_encoder'
             for pname, p in self.named_parameters():
-                p.requires_grad = ('wp_encoder' in pname) or ('lora_' in pname)
+                p.requires_grad = (encoder_key in pname) or ('lora_' in pname)
 
 
     def forward(self,
@@ -294,6 +347,7 @@ class DrivingModel(pl.LightningModule):
             assert example.group_ids is not None, "cycle_probe needs dreamer groups (dreamer_contrastive=true)"
             adaptor_dict = self.adaptors(example)
             probe_loss_dict = {}
+            probe_features = None
             if not self.cycle_use_gt_traj:
                 with torch.no_grad():
                     probe_features, probe_logits = self.forward_model(
@@ -303,7 +357,8 @@ class DrivingModel(pl.LightningModule):
                         probe_features, probe_logits, adaptor_dict, example
                     )
             loss_dict = self.cycle_consistency_loss(
-                adaptor_dict, probe_loss_dict, example.group_ids, driving_label=example.driving_label
+                adaptor_dict, probe_loss_dict, example.group_ids, driving_label=example.driving_label,
+                adaptor_features=probe_features,
             )
             if per_sample:
                 return loss_dict, {}
@@ -323,11 +378,13 @@ class DrivingModel(pl.LightningModule):
             if self.cycle_no_grad:
                 with torch.no_grad():
                     loss_dict.update(self.cycle_consistency_loss(
-                        adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
+                        adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label,
+                        adaptor_features=adaptor_features,
                     ))
             else:
                 loss_dict.update(self.cycle_consistency_loss(
-                    adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label
+                    adaptor_dict, loss_dict, example.group_ids, driving_label=example.driving_label,
+                    adaptor_features=adaptor_features,
                 ))
 
         loss_dict_only_losses = {k:v for k, v in loss_dict.items() if k.endswith("loss")}
@@ -345,8 +402,10 @@ class DrivingModel(pl.LightningModule):
         (objective: models/utils.py:intra_scene_contrastive_loss).
 
         Text side: LLM hidden states mean-pooled over the prompt (instruction)
-        tokens. Trajectory side: the model's own predicted waypoints/route, so
-        the gradient couples the instruction representation to the produced action.
+        tokens. Trajectory side (contrastive_traj_embed): 'coords_mlp' projects
+        the flattened predicted waypoints/route; 'trunk_hidden' runs the
+        trajectory tokens through the trunk alone (no image, no instruction),
+        mean-pools its last hidden states and applies a learned projection.
         """
         features_by_adaptor = self.adaptors.split_outputs_by_adaptor(adaptor_dict, adaptor_features)
         text_features = features_by_adaptor['language'].float()  # [B, T, H]
@@ -359,16 +418,22 @@ class DrivingModel(pl.LightningModule):
         # InfoNCE normalize/softmax numerics below.
         pooled_text = pooled_text.to(self.text_proj[0].weight.dtype)
 
-        traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
-        if 'route_prediction' in loss_dict:
-            traj_parts.append(loss_dict['route_prediction'].flatten(1))
         # detached: these predictions already carry the route/speed regression
         # gradient; letting the contrastive loss also push on them fights that
         # objective directly. Only the text side should move to align.
-        traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
+        if self.contrastive_traj_embed == 'trunk_hidden':
+            traj_pts, seg_lens = self.predicted_traj_points(loss_dict)
+            h_traj = self.trajectory_only_hidden_states(traj_pts.detach(), seg_lens)
+            pooled_traj = h_traj.float().mean(1).to(self.traj_state_proj[0].weight.dtype)
+            z_traj = F.normalize(self.traj_state_proj(pooled_traj).float(), dim=-1)
+        else:
+            traj_parts = [loss_dict['speed_wps_prediction'].flatten(1)]
+            if 'route_prediction' in loss_dict:
+                traj_parts.append(loss_dict['route_prediction'].flatten(1))
+            traj_pred = torch.cat(traj_parts, dim=1).detach().to(self.traj_proj[0].weight.dtype)
+            z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
 
         z_text = F.normalize(self.text_proj(pooled_text).float(), dim=-1)
-        z_traj = F.normalize(self.traj_proj(traj_pred).float(), dim=-1)
 
         loss, count, accuracy = intra_scene_contrastive_loss(
             z_text, z_traj, group_ids, temperature=self.contrastive_temperature
@@ -384,10 +449,38 @@ class DrivingModel(pl.LightningModule):
             self.log(f"{phase}_losses/contrastive_retrieval_acc", acc_value, sync_dist=True)
         return {"contrastive_loss": (loss * self.contrastive_loss_weight, count)}
 
-    def cycle_consistency_loss(self, adaptor_dict, loss_dict, group_ids, driving_label=None):
+    def predicted_traj_points(self, loss_dict):
+        traj = loss_dict['speed_wps_prediction']
+        if traj.size(-1) == 1:  # 1d mode: distances along x, y=0
+            traj = torch.cat([traj, torch.zeros_like(traj)], dim=-1)
+        traj_parts = [traj]
+        if 'route_prediction' in loss_dict:
+            traj_parts.append(loss_dict['route_prediction'])
+        return torch.cat(traj_parts, dim=1), [part.size(1) for part in traj_parts]
+
+    def encode_traj_tokens(self, traj_pts, seg_lens):
+        if self.traj_encoder_type == 'transformer':
+            encoder = self.traj_encoder
+            return encoder(traj_pts.to(encoder.out_proj.weight.dtype), seg_lens)
+        return self.wp_encoder(traj_pts.to(self.wp_encoder.mlp[0].weight.dtype))
+
+    def trajectory_only_hidden_states(self, traj_pts, seg_lens):
+        """Trunk hidden states over the trajectory tokens alone: no image, no instruction in context."""
+        traj_tokens = self.encode_traj_tokens(traj_pts, seg_lens)
+        attention_mask = torch.ones(traj_tokens.shape[:2], dtype=torch.bool, device=traj_tokens.device)
+        outputs = self.language_model.model(
+            attention_mask=attention_mask,
+            inputs_embeds=traj_tokens.to(self.language_model.model.dtype),
+            output_hidden_states=True,
+            return_dict=True,
+        )
+        return outputs.hidden_states[-1]
+
+    def cycle_consistency_loss(self, adaptor_dict, loss_dict, group_ids, driving_label=None, adaptor_features=None):
         """
         Grouped inverse-cycle consistency: the model's own predicted trajectory,
-        re-entered through wp_encoder WITHOUT the camera image, must make the
+        re-entered through the trajectory token encoder (encode_traj_tokens)
+        WITHOUT the camera image, must make the
         instruction that produced it the most likely explanation among its K
         counterfactual siblings, scored by the trunk's own token likelihoods
         (objective: models/utils.py:grouped_rank_cycle_loss).
@@ -399,7 +492,18 @@ class DrivingModel(pl.LightningModule):
         """
         B = group_ids.size(0)
 
-        if self.cycle_use_gt_traj:
+        if self.cycle_traj_source == 'query_hidden':
+            # the trunk's own last hidden states at the waypoint-query slots of the
+            # main pass. They attended to the image AND the instruction, so this
+            # arm can rank without reading the trajectory; interpret against the
+            # 'coords' arms and the shuffled-pairing placebo. Noise (meters) has
+            # no meaning here, only the shuffle control applies.
+            h_query = self.adaptors.split_outputs_by_adaptor(adaptor_dict, adaptor_features)['driving']
+            if self.cycle_detach:
+                h_query = h_query.detach()
+            h_query = apply_traj_controls(h_query, noise_m=0.0, shuffle=self.cycle_shuffle_traj)
+            traj_tokens = self.query_state_proj(h_query.to(self.query_state_proj[0].weight.dtype))
+        elif self.cycle_use_gt_traj:
             # GT trajectory: an untrained head's predictions are noise, making
             # the ranking task unlearnable exactly when its gradients do the
             # most damage. Path may contain NaN padding; inherently detached.
@@ -407,26 +511,22 @@ class DrivingModel(pl.LightningModule):
             if driving_label.path is not None:
                 traj_parts.append(torch.nan_to_num(driving_label.path, nan=0.0))
             traj_pts = torch.cat(traj_parts, dim=1).detach()
+            seg_lens = [part.size(1) for part in traj_parts]
         else:
             # trajectory side: predicted speed waypoints (+ route if present)
-            traj = loss_dict['speed_wps_prediction']
-            if traj.size(-1) == 1:  # 1d mode: distances along x, y=0
-                traj = torch.cat([traj, torch.zeros_like(traj)], dim=-1)
-            traj_parts = [traj]
-            if 'route_prediction' in loss_dict:
-                traj_parts.append(loss_dict['route_prediction'])
-            traj_pts = torch.cat(traj_parts, dim=1)
+            traj_pts, seg_lens = self.predicted_traj_points(loss_dict)
             if self.cycle_detach:
                 # explainer-only arm: train the trunk to read trajectories without
                 # letting the ranking gradient reshape the trajectory itself
                 traj_pts = traj_pts.detach()
-        if self.cycle_traj_noise_m > 0 or self.cycle_shuffle_traj:
-            # probe rigor controls: noise ablation and/or the shuffled-pairing
-            # leakage control (per-step re-randomized, so no learnable pairing)
-            traj_pts = apply_traj_controls(
-                traj_pts, noise_m=self.cycle_traj_noise_m, shuffle=self.cycle_shuffle_traj
-            )
-        traj_tokens = self.wp_encoder(traj_pts.to(self.wp_encoder.mlp[0].weight.dtype))
+        if self.cycle_traj_source == 'coords':
+            if self.cycle_traj_noise_m > 0 or self.cycle_shuffle_traj:
+                # probe rigor controls: noise ablation and/or the shuffled-pairing
+                # leakage control (per-step re-randomized, so no learnable pairing)
+                traj_pts = apply_traj_controls(
+                    traj_pts, noise_m=self.cycle_traj_noise_m, shuffle=self.cycle_shuffle_traj
+                )
+            traj_tokens = self.encode_traj_tokens(traj_pts, seg_lens)
 
         # candidate side: plain-text prompt tokens (speed prefix + instruction).
         # Excludes answer tokens (loss-masked), padding, and every added special
@@ -461,7 +561,7 @@ class DrivingModel(pl.LightningModule):
                 pair_col.extend(idx.tolist())
 
         if not pair_row:
-            # keep wp_encoder in the graph so backward sees the same param set on
+            # keep the trajectory encoder in the graph so backward sees the same param set on
             # every rank regardless of this rank's group composition
             # multiply by 0 BEFORE summing: in fp16 the raw .sum() over ~600k
             # elements overflows to inf, and inf * 0.0 = NaN - a NaN loss on one
