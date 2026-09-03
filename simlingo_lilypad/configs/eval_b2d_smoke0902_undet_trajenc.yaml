@@ -1,0 +1,75 @@
+# SimLingo Bench2Drive eval: 0902 cycle-ablation fleet arm smoke0902_undet_trajenc
+# (session 20260902220324_smoke_cycle_undet_trajenc_w0.2, epoch=001 -- smokes ran max_epochs=2), all 220
+# routes, 8 ranks x ~27 routes each. Consolidated ckpt required first:
+# see consolidate_smoke_0902.yaml.
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/eval_b2d_smoke0902_undet_trajenc.yaml
+name: simlingo-b2d-smoke0902-undet-trajenc
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.eval_b2d.eval_b2d
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    assets_prefix: "simlingo-b2d-eval"
+    checkpoint_prefix: "simlingo-checkpoints-consolidated"
+    checkpoint_session: "20260902220324_smoke_cycle_undet_trajenc_w0.2"
+    checkpoint_epoch: "epoch=001"
+    eval_name: "smoke0902_undet_trajenc_ep1"
+    results_prefix: "simlingo-b2d-results"
+    workdir: "/mnt/work/simlingo_b2d_eval"
+    tries: 2
+    tm_seed: 1
+    route_timeout_s: 21600
+    setup_timeout_s: 5400
+    upload_viz: false
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-b2d-eval
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables:
+    - HF_TOKEN
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements_eval.txt
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      # eval code (Bench2Drive/leaderboard/scenario_runner/team_code) ships
+      # via the eval_code.tar.gz S3 asset instead: code assets silently drop
+      # files >max_file_size_mb (BEV .h5 maps, speed-limit .npy)
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
