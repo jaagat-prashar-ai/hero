@@ -79,13 +79,21 @@ def build_user_message(row: dict) -> str:
 
 
 def call_judge(client: OpenAI, row: dict, retries: int = 5) -> dict:
+    params = dict(
+        model=MODEL,
+        response_format={"type": "json_object"},
+    )
+    if MODEL.startswith("gpt-4"):
+        params.update(temperature=0, max_tokens=300)
+    else:
+        # reasoning models (gpt-5 family etc.) reject temperature and burn
+        # completion budget on thinking before the JSON appears. Judge is
+        # therefore stochastic there -- paired per-clip deltas still hold.
+        params.update(max_tokens=2000)
     for attempt in range(retries):
         try:
             resp = client.chat.completions.create(
-                model=MODEL,
-                temperature=0,
-                max_tokens=300,
-                response_format={"type": "json_object"},
+                **params,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": build_user_message(row)},
