@@ -1,0 +1,113 @@
+# SimLingo full-data cycle co-training, UNDETACHED arm, TRANSFORMER TRAJ ENCODER.
+# Scale-up of smoke_cycle_undetached_trajenc.yaml (0902 smoke fleet: val
+# cycle_rank_acc 0.726, task clean — best undetached arm) onto the
+# full_k4_s9876.yaml full-data
+# recipe: full ~650GB mirror, 3 epochs, val every epoch, non-preemptible.
+# Contrastive OFF; the only aux loss is the cycle objective (w=0.2).
+# Batch: the cycle pass adds 32 full-vocab-logit sequences at bs=2 and OOMs
+# (y35tq3/a1flqu 2026-08-14), so bs=1 x accum=6 keeps the upstream 48-item
+# global optimizer batch (1 item x 6 accum x 8 GPUs).
+# Sibling arms: full_cyc_unundet_trajenc / full_cyc_{det,undet}_trajenc /
+# full_cyc_base_w0 (matched bs=1 baseline + missing w=0 full-data control).
+# Launch: .venv/bin/python lilypad/launch.py simlingo_lilypad/configs/full_cyc_undet_trajenc_s9876.yaml
+name: simlingo-full-cyc-undet-trajenc-s9876
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: "training"
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: "research-datasets-chicago"
+    s3_prefix: "hf-datasets/RenzKa/simlingo-full"
+    workdir: "/mnt/work/simlingo_full"
+    # ~650GB download+extract runs for hours; ranks 1..7 wait this long
+    extract_timeout_s: 21600
+    # skip the 2026-08-14 validation-backfill sensor chunks (12 objects,
+    # +341GB compressed): extracting them blows past the ~85% disk eviction
+    # threshold (killed all 8 arms on 2026-08-16). Restores the exact
+    # pre-backfill extract set proven to fit (s5mq9b/f21sox, 58h+ healthy).
+    s3_exclude_regex: "data_simlingo_validation_(1_scenario|parking_lane)_"
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      - data_module=carla_no_buckets
+      - max_epochs=3
+      - val_every_n_epochs=1
+      # 1 item x K=4 fan-out = 4 samples + 16 cycle seqs per forward (bs=2
+      # OOMed at 75.5GB on the cycle pass); x6 accumulation = 6 items/GPU/
+      # optimizer-step = 48 global (upstream recipe)
+      - data_module.batch_size=1
+      - accumulate_grad_batches=6
+      - data_module.num_workers=8
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      # cycle pass adds a second trunk forward+backward with a full
+      # vocab-logits tensor; grad checkpointing for memory headroom (802c3da)
+      - model.language_model.gradient_checkpointing=true
+      - model.cycle_loss_weight=0.2
+      - model.cycle_detach=false
+      - model.cycle_warmup_steps=1000
+      - model.cycle_traj_source=coords
+      - model.traj_encoder_type=transformer
+      - seed=9876
+      - wandb_project=simlingo-contrastive
+      - name=full_cyc_undet_trajenc_w0.2_s9876
+  experiment_tracker:
+    wandb:
+      entity: research
+      project: simlingo-contrastive
+
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  # multi-day definitive runs; preemption cost > spot savings
+  preemptible: never
+  allowed_regions:
+    - us-chicago-1
+
+runtime_environment:
+  # torch pip install ~3 GB before first GPU step (dataset extract happens
+  # inside the training fn, not setup)
+  setup_timeout_seconds: 3600
+
+  required_environment_variables:
+    - HF_TOKEN
+
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: "https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com"
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: "expandable_segments:True"
+    SIMLINGO_EXPECTED_OBJECTS: "155"
+    CHECKPOINT_S3_PREFIX: "s3://research-datasets-chicago/simlingo-checkpoints"
+
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    # default 10MB silently drops all_as_augmented.json (13.3MB), which
+    # BaseDataset.__init__ opens unconditionally when use_qa=True, crashing
+    # every rank with an unhelpful FileNotFoundError before any route scans.
+    max_file_size_mb: 20
+    regex_excludes:
+      - "^/.venv/"
+      - "^/third_party/"
+      - "^/autovla/"
+      - "^/masking/"
+      - "^/code_as_a_reward/"
+      - "^/perplexity/"
+      - "^/dpo_pairs/"
+      - "^/build_wds/"
+      - "^/mnist/"
+      - "^/research-core/"
+      - "^/docker/"
+      - "^/lockfiles/"
+      - "^/jspace/"
+      # bench2drive checkout bloats code assets -> SSLEOFError uploads (b930c4d)
+      - "^/bench2drive/"
+      - "^/simlingo/simlingo/Bench2Drive/"
+      - "^/simlingo/simlingo/leaderboard"
+      - "^/simlingo/simlingo/scenario_runner"
+      - "^/simlingo/simlingo/team_code/"
+      - "^/simlingo/simlingo/dataset_generation/"
