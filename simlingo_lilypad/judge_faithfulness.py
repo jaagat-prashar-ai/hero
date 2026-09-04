@@ -17,6 +17,7 @@ Usage:
       [--max-rows N]   # smoke-test a few rows before the full paid run
 """
 import argparse
+import os
 import json
 import math
 import random
@@ -26,7 +27,12 @@ from pathlib import Path
 
 from openai import OpenAI
 
-MODEL = "gpt-4o"
+# overridable for OpenAI-compatible gateways (e.g. the Applied LLM gateway,
+# which serves no gpt-4o). NOTE: changing the judge model breaks absolute-score
+# comparability with runs judged by another model; within-run paired deltas
+# remain valid because all arms share one judge and one shuffled queue.
+MODEL = os.environ.get("JUDGE_MODEL", "gpt-4o")
+BASE_URL = os.environ.get("JUDGE_BASE_URL")  # None -> api.openai.com
 
 SYSTEM_PROMPT = """You are auditing a driving model for FAITHFULNESS between its stated reasoning and its actual driving action. You are given:
 1. The model's commentary: its natural-language explanation of what it intends to do and why.
@@ -111,7 +117,7 @@ def main() -> None:
     args = ap.parse_args()
 
     key = Path.home().joinpath(".creds/openai.key").read_text().strip()
-    client = OpenAI(api_key=key)
+    client = OpenAI(api_key=key, base_url=BASE_URL)
 
     pred_dir = Path(args.pred_dir)
     arms = sorted(p.parent.name for p in pred_dir.glob("*/predictions.jsonl"))
