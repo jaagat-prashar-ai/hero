@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor, nn
 
+from simlingo_training.models.utils import mixture_trajectory_nll
 from simlingo_training.utils.custom_types import DrivingExample
 
 
@@ -170,11 +171,14 @@ class TrajectoryEncoder(nn.Module):
 
 
 class DrivingAdaptor(nn.Module):
-    def __init__(self, 
-                hidden_size: int, 
-                mlp_dim=256, 
-                predict_route_as_wps=False, 
+    def __init__(self,
+                hidden_size: int,
+                mlp_dim=256,
+                predict_route_as_wps=False,
                 speed_wps_mode=False,
+                mixture_k: int = 0,
+                mixture_sigma_floor: float = 0.1,
+                mixture_sigma_init: float = 0.5,
             ):
         super().__init__()
         self.heads = {}
@@ -183,16 +187,43 @@ class DrivingAdaptor(nn.Module):
         self.speed_wps_mode = speed_wps_mode
         self.predict_route_as_wps = predict_route_as_wps
 
+        # K-mode diagonal-Gaussian mixture over the full trajectory (0 = the
+        # original deterministic heads). One shared set of mode logits covers
+        # all segments so a mode is one coherent plan, not per-segment picks.
+        self.mixture_k = int(mixture_k)
+        if self.mixture_k < 0:
+            raise ValueError(f"mixture_k must be >= 0, got {mixture_k}")
+        if self.mixture_k:
+            if speed_wps_mode != '2d':
+                raise ValueError("trajectory mixture requires speed_wps_mode='2d' so all segments share coordinate dim")
+            self.mixture_sigma_floor = float(mixture_sigma_floor)
+            self.mixture_sigma_init = float(mixture_sigma_init)
+            if self.mixture_sigma_floor <= 0.0 or self.mixture_sigma_init <= self.mixture_sigma_floor:
+                raise ValueError("need 0 < mixture_sigma_floor < mixture_sigma_init")
+            # with zero-init sigma layers, softplus(raw + this) starts exactly at sigma_init
+            self._sigma_raw_init = math.log(math.expm1(self.mixture_sigma_init - self.mixture_sigma_floor))
+            self.mixture_mean_heads = nn.ModuleDict()
+            self.mixture_sigma_heads = nn.ModuleDict()
+            self.mixture_logit_head = nn.Linear(hidden_size, self.mixture_k)
+            nn.init.zeros_(self.mixture_logit_head.weight)
+            nn.init.zeros_(self.mixture_logit_head.bias)
+
         if predict_route_as_wps:
             self.future_waypoints = 20
             self.query_embeds_wps = nn.Parameter(0.02 * torch.randn((1, self.future_waypoints, hidden_size)))
-            self.route_head = nn.Sequential(
-                nn.Linear(hidden_size, mlp_dim*2), nn.SiLU(True),nn.Linear(mlp_dim*2, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, 2, bias=False)
-            )
-            
+            if not self.mixture_k:
+                self.route_head = nn.Sequential(
+                    nn.Linear(hidden_size, mlp_dim*2), nn.SiLU(True),nn.Linear(mlp_dim*2, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, 2, bias=False)
+                )
+                self.heads["route"] = self.route_head
+            else:
+                self.mixture_mean_heads['route'] = nn.Sequential(
+                    nn.Linear(hidden_size, mlp_dim*2), nn.SiLU(True), nn.Linear(mlp_dim*2, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, self.mixture_k * 2, bias=False)
+                )
+                self.mixture_sigma_heads['route'] = self._make_sigma_head(hidden_size, mlp_dim)
+
             self.queries = {'route': self.query_embeds_wps}
             self.sizes = {'route': self.future_waypoints}
-            self.heads["route"] = self.route_head
             self.order.append('route')
 
         if speed_wps_mode == '2d':
@@ -203,13 +234,65 @@ class DrivingAdaptor(nn.Module):
             raise ValueError(f"speed_wps_mode must be '1d' or '2d', not {speed_wps_mode}")
         self.future_speed_waypoints = 10 #TODO: read from config
         self.query_embeds_speed = nn.Parameter(0.02 * torch.randn((1, self.future_speed_waypoints, hidden_size)))
-        self.speed_wps_head = nn.Sequential(
-                nn.Linear(hidden_size, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, dim, bias=False)
+        if not self.mixture_k:
+            self.speed_wps_head = nn.Sequential(
+                    nn.Linear(hidden_size, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, dim, bias=False)
+                )
+            self.heads["speed_wps"] = self.speed_wps_head
+        else:
+            self.mixture_mean_heads['speed_wps'] = nn.Sequential(
+                nn.Linear(hidden_size, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, self.mixture_k * dim, bias=False)
             )
-        self.heads["speed_wps"] = self.speed_wps_head
+            self.mixture_sigma_heads['speed_wps'] = self._make_sigma_head(hidden_size, mlp_dim)
         self.queries['speed_wps'] = self.query_embeds_speed
         self.sizes['speed_wps'] = self.future_speed_waypoints
         self.order.append('speed_wps')
+
+    def _make_sigma_head(self, hidden_size: int, mlp_dim: int) -> nn.Sequential:
+        head = nn.Sequential(
+            nn.Linear(hidden_size, mlp_dim), nn.SiLU(True), nn.Linear(mlp_dim, self.mixture_k * 2)
+        )
+        # zero-init final layer: every sigma starts exactly at mixture_sigma_init,
+        # so with K=1 the initial NLL is the L2 objective up to scale and shift
+        nn.init.zeros_(head[-1].weight)
+        nn.init.zeros_(head[-1].bias)
+        return head
+
+    def mixture_params(self, features: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
+        """Mixture over the full trajectory from adaptor query features.
+
+        features: [B, N_total, H] laid out in self.order. Returns
+        (means [B,K,N,2], log_sigmas [B,K,N,2], mode_logits [B,K]).
+        Means cumsum per-step deltas exactly like the deterministic heads;
+        sigmas are per absolute waypoint (no cumsum).
+        """
+        assert self.mixture_k, "mixture_params called with mixture_k=0"
+        means, log_sigmas = [], []
+        index = 0
+        for input_type in self.order:
+            size = self.sizes[input_type]
+            f = features[:, index:index + size]
+            b, s, _ = f.shape
+            delta = self.mixture_mean_heads[input_type](f).view(b, s, self.mixture_k, 2).permute(0, 2, 1, 3)
+            means.append(delta.cumsum(2))
+            raw = self.mixture_sigma_heads[input_type](f).view(b, s, self.mixture_k, 2).permute(0, 2, 1, 3)
+            sigma = self.mixture_sigma_floor + F.softplus(raw + self._sigma_raw_init)
+            log_sigmas.append(sigma.log())
+            index += size
+        mode_logits = self.mixture_logit_head(features.mean(dim=1))
+        return torch.cat(means, dim=2), torch.cat(log_sigmas, dim=2), mode_logits
+
+    def _best_mode_predictions(self, means: Tensor, mode_logits: Tensor) -> Dict[str, Tensor]:
+        """Deterministic camera-conditioned output: the argmax-probability mode."""
+        best = mode_logits.argmax(dim=1)
+        best_means = means[torch.arange(means.size(0), device=means.device), best]
+        predictions = {}
+        index = 0
+        for input_type in self.order:
+            size = self.sizes[input_type]
+            predictions[input_type] = best_means[:, index:index + size]
+            index += size
+        return predictions
 
 
     def forward(self, 
@@ -237,10 +320,14 @@ class DrivingAdaptor(nn.Module):
         return {"inputs": inputs, "inputs_mask": inputs_mask}
 
     def get_predictions(
-        self, 
+        self,
         features: Tensor,
         logits: Optional[Tensor] = None
     ) -> Dict:
+
+        if self.mixture_k:
+            means, _, mode_logits = self.mixture_params(features)
+            return self._best_mode_predictions(means, mode_logits)
 
         current_index = 0
         predictions = {}
@@ -252,7 +339,7 @@ class DrivingAdaptor(nn.Module):
 
             predictions[input_type] = prediction
             current_index += size
-        
+
         return predictions
 
 
@@ -273,6 +360,25 @@ class DrivingAdaptor(nn.Module):
             label_speed_wps = label.waypoints_1d
         else:
             label_speed_wps = None
+
+        if self.mixture_k:
+            means, log_sigmas, mode_logits = self.mixture_params(adaptor_features[:, : sum(self.sizes[t] for t in self.order)])
+            labels = {'route': label_route, 'speed_wps': label_speed_wps}
+            target = torch.cat([labels[t] for t in self.order], dim=1)
+            nll = mixture_trajectory_nll(means, log_sigmas, mode_logits, target)
+            count = torch.full_like(nll, float(target.size(1)), dtype=torch.long)
+            loss_dict = {'traj_mixture_nll_loss': (nll, count)}
+            predictions = self._best_mode_predictions(means, mode_logits)
+            index = 0
+            for input_type in self.order:
+                size = self.sizes[input_type]
+                loss_dict[f'{input_type}_prediction'] = predictions[input_type]
+                loss_dict[f'{input_type}_label'] = labels[input_type]
+                index += size
+            # consumed by driving.py for the mixture KL and mode diagnostics;
+            # key ends in neither "loss" nor "log" so it never reaches the total
+            loss_dict['traj_mixture_params'] = (means, log_sigmas, mode_logits)
+            return loss_dict
 
         current_index = 0
         loss_dict = {}

@@ -1,0 +1,79 @@
+name: simlingo-visiondrop-mixture-kl
+model_identifier: other.training.alpamayo15.default.v1
+ignore_idle_reaper: true
+workload_variant_config:
+  workload_type: training
+  training_fn: simlingo_lilypad.run.smoke_train
+  training_fn_config:
+    s3_bucket: research-datasets-chicago
+    s3_prefix: hf-datasets/RenzKa/simlingo
+    workdir: /mnt/work/simlingo_visiondrop_mixture_kl
+    hydra_overrides:
+      - experiment=simlingo_seed1
+      - data_module=carla_no_buckets
+      - max_epochs=2
+      - val_every_n_epochs=1
+      - data_module.batch_size=1
+      - data_module.num_workers=8
+      - data_module.base_dataset.use_safety_flag=false
+      - data_module.base_dataset.dreamer_contrastive=true
+      - data_module.base_dataset.dreamer_contrastive_k=4
+      - model.language_model.gradient_checkpointing=true
+      - model.contrastive_loss_weight=0.0
+      - model.cycle_loss_weight=0.0
+      - model.trajectory_mixture_k=3
+      - model.vision_dropout_prob=0.25
+      - model.vision_dropout_text_loss_weight=1.0
+      - model.vision_dropout_kl_weight=0.05
+      - model.vision_dropout_kl_warmup_steps=100
+      - model.vision_dropout_kl_detach_text=true
+      - precision=bf16-mixed
+      - wandb_project=simlingo-vision-dropout
+      - name=visiondrop_mixture_kl
+  experiment_tracker:
+    wandb: {entity: research, project: simlingo-vision-dropout}
+cluster_resources:
+  gpu_machine_type: a100.8
+  num_gpus: 8
+  customer_resource: research
+  preemptible: never
+  allowed_regions: [us-chicago-1]
+  requeue_if_preempted: true
+runtime_environment:
+  setup_timeout_seconds: 3600
+  required_environment_variables: [HF_TOKEN]
+  constant_environment_variables:
+    AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+    AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+    AWS_ENDPOINT_URL_S3: https://idskhu5vqvtl.compat.objectstorage.us-chicago-1.oraclecloud.com
+    AWS_DEFAULT_REGION: us-chicago-1
+    PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+    SIMLINGO_EXPECTED_OBJECTS: "121"
+    CHECKPOINT_S3_PREFIX: s3://research-datasets-chicago/simlingo-vision-dropout-checkpoints
+    # inner train.py runs land on the wandb default entity, not the tracker's;
+    # pin it so all visiondrop runs stay in one place (found 2026-09-04)
+    WANDB_ENTITY: research-interns
+  code_assets:
+    root_directory: .
+    pip_requirements_path: simlingo_lilypad/requirements.txt
+    max_file_size_mb: 20
+    regex_excludes: &excludes
+      - ^/.venv/
+      - ^/third_party/
+      - ^/autovla/
+      - ^/masking/
+      - ^/code_as_a_reward/
+      - ^/perplexity/
+      - ^/dpo_pairs/
+      - ^/build_wds/
+      - ^/mnist/
+      - ^/research-core/
+      - ^/docker/
+      - ^/lockfiles/
+      - ^/jspace/
+      - ^/bench2drive/
+      - ^/simlingo/simlingo/Bench2Drive/
+      - ^/simlingo/simlingo/leaderboard
+      - ^/simlingo/simlingo/scenario_runner
+      - ^/simlingo/simlingo/team_code/
+      - ^/simlingo/simlingo/dataset_generation/

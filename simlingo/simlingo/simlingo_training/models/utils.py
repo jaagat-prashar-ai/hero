@@ -1,4 +1,6 @@
 
+import math
+
 import torch
 import torch.nn.functional as F
 from typing import Dict, Tuple, Optional
@@ -54,6 +56,81 @@ def diagonal_gaussian_kl(
         - 0.5
     )
     return elementwise.mean(dim=1)
+
+
+def mixture_trajectory_nll(
+    means: Tensor, log_sigmas: Tensor, mode_logits: Tensor, target: Tensor
+) -> Tensor:
+    """Per-sample NLL of target under a K-mode diagonal-Gaussian trajectory mixture.
+
+    means/log_sigmas: [B, K, N, D]; mode_logits: [B, K]; target: [B, N, D].
+    Returns [B]. The log-sum-exp over modes means only the modes near the GT
+    need to explain it -- the standard MDN objective that lets distinct modes
+    specialise to distinct valid plans instead of averaging them.
+    """
+    if means.shape != log_sigmas.shape:
+        raise ValueError(f"means/log_sigmas shapes differ: {means.shape} vs {log_sigmas.shape}")
+    if means.shape[0] != target.shape[0] or means.shape[2:] != target.shape[1:]:
+        raise ValueError(f"target shape {target.shape} incompatible with means {means.shape}")
+    m = means.float()
+    ls = log_sigmas.float()
+    t = target.float().unsqueeze(1)
+    component_ll = (
+        -0.5 * ((t - m) / ls.exp()).square() - ls - 0.5 * math.log(2.0 * math.pi)
+    ).flatten(2).sum(-1)
+    log_pi = F.log_softmax(mode_logits.float(), dim=-1)
+    return -torch.logsumexp(log_pi + component_ll, dim=1)
+
+
+def _pairwise_diagonal_gaussian_kl(
+    mean_p: Tensor, log_sigma_p: Tensor, mean_q: Tensor, log_sigma_q: Tensor
+) -> Tensor:
+    """KL between every p component and every q component.
+
+    mean/log_sigma p: [B, Kp, N]; q: [B, Kq, N] (flattened dims). Returns [B, Kp, Kq].
+    """
+    mp, lsp = mean_p.unsqueeze(2), log_sigma_p.unsqueeze(2)
+    mq, lsq = mean_q.unsqueeze(1), log_sigma_q.unsqueeze(1)
+    var_p = (2.0 * lsp).exp()
+    var_q = (2.0 * lsq).exp()
+    return ((lsq - lsp) + (var_p + (mp - mq).square()) / (2.0 * var_q) - 0.5).sum(-1)
+
+
+def mixture_kl_variational(
+    p_means: Tensor,
+    p_log_sigmas: Tensor,
+    p_logits: Tensor,
+    q_means: Tensor,
+    q_log_sigmas: Tensor,
+    q_logits: Tensor,
+    detach_q: bool = True,
+) -> Tensor:
+    """Hershey-Olsen variational approximation of KL(p || q) between two
+    diagonal-Gaussian mixtures over trajectories. Returns [B].
+
+    Deterministic and closed-form (K^2 pairwise Gaussian KLs, no sampling).
+    Zero-forcing in the mixture sense: p pays heavily for mass where q is
+    unlikely, so a camera plan leaving the text-licensed region is expensive
+    while agreeing with ANY text mode is cheap. Sharpening inside a broad q
+    mode is not free -- the per-dimension log sigma-ratio is a mild constant
+    pressure against over-confidence -- but it is dominated by the mean-
+    displacement term. The approximation can dip slightly negative, so it is
+    clamped at 0.
+    """
+    if detach_q:
+        q_means, q_log_sigmas, q_logits = (
+            q_means.detach(), q_log_sigmas.detach(), q_logits.detach()
+        )
+    pm, pls = p_means.float().flatten(2), p_log_sigmas.float().flatten(2)
+    qm, qls = q_means.float().flatten(2), q_log_sigmas.float().flatten(2)
+    log_pi_p = F.log_softmax(p_logits.float(), dim=-1)
+    log_pi_q = F.log_softmax(q_logits.float(), dim=-1)
+    kl_pp = _pairwise_diagonal_gaussian_kl(pm, pls, pm, pls)
+    kl_pq = _pairwise_diagonal_gaussian_kl(pm, pls, qm, qls)
+    numer = torch.logsumexp(log_pi_p.unsqueeze(1) - kl_pp, dim=2)
+    denom = torch.logsumexp(log_pi_q.unsqueeze(1) - kl_pq, dim=2)
+    kl = (log_pi_p.exp() * (numer - denom)).sum(dim=1)
+    return kl.clamp_min(0.0)
 
 
 def intra_scene_contrastive_loss(

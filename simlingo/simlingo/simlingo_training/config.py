@@ -50,6 +50,15 @@ class DrivingModelConfig:
     # context - mean-pool its last hidden states and apply a learned projection
     contrastive_traj_embed: str = 'coords_mlp'
 
+    # K-mode diagonal-Gaussian mixture over the full trajectory (0 = original
+    # deterministic heads). Trained with mixture NLL instead of smooth-L1, so
+    # with vision dropout both p(traj|camera,instruct) and p(traj|instruct)
+    # become genuine learned distributions; the driven output is always the
+    # camera-conditioned argmax mode. Requires speed_wps_mode='2d'.
+    trajectory_mixture_k: int = 0
+    trajectory_mixture_sigma_floor: float = 0.1
+    trajectory_mixture_sigma_init: float = 0.5
+
     # Dual-pass vision dropout. The normal camera-conditioned path is always
     # trained; at a deterministic fraction of optimizer steps an additional
     # instruction-only pass replaces visual features with the learned image

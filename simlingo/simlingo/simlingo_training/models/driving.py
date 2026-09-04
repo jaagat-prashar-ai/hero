@@ -24,6 +24,7 @@ from simlingo_training.models.utils import (
     group_delta_spans,
     apply_traj_controls,
     diagonal_gaussian_kl,
+    mixture_kl_variational,
     periodic_auxiliary_active,
 )
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
@@ -85,11 +86,23 @@ class DrivingModel(pl.LightningModule):
         self.all_predictions = {}
         self.all_losses = {}
         
+        # K-mode diagonal-Gaussian mixture over trajectories (0 = original
+        # deterministic heads). With vision dropout this makes both
+        # p(traj | camera, instruct) and p(traj | instruct) genuine learned
+        # distributions from the same head; the driven output stays the
+        # camera-conditioned argmax mode.
+        self.trajectory_mixture_k = int(getattr(self, 'trajectory_mixture_k', 0))
+        self.trajectory_mixture_sigma_floor = float(getattr(self, 'trajectory_mixture_sigma_floor', 0.1))
+        self.trajectory_mixture_sigma_init = float(getattr(self, 'trajectory_mixture_sigma_init', 0.5))
+
         driving = None
         driving = DrivingAdaptor(
-            self.language_model.hidden_size, 
+            self.language_model.hidden_size,
             speed_wps_mode=self.speed_wps_mode,
             predict_route_as_wps=self.predict_route_as_wps,
+            mixture_k=self.trajectory_mixture_k,
+            mixture_sigma_floor=self.trajectory_mixture_sigma_floor,
+            mixture_sigma_init=self.trajectory_mixture_sigma_init,
         )
 
         self.adaptors = AdaptorList(
@@ -416,6 +429,26 @@ class DrivingModel(pl.LightningModule):
         adaptor_features, adaptor_logits = self.forward_model(example.driving_input, adaptor_dict, driving_labels=example.driving_label)
         loss_dict = self.adaptors.compute_loss(adaptor_features, adaptor_logits, adaptor_dict, example)
 
+        if self.trajectory_mixture_k and 'traj_mixture_params' in loss_dict and getattr(self, '_trainer', None) is not None:
+            phase = 'train' if self.training else 'val'
+            _, mix_log_sigmas, mix_logits = loss_dict['traj_mixture_params']
+            mode_probs = torch.softmax(mix_logits.float().detach(), dim=-1)
+            mode_entropy = -(mode_probs * mode_probs.clamp_min(1e-8).log()).sum(-1).mean()
+            # collapse detector: max_prob -> 1 / entropy -> 0 means one mode ate the mixture
+            self.log(f'{phase}_losses/mixture_mode_max_prob', mode_probs.max(-1).values.mean(), sync_dist=True)
+            self.log(f'{phase}_losses/mixture_mode_entropy', mode_entropy, sync_dist=True)
+            self.log(f'{phase}_losses/mixture_sigma_mean_m', mix_log_sigmas.detach().exp().mean(), sync_dist=True)
+            # smooth-L1 of the driven (argmax-mode) output, directly comparable
+            # to the deterministic arms' speed_wps_loss / route_loss
+            for t in ('speed_wps', 'route'):
+                if f'{t}_prediction' in loss_dict:
+                    l2 = F.smooth_l1_loss(
+                        loss_dict[f'{t}_prediction'].detach().float(),
+                        loss_dict[f'{t}_label'].float(),
+                        reduction='none',
+                    ).sum(-1).mean()
+                    self.log(f'{phase}_losses/{t}_l2', l2, sync_dist=True)
+
         dropout_active = (
             self.training
             and self.vision_dropout_prob > 0.0
@@ -442,13 +475,22 @@ class DrivingModel(pl.LightningModule):
             text_loss_dict = self.adaptors.compute_loss(
                 text_features, text_logits, text_adaptor_dict, example
             )
-            for key in ('speed_wps_loss', 'route_loss'):
+            for key in ('speed_wps_loss', 'route_loss', 'traj_mixture_nll_loss'):
                 if key in text_loss_dict:
                     value, count = text_loss_dict[key]
                     loss_dict[f'vision_dropout_{key}'] = (
                         value * self.vision_dropout_text_loss_weight,
                         count,
                     )
+            if self.trajectory_mixture_k and getattr(self, '_trainer', None) is not None:
+                _, text_log_sigmas, _ = text_loss_dict['traj_mixture_params']
+                self.log(
+                    'train_losses/mixture_sigma_mean_text_m',
+                    text_log_sigmas.detach().exp().mean(),
+                    on_step=True,
+                    on_epoch=True,
+                    sync_dist=True,
+                )
 
             full_parts = [loss_dict['speed_wps_prediction']]
             text_parts = [text_loss_dict['speed_wps_prediction']]
@@ -470,13 +512,27 @@ class DrivingModel(pl.LightningModule):
                 )
 
             if self.vision_dropout_kl_weight > 0.0:
-                kl = diagonal_gaussian_kl(
-                    full_traj,
-                    text_traj,
-                    sigma_p=self.vision_dropout_kl_sigma_full,
-                    sigma_q=self.vision_dropout_kl_sigma_text,
-                    detach_q=self.vision_dropout_kl_detach_text,
-                )
+                if self.trajectory_mixture_k:
+                    # true KL(p(traj|cam,instr) || p(traj|instr)) between the two
+                    # learned mixtures; the fixed sigmas are superseded by the
+                    # per-waypoint learned ones. Zero-forcing direction: the
+                    # camera plan may sharpen inside the text distribution for
+                    # free but pays for leaving its support.
+                    full_mix = loss_dict['traj_mixture_params']
+                    text_mix = text_loss_dict['traj_mixture_params']
+                    kl = mixture_kl_variational(
+                        *full_mix,
+                        *text_mix,
+                        detach_q=self.vision_dropout_kl_detach_text,
+                    )
+                else:
+                    kl = diagonal_gaussian_kl(
+                        full_traj,
+                        text_traj,
+                        sigma_p=self.vision_dropout_kl_sigma_full,
+                        sigma_q=self.vision_dropout_kl_sigma_text,
+                        detach_q=self.vision_dropout_kl_detach_text,
+                    )
                 kl_weight = self.vision_dropout_kl_weight
                 if self.vision_dropout_kl_warmup_steps > 0:
                     kl_weight *= min(
