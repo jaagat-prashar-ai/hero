@@ -50,6 +50,21 @@ class DrivingModelConfig:
     # context - mean-pool its last hidden states and apply a learned projection
     contrastive_traj_embed: str = 'coords_mlp'
 
+    # Dual-pass vision dropout. The normal camera-conditioned path is always
+    # trained; at a deterministic fraction of optimizer steps an additional
+    # instruction-only pass replaces visual features with the learned image
+    # placeholder embeddings and receives a downweighted trajectory loss.
+    vision_dropout_prob: float = 0.0
+    vision_dropout_text_loss_weight: float = 0.0
+    # KL between fixed diagonal Gaussians whose means are the full-vision and
+    # instruction-only trajectory predictions. The text-only distribution is
+    # deliberately broad because an instruction does not determine one path.
+    vision_dropout_kl_weight: float = 0.0
+    vision_dropout_kl_sigma_full: float = 0.5
+    vision_dropout_kl_sigma_text: float = 2.0
+    vision_dropout_kl_warmup_steps: int = 0
+    vision_dropout_kl_detach_text: bool = True
+
     # trajectory->instruction grouped inverse-cycle consistency (0.0 = disabled).
     # cycle_detach=True trains only the explainer direction (trunk reads the
     # trajectory); False lets the ranking gradient reshape the trajectory itself.
@@ -210,7 +225,13 @@ class TrainConfig:
         name: Optional[str] = 'test'
         wandb_name: Optional[str] = f"{time.strftime('%Y_%m_%d_%H_%M_%S')}"
     
-    # max_steps: int = 100_000
+    # -1 preserves Lightning's epoch-controlled default. Positive values are
+    # used by fail-fast GPU smoke jobs before launching multi-epoch ablations.
+    max_steps: int = -1
+    # 0 means unrestricted. Positive integer limits are useful for smoke jobs
+    # and leave all existing configs byte-for-byte equivalent by default.
+    limit_train_batches: int = 0
+    limit_val_batches: int = 0
     max_epochs: int = 20
     # optimizer batch = batch_size x accumulate_grad_batches x world_size items;
     # lets arms whose K fan-out forces a small forward microbatch keep the same

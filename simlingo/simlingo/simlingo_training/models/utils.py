@@ -6,6 +6,56 @@ from torch import Tensor
 from simlingo_training.utils.custom_types import TrainingOutput
 
 
+def periodic_auxiliary_active(step: int, probability: float) -> bool:
+    """Deterministic, DDP-safe whole-batch modality-dropout schedule.
+
+    Every rank sees the same ``global_step`` and therefore takes the same
+    forward path.  This avoids rank-local Bernoulli draws changing the DDP
+    collective sequence while preserving the requested long-run frequency.
+    """
+    if not 0.0 <= probability <= 1.0:
+        raise ValueError(f"probability must be in [0,1], got {probability}")
+    if probability == 0.0:
+        return False
+    if probability == 1.0:
+        return True
+    period = max(1, round(1.0 / probability))
+    return int(step) % period == 0
+
+
+def diagonal_gaussian_kl(
+    mean_p: Tensor,
+    mean_q: Tensor,
+    *,
+    sigma_p: float,
+    sigma_q: float,
+    detach_q: bool = True,
+) -> Tensor:
+    """Per-sample KL(N(mean_p,sigma_p²) || N(mean_q,sigma_q²)).
+
+    The trajectory heads emit deterministic coordinates.  Treating those
+    coordinates as Gaussian means gives the vision-full and instruction-only
+    paths honest distributions without applying a meaningless softmax over
+    x/y coordinates.  ``sigma_q`` is intentionally broader: instruction-only
+    behavior is ambiguous and should be a prior, not an exact path teacher.
+    """
+    if sigma_p <= 0.0 or sigma_q <= 0.0:
+        raise ValueError("Gaussian sigmas must be positive")
+    if mean_p.shape != mean_q.shape:
+        raise ValueError(f"KL mean shapes differ: {mean_p.shape} vs {mean_q.shape}")
+    q = mean_q.detach() if detach_q else mean_q
+    p = mean_p.float().flatten(1)
+    q = q.float().flatten(1)
+    var_p = float(sigma_p) ** 2
+    var_q = float(sigma_q) ** 2
+    elementwise = (
+        torch.log(p.new_tensor(float(sigma_q) / float(sigma_p)))
+        + (var_p + (p - q).square()) / (2.0 * var_q)
+        - 0.5
+    )
+    return elementwise.mean(dim=1)
+
+
 def intra_scene_contrastive_loss(
     z_text: Tensor, z_traj: Tensor, group_ids: Tensor, temperature: float = 0.07
 ) -> Tuple[Tensor, Tensor, Optional[Tensor]]:

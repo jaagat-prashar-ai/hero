@@ -17,7 +17,15 @@ from hydra.utils import get_original_cwd
 
 
 from simlingo_training.models.adaptors.adaptors import DrivingAdaptor, LanguageAdaptor, WaypointInputAdaptor, TrajectoryEncoder, AdaptorList
-from simlingo_training.models.utils import summarise_losses, intra_scene_contrastive_loss, grouped_rank_cycle_loss, group_delta_spans, apply_traj_controls
+from simlingo_training.models.utils import (
+    summarise_losses,
+    intra_scene_contrastive_loss,
+    grouped_rank_cycle_loss,
+    group_delta_spans,
+    apply_traj_controls,
+    diagonal_gaussian_kl,
+    periodic_auxiliary_active,
+)
 from simlingo_training.utils.custom_types import (DrivingExample, DrivingInput,
                                                 DrivingLabel, DrivingOutput,
                                                 TrainingOutput)
@@ -95,6 +103,35 @@ class DrivingModel(pl.LightningModule):
             hidden_size2=512,
             # norm_layer=NormZeroOne(min_max=(-32.0, 32.0)),
         )
+
+        # Dual-path instruction prior. This adds no inference-time modules:
+        # both paths share the exact same language trunk and trajectory heads;
+        # only the visual placeholder replacement differs.
+        self.vision_dropout_prob = float(getattr(self, 'vision_dropout_prob', 0.0))
+        self.vision_dropout_text_loss_weight = float(
+            getattr(self, 'vision_dropout_text_loss_weight', 0.0)
+        )
+        self.vision_dropout_kl_weight = float(getattr(self, 'vision_dropout_kl_weight', 0.0))
+        self.vision_dropout_kl_sigma_full = float(
+            getattr(self, 'vision_dropout_kl_sigma_full', 0.5)
+        )
+        self.vision_dropout_kl_sigma_text = float(
+            getattr(self, 'vision_dropout_kl_sigma_text', 2.0)
+        )
+        self.vision_dropout_kl_warmup_steps = int(
+            getattr(self, 'vision_dropout_kl_warmup_steps', 0)
+        )
+        self.vision_dropout_kl_detach_text = bool(
+            getattr(self, 'vision_dropout_kl_detach_text', True)
+        )
+        if not 0.0 <= self.vision_dropout_prob <= 1.0:
+            raise ValueError("vision_dropout_prob must be in [0,1]")
+        if self.vision_dropout_text_loss_weight < 0.0 or self.vision_dropout_kl_weight < 0.0:
+            raise ValueError("vision-dropout loss weights must be nonnegative")
+        if self.vision_dropout_kl_weight > 0.0 and self.vision_dropout_text_loss_weight <= 0.0:
+            raise ValueError("KL requires a trained instruction-only branch")
+        if self.vision_dropout_kl_sigma_full <= 0.0 or self.vision_dropout_kl_sigma_text <= 0.0:
+            raise ValueError("vision-dropout Gaussian sigmas must be positive")
 
         # intra-scene counterfactual contrastive alignment: projection heads that
         # map instructions and predicted trajectories into a shared embedding space
@@ -285,15 +322,23 @@ class DrivingModel(pl.LightningModule):
                       driving_input: DrivingInput, 
                       adaptor_dict: Dict, 
                       driving_labels: DrivingLabel = None,
+                      drop_vision: bool = False,
                     #   language_embeds: Tensor = None
                       ) -> Tensor:
         """
         Forward model conditioned on the given driving input.
         """
         
+        pixel_values = driving_input.camera_images
+        if drop_vision:
+            # The image encoder already defines the empty-pixel path: image
+            # placeholders remain their learned language embeddings. Reuse it
+            # instead of feeding black pixels, which would be a recognizable
+            # synthetic image rather than genuine missing-modality training.
+            pixel_values = pixel_values.new_empty((0,))
         adaptor_dict = self.vision_model.image_encoder.replace_placeholder_tokens(
             adaptor_dict = adaptor_dict,
-            pixel_values = driving_input.camera_images,
+            pixel_values = pixel_values,
             placeholder_values = driving_input.prompt.placeholder_values,
             wp_encoder = self.wp_encoder,
         )
@@ -370,6 +415,79 @@ class DrivingModel(pl.LightningModule):
 
         adaptor_features, adaptor_logits = self.forward_model(example.driving_input, adaptor_dict, driving_labels=example.driving_label)
         loss_dict = self.adaptors.compute_loss(adaptor_features, adaptor_logits, adaptor_dict, example)
+
+        dropout_active = (
+            self.training
+            and self.vision_dropout_prob > 0.0
+            and periodic_auxiliary_active(
+                int(getattr(self, 'global_step', 0)), self.vision_dropout_prob
+            )
+        )
+        if getattr(self, '_trainer', None) is not None and self.vision_dropout_prob > 0.0:
+            self.log(
+                'train_losses/vision_dropout_active',
+                float(dropout_active),
+                on_step=True,
+                on_epoch=True,
+                sync_dist=True,
+            )
+        if dropout_active:
+            text_adaptor_dict = self.adaptors(example)
+            text_features, text_logits = self.forward_model(
+                example.driving_input,
+                text_adaptor_dict,
+                driving_labels=example.driving_label,
+                drop_vision=True,
+            )
+            text_loss_dict = self.adaptors.compute_loss(
+                text_features, text_logits, text_adaptor_dict, example
+            )
+            for key in ('speed_wps_loss', 'route_loss'):
+                if key in text_loss_dict:
+                    value, count = text_loss_dict[key]
+                    loss_dict[f'vision_dropout_{key}'] = (
+                        value * self.vision_dropout_text_loss_weight,
+                        count,
+                    )
+
+            full_parts = [loss_dict['speed_wps_prediction']]
+            text_parts = [text_loss_dict['speed_wps_prediction']]
+            if 'route_prediction' in loss_dict and 'route_prediction' in text_loss_dict:
+                full_parts.append(loss_dict['route_prediction'])
+                text_parts.append(text_loss_dict['route_prediction'])
+            full_traj = torch.cat(full_parts, dim=1)
+            text_traj = torch.cat(text_parts, dim=1)
+            branch_distance = torch.linalg.vector_norm(
+                full_traj.float() - text_traj.float(), dim=-1
+            ).mean(dim=1)
+            if getattr(self, '_trainer', None) is not None:
+                self.log(
+                    'train_losses/vision_text_trajectory_distance_m',
+                    branch_distance.mean(),
+                    on_step=True,
+                    on_epoch=True,
+                    sync_dist=True,
+                )
+
+            if self.vision_dropout_kl_weight > 0.0:
+                kl = diagonal_gaussian_kl(
+                    full_traj,
+                    text_traj,
+                    sigma_p=self.vision_dropout_kl_sigma_full,
+                    sigma_q=self.vision_dropout_kl_sigma_text,
+                    detach_q=self.vision_dropout_kl_detach_text,
+                )
+                kl_weight = self.vision_dropout_kl_weight
+                if self.vision_dropout_kl_warmup_steps > 0:
+                    kl_weight *= min(
+                        1.0,
+                        float(int(getattr(self, 'global_step', 0)) + 1)
+                        / self.vision_dropout_kl_warmup_steps,
+                    )
+                loss_dict['vision_dropout_kl_loss'] = (
+                    kl * kl_weight,
+                    torch.ones_like(kl, dtype=torch.long),
+                )
 
         if self.contrastive_loss_weight > 0 and example.group_ids is not None:
             loss_dict.update(self.contrastive_alignment_loss(adaptor_dict, adaptor_features, loss_dict, example.group_ids))
