@@ -36,10 +36,11 @@ def _s3_client():
 
 
 class S3CheckpointUpload(Callback):
-    def __init__(self, dirpath: str, s3_uri: str):
+    def __init__(self, dirpath: str, s3_uri: str, sync_every_steps: int = 0):
         self.dirpath = Path(dirpath)
         bucket_key = s3_uri.replace("s3://", "", 1)
         self.bucket, _, self.prefix = bucket_key.partition("/")
+        self.sync_every_steps = int(sync_every_steps)
         self._uploaded = {}  # relpath -> (size, mtime_ns)
 
     def _sync(self, trainer):
@@ -67,6 +68,26 @@ class S3CheckpointUpload(Callback):
 
     def on_validation_end(self, trainer, pl_module):
         if not trainer.sanity_checking:
+            self._sync(trainer)
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        # ModelCheckpoint writes its epoch checkpoint in ITS on_train_epoch_end
+        # hook, which runs after on_validation_end -- so the validation-end sync
+        # above always ran before the files existed and uploaded nothing. This
+        # hook runs after ModelCheckpoint's (this callback is registered later
+        # in the list), so epoch checkpoints now reach S3 as soon as they are
+        # written instead of only at on_train_end (found 2026-09-04 after a
+        # mid-run stop left zero checkpoints on S3).
+        self._sync(trainer)
+
+    def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
+        # picks up mid-epoch step checkpoints; every rank reaches _sync's
+        # barrier because global_step is identical across ranks
+        if (
+            self.sync_every_steps > 0
+            and trainer.global_step > 0
+            and trainer.global_step % self.sync_every_steps == 0
+        ):
             self._sync(trainer)
 
     def on_train_end(self, trainer, pl_module):

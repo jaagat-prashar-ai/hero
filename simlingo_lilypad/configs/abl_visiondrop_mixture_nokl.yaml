@@ -50,6 +50,7 @@ runtime_environment:
     PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
     SIMLINGO_EXPECTED_OBJECTS: "121"
     CHECKPOINT_S3_PREFIX: s3://research-datasets-chicago/simlingo-vision-dropout-checkpoints
+    CHECKPOINT_EVERY_N_STEPS: "4000"
     # inner train.py runs land on the wandb default entity, not the tracker's;
     # pin it so all visiondrop runs stay in one place (found 2026-09-04)
     WANDB_ENTITY: research-interns

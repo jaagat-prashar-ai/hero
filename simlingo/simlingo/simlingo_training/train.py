@@ -128,16 +128,31 @@ def main(cfg: TrainConfig):
     lr_monitor = LearningRateMonitor(logging_interval='step')
     model_summary = ModelSummary(max_depth=3)
     callbacks=[
-        checkpoint_callback, 
-        model_summary, 
-        # ThroughputMonitor(batch_size_fn=lambda batch: batch.driving_input.camera_images.size(0)), 
+        checkpoint_callback,
+        model_summary,
+        # ThroughputMonitor(batch_size_fn=lambda batch: batch.driving_input.camera_images.size(0)),
         VisualiseCallback(interval=1000, val_interval=1000)
     ]
-    # after checkpoint_callback so its hooks run once shards are on disk
+    # mid-epoch safety snapshots: an external stop between epoch boundaries
+    # otherwise loses everything since the last epoch checkpoint (a stop at
+    # 65% on 2026-09-04 left zero checkpoints). monitor=None + save_top_k=1
+    # keeps only the newest step snapshot on disk.
+    ckpt_every_steps = int(os.environ.get("CHECKPOINT_EVERY_N_STEPS", "0"))
+    if ckpt_every_steps > 0:
+        callbacks.append(pl.callbacks.ModelCheckpoint(
+            dirpath="./checkpoints",
+            filename="step-{step:07d}",
+            save_top_k=1,
+            monitor=None,
+            every_n_train_steps=ckpt_every_steps,
+            save_last=False,
+        ))
+    # after the checkpoint callbacks so its hooks run once shards are on disk
     if os.environ.get("CHECKPOINT_S3_PREFIX"):
         callbacks.append(S3CheckpointUpload(
             dirpath="./checkpoints",
             s3_uri=f"{os.environ['CHECKPOINT_S3_PREFIX'].rstrip('/')}/{cfg.wandb_name}",
+            sync_every_steps=ckpt_every_steps,
         ))
     if not cfg.debug: 
         callbacks.append(lr_monitor)
