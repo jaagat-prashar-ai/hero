@@ -13,6 +13,8 @@ import json
 import random
 from pathlib import Path
 
+import yaml
+
 import hydra
 import torch
 from deepspeed.utils.zero_to_fp32 import get_fp32_state_dict_from_zero_checkpoint
@@ -43,6 +45,14 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--batch-size", type=int, default=4)
     ap.add_argument("--mode", choices=["commentary", "dreamer"], default="commentary")
+    ap.add_argument(
+        "--model-override",
+        action="append",
+        default=[],
+        help="key=value applied to cfg.model before instantiation (e.g. "
+        "trajectory_mixture_k=3 for mixture checkpoints, whose heads differ "
+        "from the base config's)",
+    )
     args = ap.parse_args()
 
     torch.set_float32_matmul_precision("high")
@@ -68,6 +78,18 @@ def main() -> None:
     torch.manual_seed(args.seed)
 
     cfg = OmegaConf.load(args.config)
+
+    # arm-specific model options the shared base config predates (a config
+    # saved before a field existed simply lacks the key, so plain assignment
+    # on a struct config would raise -- merge a fresh dict instead)
+    if args.model_override:
+        overrides = {}
+        for kv in args.model_override:
+            key, _, value = kv.partition("=")
+            assert key and value, f"--model-override needs key=value, got {kv!r}"
+            overrides[key] = yaml.safe_load(value)  # "3"->int, "true"->bool
+        cfg.model = OmegaConf.merge(cfg.model, OmegaConf.create(overrides))
+        print(f"[worker] model overrides: {overrides}", flush=True)
 
     cfg.data_module.dreamer_dataset = None
     cfg.data_module.driving_dataset = None

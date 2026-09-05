@@ -127,6 +127,8 @@ def eval_faithfulness(training_fn_config: dict[str, Any], experiment_tracker: An
         "--batch-size", str(cfg.get("batch_size", 4)),
         "--mode", cfg.get("mode", "commentary"),
     ]
+    for override in arm.get("model_overrides", []):
+        cmd += ["--model-override", str(override)]
     print(f"[faith:{arm['name']}] launching: {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=sim_root, env=env)
     if result.returncode != 0:
